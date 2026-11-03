@@ -1,0 +1,294 @@
+@startuml data_model
+' Datenmodell NoteFieber (Stand 03.11.2026, maßgeblich ist database/scripts/schema/schema.sql)
+' * = NOT NULL, <<PK>> Primärschlüssel, <<FK>> Fremdschlüssel, <<UK>> eindeutig
+
+title Datenmodell NoteFieber (Stand 03.11.2026)
+
+hide circle
+skinparam linetype ortho
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #5F5E5A
+  ArrowColor #73726C
+}
+
+' ---------------------------------------------------------------------------
+' Mandanten, Personen, Workspaces (gleich wie TalkFieber)
+' ---------------------------------------------------------------------------
+
+entity "tenants" as tenants {
+  * id : uuid <<PK>> -- gleiche ID wie in TalkFieber
+  --
+  * slug : text <<UK>>
+  * name : text
+  * region : text
+  * plan : text
+  idp_org_id : text <<UK>> -- Organisation in Zitadel
+  * created_at : timestamptz
+  deleted_at : timestamptz
+}
+
+entity "users" as users {
+  * id : uuid <<PK>>
+  --
+  * tenant_id : uuid <<FK>>
+  idp_subject : text <<UK>> -- Person in Zitadel
+  * email : text -- eindeutig pro Mandant
+  * display_name : text
+  * role : text -- org_admin, member
+  * is_external : boolean
+  * locale : text
+  * time_zone : text
+  avatar_file_id : uuid <<FK>>
+  deactivated_at : timestamptz
+}
+
+entity "workspaces" as workspaces {
+  * id : uuid <<PK>>
+  --
+  * tenant_id : uuid <<FK>>
+  * slug : text -- eindeutig pro Mandant
+  * name : text
+  archived_at : timestamptz
+}
+
+entity "workspace_members" as workspace_members {
+  * workspace_id : uuid <<PK, FK>>
+  * user_id : uuid <<PK, FK>>
+  --
+  * tenant_id : uuid <<FK>>
+  * role : text -- owner, admin, member, guest
+  * joined_at : timestamptz
+}
+
+entity "groups" as groups {
+  * id : uuid <<PK>>
+  --
+  * tenant_id : uuid <<FK>>
+  * idp_group_id : text -- eindeutig pro Mandant
+  * name : text
+}
+
+entity "group_members" as group_members {
+  * group_id : uuid <<PK, FK>>
+  * user_id : uuid <<PK, FK>>
+  --
+  * tenant_id : uuid <<FK>>
+}
+
+entity "invites" as invites {
+  * id : uuid <<PK>>
+  --
+  * tenant_id : uuid <<FK>>
+  * workspace_id : uuid <<FK>>
+  * email : text
+  * role : text -- admin, member, guest
+  * token_hash : text <<UK>> -- nur der Hash
+  * expires_at : timestamptz
+  accepted_at : timestamptz
+  revoked_at : timestamptz
+}
+
+' ---------------------------------------------------------------------------
+' Wiki
+' ---------------------------------------------------------------------------
+
+entity "spaces" as spaces {
+  * id : uuid <<PK>>
+  --
+  * tenant_id : uuid <<FK>>
+  * workspace_id : uuid <<FK>>
+  * key : text -- z. B. ENTW, eindeutig pro Mandant
+  * name : text
+  description : text
+  home_page_id : uuid <<FK>> -- Startseite
+  created_by : uuid <<FK>>
+  archived_at : timestamptz -- archiviert = nur lesbar
+}
+
+entity "pages" as pages {
+  * id : uuid <<PK>>
+  --
+  * tenant_id : uuid <<FK>>
+  * space_id : uuid <<FK>>
+  parent_id : uuid <<FK>> -- im selben Space
+  * path : ltree -- vom Trigger gesetzt
+  * position : text -- Fractional Index
+  * title : text -- bis 255 Zeichen
+  * inherit_perms : boolean -- false = eigene Rechte
+  created_by : uuid <<FK>>
+  updated_by : uuid <<FK>>
+  * updated_at : timestamptz
+  deleted_at : timestamptz -- Papierkorb
+  deleted_by : uuid <<FK>>
+  trash_root_id : uuid -- gemeinsam gelöscht mit
+}
+
+entity "page_contents" as page_contents {
+  * page_id : uuid <<PK, FK>>
+  --
+  * tenant_id : uuid <<FK>>
+  * ydoc : bytea -- Yjs-Zustand
+  * plain_text : text
+  * editors_since_version : uuid[]
+  * updated_at : timestamptz
+}
+
+entity "page_versions" as page_versions {
+  * id : uuid <<PK>>
+  --
+  * tenant_id : uuid <<FK>>
+  * page_id : uuid <<FK>>
+  * version : integer -- fortlaufend pro Seite
+  * kind : text -- auto, manual, restore, import
+  restored_from : integer
+  * title : text
+  * ydoc : bytea
+  * plain_text : text
+  * author_ids : uuid[]
+  created_by : uuid <<FK>>
+  * created_at : timestamptz
+}
+
+entity "page_search" as page_search {
+  * page_id : uuid <<PK, FK>>
+  --
+  * tenant_id : uuid <<FK>>
+  * space_id : uuid
+  * tsv : tsvector
+}
+
+entity "page_links" as page_links {
+  * from_page_id : uuid <<PK, FK>>
+  * to_page_id : uuid <<PK, FK>>
+  --
+  * tenant_id : uuid <<FK>>
+}
+
+entity "grants" as grants {
+  * id : uuid <<PK>>
+  --
+  * tenant_id : uuid <<FK>>
+  space_id : uuid <<FK>> -- entweder Space
+  page_id : uuid <<FK>> -- oder Seite
+  * subject_type : text -- user, group, workspace
+  user_id : uuid <<FK>>
+  group_id : uuid <<FK>>
+  * role : text -- viewer, commenter, editor, admin
+}
+
+entity "comments" as comments {
+  * id : uuid <<PK>>
+  --
+  * tenant_id : uuid <<FK>>
+  * page_id : uuid <<FK>>
+  parent_id : uuid <<FK>> -- eine Ebene tief
+  author_id : uuid <<FK>>
+  body : text -- beim Löschen NULL
+  anchor : jsonb -- relative Yjs-Position
+  resolved_at : timestamptz
+  resolved_by : uuid <<FK>>
+  deleted_at : timestamptz
+}
+
+entity "files" as files {
+  * id : uuid <<PK>>
+  --
+  * tenant_id : uuid <<FK>>
+  page_id : uuid <<FK>> -- leer bei Profilbild und Import
+  uploaded_by : uuid <<FK>>
+  * storage_key : text <<UK>> -- Objekt in Garage
+  * file_name : text
+  * mime : text
+  * size_bytes : bigint
+  * scan_status : text -- pending, clean, infected, error
+}
+
+entity "imports" as imports {
+  * id : uuid <<PK>>
+  --
+  * tenant_id : uuid <<FK>>
+  * space_id : uuid <<FK>>
+  * source : text -- confluence
+  * file_id : uuid <<FK>>
+  * status : text -- pending, running, done, failed, rolled_back
+  * dry_run : boolean
+  * report : jsonb
+  * created_by : uuid <<FK>>
+}
+
+entity "import_items" as import_items {
+  * import_id : uuid <<PK, FK>>
+  * source_id : text <<PK>> -- Confluence-ID
+  --
+  * tenant_id : uuid <<FK>>
+  page_id : uuid <<FK>>
+  * status : text -- done, skipped, placeholder, failed
+}
+
+entity "outbox" as outbox {
+  * id : uuid <<PK>>
+  --
+  * tenant_id : uuid <<FK>>
+  * subject : text -- t.<tenant>.wiki.s.<space>
+  * event_type : text
+  * payload : jsonb
+  published_at : timestamptz
+}
+
+entity "audit_log" as audit_log {
+  * id : uuid <<PK>>
+  --
+  * tenant_id : uuid <<FK>>
+  actor_id : uuid
+  * action : text
+  * target_type : text
+  target_id : uuid
+  * details : jsonb
+  * created_at : timestamptz
+}
+
+' ---------------------------------------------------------------------------
+' Beziehungen
+' ---------------------------------------------------------------------------
+
+tenants ||--|{ workspaces : hat mind. 1
+tenants ||--o{ users : hat
+tenants ||--o{ groups : hat
+tenants ||--o{ outbox : hat
+tenants ||--o{ audit_log : hat
+
+workspaces ||--o{ workspace_members : hat
+users ||--o{ workspace_members : ist
+workspaces ||--o{ invites : lädt ein in
+groups ||--o{ group_members : hat
+users ||--o{ group_members : ist
+
+workspaces ||--o{ spaces : enthält
+spaces ||--|{ pages : hat mind. 1 (Startseite)
+pages |o--o{ pages : Elternseite
+pages ||--|| page_contents : hat
+pages ||--o{ page_versions : hat
+pages ||--o| page_search : hat
+pages ||--o{ page_links : verlinkt
+
+spaces ||--o{ grants : Rechte
+pages ||--o{ grants : Rechte bei gekappter Vererbung
+users |o--o{ grants : Subjekt
+groups |o--o{ grants : Subjekt
+
+pages ||--o{ comments : hat
+comments |o--o{ comments : Antwort
+users |o--o{ comments : schreibt
+
+pages |o--o{ files : Anhänge
+users |o--o{ files : lädt hoch
+
+spaces ||--o{ imports : Ziel
+files ||--o{ imports : Export-Archiv
+imports ||--o{ import_items : hat
+pages |o--o{ import_items : entstand aus
+
+@enduml
