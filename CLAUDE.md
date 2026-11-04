@@ -111,14 +111,14 @@ Zitadel: Login (OIDC), Gruppen
 **Der Weg einer Änderung:**
 1. Der Browser holt per REST ein kurzlebiges Token und öffnet eine WebSocket-Verbindung zum Collab-Server, Dokument `page:<id>`.
 2. `onAuthenticate` fragt die API nach der Rolle. Viewer und Commenter bekommen eine schreibgeschützte Verbindung, Editoren eine schreibende.
-3. `onLoadDocument` lädt `page_contents.ydoc`.
+3. `onLoadDocument` lädt `page_contents.ydoc`. Ist es noch der leere Anfangszustand (`\x0000`, neue Seite), schreibt der Collab-Server zuerst `pages.title` in `Y.Text` „title“. Sonst überschreibt das erste Speichern den Titel mit einem leeren.
 4. Änderungen laufen als Yjs-Updates zwischen allen Clients. Cursor und Anwesenheit über Yjs Awareness, nie gespeichert.
 5. `onStoreDocument` (entprellt, ca. alle 2 s) ruft `app.store_content` auf: Yjs-Zustand, Klartext, Titel, Bearbeitende. Das Event `page.updated` landet in der Outbox.
 6. Der Worker aktualisiert Suchindex und Verlinkungen und legt nach 10 Minuten Ruhe eine Version an.
 
 **Weitere Punkte:**
 - **Rechte:** Suche, Seitenbaum, Link-Vorschau, Benachrichtigungen, Export und Import gehen alle durch dieselben Funktionen (`app.page_rank`). Die meisten Datenlecks in Wikis entstehen über Nebenwege.
-- **Rechteänderung während einer Sitzung:** Bei `grant.changed` oder `page.permissions_changed` trennt der Collab-Server betroffene Verbindungen, sie authentifizieren sich neu.
+- **Rechteänderung während einer Sitzung:** Bei `grant.changed`, `page.permissions_changed` (auch nach Verschieben), `member.removed`, `member.changed`, `user.deactivated` und `space.archived` trennt der Collab-Server betroffene Verbindungen, sie authentifizieren sich neu. `store_content` prüft selbst keine Rechte.
 - **Wiederherstellen einer Version** rechnet der Collab-Server in Yjs: alten Stand laden, als neues Update anwenden, speichern, dann `app.create_version(…, 'restore', …, restored_from)`. Die Historie bleibt linear.
 - **Skalierung:** Im MVP eine Hocuspocus-Instanz (Recreate-Strategie, nie zwei Instanzen pro Dokument). Später mehrere über die Redis-Erweiterung mit Valkey oder Routing nach Dokument-ID.
 - **Mandantentrennung:** gemeinsame Datenbank mit `tenant_id` und Row Level Security, später Zellen.
@@ -126,12 +126,13 @@ Zitadel: Login (OIDC), Gruppen
 ## 7. Schnittstellen
 
 - **REST (API):** JSON, versioniert unter `/api/v1`. Schreibende Abläufe rufen die Funktionen im Schema `app` auf.
-- **Yjs über WebSocket (Collab-Server):** Hocuspocus-Protokoll unter `/collab`. Dokumentname `page:<uuid>`. Struktur im Yjs-Dokument: `Y.XmlFragment` für den BlockNote-Inhalt, `Y.Text` „title“ für den Titel.
+- **Yjs über WebSocket (Collab-Server):** Hocuspocus-Protokoll unter `/collab`. Dokumentname `page:<uuid>`. Struktur im Yjs-Dokument: `Y.XmlFragment` für den BlockNote-Inhalt, `Y.Text` „title“ für den Titel. Der Titel ändert sich **nur über Yjs** (umbenennen im Editor), `pages.title` ist die Kopie, die `store_content` schreibt (auf 255 Zeichen gekürzt). Die API ändert Titel nie direkt.
 - **Inhalt außerhalb von Yjs:** Der Collab-Server erzeugt beim Speichern Klartext für Suche und KI. Export und Import arbeiten mit BlockNote-JSON bzw. Markdown, nie direkt mit Yjs-Binärdaten.
 - **Events in der Outbox** (Subject `t.{tenant}.wiki.s.{space}`, später von TalkFieber abonniert):
-  - Spaces: `space.created`
+  - Spaces: `space.created`, `space.updated`, `space.archived`
   - Seiten: `page.created`, `page.updated`, `page.moved`, `page.trashed`, `page.restored`, `page.permissions_changed`
   - Rechte: `grant.changed`
+  - Personen (an jeden betroffenen Space): `member.removed`, `member.changed`, `user.deactivated`
   - Kommentare: `comment.created`
   - Import: `import.requested`
 
@@ -160,12 +161,19 @@ Maßgeblich ist `database/scripts/schema/schema.sql`. Jede Tabelle hat `tenant_i
 4. Archivierte Spaces: höchstens viewer.
 
 **Regeln, die die Datenbank selbst absichert:**
+- **`wiki_app` schreibt nur über die Funktionen in `app`** (`SECURITY DEFINER`, prüfen Rechte und Mandant selbst). Direkt nur: eigenes Profil (Name, Sprache, Zeitzone, Profilbild), neue Personen als einfaches Mitglied (erster Login), Einladungen und Workspaces (nur wer sie verwaltet), Anhänge (ungeprüft, an Seiten nur als editor). Seiten gar nicht direkt: Titel über Yjs, Reihenfolge über `app.move_page` (auch innerhalb derselben Elternseite). Rechte, Mitgliedschaften, Gruppen, Spaces, Seitenbaum, Vererbung, Inhalt, Versionen, Kommentare, Import, Outbox und Audit-Log nie direkt. Interne Bausteine (`emit`, `audit`, `insert_version`, `grant_rank` …) kann `wiki_app` nicht aufrufen. Ebenso wenig die Rechte anderer Personen: `app.page_rank(seite)` und `app.space_rank(space)` gelten für die angemeldete Person, die Varianten mit Person (`page_rank(seite, person)`) nutzen nur Funktionen und Worker.
+- Neue Funktionen sind für niemanden ausführbar (globale Default Privileges von `wiki_owner`), bis die Migration sie ausdrücklich an `wiki_app` und/oder `wiki_worker` freigibt.
 - Elternseite immer im selben Space (`FOREIGN KEY (parent_id, space_id)`), keine Zyklen (`app.move_page`).
-- `path`, `parent_id`, `space_id` und Papierkorb-Spalten sind für die App nicht direkt änderbar (Spaltenrechte), nur über Funktionen.
-- Leser können weder direkt noch über Funktionen Seiten anlegen oder Inhalt ändern (restriktive Policies für INSERT und UPDATE).
-- Inhalt (`store_content`) und automatische Versionen schreibt nur `wiki_worker`.
-- Jeder Space und jede Seite mit gekappter Vererbung behält mindestens einen Admin.
-- Gelöschte Kommentare haben keinen Inhalt mehr (`CHECK`).
+- Änderungen am Seitenbaum sperren den Space (`app.lock_tree`): Verschieben, Papierkorb und Vererbung exklusiv, neue Seiten geteilt. Gleichzeitiges Verschieben erzeugt so keine Zyklen und keine veralteten Pfade.
+- `path`, `parent_id`, `space_id`, `inherit_perms` und Papierkorb-Spalten sind für die App nicht direkt änderbar (Spaltenrechte), nur über Funktionen.
+- **Verschieben aus einem Bereich mit eigenen Rechten** (Seite mit gekappter Vererbung oberhalb) nur als Admin dieser Seite, hinein genügt editor am Ziel.
+- Leser können weder direkt noch über Funktionen Seiten anlegen oder Inhalt ändern.
+- Inhalt (`store_content`) und automatische Versionen schreibt nur `wiki_worker`, manuelle Versionen `app.save_version` (editor).
+- „Alle im Workspace“ kann höchstens editor sein (`CHECK`), Admins werden namentlich oder als Gruppe vergeben.
+- Jeder Space und jede Seite mit gekappter Vererbung behält mindestens einen **wirksamen** Admin: Grant für eine aktive Person oder eine Gruppe mit aktivem Mitglied (`app.has_admin`). Geprüft in `app.set_grant` und `app.remove_workspace_member`, als Rückfallebene beim Commit im Trigger `admin_remains`. Nicht abgedeckt: Deaktivieren und Gruppenaustritt ändern keine Grants. Dann setzt ein Organisations-Admin einen neuen Admin.
+- Audit-Log lesen nur Organisations-Admins. Einträge aus der API über `app.audit_event`, immer im Namen der angemeldeten Person.
+- Gelöschte Kommentare haben keinen Inhalt mehr (`CHECK`). Auf Seiten im Papierkorb lässt sich nicht kommentieren.
+- Wiederherstellen einer Version verweist nur auf eine vorhandene, ältere Version (`restored_from`, Fremdschlüssel).
 - Verweise über Mandanten, Spaces und Seiten hinweg lehnen Fremdschlüssel ab.
 
 **Wichtige Details:**
@@ -173,7 +181,9 @@ Maßgeblich ist `database/scripts/schema/schema.sql`. Jede Tabelle hat `tenant_i
 - **Organisations-Admins** sehen Inhalte nicht automatisch. Sie können aber auf jedem Space Rechte setzen (Wiederherstellung, wenn kein Admin mehr erreichbar ist). Das steht im Audit-Log.
 - **Verschieben** (`app.move_page`) und **Papierkorb** (`app.trash_page`) laufen als `SECURITY DEFINER`, weil der Teilbaum eingeschränkte Seiten enthalten kann, die die handelnde Person nicht sieht. Der Papierkorb lehnt ab, wenn darunter Seiten liegen, die sie nicht bearbeiten darf. Die Startseite eines Spaces lässt sich nicht löschen.
 - **Wiederherstellen aus dem Papierkorb** holt genau die Seiten zurück, die gemeinsam gelöscht wurden (`trash_root_id`).
-- **Position** im Baum kommt aus der App (npm-Paket `fractional-indexing`). Die Datenbank sortiert byteweise (`C.UTF-8`).
+- **Seiten im Papierkorb** bleiben für Leser lesbar (für die Papierkorb-Ansicht). Seitenbaum, Suche und Verlinkungen filtern `deleted_at IS NULL`, der Worker entfernt sie bei `page.trashed` aus `page_search`.
+- **Position** im Baum kommt aus der App (npm-Paket `fractional-indexing`). Ohne Angabe hängt `app.create_page` die Seite hinter alle Geschwister, auch die für die Person unsichtbaren (`app.next_position`, gleiche Schlüssel wie `generateKeyBetween(letzte, null)`, gegen das Paket geprüft). Ein `CHECK` lässt nur gültige Schlüssel zu. Positionen sind unter Geschwistern nicht eindeutig, weil die App eingeschränkte Geschwister nicht sieht: immer `ORDER BY position, id`. Die Datenbank sortiert byteweise (`C.UTF-8`).
+- **Personen aus Zitadel** sind pro Mandant eindeutig (`tenant_id, idp_subject`), nicht global. So kann dieselbe Person (Gast, Dienstleister) in mehreren Mandanten ein Konto haben. Die API sucht beim Login nach Mandant und `idp_subject`.
 - **Neue Seiten** bekommen einen leeren Yjs-Zustand (`\x0000`).
 - **Leistung:** Die Leseregel auf `pages` ruft `app.page_rank` pro Zeile auf. Für große Bäume später eine vom Worker gepflegte Tabelle mit effektiven Rechten pro Person und Seite.
 - **Textspalten** sind `text` mit `CHECK`-Grenzen (Titel 255, Kommentar 10.000 Zeichen, Yjs 50 MB pro Seite).
@@ -252,15 +262,16 @@ Wiki allein etwa 3–4 GB, mit TalkFieber etwa 5–8 GB. KVM 4 mit 16 GB reicht 
 
 Meilensteine und Übergangskriterien stehen in der `docs/ROADMAP.md`.
 
-1. ~~`schema.sql`~~ **erledigt:** `schema.sql` und `schema_test.sql` liegen unter `database/scripts/schema`. Alle 28 Tests sind auf PostgreSQL 16.15 bestanden (mit einem nachgebildeten `uuidv7()` und Locale `C`, weil 16 beides noch nicht eingebaut hat). **Auf PostgreSQL 18 einmal laufen lassen.** Regeln für die Arbeit damit:
+1. ~~`schema.sql`~~ **erledigt:** `schema.sql` und `schema_test.sql` liegen unter `database/scripts/schema`. Alle 42 Tests sind auf PostgreSQL 18.6 bestanden (Docker-Image `postgres:18`). `schema_test.sql` läuft in einer Transaktion und rollt am Ende zurück, ist also beliebig oft wiederholbar. Gleichzeitige Sitzungen (Sperren im Seitenbaum, gegenseitiges Entfernen von Admins) prüft `schema_concurrency_test.sh`, z. B. `PSQL="docker exec -i nf-pg18 psql -U wiki_owner -d wiki" ./schema_concurrency_test.sh`. Regeln für die Arbeit damit:
    - `database/scripts/roles_database.sql` legt die Rollen und die Datenbank `wiki` an. Das Schema spielt `wiki_owner` ein, nie `postgres`, sonst laufen die `SECURITY DEFINER`-Funktionen als Superuser.
    - Die API verbindet sich als `wiki_app`, Collab-Server und Worker als `wiki_worker`, **nie als Eigentümer** (der umgeht RLS).
    - Pro Transaktion `app.tenant_id` und bei `wiki_app` zusätzlich `app.user_id` setzen.
-   - Schreibende Abläufe über die Funktionen im Schema `app` (`create_space`, `create_page`, `move_page`, `trash_page`, `set_grant`, `set_page_inheritance`, `add_comment`, `store_content`, `create_version` usw.), nicht über direkte INSERTs.
+   - Schreibende Abläufe über die Funktionen im Schema `app` (`create_space`, `update_space`, `archive_space`, `create_page`, `move_page`, `trash_page`, `set_grant`, `set_page_inheritance`, `add_workspace_member`, `set_workspace_member_role`, `remove_workspace_member`, `set_user_role`, `set_user_active`, `add_comment`, `edit_comment`, `store_content`, `create_version` usw.). Direkte INSERTs scheitern für `wiki_app` an fehlenden Rechten.
+   - Neue `SECURITY DEFINER`-Funktionen: Mandant in jeder Abfrage prüfen (RLS greift dort nicht), zuerst `require_actor` bzw. `require_page`/`require_space`, nie `require_worker` (dort ist `current_user` der Eigentümer).
    - Wie bei TalkFieber: bei Tabellen mit Leseregeln kein `INSERT … RETURNING` und kein `ON CONFLICT`, solange die neue Zeile für die Person noch nicht lesbar ist (z. B. ein Space vor seinem ersten Grant). IDs vorher mit `uuidv7()` erzeugen.
    - Alles, was Rechte oder Sichtbarkeit berührt, bekommt zuerst einen Test in `schema_test.sql`. Die Tests laufen als `wiki_app` bzw. `wiki_worker`.
 2. Repository und Grundgerüst: Next.js-Frontend, Express-API mit OIDC-Login über Zitadel, Hocuspocus mit `onAuthenticate`, `onLoadDocument`, `onStoreDocument` gegen diese Datenbank.
 3. Lokale Umgebung (Docker Compose oder k3d) mit PostgreSQL, Zitadel und Garage; danach K3s-Manifeste, die lokal und auf dem VPS gleich laufen.
 4. **Früh echte Confluence-Exporte besorgen** (2–3 Pilotkunden). Die häufigsten Makros zählen, bevor der Importer gebaut wird.
 5. Offene Entscheidungen aus Abschnitt 4 klären, vor allem Name, Lizenz und SaaS vs. On-Prem.
-6. In der TalkFieber-`CLAUDE.md` den Satz zum exklusiven VPS anpassen (Abschnitt 11 hier).
+6. In der TalkFieber-`CLAUDE.md` den Satz zum exklusiven VPS anpassen (Abschnitt 11 hier). Dort auch `users.idp_subject` auf pro Mandant eindeutig umstellen (Index auf `tenant_id, idp_subject`), damit beide Produkte Personen gleich zuordnen.
