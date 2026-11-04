@@ -13,6 +13,7 @@
   - `docs/ROADMAP.md`: Stufen 0–4 und Meilensteine M0–M5
   - `docs/EPICS.md`: Epics als Basis für User Stories, nach Roadmap-Stufen geordnet
   - `database/scripts/roles_database.sql`, `database/scripts/schema/schema.sql` und `schema_test.sql`: Datenbank
+  - `docs/SCHEMA.md`: Referenz zum Datenmodell (jede Tabelle und Spalte, Rollen, Regeln, jede Funktion). Bei Änderungen am Schema mit anpassen.
   - `docs/models/data_model/data_model.mmd` (ER-Diagramm), `docs/models/architecture` (Startsetup), `docs/models/architecture` (Zielarchitektur)
 - **Betriebsmodell:** Start als SaaS auf eigenem K3s. Self-Hosting per Helm-Chart ist das zweite Standbein, weil gerade Confluence-Data-Center-Kunden bewusst on-prem arbeiten (Reihenfolge offen, Abschnitt 4).
 
