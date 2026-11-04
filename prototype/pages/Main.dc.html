@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>NoteFieber – Seite</title>
+<script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F5FD6}a:hover{color:#174BB0}
+svg.i{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+code{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:0.88em;background:#F0F2F5;padding:1px 5px;border-radius:4px}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="position: relative; min-height: 1040px; display: flex; flex-wrap: wrap; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #1A2230; background: #FFFFFF; font-size: 14px; line-height: 1.5">
+
+  <nav aria-label="Navigation" style="flex: 1 1 272px; box-sizing: border-box; background: #0F2537; color: #C9D3DE; padding: 16px 12px; display: flex; flex-direction: column; gap: 14px">
+    <button style="display: flex; align-items: center; justify-content: space-between; height: 40px; padding: 0 10px; background: transparent; border: 0; border-radius: 6px; color: #FFFFFF; font-size: 15px; font-weight: 600; cursor: pointer">
+      Alpenwerk
+      <svg class="i" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4"></path></svg>
+    </button>
+
+    <label style="display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 10px; background: #1A3550; border-radius: 6px; color: #8FA0B3">
+      <svg class="i" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+      <input type="search" placeholder="Suchen" aria-label="Seiten suchen" style="flex: 1; min-width: 0; background: transparent; border: 0; outline: none; color: #FFFFFF; font: inherit">
+      <span style="font-size: 12px">Strg K</span>
+    </label>
+
+    <button style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: #1F4060; border: 0; border-radius: 8px; color: #C9D3DE; text-align: left; cursor: pointer">
+      <span style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 6px; background: #1F5FD6; color: #FFFFFF; font-size: 11px; font-weight: 600">EN</span>
+      <span style="flex: 1; min-width: 0">
+        <span style="display: block; color: #FFFFFF; font-weight: 600">Entwicklung</span>
+        <span style="display: block; font-size: 12px; color: #A9B7C6">Space · ENTW</span>
+      </span>
+      <svg class="i" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 6l3-3 3 3M5 10l3 3 3-3"></path></svg>
+    </button>
+
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 4px 4px 10px">
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #A9B7C6">Seiten</span>
+        <button aria-label="Neue Seite" style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: transparent; border: 0; border-radius: 6px; color: #C9D3DE; cursor: pointer">
+          <svg class="i" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+        </button>
+      </div>
+      <sc-for list="{{rows}}" as="row" hint-placeholder-count="8">
+        <div style="display: flex; align-items: center; padding-left: {{row.pad}}px; border-radius: 6px; background: {{row.bg}}">
+          <sc-if value="{{row.hasKids}}" hint-placeholder-val="{{ true }}">
+            <button aria-label="{{row.toggleLabel}}" onClick="{{row.toggle}}" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 36px; flex: 0 0 24px; background: transparent; border: 0; color: #A9B7C6; cursor: pointer">
+              <svg class="i" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" style="transform: rotate({{row.rot}}deg)"><path d="M6 4l4 4-4 4"></path></svg>
+            </button>
+          </sc-if>
+          <sc-if value="{{row.leaf}}" hint-placeholder-val="{{ false }}">
+            <span style="width: 24px; flex: 0 0 24px"></span>
+          </sc-if>
+          <button onClick="{{row.open}}" aria-current="{{row.current}}" style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 8px 0 2px; background: transparent; border: 0; color: {{row.color}}; font-size: 14px; font-weight: {{row.weight}}; text-align: left; cursor: pointer">
+            <svg class="i" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg>
+            <span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{row.title}}</span>
+            <sc-if value="{{row.restricted}}" hint-placeholder-val="{{ false }}">
+              <svg class="i" width="14" height="14" viewBox="0 0 16 16" role="img" aria-label="Eingeschränkt"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg>
+            </sc-if>
+          </button>
+        </div>
+      </sc-for>
+      <button style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 10px 0 30px; background: transparent; border: 0; border-radius: 6px; color: #A9B7C6; font-size: 14px; text-align: left; cursor: pointer">
+        <svg class="i" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+        Neue Seite
+      </button>
+    </div>
+
+    <div style="margin-top: auto; display: flex; flex-direction: column; gap: 2px; padding-top: 12px; border-top: 1px solid #1F4060">
+      <a href="Import.dc.html" style="display: flex; align-items: center; gap: 10px; height: 38px; padding: 0 10px; border-radius: 6px; color: #C9D3DE; text-decoration: none">
+        <svg class="i" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11V3M4.5 6.5L8 3l3.5 3.5"></path><path d="M3 11v2h10v-2"></path></svg>
+        Confluence-Import
+      </a>
+      <button style="display: flex; align-items: center; gap: 10px; height: 38px; padding: 0 10px; background: transparent; border: 0; border-radius: 6px; color: #C9D3DE; font-size: 14px; text-align: left; cursor: pointer">
+        <svg class="i" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.5 9h6l.5-9"></path></svg>
+        Papierkorb
+      </button>
+      <div style="display: flex; align-items: center; gap: 8px; padding: 10px 10px 2px; font-size: 12px; color: #A9B7C6">
+        <svg class="i" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2l5 2v4c0 3-2.2 5-5 6-2.8-1-5-3-5-6V4z"></path></svg>
+        Daten gehostet in der EU
+      </div>
+    </div>
+  </nav>
+
+  <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 32px; border-bottom: 1px solid #E2E5EA">
+      <nav aria-label="Brotkrume" style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 13px; color: #5B6573">
+        <sc-for list="{{crumbs}}" as="c" hint-placeholder-count="3">
+          <button onClick="{{c.open}}" style="background: none; border: 0; padding: 6px 4px; color: #5B6573; font-size: 13px; cursor: pointer">{{c.title}}</button>
+          <sc-if value="{{c.sep}}" hint-placeholder-val="{{ true }}"><span aria-hidden="true" style="color: #A0A8B3">/</span></sc-if>
+        </sc-for>
+      </nav>
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+        <div aria-label="Gerade auf dieser Seite: Sophie Bauer, Lukas Gruber, Anna Huber" role="img" style="display: flex; margin-right: 8px">
+          <span style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; border: 2px solid #FFFFFF; background: #0F766E; color: #FFFFFF; font-size: 11px; font-weight: 600">SB</span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; margin-left: -8px; border-radius: 50%; border: 2px solid #FFFFFF; background: #7C3AED; color: #FFFFFF; font-size: 11px; font-weight: 600">LG</span>
+          <span style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; margin-left: -8px; border-radius: 50%; border: 2px solid #FFFFFF; background: #1F5FD6; color: #FFFFFF; font-size: 11px; font-weight: 600">AH</span>
+        </div>
+        <button style="display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 12px; background: #FFFFFF; border: 1px solid #D5DAE1; border-radius: 8px; color: #1A2230; font-size: 14px; cursor: pointer">
+          <svg class="i" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"></circle><path d="M8 4.5V8l2.5 1.5"></path></svg>
+          Versionen
+        </button>
+        <button onClick="{{toggleComments}}" aria-pressed="{{commentsPressed}}" aria-label="Kommentare anzeigen" style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; background: {{commentsBg}}; border: 1px solid #D5DAE1; border-radius: 8px; color: #1A2230; cursor: pointer">
+          <svg class="i" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"></path></svg>
+        </button>
+        <button onClick="{{openRights}}" style="display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; background: #1F5FD6; border: 0; border-radius: 8px; color: #FFFFFF; font-size: 14px; font-weight: 500; cursor: pointer">
+          <svg class="i" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="5.5" r="2.5"></circle><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4"></path><path d="M10.5 3.2a2.5 2.5 0 010 4.6M12 9.8c1.3.6 2.2 1.9 2.5 3.7"></path></svg>
+          Teilen und Rechte
+        </button>
+        <button aria-label="Weitere Aktionen" style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; background: #FFFFFF; border: 1px solid #D5DAE1; border-radius: 8px; color: #1A2230; cursor: pointer">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3.5" cy="8" r="1.3" fill="currentColor"></circle><circle cx="8" cy="8" r="1.3" fill="currentColor"></circle><circle cx="12.5" cy="8" r="1.3" fill="currentColor"></circle></svg>
+        </button>
+      </div>
+    </header>
+
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; padding: 40px 32px 72px">
+      <article style="flex: 1 1 520px; max-width: 760px; min-width: 0">
+        <sc-if value="{{restricted}}" hint-placeholder-val="{{ false }}">
+          <span style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 999px; background: #FFF1E6; color: #9A3412; font-size: 12px; font-weight: 500">
+            <svg class="i" width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg>
+            Eingeschränkt
+          </span>
+        </sc-if>
+        <h1 style="margin: 8px 0 6px; font-size: 34px; line-height: 1.2; font-weight: 600; letter-spacing: -0.01em">{{page.title}}</h1>
+        <p style="margin: 0 0 28px; font-size: 13px; color: #5B6573">{{page.meta}}</p>
+
+        <sc-if value="{{isDm}}" hint-placeholder-val="{{ true }}">
+          <div style="font-size: 16px; line-height: 1.65">
+            <h2 style="margin: 0 0 8px; font-size: 20px; font-weight: 600">Überblick</h2>
+            <p style="margin: 0 0 12px"><mark style="background: {{markBg}}; border-bottom: 2px solid {{markLine}}; color: inherit; padding: 0 1px">Jede Tabelle trägt <code>tenant_id</code></mark>. Row Level Security trennt die Mandanten in der Datenbank selbst; die API setzt den Mandanten zu Beginn jeder Transaktion.</p>
+            <div style="display: flex; gap: 12px; margin: 16px 0 24px; padding: 14px 16px; border-radius: 8px; background: #EEF3FC; color: #1A2230">
+              <svg class="i" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true" style="color: #1F5FD6; margin-top: 3px"><circle cx="8" cy="8" r="6"></circle><path d="M8 7.2V11M8 5v.01"></path></svg>
+              <p style="margin: 0; font-size: 15px">Maßgeblich ist <code>schema.sql</code>. Jede Änderung am Schema braucht einen Test in <code>schema_test.sql</code>.</p>
+            </div>
+
+            <h2 style="margin: 28px 0 8px; font-size: 20px; font-weight: 600">Kerntabellen</h2>
+            <div style="overflow-x: auto; margin: 0 0 24px">
+              <table style="width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.5">
+                <thead>
+                  <tr style="background: #F5F7FA">
+                    <th style="text-align: left; padding: 8px 12px; border: 1px solid #E2E5EA; font-weight: 600">Tabelle</th>
+                    <th style="text-align: left; padding: 8px 12px; border: 1px solid #E2E5EA; font-weight: 600">Zweck</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td style="padding: 8px 12px; border: 1px solid #E2E5EA"><code>spaces</code></td><td style="padding: 8px 12px; border: 1px solid #E2E5EA">Bereich wie in Confluence, Einheit für Rechte und Import</td></tr>
+                  <tr><td style="padding: 8px 12px; border: 1px solid #E2E5EA"><code>pages</code></td><td style="padding: 8px 12px; border: 1px solid #E2E5EA">Seitenbaum mit Pfad und Position, Papierkorb</td></tr>
+                  <tr><td style="padding: 8px 12px; border: 1px solid #E2E5EA"><code>page_contents</code></td><td style="padding: 8px 12px; border: 1px solid #E2E5EA">Yjs-Zustand und Klartext für die Suche</td></tr>
+                  <tr><td style="padding: 8px 12px; border: 1px solid #E2E5EA"><code>grants</code></td><td style="padding: 8px 12px; border: 1px solid #E2E5EA">Rechte auf einen Space oder eine Seite</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h2 style="margin: 28px 0 8px; font-size: 20px; font-weight: 600">Mandant setzen</h2>
+            <pre style="margin: 0 0 24px; padding: 14px 16px; background: #0F2537; color: #E6EDF5; border-radius: 8px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 13px; line-height: 1.6; overflow-x: auto; white-space: pre">SELECT set_config('app.tenant_id', $1, true);
+SELECT set_config('app.user_id',   $2, true);</pre>
+
+            <h2 style="margin: 28px 0 8px; font-size: 20px; font-weight: 600">Offene Punkte</h2>
+            <div style="display: flex; flex-direction: column; gap: 4px; margin: 0 0 16px">
+              <sc-for list="{{tasks}}" as="t" hint-placeholder-count="2">
+                <label style="display: flex; align-items: center; gap: 10px; min-height: 36px; cursor: pointer">
+                  <input type="checkbox" checked="{{t.done}}" onChange="{{t.toggle}}" style="width: 18px; height: 18px; accent-color: #1F5FD6">
+                  <span style="text-decoration: {{t.deco}}; color: {{t.color}}">{{t.text}}</span>
+                </label>
+              </sc-for>
+            </div>
+            <p style="margin: 0; color: #6B7480">Tippe / für Befehle</p>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{notDm}}" hint-placeholder-val="{{ false }}">
+          <div style="font-size: 16px; line-height: 1.65">
+            <sc-for list="{{page.body}}" as="para" hint-placeholder-count="2">
+              <p style="margin: 0 0 14px">{{para.text}}</p>
+            </sc-for>
+            <p style="margin: 0; color: #6B7480">Tippe / für Befehle</p>
+          </div>
+        </sc-if>
+      </article>
+
+      <sc-if value="{{commentsOpen}}" hint-placeholder-val="{{ true }}">
+        <aside aria-label="Kommentare" style="flex: 0 1 300px; min-width: 260px">
+          <h2 style="margin: 56px 0 12px; font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #5B6573">Kommentare</h2>
+          <sc-if value="{{hasThread}}" hint-placeholder-val="{{ true }}">
+            <div style="border: 1px solid #E2E5EA; border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 12px">
+              <p style="margin: 0; padding: 4px 8px; border-radius: 4px; background: #FFEAD5; font-size: 13px; color: #1A2230">„Jede Tabelle trägt tenant_id“</p>
+              <div style="display: flex; gap: 10px">
+                <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; flex: 0 0 26px; border-radius: 50%; background: #0F766E; color: #FFFFFF; font-size: 10px; font-weight: 600">SB</span>
+                <div style="min-width: 0">
+                  <div style="font-size: 13px"><strong style="font-weight: 600">Sophie Bauer</strong> <span style="color: #5B6573">vor 1 Std.</span></div>
+                  <p style="margin: 2px 0 0; font-size: 14px">Gilt das auch für <code>page_links</code>? Dort hängen zwei Seiten dran.</p>
+                </div>
+              </div>
+              <div style="display: flex; gap: 10px">
+                <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; flex: 0 0 26px; border-radius: 50%; background: #7C3AED; color: #FFFFFF; font-size: 10px; font-weight: 600">LG</span>
+                <div style="min-width: 0">
+                  <div style="font-size: 13px"><strong style="font-weight: 600">Lukas Gruber</strong> <span style="color: #5B6573">vor 40 Min.</span></div>
+                  <p style="margin: 2px 0 0; font-size: 14px">Ja, ergänzt. Der Schematest prüft jetzt alle Tabellen.</p>
+                </div>
+              </div>
+              <label style="display: block">
+                <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Antworten</span>
+                <input type="text" placeholder="Antworten …" style="box-sizing: border-box; width: 100%; height: 38px; padding: 0 10px; border: 1px solid #D5DAE1; border-radius: 8px; font: inherit; font-size: 14px; color: #1A2230">
+              </label>
+              <div style="display: flex; justify-content: flex-end">
+                <button onClick="{{resolveThread}}" style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; background: #E3F1E8; border: 0; border-radius: 8px; color: #1E5135; font-size: 13px; font-weight: 500; cursor: pointer">
+                  <svg class="i" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg>
+                  Erledigt
+                </button>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{noComments}}" hint-placeholder-val="{{ false }}">
+            <p style="margin: 0 0 12px; font-size: 14px; color: #5B6573">Noch keine offenen Kommentare auf dieser Seite. Markiere Text, um ihn zu kommentieren.</p>
+          </sc-if>
+          <sc-if value="{{hasResolved}}" hint-placeholder-val="{{ true }}">
+            <button style="margin-top: 10px; height: 36px; padding: 0 4px; background: none; border: 0; color: #1E5135; font-size: 13px; cursor: pointer">{{resolvedLabel}} anzeigen</button>
+          </sc-if>
+        </aside>
+      </sc-if>
+    </div>
+  </main>
+
+  <sc-if value="{{rightsOpen}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; z-index: 10; display: flex; align-items: flex-start; justify-content: center; padding: 96px 16px; background: rgba(15, 37, 55, 0.45)">
+      <div role="dialog" aria-modal="true" aria-labelledby="rights-title" style="width: 100%; max-width: 560px; background: #FFFFFF; border-radius: 12px; box-shadow: 0 24px 64px rgba(15, 37, 55, 0.28); display: flex; flex-direction: column">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 20px 24px 16px">
+          <div>
+            <h2 id="rights-title" style="margin: 0; font-size: 18px; font-weight: 600">Rechte für „{{page.title}}“</h2>
+            <p style="margin: 4px 0 0; font-size: 13px; color: #5B6573">Wer diese Seite und ihre Unterseiten sehen und bearbeiten darf.</p>
+          </div>
+          <button onClick="{{closeRights}}" aria-label="Schließen" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; flex: 0 0 36px; background: transparent; border: 0; border-radius: 8px; color: #5B6573; cursor: pointer">
+            <svg class="i" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 24px; border-top: 1px solid #E2E5EA; border-bottom: 1px solid #E2E5EA; background: #F8F9FB">
+          <div>
+            <div style="font-weight: 600">Eigene Rechte für diese Seite</div>
+            <div style="font-size: 13px; color: #5B6573">{{inheritText}}</div>
+          </div>
+          <button onClick="{{toggleOwn}}" aria-pressed="{{ownPressed}}" aria-label="Eigene Rechte für diese Seite" style="position: relative; width: 46px; height: 28px; flex: 0 0 46px; border: 0; border-radius: 14px; background: {{switchBg}}; cursor: pointer">
+            <span style="position: absolute; top: 3px; left: {{knobX}}px; width: 22px; height: 22px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 3px rgba(15, 37, 55, 0.3)"></span>
+          </button>
+        </div>
+
+        <div style="padding: 4px 24px">
+          <sc-for list="{{grants}}" as="g" hint-placeholder-count="3">
+            <div style="display: flex; align-items: center; gap: 12px; min-height: 56px; border-bottom: 1px solid #EEF0F3">
+              <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex: 0 0 32px; border-radius: 50%; background: {{g.bg}}; color: #FFFFFF; font-size: 11px; font-weight: 600">{{g.initials}}</span>
+              <div style="flex: 1; min-width: 0">
+                <div style="font-weight: 500">{{g.name}}</div>
+                <div style="font-size: 12px; color: #5B6573">{{g.sub}}</div>
+              </div>
+              <sc-if value="{{g.editable}}" hint-placeholder-val="{{ false }}">
+                <select aria-label="{{g.selectLabel}}" value="{{g.role}}" onChange="{{g.change}}" style="height: 36px; padding: 0 8px; border: 1px solid #D5DAE1; border-radius: 8px; background: #FFFFFF; font: inherit; font-size: 14px; color: #1A2230">
+                  <option value="admin">Admin</option>
+                  <option value="editor">Bearbeiten</option>
+                  <option value="commenter">Kommentieren</option>
+                  <option value="viewer">Lesen</option>
+                  <option value="none">Kein Zugriff</option>
+                </select>
+              </sc-if>
+              <sc-if value="{{g.readonly}}" hint-placeholder-val="{{ true }}">
+                <span style="font-size: 14px; color: #5B6573">{{g.roleLabel}}</span>
+              </sc-if>
+            </div>
+          </sc-for>
+          <sc-if value="{{ownOn}}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; gap: 8px; padding: 14px 0 6px">
+              <label style="flex: 1; min-width: 0">
+                <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Person oder Gruppe hinzufügen</span>
+                <input type="text" placeholder="Person oder Gruppe hinzufügen" style="box-sizing: border-box; width: 100%; height: 38px; padding: 0 10px; border: 1px solid #D5DAE1; border-radius: 8px; font: inherit; font-size: 14px; color: #1A2230">
+              </label>
+              <button style="height: 38px; padding: 0 14px; background: #FFFFFF; border: 1px solid #D5DAE1; border-radius: 8px; color: #1A2230; font-size: 14px; cursor: pointer">Hinzufügen</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ownOff}}" hint-placeholder-val="{{ true }}">
+            <p style="margin: 12px 0 6px; font-size: 13px; color: #5B6573">Um nur einzelnen Personen Zugriff zu geben, schalte „Eigene Rechte“ ein. Die bisherigen Rechte werden übernommen und lassen sich dann einschränken.</p>
+          </sc-if>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 8px; padding: 16px 24px 20px">
+          <button onClick="{{closeRights}}" style="height: 38px; padding: 0 14px; background: #FFFFFF; border: 1px solid #D5DAE1; border-radius: 8px; color: #1A2230; font-size: 14px; cursor: pointer">Abbrechen</button>
+          <button onClick="{{saveRights}}" style="height: 38px; padding: 0 16px; background: #1F5FD6; border: 0; border-radius: 8px; color: #FFFFFF; font-size: 14px; font-weight: 500; cursor: pointer">Speichern</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1040}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      current: 'dm',
+      expanded: { home: true, arch: true, betrieb: true },
+      own: { personal: true },
+      roles: { personal: { anna: 'admin', dev: 'none', ws: 'none' } },
+      rightsOpen: false,
+      draftOwn: false,
+      draftRoles: {},
+      commentsOpen: true,
+      threadOpen: true,
+      tasks: { t1: true, t2: false }
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const P = {
+      home: { title: 'Entwicklung', parent: null, kids: ['arch', 'release', 'betrieb'], meta: 'Startseite des Space · zuletzt bearbeitet von Anna Huber am 28. Oktober',
+        body: ['Hier dokumentiert das Entwicklungsteam von Alpenwerk Architektur, Abläufe und Betrieb.', 'Neue Seiten bitte unter dem passenden Bereich anlegen. Seiten mit eigenen Rechten sind mit einem Schloss markiert.'] },
+      arch: { title: 'Architektur', parent: 'home', kids: ['dm', 'rechte'], meta: 'Zuletzt bearbeitet von Lukas Gruber am 30. Oktober',
+        body: ['Frontend, API und Collab-Server laufen als eigene Prozesse. PostgreSQL ist die einzige Wahrheit für Struktur, Rechte und Inhalt.'] },
+      dm: { title: 'Datenmodell', parent: 'arch', kids: [], meta: 'Zuletzt bearbeitet von Sophie Bauer vor 2 Minuten' },
+      rechte: { title: 'Rechte-Konzept', parent: 'arch', kids: [], meta: 'Zuletzt bearbeitet von Anna Huber am 29. Oktober',
+        body: ['Rechte werden am Space vergeben und an Seiten vererbt. Eine Seite kann die Vererbung kappen und eigene Rechte bekommen.'] },
+      release: { title: 'Release-Prozess', parent: 'home', kids: [], meta: 'Zuletzt bearbeitet von Markus Wagner am 21. Oktober',
+        body: ['Jeder Merge rollt automatisch nach staging aus. Für pilot braucht es eine Freigabe im Review.'] },
+      betrieb: { title: 'Betrieb', parent: 'home', kids: ['backup', 'personal'], meta: 'Zuletzt bearbeitet von Lukas Gruber am 2. November',
+        body: ['Alles zum Cluster auf dem VPS: Backups, Überwachung und Bereitschaft.'] },
+      backup: { title: 'Backups und Wiederherstellung', parent: 'betrieb', kids: [], meta: 'Zuletzt bearbeitet von Lukas Gruber am 2. November',
+        body: ['CloudNativePG sichert laufend in einen S3-Speicher bei einem anderen Anbieter. Die Wiederherstellung wird einmal pro Quartal geprobt.'] },
+      personal: { title: 'Personalplanung 2027', parent: 'betrieb', kids: [], meta: 'Zuletzt bearbeitet von Anna Huber am 1. November',
+        body: ['Bereitschaftsplan und Personalplanung für 2027. Diese Seite sehen nur ausgewählte Personen.'] }
+    };
+
+    const chain = (id) => { const out = []; let x = id; while (x) { out.unshift(x); x = P[x].parent; } return out; };
+    const cur = s.current;
+    const curChain = chain(cur);
+    const restricted = curChain.some((x) => s.own[x]);
+    const srcId = curChain.slice(0, -1).reverse().find((x) => s.own[x]);
+    const source = srcId ? '„' + P[srcId].title + '“' : 'Space „Entwicklung“';
+
+    const rows = [];
+    const walk = (id, depth) => {
+      const p = P[id];
+      const open = !!s.expanded[id];
+      const active = cur === id;
+      rows.push({
+        title: p.title,
+        pad: 4 + depth * 16,
+        hasKids: p.kids.length > 0,
+        leaf: p.kids.length === 0,
+        rot: open ? 90 : 0,
+        toggleLabel: (open ? 'Zuklappen: ' : 'Aufklappen: ') + p.title,
+        bg: active ? '#1F4060' : 'transparent',
+        color: active ? '#FFFFFF' : '#C9D3DE',
+        weight: active ? 600 : 400,
+        current: active ? 'page' : 'false',
+        restricted: !!s.own[id],
+        toggle: () => this.setState((st) => ({ expanded: { ...st.expanded, [id]: !st.expanded[id] } })),
+        open: () => this.setState({ current: id })
+      });
+      if (open) p.kids.forEach((k) => walk(k, depth + 1));
+    };
+    walk('home', 0);
+
+    const crumbs = curChain.map((id, i) => ({
+      title: P[id].title,
+      sep: i < curChain.length - 1,
+      open: () => this.setState({ current: id })
+    }));
+
+    const labels = { admin: 'Admin', editor: 'Bearbeiten', commenter: 'Kommentieren', viewer: 'Lesen', none: 'Kein Zugriff' };
+    const defaults = { anna: 'admin', dev: 'editor', ws: 'viewer' };
+    const people = [
+      { key: 'anna', name: 'Anna Huber', sub: 'Space-Admin', initials: 'AH', bg: '#1F5FD6' },
+      { key: 'dev', name: 'Gruppe Entwicklung', sub: 'Gruppe aus dem Login-Dienst', initials: 'GE', bg: '#0F766E' },
+      { key: 'ws', name: 'Alle im Workspace', sub: 'Alle Mitglieder von Alpenwerk, ohne Gäste', initials: 'AW', bg: '#5B6573' }
+    ];
+    const grants = people.map((g) => {
+      const role = s.draftRoles[g.key] || defaults[g.key];
+      return {
+        ...g,
+        role,
+        roleLabel: labels[role],
+        selectLabel: 'Rolle für ' + g.name,
+        editable: s.draftOwn,
+        readonly: !s.draftOwn,
+        change: (e) => { const v = e.target.value; this.setState((st) => ({ draftRoles: { ...st.draftRoles, [g.key]: v } })); }
+      };
+    });
+
+    const tasks = [
+      { id: 't1', text: 'RLS-Tests für alle Lesepfade' },
+      { id: 't2', text: 'Tabelle mit effektiven Rechten für große Seitenbäume' }
+    ].map((t) => {
+      const done = !!s.tasks[t.id];
+      return {
+        ...t,
+        done,
+        deco: done ? 'line-through' : 'none',
+        color: done ? '#5B6573' : '#1A2230',
+        toggle: () => this.setState((st) => ({ tasks: { ...st.tasks, [t.id]: !st.tasks[t.id] } }))
+      };
+    });
+
+    const p = P[cur];
+    const isDm = cur === 'dm';
+    const threadVisible = isDm && s.threadOpen;
+
+    return {
+      rows,
+      crumbs,
+      page: { title: p.title, meta: p.meta, body: (p.body || []).map((text) => ({ text })) },
+      isDm,
+      notDm: !isDm,
+      restricted,
+      tasks,
+      markBg: threadVisible ? '#FFEAD5' : 'transparent',
+      markLine: threadVisible ? '#C2410C' : 'transparent',
+
+      commentsOpen: s.commentsOpen,
+      commentsPressed: s.commentsOpen ? 'true' : 'false',
+      commentsBg: s.commentsOpen ? '#EEF3FC' : '#FFFFFF',
+      toggleComments: () => this.setState((st) => ({ commentsOpen: !st.commentsOpen })),
+      hasThread: threadVisible,
+      noComments: !threadVisible,
+      hasResolved: isDm,
+      resolvedLabel: s.threadOpen ? '1 erledigten Thread' : '2 erledigte Threads',
+      resolveThread: () => this.setState({ threadOpen: false }),
+
+      rightsOpen: s.rightsOpen,
+      openRights: () => this.setState((st) => ({ rightsOpen: true, draftOwn: !!st.own[st.current], draftRoles: { ...(st.roles[st.current] || {}) } })),
+      closeRights: () => this.setState({ rightsOpen: false }),
+      saveRights: () => this.setState((st) => ({
+        rightsOpen: false,
+        own: { ...st.own, [st.current]: st.draftOwn },
+        roles: { ...st.roles, [st.current]: st.draftOwn ? st.draftRoles : {} }
+      })),
+      toggleOwn: () => this.setState((st) => ({ draftOwn: !st.draftOwn })),
+      ownPressed: s.draftOwn ? 'true' : 'false',
+      ownOn: s.draftOwn,
+      ownOff: !s.draftOwn,
+      switchBg: s.draftOwn ? '#1F5FD6' : '#9AA5B1',
+      knobX: s.draftOwn ? 21 : 3,
+      inheritText: s.draftOwn ? 'Gilt für diese Seite und ihre Unterseiten.' : 'Erbt die Rechte von ' + source + '.',
+      grants
+    };
+  }
+}
+</script>
+</body>
+</html>
