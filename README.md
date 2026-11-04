@@ -6,18 +6,18 @@ Eine europäische Alternative zu Confluence, entwickelt und gehostet in der EU. 
 
 TypeScript durchgängig: Next.js als Oberfläche, BlockNote als Editor, Yjs mit Hocuspocus für gemeinsames Bearbeiten, Express als API, PostgreSQL 18 über CloudNativePG, Zitadel für den Login, Garage für Dateien, alles auf K3s.
 
-## Datenbank lokal aufsetzen und testen
+## Lokal entwickeln
 
-Voraussetzung: PostgreSQL 18.
+Was man braucht und wie man PostgreSQL 18 mit Schema und Tests aufsetzt, steht in [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md). Kurzfassung für ein vorhandenes PostgreSQL 18 (die Variante mit Docker steht in der Anleitung):
 
 ```bash
 psql -U postgres -f database/scripts/roles_database.sql
 psql -U wiki_owner -d wiki -f database/scripts/schema/schema.sql
 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f database/scripts/schema/schema_test.sql
-# Erwartet: OK 1 … OK 28, dann "Alle Tests bestanden."
+# Erwartet: OK 1 … OK 42, dann "Alle Tests bestanden (zurückgerollt …)."
 ```
 
-Die App verbindet sich nie als `wiki_owner`, sondern mit Login-Rollen in `wiki_app` (API) bzw. `wiki_worker` (Collab-Server, Worker). Details in `CLAUDE.md` Abschnitt 13.
+Die App verbindet sich nie als `wiki_owner`, sondern mit Login-Rollen in `wiki_app` (API) bzw. `wiki_worker` (Collab-Server, Worker). Das Datenmodell beschreibt [docs/SCHEMA.md](docs/SCHEMA.md), die Entscheidungen stehen in `CLAUDE.md`.
 
 ## Projektstruktur (geplant)
 

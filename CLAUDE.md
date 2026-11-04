@@ -14,6 +14,7 @@
   - `docs/EPICS.md`: Epics als Basis für User Stories, nach Roadmap-Stufen geordnet
   - `database/scripts/roles_database.sql`, `database/scripts/schema/schema.sql` und `schema_test.sql`: Datenbank
   - `docs/SCHEMA.md`: Referenz zum Datenmodell (jede Tabelle und Spalte, Rollen, Regeln, jede Funktion). Bei Änderungen am Schema mit anpassen.
+  - `docs/LOCAL_SETUP.md`: lokale Entwicklung (Voraussetzungen, PostgreSQL 18 in Docker, Schema, Tests, Fehlerbehebung). Mit jedem neuen Baustein (Compose, Zitadel, Garage, Apps) ergänzen.
   - `docs/models/data_model/data_model.mmd` (ER-Diagramm), `docs/models/architecture` (Startsetup), `docs/models/architecture` (Zielarchitektur)
 - **Betriebsmodell:** Start als SaaS auf eigenem K3s. Self-Hosting per Helm-Chart ist das zweite Standbein, weil gerade Confluence-Data-Center-Kunden bewusst on-prem arbeiten (Reihenfolge offen, Abschnitt 4).
 
