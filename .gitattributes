@@ -1,0 +1,4 @@
+# Shell-Skripte immer mit LF, auch unter Windows mit core.autocrlf=true.
+# Mit CRLF brechen sie ab ($'\r': command not found), das Init-Skript der lokalen
+# Datenbank sogar beim ersten Start des Containers.
+*.sh text eol=lf

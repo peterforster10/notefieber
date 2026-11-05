@@ -1,0 +1,43 @@
+# Lokale Entwicklungsumgebung, siehe docs/LOCAL_SETUP.md.
+# Bisher nur PostgreSQL 18; Zitadel und Garage kommen dazu.
+#
+#   docker compose up -d        starten (beim ersten Mal mit Rollen, Schema und Testdaten)
+#   docker compose stop         anhalten, die Daten bleiben im Volume
+#   docker compose down         Container entfernen, die Daten bleiben im Volume
+#   docker compose down -v      Container UND Daten entfernen
+#
+# Einstellungen über Umgebungsvariablen oder eine Datei .env neben dieser Datei
+# (nicht im Repository, siehe .gitignore):
+#   POSTGRES_PASSWORD   Passwort des Superusers postgres (Standard: postgres-lokal)
+#   NF_PG_PORT          Port auf dem eigenen Rechner (Standard: 5432)
+#   NF_SEED             Testdaten beim ersten Start einspielen (Standard: true)
+#   NF_PG_CONTAINER     Name des Containers (Standard: nf-pg18)
+#   NF_PG_VOLUME        Name des Volumes mit den Daten (Standard: notefieber-pgdata)
+name: notefieber
+
+services:
+  postgres:
+    image: postgres:18
+    container_name: ${NF_PG_CONTAINER:-nf-pg18}
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres-lokal}
+      NF_SEED: ${NF_SEED:-true}
+    ports:
+      - "127.0.0.1:${NF_PG_PORT:-5432}:5432"   # nur auf dem eigenen Rechner, nicht im Netzwerk
+    volumes:
+      - pgdata:/var/lib/postgresql             # Daten (beim Image postgres:18 dieser Pfad)
+      - ./database/scripts:/scripts:ro         # Rollen, Schema, Tests, Testdaten
+      - ./database/docker/initdb:/docker-entrypoint-initdb.d:ro   # nur beim ersten Start
+    healthcheck:
+      # Über TCP: Während der Ersteinrichtung lauscht PostgreSQL nur auf dem Socket,
+      # „healthy“ heißt also: Rollen, Schema und Testdaten sind eingespielt.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d wiki"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 60s
+
+volumes:
+  pgdata:
+    # Fester Name statt notefieber_pgdata: Daten aus dem früheren „docker run“ bleiben nutzbar.
+    name: ${NF_PG_VOLUME:-notefieber-pgdata}

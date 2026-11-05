@@ -1,0 +1,2 @@
+# Lokale Einstellungen für docker compose (Passwörter, Ports), siehe docs/LOCAL_SETUP.md
+.env

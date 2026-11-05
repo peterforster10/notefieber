@@ -26,7 +26,14 @@ TypeScript durchgängig: Next.js als Oberfläche, BlockNote als Editor, Yjs mit 
 
 ## Lokal entwickeln
 
-Was man braucht und wie man PostgreSQL 18 mit Schema und Tests aufsetzt, steht in [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md). Kurzfassung für ein vorhandenes PostgreSQL 18 (die Variante mit Docker steht in der Anleitung):
+Was man braucht und wie man PostgreSQL 18 mit Schema und Tests aufsetzt, steht in [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md). Kurzfassung mit Docker (richtet beim ersten Start Rollen, Schema und Testdaten selbst ein):
+
+```bash
+docker compose up -d --wait
+docker exec nf-pg18 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f /scripts/schema_test/schema_test.sql
+```
+
+Für ein vorhandenes PostgreSQL 18 ohne Docker:
 
 ```bash
 psql -U postgres -f database/scripts/roles_database.sql
