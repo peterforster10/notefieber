@@ -9,11 +9,11 @@
 DO $$
 DECLARE t1 uuid; t2 uuid; shared uuid := '0193a000-0000-7000-8000-000000000002';
 BEGIN
-  t1 := app.create_tenant('alpenwerk', 'Alpenwerk', 'eu-central', 'anna@alpenwerk.example', 'Anna Huber');
+  t1 := app.create_tenant('test-alpenwerk', 'Alpenwerk', 'eu-central', 'anna@alpenwerk.example', 'Anna Huber');
   INSERT INTO ids SELECT 't1', t1;
   INSERT INTO ids SELECT 'anna', id FROM users WHERE email = 'anna@alpenwerk.example';
   INSERT INTO ids SELECT 'ws1', id FROM workspaces WHERE tenant_id = t1;
-  t2 := app.create_tenant('andere-firma', 'Andere Firma', 'eu-central', 'eva@andere.example', 'Eva Fremd',
+  t2 := app.create_tenant('test-andere-firma', 'Andere Firma', 'eu-central', 'eva@andere.example', 'Eva Fremd',
                           p_tenant_id => shared);
   ASSERT t2 = shared, 'vorgegebene Mandanten-ID nicht übernommen';
   INSERT INTO ids SELECT 't2', t2;

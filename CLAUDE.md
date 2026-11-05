@@ -16,6 +16,7 @@
   - `docs/EPICS.md`: Epics als Basis für User Stories, nach Roadmap-Stufen geordnet
   - `database/scripts/roles_database.sql` und `database/scripts/schema/`: Datenbank. `schema.sql` ist der Einstieg und bindet die Teile `00_setup.sql` … `90_privileges.sql` ein. Tests in `database/scripts/schema_test/`: `schema_test.sql` (Einstieg, Teile `01_basics.sql` … `11_content_json.sql`) und `schema_concurrency_test.sh`
   - `docs/SCHEMA.md`: Referenz zum Datenmodell (jede Tabelle und Spalte, Rollen, Regeln, jede Funktion). Bei Änderungen am Schema mit anpassen.
+  - `database/scripts/seed/seed.sql`: Testdaten für die lokale Entwicklung (Mandanten Alpenwerk und Nordlicht, Personen, Spaces und Seiten wie im Prototyp). Geht über die Funktionen in `app`; bei geänderten Funktionen mitziehen.
   - `docs/LOCAL_SETUP.md`: lokale Entwicklung (Voraussetzungen, PostgreSQL 18 in Docker, Schema, Tests, Fehlerbehebung). Mit jedem neuen Baustein (Compose, Zitadel, Garage, Apps) ergänzen.
   - `docs/models/data_model/`: ER-Diagramm als `data_model.mmd` (Mermaid), `data_model.puml` (PlantUML) und `data_model.svg`/`.pdf` (draw.io). Bei Änderungen am Schema alle drei nachziehen.
   - `docs/models/architecture/`: `architecture.svg` (Startsetup), `architecture_target.svg` (Zielarchitektur)
@@ -125,7 +126,7 @@ Zitadel: Login (OIDC), Gruppen
 **Der Weg einer Änderung:**
 1. Der Browser holt per REST ein kurzlebiges Token und öffnet eine WebSocket-Verbindung zum Collab-Server, Dokument `page:<id>`.
 2. `onAuthenticate` fragt die API nach der Rolle. Viewer und Commenter bekommen eine schreibgeschützte Verbindung, Editoren eine schreibende.
-3. `onLoadDocument` lädt `page_contents.ydoc`. Ist es noch der leere Anfangszustand (`\x0000`, neue Seite), schreibt der Collab-Server zuerst `pages.title` in `Y.Text` „title“. Sonst überschreibt das erste Speichern den Titel mit einem leeren.
+3. `onLoadDocument` lädt `page_contents.ydoc`. Ist es noch der leere Anfangszustand (`\x0000`), schreibt der Collab-Server zuerst `pages.title` in `Y.Text` „title“, sonst überschreibt das erste Speichern den Titel mit einem leeren. Ist außerdem `content_json` gefüllt (Testdaten aus `seed.sql`, später der Confluence-Import), baut er das Dokument aus diesem BlockNote-JSON. Wer Inhalt ohne Collab-Server schreibt, muss also nur `content_json` und `plain_text` liefern, kein Yjs.
 4. Änderungen laufen als Yjs-Updates zwischen allen Clients. Cursor und Anwesenheit über Yjs Awareness, nie gespeichert.
 5. `onStoreDocument` (entprellt, ca. alle 2 s) ruft `app.store_content` auf: Yjs-Zustand, BlockNote-JSON (`editor.document`), Klartext, Titel, Bearbeitende. Das Event `page.updated` landet in der Outbox.
 6. Der Worker aktualisiert Suchindex und Verlinkungen und legt nach 10 Minuten Ruhe eine Version an.

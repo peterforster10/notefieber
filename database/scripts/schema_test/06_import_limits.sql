@@ -99,7 +99,7 @@ DO $$
 DECLARE r record; u uuid;
 BEGIN
   ASSERT (SELECT count(*) FROM tenants) = 0, 'Mandanten ohne Kontext sichtbar';
-  SELECT * INTO r FROM app.resolve_tenant('alpenwerk');
+  SELECT * INTO r FROM app.resolve_tenant('test-alpenwerk');
   ASSERT r.tenant_id = pg_temp.id('t1'), 'Mandant nicht gefunden';
   ASSERT NOT EXISTS (SELECT 1 FROM app.find_invite('hash-abgelaufen')), 'abgelaufene Einladung gefunden';
   SELECT * INTO r FROM app.find_invite('hash-gueltig');

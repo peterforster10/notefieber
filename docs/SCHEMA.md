@@ -257,7 +257,7 @@ Der aktuelle Inhalt einer Seite, eine Zeile pro Seite.
 | Spalte | Typ | Bedeutung |
 |---|---|---|
 | `page_id` | uuid | Primärschlüssel, 1 : 1 zu `pages`. |
-| `ydoc` | bytea | Zustand des Yjs-Dokuments (`Y.encodeStateAsUpdate`), der maßgebliche Inhalt. Neue Seiten bekommen den leeren Zustand `\x0000`; der Collab-Server schreibt dann zuerst `pages.title` in `Y.Text` „title“. Höchstens 50 MB. |
+| `ydoc` | bytea | Zustand des Yjs-Dokuments (`Y.encodeStateAsUpdate`), der maßgebliche Inhalt. Neue Seiten bekommen den leeren Zustand `\x0000`; der Collab-Server schreibt dann zuerst `pages.title` in `Y.Text` „title“ und baut, falls `content_json` gefüllt ist (Testdaten, Import), das Dokument daraus. Höchstens 50 MB. |
 | `content_json` | jsonb | Derselbe Inhalt als BlockNote-Dokument (Array von Blöcken), vom Collab-Server bei jedem Speichern mitgeschrieben. Grundlage für Export, Import und einen späteren Editorwechsel, ohne Yjs lesen zu müssen. Neue Seiten: `[]`. `NULL` heißt „nicht vorhanden“: Ist das JSON größer als 20 MB oder kein Array, speichert `store_content` `NULL` statt abzulehnen, und Export bzw. Import müssen auf `ydoc` zurückgreifen. Ein `CHECK` lässt nur Arrays bis 20 MB zu. |
 | `plain_text` | text | Klartext aus dem Dokument, für Suche und später KI. `store_content` kürzt auf 2 Mio. Zeichen, statt das Speichern abzulehnen. |
 | `editors_since_version` | uuid[] | Wer seit der letzten Version bearbeitet hat. Wird zur Autorenliste der nächsten Version und danach geleert. |

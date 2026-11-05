@@ -129,7 +129,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Entprelltes Speichern über `app.store_content` als `wiki_worker`, mit BlockNote-JSON (`editor.document`), Klartext und Bearbeitenden
 - Cursor und Anwesenheit über Yjs Awareness
 - Verbindungen trennen, wenn sich Rechte ändern (`grant.changed`, `page.permissions_changed`, `member.removed`, `member.changed`, `user.deactivated`, `space.archived`)
-- Bei einer neuen, leeren Seite zuerst den Titel aus `pages.title` ins Yjs-Dokument schreiben
+- Bei einer neuen, leeren Seite zuerst den Titel aus `pages.title` ins Yjs-Dokument schreiben; ist `content_json` gefüllt (Testdaten, Import), das Dokument daraus bauen
 - Kurze Verbindungsabbrüche lokal puffern (IndexedDB)
 
 **Nicht enthalten:** echter Offline-Modus (E30), mehrere Collab-Instanzen (E28).

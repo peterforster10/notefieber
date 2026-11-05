@@ -296,7 +296,7 @@ Wichtig dabei:
 - **Lesende und Kommentierende** bekommen eine **schreibgeschützte** Verbindung. Sie sehen Änderungen live, können aber nichts ändern.
 - Nur der Collab-Server darf den Inhalt speichern (Datenbankrolle `wiki_worker`). Die API kann es nicht, ein Leser erst recht nicht.
 - **Ändern sich Rechte**, während jemand eine Seite offen hat (Recht geändert, Vererbung gekappt, Seite in einen anderen Rechtebereich verschoben, Person entfernt, herabgestuft oder deaktiviert, Space archiviert), trennt der Collab-Server die betroffenen Verbindungen. Sie melden sich neu an und bekommen die neue Rolle oder keinen Zugang mehr.
-- **Der Titel lebt im Yjs-Dokument** (`Y.Text` „title“) und wird nur im Editor geändert. `pages.title` ist eine Kopie, die `store_content` schreibt. Lädt der Collab-Server eine neue, noch leere Seite, schreibt er deshalb zuerst den Titel aus `pages.title` ins Dokument, sonst würde das erste Speichern ihn leeren.
+- **Der Titel lebt im Yjs-Dokument** (`Y.Text` „title“) und wird nur im Editor geändert. `pages.title` ist eine Kopie, die `store_content` schreibt. Lädt der Collab-Server eine neue, noch leere Seite, schreibt er deshalb zuerst den Titel aus `pages.title` ins Dokument, sonst würde das erste Speichern ihn leeren. Hat eine solche Seite schon BlockNote-JSON (aus den Testdaten oder später aus dem Import), baut er das Dokument daraus. So müssen Import und Testdaten kein Yjs erzeugen.
 - Beim Speichern schreibt der Collab-Server zusätzlich das **BlockNote-JSON** (dieselben Blöcke als lesbares JSON, für Export, Import und einen späteren Editorwechsel) und **Klartext** für Suche (und später KI). Die Yjs-Daten selbst sind binär, an BlockNote und ProseMirror gebunden und für alles andere unbrauchbar.
 
 ### Kein echter Offline-Modus
@@ -393,7 +393,7 @@ WHERE p.id = $1
 ON CONFLICT (page_id) DO UPDATE SET tsv = EXCLUDED.tsv, updated_at = now();
 ```
 
-Die Sprachkonfiguration `german` versteht Wortformen: Eine Suche nach „Backup“ findet auch „Backups“. Später ist die Sprache pro Mandant wählbar.
+Die Sprachkonfiguration `german` versteht deutsche Wortformen: Eine Suche nach „Sicherung“ findet auch „Sicherungen“, „Seite“ auch „Seiten“. Englische Lehnwörter erkennt sie nicht: „Backup“ findet „Backups“ nicht (mit den Testdaten geprüft). Dafür gibt es die Titel-Schnellsuche (Trigramme) und, falls nötig, eine Präfixsuche (`backup:*`). Später ist die Sprache pro Mandant wählbar.
 
 ### Wie gesucht wird
 

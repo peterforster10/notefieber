@@ -9,12 +9,13 @@ Diese Anleitung beschreibt, was man für die Entwicklung am eigenen Rechner brau
 3. [Repository holen](#3-repository-holen)
 4. [PostgreSQL 18 starten](#4-postgresql-18-starten)
 5. [Rollen, Datenbank und Schema einspielen](#5-rollen-datenbank-und-schema-einspielen)
-6. [Tests ausführen](#6-tests-ausführen)
-7. [Mit der IDE verbinden](#7-mit-der-ide-verbinden)
-8. [Das Schema ändern](#8-das-schema-ändern)
-9. [Alltag: starten, stoppen, zurücksetzen](#9-alltag-starten-stoppen-zurücksetzen)
-10. [Fehlerbehebung](#10-fehlerbehebung)
-11. [Was noch dazukommt](#11-was-noch-dazukommt)
+6. [Testdaten einspielen](#6-testdaten-einspielen)
+7. [Tests ausführen](#7-tests-ausführen)
+8. [Mit der IDE verbinden](#8-mit-der-ide-verbinden)
+9. [Das Schema ändern](#9-das-schema-ändern)
+10. [Alltag: starten, stoppen, zurücksetzen](#10-alltag-starten-stoppen-zurücksetzen)
+11. [Fehlerbehebung](#11-fehlerbehebung)
+12. [Was noch dazukommt](#12-was-noch-dazukommt)
 
 ---
 
@@ -25,6 +26,7 @@ Das Projekt steht am Anfang von Stufe 1 der [ROADMAP](ROADMAP.md). Lokal lauffä
 | Baustein | Stand | Lokal |
 |---|---|---|
 | Datenbank (`database/scripts`) | fertig, mit Tests | PostgreSQL 18 im Docker-Container |
+| Testdaten (`database/scripts/seed`) | fertig | zwei Mandanten mit Personen, Spaces, Seiten und Kommentaren |
 | Frontend, API, Collab-Server, Worker (`apps/…`) | geplant | später Node.js direkt auf dem Rechner |
 | Zitadel (Login), Garage (Dateien) | geplant | später Docker Compose oder k3d |
 
@@ -76,12 +78,6 @@ docker run -d --name nf-pg18 \
 
 **macOS und Linux:** derselbe Befehl, aber `$(pwd)` statt `$(pwd -W)` und ohne `export MSYS_NO_PATHCONV=1`.
 
-**PowerShell (falls lieber):**
-
-```powershell
-docker run -d --name nf-pg18 -e POSTGRES_PASSWORD=postgres-lokal -p 127.0.0.1:5432:5432 -v notefieber-pgdata:/var/lib/postgresql -v "${PWD}\database\scripts:/scripts:ro" postgres:18
-```
-
 Was die Angaben bedeuten:
 
 | Angabe | Bedeutung |
@@ -124,7 +120,56 @@ docker exec -it nf-pg18 psql -U postgres -c "\password wiki_owner"
 
 Die Rollen und Rechte erklärt [SCHEMA.md, Abschnitt 9](SCHEMA.md#9-datenbank-rollen-und-schemas). Kurz: `wiki_owner` führt nur Migrationen aus und umgeht RLS; die Apps verbinden sich später mit eigenen Login-Rollen in `wiki_app` (API) bzw. `wiki_worker` (Collab-Server, Jobs).
 
-## 6. Tests ausführen
+## 6. Testdaten einspielen
+
+Optional, aber für die Arbeit an Oberfläche und API praktisch: [`database/scripts/seed/seed.sql`](../database/scripts/seed/seed.sql) legt zwei Mandanten mit Personen, Spaces, Seiten, Rechten und Kommentaren an. Die Namen und der Seitenbaum entsprechen dem Prototyp (`prototype/pages`) und den Beispielen in [CONCEPTS.md](CONCEPTS.md).
+
+```bash
+docker exec nf-pg18 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f /scripts/seed/seed.sql
+```
+
+Erwartet:
+
+```
+NOTICE:  Testdaten eingespielt:
+NOTICE:    alpenwerk: 6 Personen, 4 Spaces, 17 Seiten
+NOTICE:    nordlicht: 1 Personen, 1 Spaces, 2 Seiten
+Testdaten eingespielt (Alpenwerk und Nordlicht).
+```
+
+Das Skript läuft in einer Transaktion: Entweder ist danach alles da oder nichts. Ein zweiter Lauf bricht mit „Testdaten sind schon eingespielt“ ab; zum Neuaufsetzen die Datenbank zurücksetzen ([Abschnitt 10](#10-alltag-starten-stoppen-zurücksetzen)).
+
+**Wer ist dabei und was sieht wer** (ohne Papierkorb, mit den Testdaten geprüft):
+
+| Person | E-Mail | Rolle | Sieht |
+|---|---|---|---|
+| Anna Huber | `anna.huber@alpenwerk.example` | Organisations-Admin, Owner | ENTW (8 Seiten), VERT (3), PERS (3), ALT (2) |
+| Lukas Gruber | `lukas.gruber@alpenwerk.example` | Gruppe Entwicklung | ENTW (8, auch „Personalplanung 2027“), VERT, ALT |
+| Sophie Bauer | `sophie.bauer@alpenwerk.example` | Gruppe Entwicklung | ENTW (7), VERT, ALT |
+| Markus Wagner | `markus.wagner@alpenwerk.example` | Gruppe Entwicklung | ENTW (7), VERT, ALT |
+| Max Mustermann | `max.mustermann@alpenwerk.example` | Gruppe Vertrieb, Admin von VERT | ENTW (7, nur lesen), VERT, ALT |
+| Elena Novak | `elena.novak@agentur-nord.example` | Gast (Agentur Nord) | nur „Kampagne Frühjahr“ in VERT |
+| Eva Fischer | `eva.fischer@nordlicht.example` | anderer Mandant (Nordlicht) | nur DOKU (2), nichts von Alpenwerk |
+
+**Spaces bei Alpenwerk:**
+
+| Space | Rechte | Besonderheiten |
+|---|---|---|
+| ENTW Entwicklung | alle im Workspace lesen, Gruppe Entwicklung bearbeitet, Anna Admin | Baum wie im Prototyp (Architektur, Datenmodell, Rechte-Konzept, Release-Prozess, Betrieb, Backups). „Personalplanung 2027“ hat eigene Rechte (nur Anna und Lukas). „Datenmodell“ hat zwei Kommentare und eine Version, „Release-Prozess“ einen erledigten Thread. „Alte Notizen“ liegt im Papierkorb. |
+| VERT Vertrieb | von Max angelegt, alle im Workspace kommentieren | „Kampagne Frühjahr“ hat eigene Rechte und ist für den Gast Elena freigegeben, mit einem Kommentar von ihr. |
+| PERS Personal | privat, nur Anna | gut, um „Ansehen als …“ und Organisations-Admins auszuprobieren |
+| ALT Altes Intranet | alle lesen | archiviert, also für alle höchstens lesbar |
+
+**Was man über die Testdaten wissen muss:**
+
+- **Inhalt:** Die Seiten haben BlockNote-JSON (`content_json`) und Klartext, aber noch keinen Yjs-Zustand (`ydoc` leer). Beim ersten Öffnen baut der Collab-Server das Dokument aus dem JSON (CLAUDE.md, Abschnitt 6). Der Suchindex ist gefüllt, die Suche geht also sofort.
+- **Kommentare** sind Seitenkommentare. Kommentare an Textstellen brauchen eine Yjs-Position und kommen erst mit dem Collab-Server.
+- **Login:** Die Personen haben noch kein `idp_subject`. Mit Zitadel verbindet sie erst die lokale Login-Einrichtung ([Abschnitt 12](#12-was-noch-dazukommt)).
+- **Ereignisse** liegen unveröffentlicht in der Outbox, bis ein Worker läuft.
+- **Tests:** `schema_test.sql` läuft auch auf einer Datenbank mit Testdaten (die Tests nutzen eigene Mandanten und rollen zurück). Der Nebenläufigkeitstest legt zusätzlich einen Mandanten `nebenlaeufig-…` an.
+- Ändert sich eine Funktion, die das Skript aufruft (z. B. eine neue Signatur), muss `seed.sql` mitgezogen werden. Ein Lauf nach jeder Schemaänderung ist deshalb ein guter zusätzlicher Test.
+
+## 7. Tests ausführen
 
 **Funktionstest** (44 Tests für Rechte, Sichtbarkeit und Regeln):
 
@@ -140,9 +185,9 @@ Erwartet: `NOTICE: OK 1 …` bis `NOTICE: OK 44 …`, dann `Alle Tests bestanden
 PSQL="docker exec -i nf-pg18 psql -U wiki_owner -d wiki" bash database/scripts/schema_test/schema_concurrency_test.sh
 ```
 
-Erwartet: `OK 1` bis `OK 4`, dann `Alle Nebenläufigkeitstests bestanden`. Dieser Test muss committen und lässt deshalb einen Mandanten `nebenlaeufig-<zeitstempel>` in der Datenbank stehen. Wer das nicht möchte, setzt die Datenbank danach zurück ([Abschnitt 9](#9-alltag-starten-stoppen-zurücksetzen)).
+Erwartet: `OK 1` bis `OK 4`, dann `Alle Nebenläufigkeitstests bestanden`. Dieser Test muss committen und lässt deshalb einen Mandanten `nebenlaeufig-<zeitstempel>` in der Datenbank stehen. Wer das nicht möchte, setzt die Datenbank danach zurück ([Abschnitt 10](#10-alltag-starten-stoppen-zurücksetzen)).
 
-## 7. Mit der IDE verbinden
+## 8. Mit der IDE verbinden
 
 | Feld | Wert |
 |---|---|
@@ -152,30 +197,39 @@ Erwartet: `OK 1` bis `OK 4`, dann `Alle Nebenläufigkeitstests bestanden`. Diese
 | Benutzer | `wiki_owner` |
 | Passwort | aus Schritt 3 |
 
-**Achtung:** Als `wiki_owner` sieht man **alle** Zeilen aller Mandanten, weil der Eigentümer RLS umgeht. Um zu sehen, was eine bestimmte Person sieht, in einer Transaktion die Rolle wechseln und den Kontext setzen:
+**Achtung:** Als `wiki_owner` sieht man **alle** Zeilen aller Mandanten, weil der Eigentümer RLS umgeht. Um zu sehen, was eine bestimmte Person sieht, in einer Transaktion den Kontext setzen und die Rolle wechseln. Mit den Testdaten ([Abschnitt 6](#6-testdaten-einspielen)) geht das über die E-Mail-Adresse:
 
 ```sql
 BEGIN;
+-- Kontext der Person setzen (noch als wiki_owner, der darf users lesen)
+SELECT set_config('app.tenant_id', tenant_id::text, true),
+       set_config('app.user_id',   id::text,        true)
+FROM users WHERE email = 'max.mustermann@alpenwerk.example';
 SET LOCAL ROLE wiki_app;
-SELECT set_config('app.tenant_id', '<mandanten-id>', true),
-       set_config('app.user_id',   '<personen-id>',  true);
-SELECT id, title FROM pages ORDER BY position, id;   -- nur, was diese Person lesen darf
+
+-- Seitenbaum, wie Max ihn sieht
+SELECT s.key, p.title FROM pages p JOIN spaces s ON s.id = p.space_id
+WHERE p.deleted_at IS NULL ORDER BY s.key, p.path;
+
+-- Volltextsuche als Max
+SELECT p.title FROM page_search ps JOIN pages p ON p.id = ps.page_id
+WHERE ps.tsv @@ websearch_to_tsquery('german', 'Rechte') AND p.deleted_at IS NULL;
 ROLLBACK;
 ```
 
-Mit `SET LOCAL ROLE wiki_worker` und ohne `app.user_id` sieht man, was Collab-Server und Worker sehen: alles im Mandanten.
+Mit `SET LOCAL ROLE wiki_worker` und ohne `app.user_id` sieht man, was Collab-Server und Worker sehen: alles im Mandanten. „Ansehen als …“ probiert man so aus wie oben, aber als Anna (`anna.huber@…`) mit `SELECT * FROM app.view_as(<space-id>, <personen-id>, app.current_user_id());`.
 
-## 8. Das Schema ändern
+## 9. Das Schema ändern
 
 Solange es keine Produktivdaten gibt, ist das Schema in `database/scripts/schema/` vollständig und es gibt noch keine Migrationen. `schema.sql` ist der Einstieg und bindet die Teile (`00_setup.sql` … `90_privileges.sql`) mit `\ir` in einer Transaktion ein. Welche Datei was enthält, zeigt die Tabelle am Anfang von [SCHEMA.md](SCHEMA.md). Ein Änderungszyklus sieht so aus:
 
 1. **Test zuerst:** Alles, was Rechte oder Sichtbarkeit berührt, bekommt zuerst einen Test (Regel aus der `CLAUDE.md`). Die Tests liegen in `database/scripts/schema_test/`: `schema_test.sql` ist der Einstieg, die Tests stehen in den Teilen `01_basics.sql` … `11_content_json.sql`. Neue Tests hinten an den passenden Teil oder als neuer Teil am Ende (mit `\ir`-Zeile in `schema_test.sql`). Die Teile bauen aufeinander auf; welche Testdaten ein Teil nutzt und anlegt, steht in seinem Kopf. Die Tests laufen als `wiki_app` bzw. `wiki_worker`.
 2. Den passenden Teil ändern, z. B. eine neue Seitenfunktion in `60_functions_pages.sql`, ihre Freigabe in `90_privileges.sql`, eine neue Leseregel in `80_rls.sql`. Die Regeln für neue Funktionen stehen in der `CLAUDE.md` (Abschnitt 13) und in [SCHEMA.md, Abschnitt 9](SCHEMA.md#9-datenbank-rollen-und-schemas): Mandant in jeder Abfrage prüfen, `require_actor` zuerst, neue Funktionen ausdrücklich freigeben. Ein **neuer Teil** braucht eine `\ir`-Zeile in `schema.sql` an der richtigen Stelle der Reihenfolge.
-3. Datenbank zurücksetzen und neu einspielen ([Abschnitt 9](#9-alltag-starten-stoppen-zurücksetzen)).
-4. Beide Tests ausführen ([Abschnitt 6](#6-tests-ausführen)).
+3. Datenbank zurücksetzen und neu einspielen ([Abschnitt 10](#10-alltag-starten-stoppen-zurücksetzen)), dabei auch die Testdaten. Scheitert `seed.sql`, nutzt es eine geänderte Funktion; dann das Skript mitziehen.
+4. Beide Tests ausführen ([Abschnitt 7](#7-tests-ausführen)).
 5. [SCHEMA.md](SCHEMA.md) und bei Bedarf `CLAUDE.md` nachziehen.
 
-## 9. Alltag: starten, stoppen, zurücksetzen
+## 10. Alltag: starten, stoppen, zurücksetzen
 
 Container stoppen und wieder starten (die Daten bleiben im Volume):
 
@@ -202,6 +256,12 @@ docker exec nf-pg18 psql -U postgres -v ON_ERROR_STOP=1 -q -f /scripts/roles_dat
 docker exec nf-pg18 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -q -f /scripts/schema/schema.sql
 ```
 
+Testdaten wieder einspielen (optional):
+
+```bash
+docker exec nf-pg18 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f /scripts/seed/seed.sql
+```
+
 Das Passwort von `wiki_owner` bleibt dabei erhalten, es hängt an der Rolle, nicht an der Datenbank.
 
 **Alles entfernen** (Container und Daten):
@@ -214,7 +274,7 @@ docker rm -f nf-pg18
 docker volume rm notefieber-pgdata
 ```
 
-## 10. Fehlerbehebung
+## 11. Fehlerbehebung
 
 | Meldung | Ursache und Abhilfe |
 |---|---|
@@ -223,21 +283,23 @@ docker volume rm notefieber-pgdata
 | `psql: error: C:/Program Files/Git/scripts/…: No such file or directory` | Git Bash hat den Pfad umgewandelt. `export MSYS_NO_PATHCONV=1` vergessen. |
 | `$'\r': command not found` beim Nebenläufigkeitstest | Windows-Zeilenenden im Skript, siehe [Abschnitt 2](#2-voraussetzungen). |
 | `role "wiki_owner" does not exist` | Schritt 1 (`roles_database.sql`) fehlt. |
-| `database "wiki" already exists` | `roles_database.sql` wurde schon einmal ausgeführt. Zum Neuaufsetzen zuerst die Datenbank löschen ([Abschnitt 9](#9-alltag-starten-stoppen-zurücksetzen)). |
+| `database "wiki" already exists` | `roles_database.sql` wurde schon einmal ausgeführt. Zum Neuaufsetzen zuerst die Datenbank löschen ([Abschnitt 10](#10-alltag-starten-stoppen-zurücksetzen)). |
 | `relation "…" already exists` beim Schema | Das Schema ist schon eingespielt. `schema.sql` ist kein Migrationsskript und lässt sich nicht zweimal einspielen; Datenbank zurücksetzen. Es wird dabei nichts geändert (eine Transaktion). |
 | `Rollen wiki_app und wiki_worker fehlen: zuerst roles_database.sql ausführen` | Schritt 1 aus [Abschnitt 5](#5-rollen-datenbank-und-schema-einspielen) fehlt. |
 | Fehlermeldungen beginnen mit `psql:/scripts/schema/60_functions_pages.sql:42:` | So soll es sein: Die Meldung nennt den Teil und die Zeile, in der der Fehler steckt. |
 | `syntax error at or near "\"` oder `\ir` wird nicht erkannt | `schema.sql` wurde nicht mit `psql` ausgeführt, z. B. über „Run“ in der IDE. `\ir` ist ein Befehl von `psql`; das Schema immer mit `psql` einspielen wie in [Abschnitt 5](#5-rollen-datenbank-und-schema-einspielen). |
+| `Testdaten sind schon eingespielt (Mandant alpenwerk vorhanden)` | `seed.sql` lief schon. Zum Neuaufsetzen die Datenbank zurücksetzen und Schema und Testdaten neu einspielen ([Abschnitt 10](#10-alltag-starten-stoppen-zurücksetzen)). |
+| `function app.… does not exist` beim Einspielen der Testdaten | Die Datenbank hat einen älteren Stand des Schemas, oder `seed.sql` wurde nach einer Schemaänderung nicht mitgezogen. |
 | `password authentication failed for user "wiki_owner"` in der IDE | Passwort noch nicht gesetzt oder falsch, Schritt 3 wiederholen. |
 | Ein Test meldet `ERROR: …` mit `CONTEXT: … at ASSERT` | Ein Test ist fehlgeschlagen; die Meldung nennt, was nicht stimmt. Die Datenbank ist unverändert (Rollback). |
 | Die Tests finden Funktionen oder Spalten nicht, die es im Schema gibt | Die Datenbank hat einen älteren Stand des Schemas. Zurücksetzen und neu einspielen. |
 
-## 11. Was noch dazukommt
+## 12. Was noch dazukommt
 
 Mit den nächsten Schritten aus der `CLAUDE.md` (Abschnitt 13) und Stufe 1 der [ROADMAP](ROADMAP.md) wächst die lokale Umgebung. Geplant ist:
 
 - **Docker Compose oder k3d** für PostgreSQL 18, Zitadel und Garage, mit denselben Manifesten, die später auf dem Server laufen. Der einzelne Container aus Abschnitt 4 wird dann davon abgelöst.
-- **Zitadel** lokal als Login-Dienst, mit einer Test-Organisation als Mandant und je einem OIDC-Client für Frontend und API.
+- **Zitadel** lokal als Login-Dienst, mit einer Test-Organisation als Mandant und je einem OIDC-Client für Frontend und API. Dazu gehört, die Personen aus den Testdaten in Zitadel anzulegen und ihr `idp_subject` einzutragen, damit man sich als Anna, Max oder Elena anmelden kann.
 - **Garage** lokal mit dem Bucket `wiki` für Anhänge, Bilder und Import-Archive.
 - **Die Apps** (`apps/web`, `apps/api`, `apps/collab`, `apps/worker`, siehe README) laufen mit Node.js direkt auf dem Rechner und verbinden sich mit eigenen Login-Rollen (`wiki_api` in `wiki_app`, `wiki_collab` und `wiki_jobs` in `wiki_worker`), nie als `wiki_owner`.
 - Eine `.env.example` mit allen nötigen Einstellungen (Datenbank-URLs, Zitadel, Garage); die echte `.env` kommt nie ins Repository.
