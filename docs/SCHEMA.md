@@ -455,8 +455,10 @@ Die Datenbank `wiki` liegt im selben CloudNativePG-Cluster wie TalkFieber (`chat
 
 | Schema | Inhalt | Zugriff |
 |---|---|---|
-| `public` | alle Tabellen | `USAGE` für `wiki_app` und `wiki_worker`; anlegen darf dort nur der Eigentümer |
-| `app` | alle Funktionen und Trigger-Funktionen | `USAGE` für `wiki_app` und `wiki_worker`, für `PUBLIC` gesperrt |
+| `public` | alle Tabellen, dazu die Objekte von `ltree` und `pg_trgm` | `USAGE` für alle (`PUBLIC`), anlegen darf nur der Eigentümer der Datenbank (`wiki_owner`) |
+| `app` | alle Funktionen und Trigger-Funktionen | gehört `wiki_owner`; `USAGE` für `wiki_app` und `wiki_worker`, für `PUBLIC` gesperrt |
+
+**Wem gehört `public`?** In der IDE oder in `\dn` steht als Eigentümer `pg_database_owner`, nicht `wiki_owner`. Das ist seit PostgreSQL 15 so gewollt: `pg_database_owner` ist eine eingebaute Rolle, deren einziges Mitglied immer der Eigentümer der jeweiligen Datenbank ist, hier also `wiki_owner` (aus `roles_database.sql`). `wiki_owner` hat damit alle Rechte eines Eigentümers an `public`, `wiki_app` und `wiki_worker` dürfen dort nichts anlegen. Ändern muss man daran nichts.
 
 ### Rollen
 
