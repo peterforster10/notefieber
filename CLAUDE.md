@@ -10,12 +10,16 @@
 - **Zuerst das Wiki, danach TalkFieber.** Beide Produkte teilen Login, Mandantenmodell und Cluster (Abschnitt 12).
 - **Kern des MVP:** ein Team von 10 bis 50 Personen importiert seinen Confluence-Space und arbeitet danach im Alltag ohne Rückfall weiter. Alles, was diesem Beweis nicht dient, kommt später.
 - **Weitere Dokumente im Projekt:**
+  - `docs/CONCEPTS.md`: alle Kernkonzepte ausführlich erklärt, für Neulinge zuerst lesen
+  - `docs/MVP.md` (und `docs/MVP.pdf`): Architektur und Umfang des MVP auf einen Blick
   - `docs/ROADMAP.md`: Stufen 0–4 und Meilensteine M0–M5
   - `docs/EPICS.md`: Epics als Basis für User Stories, nach Roadmap-Stufen geordnet
-  - `database/scripts/roles_database.sql` und `database/scripts/schema/`: Datenbank. `schema.sql` ist der Einstieg und bindet die Teile `00_setup.sql` … `90_privileges.sql` ein. Tests in `database/scripts/schema_test/`: `schema_test.sql` (Einstieg, Teile `01_basics.sql` … `09_users_rules.sql`) und `schema_concurrency_test.sh`
+  - `database/scripts/roles_database.sql` und `database/scripts/schema/`: Datenbank. `schema.sql` ist der Einstieg und bindet die Teile `00_setup.sql` … `90_privileges.sql` ein. Tests in `database/scripts/schema_test/`: `schema_test.sql` (Einstieg, Teile `01_basics.sql` … `11_content_json.sql`) und `schema_concurrency_test.sh`
   - `docs/SCHEMA.md`: Referenz zum Datenmodell (jede Tabelle und Spalte, Rollen, Regeln, jede Funktion). Bei Änderungen am Schema mit anpassen.
   - `docs/LOCAL_SETUP.md`: lokale Entwicklung (Voraussetzungen, PostgreSQL 18 in Docker, Schema, Tests, Fehlerbehebung). Mit jedem neuen Baustein (Compose, Zitadel, Garage, Apps) ergänzen.
-  - `docs/models/data_model/data_model.mmd` (ER-Diagramm), `docs/models/architecture` (Startsetup), `docs/models/architecture` (Zielarchitektur)
+  - `docs/models/data_model/`: ER-Diagramm als `data_model.mmd` (Mermaid), `data_model.puml` (PlantUML) und `data_model.svg`/`.pdf` (draw.io). Bei Änderungen am Schema alle drei nachziehen.
+  - `docs/models/architecture/`: `architecture.svg` (Startsetup), `architecture_target.svg` (Zielarchitektur)
+  - `prototype/`: klickbarer UI-Prototyp (Seitenansicht mit Kommentaren und Rechte-Dialog, Confluence-Import). Referenz für Gestaltung und Abläufe, kein Produktcode.
 - **Betriebsmodell:** Start als SaaS auf eigenem K3s. Self-Hosting per Helm-Chart ist das zweite Standbein, weil gerade Confluence-Data-Center-Kunden bewusst on-prem arbeiten (Reihenfolge offen, Abschnitt 4).
 
 ## 2. Markt und Positionierung (Stand November 2026)
@@ -23,7 +27,10 @@
 - **Der Hebel ist Confluence Data Center.** Atlassian stellt Data Center ein: seit 30. März 2026 keine neuen Kundenlizenzen, ab März 2028 keine Verlängerungskäufe mehr für Bestandskunden, am **28. März 2029** werden alle Instanzen schreibgeschützt. Organisationen, die bewusst on-prem arbeiten (Behörden, Banken, Versicherungen, KRITIS, Industrie), müssen in die US-Cloud oder wechseln. Das ist ein klar abgegrenzter, zahlungsbereiter Markt mit einer Frist.
 - **Bestehende europäische Optionen:**
   - **La Suite Docs** (französische DINUM und deutsches ZenDiS, MIT-Lizenz, Django + React + BlockNote): gratis und staatlich finanziert. Wer nur „Notion in der EU“ baut, konkurriert dagegen.
-  - XWiki (Frankreich, Open Source), Nuclino (Deutschland), Anytype (Schweiz), dazu Open-Source-Wikis wie Docmost und BookStack.
+  - **XWiki** (Frankreich, Open Source) ist der direkte Konkurrent: kostenpflichtiges Confluence-Migrationspaket (Struktur, Inhalte, Anhänge, Verlauf, Kommentare, Rechte), gemeinsames Bearbeiten seit Version 16.9 standardmäßig, on-prem und als Cloud, Wiki-Komponente von openDesk. Schwächen laut Vergleichen: nur ein Teil der Confluence-Makros voll unterstützt, keine Anhang-Historie, beim gemeinsamen Bearbeiten kein Verlauf pro Person, großes Java-System.
+  - **BlueSpice** (Deutschland, auf MediaWiki), on-prem oder deutsche Cloud, wirbt gezielt um Confluence-Data-Center-Kunden.
+  - Nuclino (Deutschland), Anytype (Schweiz), dazu Open-Source-Wikis wie Docmost und BookStack.
+- **Folge:** „Europäisch, Confluence-Import, Rechte, On-Prem“ allein unterscheidet nicht, das bietet XWiki schon. Der Unterschied muss in der **Bedienung** (modern wie Notion), in einem **Import, dem man vertraut** (Probelauf, Bericht, vorher berechnete Rechte), in **verständlichen Rechten** und in **Wiki und Chat aus einer Hand** liegen.
 - **Positionierung:** der souveräne Confluence-Nachfolger für regulierte Organisationen. Unterscheidungsmerkmale:
   - **Ein wirklich guter Confluence-Import** mit Seitenhierarchie, Versionen, Rechten, Anhängen und den häufigsten Makros. Das unglamouröse Feature, das Kaufentscheidungen trifft.
   - **SaaS in der EU und später on-prem**, mit europäischem Rechtsträger ohne US-Mutter (außerhalb der Reichweite des CLOUD Act).
@@ -41,6 +48,8 @@
 | API | **Node.js mit Express 5**, Zod für Validierung, Drizzle ORM |
 | Editor | **BlockNote** (MPL-2.0, auf Tiptap/ProseMirror). Die XL-Pakete (GPL-3.0) vorerst nicht verwenden |
 | Echtzeit | **Yjs + Hocuspocus** (MIT). Ein Yjs-Dokument pro Seite, Name `page:<id>` |
+| Inhalt speichern | **Yjs-Zustand maßgeblich, BlockNote-JSON daneben** (`content_json` in `page_contents` und `page_versions`), damit Export, Import und ein späterer Editorwechsel nicht an Yjs hängen |
+| Rechte prüfen | **„Ansehen als …“** über `app.view_as`: nur für Admins, nur Struktur und Rolle, im Audit-Log |
 | Datenbank | **PostgreSQL 18** über **CloudNativePG**, eigene Datenbank `wiki` im selben Cluster wie TalkFieber (`chat`) und Zitadel |
 | Login | **Zitadel**, selbst gehostet, gemeinsam mit TalkFieber. Die App spricht nur generisches OIDC |
 | Dateien | **Garage** (S3-kompatibel) im Cluster, eigener Bucket pro Produkt |
@@ -61,6 +70,8 @@
 6. **Eindeutige Seitentitel pro Space?** Confluence verlangt sie, wir verlinken über IDs. Vorerst nicht erzwingen, der Import löst Titel-Links über `import_items` auf.
 7. **Ab wann eigene Zellen** (komplett getrennte Instanz des ganzen Stacks für große Kunden oder Behörden), wie bei TalkFieber geplant.
 8. **Zielgruppe:** breit für KMU oder vertikal (Verwaltung, Finanz, KRITIS, Industrie). Die Confluence-Frist spricht für regulierte Organisationen.
+9. ~~**BlockNote-JSON zusätzlich speichern?**~~ **Erledigt:** `page_contents.content_json` und `page_versions.content_json` (siehe Abschnitt 8). Der Collab-Server schreibt das JSON mit jedem `store_content`; der Export liefert Markdown plus BlockNote-JSON plus Anhänge.
+10. ~~**„Ansehen als …“**~~ **Erledigt in der Datenbank:** `app.view_as(space, person, actor)` (siehe Abschnitt 8). API und Oberfläche fehlen noch (E09).
 
 ## 5. Mindestumfang
 
@@ -71,10 +82,11 @@
 - Kommentare an Textstellen und an der Seite
 - Versionshistorie mit Wiederherstellen, Papierkorb
 - Rechte auf Space- und Seitenebene mit Vererbung, Gruppen aus dem Login-Dienst
+- „Ansehen als …“ für Space-Admins, um nach dem Import zu prüfen, dass niemand mehr sieht als vorher (`app.view_as`)
 - Volltextsuche über Titel und Inhalt
 - Login über OIDC (Zitadel)
 - **Confluence-Import** (Space-Export als HTML/XML): Hierarchie, Inhalte, Anhänge, Rechte, häufige Makros, Rest als sichtbarer Platzhalter
-- Export: Markdown + Anhänge als ZIP
+- Export: Markdown + BlockNote-JSON + Anhänge als ZIP
 - Audit-Log
 - Installation per Manifesten auf K3s
 
@@ -93,7 +105,7 @@
 
 Bewusst einfach: ein **modularer Monolith** in drei Prozessen (Frontend, API, Collab-Server) plus Worker. Keine Microservices, keine eigene NoSQL-Datenbank. PostgreSQL ist die einzige Wahrheit für Struktur, Rechte und Inhalt.
 
-Startsetup: `docs/models/architecture`, Zielarchitektur: `docs/models/architecture`.
+Startsetup: `docs/models/architecture/architecture.svg`, Zielarchitektur: `docs/models/architecture/architecture_target.svg`.
 
 ```
 Browser (Next.js-Frontend, BlockNote im Client)
@@ -115,13 +127,13 @@ Zitadel: Login (OIDC), Gruppen
 2. `onAuthenticate` fragt die API nach der Rolle. Viewer und Commenter bekommen eine schreibgeschützte Verbindung, Editoren eine schreibende.
 3. `onLoadDocument` lädt `page_contents.ydoc`. Ist es noch der leere Anfangszustand (`\x0000`, neue Seite), schreibt der Collab-Server zuerst `pages.title` in `Y.Text` „title“. Sonst überschreibt das erste Speichern den Titel mit einem leeren.
 4. Änderungen laufen als Yjs-Updates zwischen allen Clients. Cursor und Anwesenheit über Yjs Awareness, nie gespeichert.
-5. `onStoreDocument` (entprellt, ca. alle 2 s) ruft `app.store_content` auf: Yjs-Zustand, Klartext, Titel, Bearbeitende. Das Event `page.updated` landet in der Outbox.
+5. `onStoreDocument` (entprellt, ca. alle 2 s) ruft `app.store_content` auf: Yjs-Zustand, BlockNote-JSON (`editor.document`), Klartext, Titel, Bearbeitende. Das Event `page.updated` landet in der Outbox.
 6. Der Worker aktualisiert Suchindex und Verlinkungen und legt nach 10 Minuten Ruhe eine Version an.
 
 **Weitere Punkte:**
 - **Rechte:** Suche, Seitenbaum, Link-Vorschau, Benachrichtigungen, Export und Import gehen alle durch dieselben Funktionen (`app.page_rank`). Die meisten Datenlecks in Wikis entstehen über Nebenwege.
 - **Rechteänderung während einer Sitzung:** Bei `grant.changed`, `page.permissions_changed` (auch nach Verschieben), `member.removed`, `member.changed`, `user.deactivated` und `space.archived` trennt der Collab-Server betroffene Verbindungen, sie authentifizieren sich neu. `store_content` prüft selbst keine Rechte.
-- **Wiederherstellen einer Version** rechnet der Collab-Server in Yjs: alten Stand laden, als neues Update anwenden, speichern, dann `app.create_version(…, 'restore', …, restored_from)`. Die Historie bleibt linear.
+- **Wiederherstellen einer Version** prüft zuerst die API (editor auf der Seite, `app.page_role`), dann rechnet der Collab-Server in Yjs: alten Stand laden, als neues Update anwenden, speichern, dann `app.create_version(…, 'restore', …, restored_from)`. Die Historie bleibt linear.
 - **Skalierung:** Im MVP eine Hocuspocus-Instanz (Recreate-Strategie, nie zwei Instanzen pro Dokument). Später mehrere über die Redis-Erweiterung mit Valkey oder Routing nach Dokument-ID.
 - **Mandantentrennung:** gemeinsame Datenbank mit `tenant_id` und Row Level Security, später Zellen.
 
@@ -129,7 +141,7 @@ Zitadel: Login (OIDC), Gruppen
 
 - **REST (API):** JSON, versioniert unter `/api/v1`. Schreibende Abläufe rufen die Funktionen im Schema `app` auf.
 - **Yjs über WebSocket (Collab-Server):** Hocuspocus-Protokoll unter `/collab`. Dokumentname `page:<uuid>`. Struktur im Yjs-Dokument: `Y.XmlFragment` für den BlockNote-Inhalt, `Y.Text` „title“ für den Titel. Der Titel ändert sich **nur über Yjs** (umbenennen im Editor), `pages.title` ist die Kopie, die `store_content` schreibt (auf 255 Zeichen gekürzt). Die API ändert Titel nie direkt.
-- **Inhalt außerhalb von Yjs:** Der Collab-Server erzeugt beim Speichern Klartext für Suche und KI. Export und Import arbeiten mit BlockNote-JSON bzw. Markdown, nie direkt mit Yjs-Binärdaten.
+- **Inhalt außerhalb von Yjs:** Der Collab-Server schreibt beim Speichern das BlockNote-JSON (`page_contents.content_json`) und Klartext für Suche und KI. Export und Import arbeiten mit BlockNote-JSON bzw. Markdown, nie direkt mit Yjs-Binärdaten. Nur wenn `content_json` fehlt (`NULL`: über 20 MB oder ungültig), wandelt der Worker den Yjs-Zustand um.
 - **Events in der Outbox** (Subject `t.{tenant}.wiki.s.{space}`, später von TalkFieber abonniert):
   - Spaces: `space.created`, `space.updated`, `space.archived`
   - Seiten: `page.created`, `page.updated`, `page.moved`, `page.trashed`, `page.restored`, `page.permissions_changed`
@@ -148,7 +160,7 @@ Maßgeblich ist das Schema in `database/scripts/schema/` (Einstieg `schema.sql`,
 - **`groups`, `group_members`:** Gruppen aus Zitadel, beim Login über `app.sync_user_groups` übernommen.
 - **`spaces`:** `key` (wie Confluence, z. B. `ENTW`, eindeutig pro Mandant), `name`, `workspace_id`, `home_page_id`, `archived_at` (archiviert = nur lesbar).
 - **`pages`:** `parent_id`, `path` (ltree aus den IDs, vom Trigger gesetzt), `position` (Fractional Index), `title`, `inherit_perms`, `deleted_at` und `trash_root_id` für den Papierkorb.
-- **`page_contents`:** `ydoc` (Yjs-Zustand), `plain_text`, `editors_since_version`.
+- **`page_contents`:** `ydoc` (Yjs-Zustand, maßgeblich), `content_json` (BlockNote-JSON, `NULL` = fehlt), `plain_text`, `editors_since_version`. `page_versions` hat dieselben Fassungen als Momentaufnahme.
 - **`page_versions`:** fortlaufende `version` pro Seite, `kind` (auto, manual, restore, import), Snapshot von Titel, Yjs und Klartext, `author_ids`.
 - **`page_search`:** `tsvector`, vom Worker gepflegt. **`page_links`:** Verlinkungen für Rückverweise.
 - **`grants`:** auf einen Space **oder** eine Seite; Subjekt eine Person, eine Gruppe oder `workspace` (alle Mitglieder ohne Gäste); Rolle viewer, commenter, editor, admin.
@@ -181,18 +193,20 @@ Maßgeblich ist das Schema in `database/scripts/schema/` (Einstieg `schema.sql`,
 **Wichtige Details:**
 - **Vererbung kappen** (`app.set_page_inheritance`) kopiert die bisher geltenden Rechte auf die Seite und macht die handelnde Person zum Admin der Seite. Danach lassen sie sich mit `app.set_grant` einschränken. So sperrt sich niemand versehentlich aus.
 - **Organisations-Admins** sehen Inhalte nicht automatisch. Sie können aber auf jedem Space Rechte setzen (Wiederherstellung, wenn kein Admin mehr erreichbar ist). Das steht im Audit-Log.
+- **„Ansehen als …“** (`app.view_as(space, person, actor)`): Admins des Spaces und Organisations-Admins sehen, welche Rolle eine Person auf jeder Seite hat. Nur Struktur und Rolle, keine Inhalte; Seiten ohne Zugriff der Person mit Rolle `NULL`. Seiten mit eigenen Rechten, die die handelnde Person nicht selbst verwaltet, fehlen samt Unterseiten; Papierkorb fehlt. Jeder Aufruf im Audit-Log (`space.viewed_as`). Die Suche „als …“ filtert die API auf die Seiten mit Rolle.
 - **Verschieben** (`app.move_page`) und **Papierkorb** (`app.trash_page`) laufen als `SECURITY DEFINER`, weil der Teilbaum eingeschränkte Seiten enthalten kann, die die handelnde Person nicht sieht. Der Papierkorb lehnt ab, wenn darunter Seiten liegen, die sie nicht bearbeiten darf. Die Startseite eines Spaces lässt sich nicht löschen.
 - **Wiederherstellen aus dem Papierkorb** holt genau die Seiten zurück, die gemeinsam gelöscht wurden (`trash_root_id`).
 - **Seiten im Papierkorb** bleiben für Leser lesbar (für die Papierkorb-Ansicht). Seitenbaum, Suche und Verlinkungen filtern `deleted_at IS NULL`, der Worker entfernt sie bei `page.trashed` aus `page_search`.
 - **Position** im Baum kommt aus der App (npm-Paket `fractional-indexing`). Ohne Angabe hängt `app.create_page` die Seite hinter alle Geschwister, auch die für die Person unsichtbaren (`app.next_position`, gleiche Schlüssel wie `generateKeyBetween(letzte, null)`, gegen das Paket geprüft). Ein `CHECK` lässt nur gültige Schlüssel zu. Positionen sind unter Geschwistern nicht eindeutig, weil die App eingeschränkte Geschwister nicht sieht: immer `ORDER BY position, id`. Die Datenbank sortiert byteweise (`C.UTF-8`).
 - **Personen aus Zitadel** sind pro Mandant eindeutig (`tenant_id, idp_subject`), nicht global. So kann dieselbe Person (Gast, Dienstleister) in mehreren Mandanten ein Konto haben. Die API sucht beim Login nach Mandant und `idp_subject`.
 - **Neue Seiten** bekommen einen leeren Yjs-Zustand (`\x0000`).
+- **Löschen:** Bearbeitende legen Seiten in den Papierkorb, endgültig löscht nur der Worker (nach 30 Tagen). Eine Funktion für sofortiges endgültiges Löschen gibt es bewusst nicht.
 - **Leistung:** Die Leseregel auf `pages` ruft `app.page_rank` pro Zeile auf. Für große Bäume später eine vom Worker gepflegte Tabelle mit effektiven Rechten pro Person und Seite.
 - **Textspalten** sind `text` mit `CHECK`-Grenzen (Titel 255, Kommentar 10.000 Zeichen, Yjs 50 MB pro Seite).
 
 ## 9. UI-Entwurf
 
-Noch kein Entwurf. Vorschlag: dasselbe Designsystem wie TalkFieber (IBM Plex Sans/Mono, Seitenleiste `#0F2537`, Akzent `#1F5FD6`, Aufmerksamkeit `#C2410C`, Erledigt-Grün `#E3F1E8`/`#1E5135`), damit beide Produkte wie eine Familie wirken.
+Ein klickbarer Prototyp liegt unter `prototype/` (`pages/Main.dc.html`: Seitenbaum, Seite mit Kommentaren, Rechte-Dialog; `import/Import.dc.html`: Import-Assistent in drei Schritten). Er nutzt dasselbe Designsystem wie TalkFieber (IBM Plex Sans/Mono, Seitenleiste `#0F2537`, Akzent `#1F5FD6`, Aufmerksamkeit `#C2410C`, Erledigt-Grün `#E3F1E8`/`#1E5135`), damit beide Produkte wie eine Familie wirken.
 
 - **Seitenleiste:** Space-Umschalter oben, darunter der Seitenbaum mit Ausklappen, Drag & Drop und „Neue Seite“. Unten Papierkorb und „Daten gehostet in der EU“.
 - **Kopfbereich:** Brotkrume, Bearbeitende als Avatare (Anwesenheit), Schloss-Symbol bei eingeschränkten Seiten, Buttons „Teilen und Rechte“, „Versionen“, „Exportieren“.
@@ -242,7 +256,7 @@ Wiki allein etwa 3–4 GB, mit TalkFieber etwa 5–8 GB. KVM 4 mit 16 GB reicht 
 **Pflichtpunkte (wie TalkFieber):**
 - **Backups außerhalb des Servers:** CloudNativePG archiviert laufend (WAL plus tägliche Basis-Backups) zu einem S3-Speicher bei einem anderen Anbieter, z. B. Hetzner Object Storage. Garage-Buckets ebenfalls dorthin. Wiederherstellung regelmäßig testen.
 - **Absicherung:** nach außen nur 80, 443 und SSH mit Schlüssel. Kubernetes-API, PostgreSQL und Garage nur im Cluster. Secrets mit SOPS oder Sealed Secrets.
-- **Rollen:** Die API verbindet sich als Login-Rolle in `wiki_app`, Collab-Server und Worker als Login-Rollen in `wiki_worker`, nie als Eigentümer. Der von CloudNativePG angelegte Datenbank-Eigentümer führt nur Migrationen aus.
+- **Rollen:** Die API verbindet sich als Login-Rolle in `wiki_app`, Collab-Server und Worker als Login-Rollen in `wiki_worker`, nie als Eigentümer. Der von CloudNativePG angelegte Datenbank-Eigentümer führt nur Migrationen aus, und zwar in einem eigenen Kubernetes-Job vor dem Ausrollen, nie beim Start der App.
 - **Ausfallpunkt:** Ein Server heißt kurze Ausfälle bei Updates. Gegenüber Pilotkunden offen sagen.
 
 ## 12. Zusammenspiel mit TalkFieber
@@ -264,7 +278,7 @@ Wiki allein etwa 3–4 GB, mit TalkFieber etwa 5–8 GB. KVM 4 mit 16 GB reicht 
 
 Meilensteine und Übergangskriterien stehen in der `docs/ROADMAP.md`.
 
-1. ~~`schema.sql`~~ **erledigt:** Das Schema liegt unter `database/scripts/schema`, die Tests unter `database/scripts/schema_test`. `schema.sql` bindet die Teile in fester Reihenfolge in einer Transaktion ein (`\ir`, nur mit `psql`): `00_setup`, `10_tables`, `20_functions_base`, `30_triggers`, `40_functions_tenants`, `50_functions_spaces`, `60_functions_pages`, `70_functions_content`, `72_functions_comments`, `74_functions_import`, `80_rls`, `90_privileges`. Neue Objekte kommen in den passenden Teil; ein neuer Teil braucht eine `\ir`-Zeile in `schema.sql` an der richtigen Stelle (SQL-Funktionen, Trigger und Regeln brauchen beim Anlegen die Objekte aus früheren Teilen). Die Teile nie einzeln einspielen. Alle 42 Tests sind auf PostgreSQL 18.6 bestanden (Docker-Image `postgres:18`). `schema_test.sql` bindet die Testteile genauso ein, läuft in einer Transaktion und rollt am Ende zurück, ist also beliebig oft wiederholbar. Gleichzeitige Sitzungen (Sperren im Seitenbaum, gegenseitiges Entfernen von Admins) prüft `schema_concurrency_test.sh`, z. B. `PSQL="docker exec -i nf-pg18 psql -U wiki_owner -d wiki" bash database/scripts/schema_test/schema_concurrency_test.sh`. Regeln für die Arbeit damit:
+1. ~~`schema.sql`~~ **erledigt:** Das Schema liegt unter `database/scripts/schema`, die Tests unter `database/scripts/schema_test`. `schema.sql` bindet die Teile in fester Reihenfolge in einer Transaktion ein (`\ir`, nur mit `psql`): `00_setup`, `10_tables`, `20_functions_base`, `30_triggers`, `40_functions_tenants`, `50_functions_spaces`, `60_functions_pages`, `70_functions_content`, `72_functions_comments`, `74_functions_import`, `80_rls`, `90_privileges`. Neue Objekte kommen in den passenden Teil; ein neuer Teil braucht eine `\ir`-Zeile in `schema.sql` an der richtigen Stelle (SQL-Funktionen, Trigger und Regeln brauchen beim Anlegen die Objekte aus früheren Teilen). Die Teile nie einzeln einspielen. Alle 44 Tests sind auf PostgreSQL 18.6 bestanden (Docker-Image `postgres:18`). `schema_test.sql` bindet die Testteile genauso ein, läuft in einer Transaktion und rollt am Ende zurück, ist also beliebig oft wiederholbar. Gleichzeitige Sitzungen (Sperren im Seitenbaum, gegenseitiges Entfernen von Admins) prüft `schema_concurrency_test.sh`, z. B. `PSQL="docker exec -i nf-pg18 psql -U wiki_owner -d wiki" bash database/scripts/schema_test/schema_concurrency_test.sh`. Regeln für die Arbeit damit:
    - `database/scripts/roles_database.sql` legt die Rollen und die Datenbank `wiki` an. Das Schema spielt `wiki_owner` ein, nie `postgres`, sonst laufen die `SECURITY DEFINER`-Funktionen als Superuser.
    - Die API verbindet sich als `wiki_app`, Collab-Server und Worker als `wiki_worker`, **nie als Eigentümer** (der umgeht RLS).
    - Pro Transaktion `app.tenant_id` und bei `wiki_app` zusätzlich `app.user_id` setzen.

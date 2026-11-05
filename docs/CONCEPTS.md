@@ -164,7 +164,7 @@ Ein Recht („Grant“) gibt einem **Subjekt** eine Rolle auf einem **Objekt**.
 
 Hat eine Person mehrere Grants (direkt, über zwei Gruppen und über „Alle im Workspace“), **gewinnt die höchste Rolle**.
 
-Beim Anlegen eines Spaces wird die anlegende Person automatisch Admin, und „Alle im Workspace“ bekommt standardmäßig Leserechte. Beides lässt sich ändern.
+Beim Anlegen eines Spaces wird die anlegende Person automatisch Admin, und „Alle im Workspace“ bekommt standardmäßig Leserechte. Beides lässt sich ändern. „Alle im Workspace“ kann höchstens Bearbeiten sein, Admins werden immer namentlich oder als Gruppe vergeben.
 
 ### Vererbung
 
@@ -192,7 +192,7 @@ Die Funktion `app.page_rank(seite, person)` geht so vor:
 3. **Welche Grants passen?** Die der Person selbst, ihrer Gruppen und „Alle im Workspace“ (außer für Gäste). Die höchste Rolle zählt.
 4. **Archiviert?** Ist der Space archiviert, höchstens „Lesen“.
 
-**Diese eine Funktion ist die einzige Wahrheit.** Seitenbaum, Suche, Link-Vorschau, Kommentare, Anhänge, Export, Benachrichtigungen und Import fragen alle sie. Die meisten Datenlecks in Wikis entstehen über Nebenwege (ein Suchtreffer zeigt den Titel einer geheimen Seite, ein Rückverweis verrät, dass es sie gibt). Deshalb gibt es keine zweite Rechte-Logik irgendwo in der App.
+**Diese eine Funktion ist die einzige Wahrheit.** Seitenbaum, Suche, Link-Vorschau, Kommentare, Anhänge, Export, Benachrichtigungen und Import fragen alle sie. Die meisten Datenlecks in Wikis entstehen über Nebenwege (ein Suchtreffer zeigt den Titel einer geheimen Seite, ein Rückverweis verrät, dass es sie gibt). Deshalb gibt es keine zweite Rechte-Logik irgendwo in der App. Die API kann damit nur die Rechte der angemeldeten Person abfragen (`app.page_rank(seite)`), die Variante für eine beliebige Person ist ihr bewusst verwehrt.
 
 ### Vererbung kappen, ohne sich auszusperren
 
@@ -202,7 +202,7 @@ Wer die Vererbung einer Seite kappt (`app.set_page_inheritance`), dem passiert n
 2. Die handelnde Person wird **Admin der Seite**.
 3. Danach schränkt man die Rechte ein, z. B. „Alle im Workspace“ entfernen (`app.set_grant`).
 
-Jeder Space und jede Seite mit eigenen Rechten muss **mindestens einen Admin** behalten. Den letzten Admin zu entfernen, lehnt die Datenbank ab.
+Jeder Space und jede Seite mit eigenen Rechten muss **mindestens einen wirksamen Admin** behalten: eine aktive Person oder eine Gruppe mit mindestens einem aktiven Mitglied. Den letzten zu entfernen, lehnt die Datenbank ab. Nicht abfangen lässt sich, dass der letzte Admin deaktiviert wird oder die letzte Person eine Admin-Gruppe verlässt, weil sich dabei keine Grants ändern. Dann setzt ein Organisations-Admin einen neuen Admin.
 
 Wird die Vererbung wieder eingeschaltet, fallen die Grants der Seite weg und sie erbt wieder.
 
@@ -210,13 +210,24 @@ Wird die Vererbung wieder eingeschaltet, fallen die Grants der Seite weg und sie
 
 Ein Organisations-Admin sieht Inhalte **nicht automatisch**. Die Personalplanung bleibt auch für die IT-Leitung verborgen, wenn sie nicht freigegeben ist. Ein Organisations-Admin kann sich aber auf jedem Space oder jeder eingeschränkten Seite Rechte geben, z. B. wenn der einzige Admin das Unternehmen verlassen hat. Das ist ein bewusster Notausgang und steht immer im Audit-Log.
 
+### „Ansehen als …“
+
+Ein Space-Admin kann den Seitenbaum oder die Suche so sehen, wie eine bestimmte Person sie sieht. Das ist das wichtigste Prüfwerkzeug nach einem Import: Sieht Max nach der Migration wirklich nur, was er auch in Confluence gesehen hat?
+
+Weil die API die Rechte anderer Personen bewusst nicht abfragen darf, gibt es dafür eine eigene Funktion, `app.view_as(space, person, handelnde_person)`:
+
+- Aufrufen dürfen nur Admins des Spaces und Organisations-Admins. Jeder Aufruf steht im Audit-Log.
+- Sie liefert nur die **Struktur**: jede Seite mit Titel, Platz im Baum und der Rolle der Person, keine Inhalte. Seiten, die die Person nicht lesen darf, stehen mit „kein Zugriff“ drin; genau die will man beim Prüfen sehen.
+- Seiten mit eigenen Rechten, die die handelnde Person **nicht selbst verwaltet**, fehlen ganz. Anna sieht über „Ansehen als Max“ also nicht, dass es Lukas' private Seite gibt. Das Werkzeug soll Rechte prüfen, nicht verborgene Bereiche aufdecken.
+- Die Suche „als Max“ filtert die API selbst: Sie zeigt von ihren Treffern nur die Seiten, für die Max eine Rolle hat.
+
 ### Gäste
 
 Gäste sind Mitglieder mit Rolle `guest`. „Alle im Workspace“ gilt für sie nicht. Sie sehen nur Spaces und Seiten, auf denen sie selbst oder eine ihrer Gruppen ausdrücklich ein Recht haben. Im MVP sind Gastzugänge noch nicht vorgesehen (Epic E18), das Datenmodell kann sie aber schon.
 
 ### Wer aus einem Workspace entfernt wird
 
-Verliert sofort jeden Zugriff (Schritt 1 oben), und seine persönlichen Grants auf Spaces und Seiten dieses Workspaces werden gelöscht (`app.remove_workspace_member`). Wird die Person später wieder eingeladen, beginnt sie ohne alte Rechte.
+Verliert sofort jeden Zugriff (Schritt 1 oben), und seine persönlichen Grants auf Spaces und Seiten dieses Workspaces werden gelöscht (`app.remove_workspace_member`). Wird die Person später wieder eingeladen, beginnt sie ohne alte Rechte. Ist sie irgendwo der letzte wirksame Admin, lehnt die Datenbank das Entfernen ab, bis ein anderer Admin bestimmt ist. Ihre offenen Verbindungen zum Collab-Server werden getrennt.
 
 ---
 
@@ -229,7 +240,7 @@ NoteFieber baut kein eigenes Login. Angemeldet wird über **Zitadel**, den Login
 1. **Mandant finden.** Aus der Adresse oder einer Eingabe kennt die App den Kurznamen des Mandanten (`alpenwerk`). `app.resolve_tenant` liefert dazu die Mandanten-ID und die Organisation in Zitadel. Diese Funktion funktioniert schon vor dem Login.
 2. **Weiterleitung zu Zitadel.** Die Person meldet sich dort an, mit Passwort, Passkey oder über das Firmen-Login. Technisch ist das der OIDC *Authorization Code Flow* mit PKCE.
 3. **Zurück zur API.** Zitadel leitet mit einem einmaligen Code zurück. Die API tauscht ihn gegen Tokens und prüft, dass die Organisation im Token zur `idp_org_id` des Mandanten passt.
-4. **Person zuordnen.** Über `users.idp_subject` findet die API die Person. Bei der ersten Anmeldung kommt sie über eine Einladung: `app.find_invite` prüft den Link, `app.accept_invite` legt die Person an und macht sie zum Mitglied des Workspaces.
+4. **Person zuordnen.** Über Mandant und `users.idp_subject` findet die API die Person. `idp_subject` ist pro Mandant eindeutig, nicht global: Dieselbe Person aus Zitadel, etwa ein Dienstleister, kann in mehreren Mandanten je ein eigenes Konto haben. Bei der ersten Anmeldung kommt sie über eine Einladung: `app.find_invite` prüft den Link, `app.accept_invite` legt die Person an und macht sie zum Mitglied des Workspaces.
 5. **Gruppen übernehmen.** `app.sync_user_groups` gleicht die Gruppen aus dem Token ab (siehe [Rechte](#4-rechte)).
 6. **Sitzung.** *Empfehlung:* Die API setzt ein Sitzungs-Cookie (`HttpOnly`, `Secure`, `SameSite=Lax`). Die Tokens von Zitadel bleiben auf dem Server und kommen nie in den Browser. Weil Oberfläche und API unter derselben Adresse laufen (`/` und `/api`), funktioniert das ohne Umwege.
 
@@ -276,7 +287,7 @@ Browser                          Collab-Server                 API              
    │                                             │ 4. Inhalt laden ───────────────►  page_contents.ydoc
    │  ◄── aktueller Stand ───────────────────────│
    │  5. tippt … Updates ──────────────────────► │ ─► an alle anderen Browser
-   │                                             │ 6. alle ~2 s: app.store_content ─► ydoc, Klartext, Titel
+   │                                             │ 6. alle ~2 s: app.store_content ─► ydoc, JSON, Klartext, Titel
    │                                             │                                    + Event in outbox
 ```
 
@@ -284,8 +295,9 @@ Wichtig dabei:
 
 - **Lesende und Kommentierende** bekommen eine **schreibgeschützte** Verbindung. Sie sehen Änderungen live, können aber nichts ändern.
 - Nur der Collab-Server darf den Inhalt speichern (Datenbankrolle `wiki_worker`). Die API kann es nicht, ein Leser erst recht nicht.
-- **Ändern sich Rechte** während jemand eine Seite offen hat, trennt der Collab-Server die betroffenen Verbindungen. Sie melden sich neu an und bekommen die neue Rolle oder keinen Zugang mehr.
-- Beim Speichern erzeugt der Collab-Server zusätzlich **Klartext** für Suche (und später KI). Die Yjs-Daten selbst sind binär und für alles andere unbrauchbar.
+- **Ändern sich Rechte**, während jemand eine Seite offen hat (Recht geändert, Vererbung gekappt, Seite in einen anderen Rechtebereich verschoben, Person entfernt, herabgestuft oder deaktiviert, Space archiviert), trennt der Collab-Server die betroffenen Verbindungen. Sie melden sich neu an und bekommen die neue Rolle oder keinen Zugang mehr.
+- **Der Titel lebt im Yjs-Dokument** (`Y.Text` „title“) und wird nur im Editor geändert. `pages.title` ist eine Kopie, die `store_content` schreibt. Lädt der Collab-Server eine neue, noch leere Seite, schreibt er deshalb zuerst den Titel aus `pages.title` ins Dokument, sonst würde das erste Speichern ihn leeren.
+- Beim Speichern schreibt der Collab-Server zusätzlich das **BlockNote-JSON** (dieselben Blöcke als lesbares JSON, für Export, Import und einen späteren Editorwechsel) und **Klartext** für Suche (und später KI). Die Yjs-Daten selbst sind binär, an BlockNote und ProseMirror gebunden und für alles andere unbrauchbar.
 
 ### Kein echter Offline-Modus
 
@@ -302,11 +314,11 @@ Jede Seite hat eine **Versionshistorie** mit fortlaufender Nummer (1, 2, 3 …).
 | Art | Wann |
 |---|---|
 | `auto` | Der Worker legt sie an, wenn eine Seite 10 Minuten nicht bearbeitet wurde |
-| `manual` | Jemand mit Bearbeitungsrecht klickt „Version speichern“ |
+| `manual` | Jemand mit Bearbeitungsrecht klickt „Version speichern“ (`app.save_version`) |
 | `restore` | Eine alte Version wurde wiederhergestellt |
 | `import` | Version aus Confluence übernommen |
 
-**Wiederherstellen überschreibt nichts.** Der alte Stand wird als neue Änderung auf die aktuelle Seite angewendet, und es entsteht eine neue Version vom Typ `restore`. Die Historie bleibt linear und vollständig.
+**Wiederherstellen überschreibt nichts.** Die API prüft zuerst das Bearbeitungsrecht. Der alte Stand wird als neue Änderung auf die aktuelle Seite angewendet, und es entsteht eine neue Version vom Typ `restore`. Die Historie bleibt linear und vollständig.
 
 ### Papierkorb
 
@@ -320,14 +332,17 @@ Gelöscht wird nie sofort, sondern in den **Papierkorb** (`app.trash_page`):
 
 ### Verschieben
 
-Eine Seite wird **mit ihrem ganzen Teilbaum** verschoben (`app.move_page`), auch mit Unterseiten, die die handelnde Person gar nicht sieht. Das ist Absicht: Sonst würde ein Baum zerreißen. Eine Seite unter sich selbst zu verschieben, lehnt die Datenbank ab. Verschieben zwischen Spaces ist im MVP nicht vorgesehen.
+Eine Seite wird **mit ihrem ganzen Teilbaum** verschoben (`app.move_page`), auch mit Unterseiten, die die handelnde Person gar nicht sieht. Das ist Absicht: Sonst würde ein Baum zerreißen. Eine Seite unter sich selbst zu verschieben, lehnt die Datenbank ab. Verschieben zwischen Spaces ist im MVP nicht vorgesehen. Auch das Umsortieren unter derselben Elternseite läuft über `app.move_page`.
+
+Ändert sich durch das Verschieben, woher eine Seite ihre Rechte bekommt, gilt eine Zusatzregel: Wer eine Seite **aus einem Bereich mit eigenen Rechten herausschiebt, muss dort Admin sein**. Sonst könnte ein Bearbeiter eine vertrauliche Seite unter eine offene Elternseite ziehen und sie damit für den ganzen Space freigeben. Hinein genügt Bearbeitungsrecht am Ziel. Alle Änderungen am Seitenbaum eines Spaces laufen nacheinander (`app.lock_tree`), damit gleichzeitiges Verschieben keine Zyklen und keine veralteten Pfade erzeugt.
 
 ### Kommentare
 
 - **Seitenkommentare** gelten für die ganze Seite, **Kommentare an Textstellen** hängen an einer markierten Stelle. Die Stelle ist als relative Yjs-Position gespeichert und wandert mit, wenn davor Text eingefügt wird.
 - Antworten gibt es **eine Ebene tief** (Thread mit Antworten, keine Antworten auf Antworten).
 - Ein Thread lässt sich **als erledigt markieren**. Eine neue Antwort öffnet ihn wieder.
-- **Löschen überschreibt den Inhalt** mit `NULL`. Ein reines „gelöscht“-Kennzeichen reicht für die DSGVO nicht, deshalb erzwingt die Datenbank, dass gelöschte Kommentare keinen Text mehr haben. Fremde Kommentare löschen nur Space-Admins.
+- **Löschen überschreibt den Inhalt** mit `NULL`. Ein reines „gelöscht“-Kennzeichen reicht für die DSGVO nicht, deshalb erzwingt die Datenbank, dass gelöschte Kommentare keinen Text mehr haben. Fremde Kommentare löschen nur Admins der Seite (bei eingeschränkten Seiten deren Admins, sonst Space-Admins).
+- Eigene Kommentare lassen sich bearbeiten (`app.edit_comment`). Auf Seiten im Papierkorb lässt sich nicht kommentieren.
 
 ---
 
@@ -338,8 +353,8 @@ Anhänge und Bilder liegen nicht in der Datenbank, sondern in **Garage**, einem 
 ### Hochladen
 
 1. Der Browser meldet bei der API einen Upload an: Seite, Dateiname, Größe, Typ.
-2. Die API prüft, ob die Person die Seite **bearbeiten** darf, und das Größenlimit (Wert noch festzulegen).
-3. Die API legt den Eintrag in `files` an (`scan_status = 'pending'`, zufälliger `storage_key`) und gibt eine **signierte Upload-URL** zurück, die nur wenige Minuten gilt.
+2. Die API prüft das Größenlimit (Wert noch festzulegen).
+3. Die API legt den Eintrag in `files` an (`scan_status = 'pending'`, zufälliger `storage_key`). Die Datenbank prüft dabei selbst: im eigenen Namen, ungeprüft, und an einer Seite nur mit **Bearbeitungsrecht**. Dann gibt die API eine **signierte Upload-URL** zurück, die nur wenige Minuten gilt.
 4. Der Browser lädt die Datei **direkt in Garage**. Die API muss die Bytes nicht durchreichen.
 5. Der Worker prüft die Datei auf Viren (z. B. mit ClamAV) und setzt `scan_status` auf `clean`, `infected` oder `error`.
 
@@ -352,7 +367,8 @@ Anhänge und Bilder liegen nicht in der Datenbank, sondern in **Garage**, einem 
 
 ### Sonderfälle
 
-- **Profilbilder** hängen an keiner Seite und sind für alle im Mandanten sichtbar.
+- **Profilbilder** hängen an keiner Seite und sind für alle im Mandanten sichtbar. Als Profilbild lässt sich nur eine eigene Datei ohne Seite eintragen, sonst könnte jemand einen fremden Anhang so für alle sichtbar machen.
+- **Löschen** (`deleted_at`) dürfen die hochladende Person und Bearbeitende der Seite.
 - **Import-Archive** hängen an keiner Seite und sind nur für die hochladende Person sichtbar.
 - Wird eine Seite **endgültig gelöscht**, fallen ihre Datei-Einträge mit weg. Ein Worker löscht danach die Objekte in Garage.
 
@@ -400,7 +416,7 @@ LIMIT 20;
 
 ### Rechte in der Suche
 
-Die Suchanfrage läuft als `wiki_app`. Ein Eintrag in `page_search` ist nur sichtbar, wenn die Person die Seite lesen darf. Es gibt also keinen Treffer, keinen Titel und keine Trefferzahl für Seiten ohne Leserecht. Die App muss dafür nichts tun, außer **Seiten im Papierkorb** auszuschließen (`deleted_at IS NULL`). Die Leseregel blendet sie nicht von selbst aus.
+Die Suchanfrage läuft als `wiki_app`. Ein Eintrag in `page_search` ist nur sichtbar, wenn die Person die Seite lesen darf. Es gibt also keinen Treffer, keinen Titel und keine Trefferzahl für Seiten ohne Leserecht. **Seiten im Papierkorb** entfernt der Worker bei `page.trashed` aus dem Index. Weil die Leseregel sie nicht von selbst ausblendet (die Papierkorb-Ansicht braucht sie), filtert die Abfrage trotzdem `deleted_at IS NULL`, für die Zeit, bis der Worker nachgezogen hat.
 
 ### Grenzen
 
@@ -458,20 +474,21 @@ Ein Baum in einer relationalen Datenbank braucht drei Dinge:
 
 - **`parent_id`** zeigt auf die Elternseite. Ein Fremdschlüssel stellt sicher, dass sie im selben Space liegt.
 - **`path`** (Typ `ltree`) ist der Weg von der Wurzel zur Seite, aus den IDs gebildet, z. B. `a1b2….c3d4….e5f6…`. Damit beantwortet ein einziger Index-Zugriff Fragen wie „alle Seiten unter Architektur“ (`path <@ …`) oder „alle Seiten über Datenmodell“ (`path @> …`). Genau das braucht die Rechte-Berechnung. Den Pfad setzt ein Trigger beim Anlegen, ändern kann ihn nur `app.move_page`.
-- **`position`** legt die Reihenfolge unter Geschwistern fest, als **Fractional Index**: kurze Zeichenketten, die sich sortieren lassen und zwischen die man immer eine neue einfügen kann (zwischen `a0` und `a1` passt `a0V`). Beim Umsortieren ändert sich so nur eine Zeile, nicht alle Geschwister. Die App erzeugt sie mit dem npm-Paket `fractional-indexing`.
+- **`position`** legt die Reihenfolge unter Geschwistern fest, als **Fractional Index**: kurze Zeichenketten, die sich sortieren lassen und zwischen die man immer eine neue einfügen kann (zwischen `a0` und `a1` passt `a0V`). Beim Umsortieren ändert sich so nur eine Zeile, nicht alle Geschwister. Die App erzeugt sie mit dem npm-Paket `fractional-indexing`; ohne Angabe hängt die Datenbank eine neue Seite hinter alle Geschwister, auch die unsichtbaren. Positionen sind unter Geschwistern **nicht eindeutig**, weil die App eingeschränkte Geschwister nicht sieht. Sortiert wird deshalb immer mit `ORDER BY position, id`.
 
 Ein Wiki wird viel öfter gelesen als umgebaut. Deshalb ist Lesen billig (ein Pfad-Vergleich) und Verschieben etwas teurer (alle Pfade im Teilbaum neu schreiben).
 
 ### Der Inhalt: `page_contents`
 
 - **`ydoc`**: der vollständige Yjs-Zustand als Binärdaten. Das ist der eigentliche Inhalt.
+- **`content_json`**: derselbe Inhalt als BlockNote-JSON, bei jedem Speichern mitgeschrieben. Export, Import und ein späterer Wechsel des Editors arbeiten damit, ohne Yjs lesen zu müssen. Ist es einmal zu groß (über 20 MB) oder ungültig, bleibt es leer, statt das Speichern scheitern zu lassen; dann gilt nur `ydoc`. Versionen bekommen eine Kopie, damit sich auch alte Stände exportieren lassen.
 - **`plain_text`**: abgeleiteter Klartext für Suche und später KI.
 - **`editors_since_version`**: wer seit der letzten Version bearbeitet hat. Wird beim Anlegen einer Version in deren `author_ids` übernommen und geleert.
 
 ### Outbox und Audit-Log
 
 - Die **Outbox** ist eine Tabelle, in die jede Änderung in **derselben Transaktion** ein Ereignis schreibt (`page.created`, `page.moved`, `grant.changed` …). Ein Worker liest sie und verteilt die Ereignisse weiter: an den Suchindex, an Benachrichtigungen, später an TalkFieber. Der Vorteil dieses **Outbox-Patterns**: Ein Ereignis geht nie verloren und wird nie verschickt, ohne dass die Änderung wirklich gespeichert ist. Das Subject folgt dem Muster `t.<tenant>.wiki.s.<space>`. Alle Ereignisse stehen in [Abschnitt 13](#13-ereignisse-in-der-outbox).
-- Das **Audit-Log** hält sicherheitsrelevante Aktionen fest: Rechte, Vererbung, Papierkorb, Verschieben, Import, Export, Löschen fremder Kommentare, Wiederherstellung durch Organisations-Admins. Die App kann nur anfügen, nie ändern oder löschen.
+- Das **Audit-Log** hält sicherheitsrelevante Aktionen fest: Rechte, Vererbung, Papierkorb, Verschieben, Import, Export, „Ansehen als …“, Löschen fremder Kommentare, Wiederherstellung durch Organisations-Admins. Die App kann nur anfügen, nie ändern oder löschen. Lesen dürfen es nur Organisations-Admins.
 
 ---
 
@@ -505,18 +522,18 @@ Ist nichts gesetzt, ist **nichts** sichtbar. Ein vergessener Kontext führt also
 
 ### Schreiben nur über Funktionen
 
-Alles, was mehrere Schritte braucht oder Rechte berührt, läuft über Funktionen im Schema `app`: `create_space`, `create_page`, `move_page`, `trash_page`, `restore_page`, `set_grant`, `set_page_inheritance`, `add_comment`, `store_content`, `create_version`, `start_import` usw. Jede Funktion prüft:
+`wiki_app` schreibt fast nur über Funktionen im Schema `app`. Direkt erlaubt sind wenige Fälle, jeweils durch eine Regel abgesichert: das eigene Profil, neue Personen als einfaches Mitglied beim ersten Login, Einladungen und Workspaces (nur wer sie verwaltet) und Datei-Uploads. Seiten, Rechte, Mitgliedschaften, Gruppen, Inhalt, Versionen, Kommentare, Import, Outbox und Audit-Log gehen nur über Funktionen wie `create_space`, `archive_space`, `create_page`, `move_page`, `trash_page`, `restore_page`, `set_grant`, `set_page_inheritance`, `add_workspace_member`, `remove_workspace_member`, `set_user_active`, `add_comment`, `save_version`, `start_import`. Jede Funktion prüft:
 
 - **Ist die handelnde Person die angemeldete?** Niemand kann im Namen anderer handeln (`app.require_actor`).
 - **Hat sie die nötige Rolle?** (`app.require_page`, `app.require_space`)
 
-Einige Funktionen laufen als **`SECURITY DEFINER`**, also mit den Rechten des Eigentümers statt der aufrufenden Verbindung. Das ist nötig, wenn eine Aktion Zeilen betrifft, die die Person nicht sehen darf (beim Verschieben müssen auch die Pfade unsichtbarer Unterseiten angepasst werden). Diese Funktionen prüfen den Mandanten deshalb ausdrücklich. Und deshalb darf das Schema nur `wiki_owner` einspielen, nie der Superuser `postgres`.
+Fast alle diese Funktionen laufen als **`SECURITY DEFINER`**, also mit den Rechten des Eigentümers statt der aufrufenden Verbindung. Das ist nötig, wenn eine Aktion Zeilen betrifft, die die Person nicht sehen darf (beim Verschieben müssen auch die Pfade unsichtbarer Unterseiten angepasst werden). Diese Funktionen prüfen den Mandanten deshalb ausdrücklich. Und deshalb darf das Schema nur `wiki_owner` einspielen, nie der Superuser `postgres`.
 
-Zusätzlich verhindern **Spaltenrechte**, dass die App `path`, `parent_id` oder die Papierkorb-Spalten direkt ändert.
+Interne Bausteine (Ereignisse schreiben, Audit-Einträge, Rechte anderer Personen abfragen, Versionen ohne Prüfung anlegen) kann `wiki_app` gar nicht aufrufen. Neue Funktionen sind zunächst für niemanden ausführbar, bis eine Migration sie ausdrücklich freigibt. Jede Funktion mit ihren Prüfungen beschreibt [SCHEMA.md](SCHEMA.md), Abschnitt 12.
 
 ### Die Tests
 
-`schema_test.sql` prüft das alles in 42 Tests als `wiki_app` und `wiki_worker` (gleichzeitige Sitzungen prüft `schema_concurrency_test.sh`), z. B.: Ein Leser kann weder direkt noch über Funktionen schreiben, eingeschränkte Seiten sind samt Inhalt, Versionen, Suchtreffern, Kommentaren, Dateien und Links unsichtbar, fremde Mandanten sind unsichtbar, jede Tabelle hat RLS. **Jede Änderung am Schema bekommt zuerst einen Test.**
+`schema_test.sql` prüft das alles in 44 Tests als `wiki_app` und `wiki_worker` (gleichzeitige Sitzungen prüft `schema_concurrency_test.sh`), z. B.: Ein Leser kann weder direkt noch über Funktionen schreiben, eingeschränkte Seiten sind samt Inhalt, Versionen, Suchtreffern, Kommentaren, Dateien und Links unsichtbar, fremde Mandanten sind unsichtbar, jede Tabelle hat RLS. **Jede Änderung am Schema bekommt zuerst einen Test.**
 
 ---
 
@@ -527,20 +544,27 @@ Jede wichtige Änderung schreibt in derselben Transaktion ein Ereignis in die Ta
 | Ereignis | Ausgelöst von | Inhalt (`payload`) |
 |---|---|---|
 | `space.created` | `app.create_space` | `id`, `key`, `name`, `home_page` |
+| `space.updated` | `app.update_space` | `id`, `name` |
+| `space.archived` | `app.archive_space` | `id`, `archived` (`true` oder `false`) |
 | `page.created` | `app.create_page` | `id`, `parent`, `title`, `position`, `by` |
 | `page.updated` | `app.store_content` | `id`, `title`, `editors` |
 | `page.moved` | `app.move_page` | `id`, `from_parent`, `to_parent`, `position` |
 | `page.trashed` | `app.trash_page` | `id`, `count` (Seiten im Teilbaum) |
 | `page.restored` | `app.restore_page` | `id`, `count` |
-| `page.permissions_changed` | `app.set_page_inheritance` | `id`, `inherit` |
+| `page.permissions_changed` | `app.set_page_inheritance`, `app.move_page` | `id`, `inherit`; beim Verschieben `reason: moved`, `from_source`, `to_source` |
 | `grant.changed` | `app.set_grant` | `space` oder `page`, `subject_type`, `user`, `group`, `role` (`null` = entfernt) |
 | `comment.created` | `app.add_comment` | `id`, `page`, `parent`, `author` |
 | `import.requested` | `app.start_import` | `id`, `dry_run` |
+| `member.removed` | `app.remove_workspace_member` | `user`, `workspace` |
+| `member.changed` | `app.set_workspace_member_role` | `user`, `workspace`, `role` |
+| `user.deactivated` | `app.set_user_active` | `user` |
+
+Die drei Ereignisse zu Personen gehen an jeden Space des betroffenen Workspaces (bei `user.deactivated` aller Workspaces der Person), damit jeder Collab-Server sie mitbekommt.
 
 **Wer zuhört:**
 
 - **Worker:** Suchindex und Verlinkungen bei `page.updated`, Zeitgeber für automatische Versionen, Import bei `import.requested`, später Benachrichtigungen.
-- **Collab-Server:** trennt Verbindungen bei `grant.changed` und `page.permissions_changed`, damit neue Rechte sofort gelten.
+- **Collab-Server:** trennt Verbindungen bei `grant.changed`, `page.permissions_changed`, `member.removed`, `member.changed`, `user.deactivated` und `space.archived`, damit neue Rechte sofort gelten.
 - **Später TalkFieber:** Link-Vorschauen, Benachrichtigungen im Chat.
 
 **Regeln für Empfänger:**
@@ -663,7 +687,7 @@ Compliance heißt: Kunden müssen Gesetze, Normen und interne Regeln einhalten, 
 | Anforderung | Wie NoteFieber sie erfüllt |
 |---|---|
 | Nur Berechtigte sehen Inhalte | Rechtemodell mit einer zentralen Funktion, RLS in der Datenbank, SSO und später SCIM |
-| Nachvollziehbarkeit | Unveränderbares Audit-Log, Versionen mit Autoren |
+| Nachvollziehbarkeit | Unveränderbares Audit-Log (lesbar nur für Organisations-Admins), Versionen mit Autoren |
 | Aufbewahrung und Löschung | Papierkorb, endgültiges Löschen, später Aufbewahrungsrichtlinien. Löschen entfernt Inhalte wirklich (Kommentartext wird überschrieben) |
 | DSGVO-Auskunft und -Löschung | Alle Daten einer Person sind über `tenant_id` und Personen-IDs auffindbar (Epic E17) |
 | Datenhoheit | Vollständiger Export jederzeit, Daten in der EU, eigene Zelle oder On-Prem möglich |
@@ -729,7 +753,7 @@ Vier Szenarien zeigen, welche Funktion und welche Tabelle in jedem Schritt betei
 
 Unter „Architektur“ liegt „Datenmodell“, darunter die Seite „Intern“ mit eigenen Rechten, die Sophie nicht sehen darf.
 
-1. Sophie zieht „Architektur“ an die oberste Ebene. `app.move_page(architektur, NULL, 'b', sophie)` prüft ihr Bearbeitungsrecht auf der Seite und auf dem Ziel.
+1. Sophie zieht „Architektur“ an die oberste Ebene. `app.move_page(architektur, NULL, 'a1', sophie)` prüft ihr Bearbeitungsrecht auf der Seite und auf dem Ziel. Admin-Recht braucht sie nicht, weil „Architektur“ seine Rechte vor und nach dem Verschieben vom Space bekommt.
 2. Die Funktion schreibt den `path` des ganzen Teilbaums neu, **auch von „Intern“**, das Sophie nicht sieht. Sonst wäre der Baum zerrissen. Ereignis `page.moved`, Eintrag im Audit-Log.
 3. Sophie versucht, „Architektur“ zu löschen. `app.trash_page` lehnt ab, weil darunter eine Seite liegt, die sie nicht bearbeiten darf. Anna als Admin von „Intern“ kann es.
 4. Anna holt den Teilbaum aus dem Papierkorb zurück: `app.restore_page(architektur, anna)` stellt genau die drei gemeinsam gelöschten Seiten wieder her.
@@ -737,9 +761,9 @@ Unter „Architektur“ liegt „Datenmodell“, darunter die Seite „Intern“
 ### Szenario 4: Gemeinsam bearbeiten und eine Version zurückholen
 
 1. Sophie und Lukas haben „Datenmodell“ offen. Beide haben Bearbeitungsrecht und bekommen eine schreibende Verbindung zum Collab-Server.
-2. Etwa alle zwei Sekunden ruft der Collab-Server `app.store_content` mit dem Yjs-Zustand, dem Klartext, dem Titel und den IDs der Bearbeitenden. Ereignis `page.updated`, der Worker erneuert Suchindex und Verlinkungen.
+2. Etwa alle zwei Sekunden ruft der Collab-Server `app.store_content` mit dem Yjs-Zustand, dem BlockNote-JSON, dem Klartext, dem Titel und den IDs der Bearbeitenden. Ereignis `page.updated`, der Worker erneuert Suchindex und Verlinkungen.
 3. Zehn Minuten lang tippt niemand. Der Worker ruft `app.create_version(seite, 'auto')`. Die Version bekommt die Autoren Sophie und Lukas, die Liste in `page_contents` wird geleert.
-4. Anna stellt Version 3 wieder her. Der Collab-Server lädt den alten Stand, wendet ihn als neue Änderung an, speichert und ruft `app.create_version(seite, 'restore', NULL, 3)`. Version 3 selbst bleibt unverändert.
+4. Anna stellt Version 3 wieder her. Die API prüft ihr Bearbeitungsrecht, dann lädt der Collab-Server den alten Stand, wendet ihn als neue Änderung an, speichert und ruft `app.create_version(seite, 'restore', NULL, 3)`. Version 3 selbst bleibt unverändert.
 
 ---
 
@@ -756,33 +780,37 @@ apps/
 packages/
   shared/     Typen, Zod-Schemas, Rollen, Ereignisse
 database/
-  scripts/    Rollen, Schema, Tests
+  scripts/    Rollen, Schema (schema/), Tests (schema_test/)
   migrations/ fortlaufende Migrationen (ab M0)
 deploy/
   k8s/        Manifeste (Kustomize), später Helm-Chart
 docs/
   adr/        Entscheidungsnotizen
+  models/     Datenmodell und Architektur als Diagramme
+prototype/    UI-Prototyp (Referenz, kein Produktcode)
 ```
 
 *Empfehlung:* ein Repository mit pnpm-Workspaces. Typen für Ereignisse und Rollen leben einmal in `packages/shared` und werden von allen Apps genutzt.
 
 ### Lokal arbeiten
 
-1. PostgreSQL 18, Zitadel und Garage per Docker Compose starten.
-2. `roles_database.sql` einmal als `postgres`, danach alle Migrationen als `wiki_owner`.
-3. `schema_test.sql` laufen lassen: alle Tests müssen bestehen.
-4. Die Apps direkt mit Node starten (schnelles Neuladen). k3d nur, um Manifeste vor dem Ausrollen zu prüfen.
+Die vollständige Anleitung steht in [LOCAL_SETUP.md](LOCAL_SETUP.md). Kurz:
+
+1. PostgreSQL 18 im Docker-Container starten, später zusammen mit Zitadel und Garage per Docker Compose.
+2. `roles_database.sql` einmal als `postgres`, danach das Schema (später alle Migrationen) als `wiki_owner`.
+3. `schema_test.sql` und `schema_concurrency_test.sh` laufen lassen: alle Tests müssen bestehen.
+4. Die Apps später direkt mit Node starten (schnelles Neuladen). k3d nur, um Manifeste vor dem Ausrollen zu prüfen.
 
 ### Migrationen
 
 - Die erste Migration ist das heutige Schema. Weil `schema.sql` seine Teile mit dem `psql`-Befehl `\ir` einbindet, Migrationswerkzeuge wie dbmate aber reines SQL ausführen, kommen die Teile dafür in ihrer Reihenfolge gebündelt in eine Datei. Danach bekommt **jede Änderung eine neue Migrationsdatei**. Eingespielte Migrationen werden nie mehr geändert.
-- Migrationen laufen immer als `wiki_owner`.
+- Migrationen laufen immer als `wiki_owner`, auf dem Server in einem eigenen Kubernetes-Job vor dem Ausrollen, nie beim Start der App. Die App kennt die Zugangsdaten des Eigentümers nicht.
 - Jede Migration ist **eine Version rückwärtskompatibel**: Die alte App-Version muss mit dem neuen Schema noch laufen. Das ermöglicht Updates ohne Ausfall und ist für On-Prem-Kunden Pflicht, die Updates spät einspielen.
 - *Empfehlung:* Migrationen als reines SQL (z. B. mit dbmate), weil das Schema viel Logik in Funktionen, Triggern und Policies enthält, die ein ORM nicht abbildet. Drizzle nur für Abfragen in der App.
 
 ### Tests
 
-- `schema_test.sql` läuft in der CI bei jedem Push.
+- `schema_test.sql` und `schema_concurrency_test.sh` laufen in der CI bei jedem Push.
 - API-Tests laufen gegen eine **echte PostgreSQL**, nicht gegen Mocks. Die Rechte stecken in der Datenbank, ein Mock würde genau das nicht testen.
 - Später Ende-zu-Ende-Tests mit Playwright, z. B. zwei Browser, die dieselbe Seite bearbeiten.
 - Alles, was Rechte, Mandantentrennung oder Sichtbarkeit berührt, bekommt **zuerst** einen Test.
@@ -837,7 +865,9 @@ Manches ist mit Absicht einfach gehalten. Wer es ändern will, sollte den Grund 
 | Jede Version speichert den vollen Yjs-Zustand | Wiederherstellen ist trivial | Wenn der Speicher wächst: Versionen ausdünnen oder komprimieren |
 | Kein Verschieben zwischen Spaces | Rechte und Keys würden kompliziert | Nach Bedarf |
 | Kein Offline-Modus | Rechte könnten sich zwischendurch ändern | Mit den Mobile-Apps (E30) |
-| Bei **Kommentaren und Dateien** sichert die Datenbank Mandant und Lesen, das **Schreibrecht** prüfen die Funktion bzw. die API | Weniger Policies, weniger Rechenaufwand | Vor dem Pilot restriktive INSERT-Policies wie bei `pages` ergänzen (mit Test) |
+| Deaktivieren einer Person und Austritt aus einer Gruppe ändern keine Grants | Grants bleiben für eine spätere Reaktivierung erhalten | Fehlt einem Space dadurch der wirksame Admin, setzt ein Organisations-Admin einen neuen. Später ein Hinweis in der Admin-Konsole (E17) |
+| Positionen unter Geschwistern nicht eindeutig | Die App sieht eingeschränkte Geschwister nicht | Bleibt so, immer nach `position, id` sortieren |
+| Kein sofortiges endgültiges Löschen, nur Papierkorb und Worker nach 30 Tagen | Schutz vor Fehlbedienung | Mit Aufbewahrungsrichtlinien und DSGVO-Löschung (E17) |
 
 ---
 
@@ -849,14 +879,18 @@ Manches ist mit Absicht einfach gehalten. Wer es ändern will, sollte den Grund 
 | Schema als `postgres` eingespielt | `SECURITY DEFINER`-Funktionen laufen als Superuser | Immer als `wiki_owner` einspielen |
 | `app.tenant_id` nicht gesetzt | Leere Ergebnisse | Pro Transaktion setzen, bei `wiki_app` auch `app.user_id` |
 | Rechte in der App selbst nachgebaut | Zwei Wahrheiten, früher oder später ein Leck | Immer `app.page_rank` bzw. die Leseregeln nutzen |
-| Direktes `INSERT` statt Funktion | Rechte, Pfad, Outbox oder Audit fehlen | Schreibende Abläufe über das Schema `app` |
+| Direktes `INSERT` statt Funktion | Scheitert für `wiki_app` an fehlenden Rechten; in Worker-Code fehlen sonst Rechteprüfung, Pfad, Outbox oder Audit | Schreibende Abläufe über das Schema `app` |
 | `INSERT … RETURNING` auf eine Tabelle mit Leseregel, bevor die Zeile lesbar ist | Fehler, weil RLS auch die zurückgegebene Zeile prüft (z. B. ein Space vor seinem ersten Grant) | ID vorher mit `uuidv7()` erzeugen, kein `RETURNING` |
 | Geschäftslogik in Next.js (Server Actions) | Zweites Backend neben Express | Next.js nur als Oberfläche |
 | Zwei Collab-Server-Instanzen | Zwei Stände desselben Dokuments, Datenverlust | Im MVP genau eine Instanz, Update-Strategie „Recreate“ |
 | BlockNote-XL-Paket eingebunden | GPL-3.0-Pflichten für den eigenen Code | Nur Core-Pakete, Lizenzprüfung in der CI |
 | Schemaänderung ohne Test | Unbemerkte Lücke in Rechten oder Trennung | Erst Test in `schema_test.sql`, dann Änderung |
 | Seiten im Papierkorb nicht ausgefiltert | Gelöschte Seiten tauchen in Baum, Suche oder Links auf | Überall `deleted_at IS NULL`, außer in der Papierkorb-Ansicht |
-| Kommentar oder Datei direkt per `INSERT` statt über Funktion bzw. API | Schreibrecht wird nicht geprüft (siehe [Kompromisse](#21-bewusste-kompromisse-und-grenzen)) | Kommentare nur über `app.add_comment`, Uploads nur über den API-Ablauf |
+| Titel über die API geändert | Wird beim nächsten Speichern aus dem Yjs-Dokument überschrieben | Titel nur im Editor ändern (`Y.Text` „title“) |
+| Neue Seite im Collab-Server geladen, ohne den Titel ins Dokument zu schreiben | Das erste Speichern leert den Titel | Bei leerem Zustand (`\x0000`) zuerst `pages.title` in `Y.Text` „title“ schreiben |
+| Nur nach `position` sortiert | Seiten mit gleicher Position springen | Immer `ORDER BY position, id` |
+| Neue Funktion ohne `GRANT EXECUTE` | Niemand kann sie aufrufen | In `90_privileges.sql` ausdrücklich freigeben |
+| Neue `SECURITY DEFINER`-Funktion ruft `require_worker` auf | Prüft den Eigentümer statt des Aufrufers | `require_worker` nur in Funktionen ohne `SECURITY DEFINER` |
 | Hochgeladenes HTML oder SVG inline ausgeliefert | Fremde Skripte laufen im Namen anderer | Als Download ausliefern, `nosniff` setzen |
 | Inhalt aus einem Ereignis ohne Rechteprüfung angezeigt | Titel geheimer Seiten in Benachrichtigungen | Vor dem Anzeigen die Rechte der Person prüfen |
 | Ereignis-Empfänger nicht idempotent | Doppelte Benachrichtigungen oder Versionen | Mit doppelten Ereignissen rechnen |

@@ -15,14 +15,18 @@
 -- in onLoadDocument zuerst pages.title in Y.Text "title" schreiben, sonst überschreibt das
 -- erste Speichern den Titel mit einem leeren (CLAUDE.md Abschnitt 6).
 -- Titel und Klartext werden gekürzt statt abgelehnt: Ein Fehler hier hieße, dass der
--- Collab-Server die Änderungen gar nicht mehr speichern kann.
+-- Collab-Server die Änderungen gar nicht mehr speichern kann. Aus demselben Grund wird
+-- ein BlockNote-JSON, das zu groß (über 20 MB) oder kein Dokument (Array) ist, als NULL
+-- gespeichert; ydoc bleibt maßgeblich.
 CREATE FUNCTION app.store_content(
-  p_page_id uuid, p_ydoc bytea, p_plain_text text, p_title text, p_editor_ids uuid[]
+  p_page_id uuid, p_ydoc bytea, p_content_json jsonb, p_plain_text text, p_title text, p_editor_ids uuid[]
 ) RETURNS void LANGUAGE plpgsql AS $$
 DECLARE
   v_tenant uuid := app.current_tenant();
   v_space  uuid;
   v_title  text;
+  v_json   jsonb := CASE WHEN jsonb_typeof(p_content_json) = 'array'
+                          AND pg_column_size(p_content_json) <= 20000000 THEN p_content_json END;
 BEGIN
   PERFORM app.require_worker();
   SELECT space_id, coalesce(left(btrim(p_title), 255), title) INTO v_space, v_title
@@ -32,7 +36,8 @@ BEGIN
   END IF;
 
   UPDATE page_contents
-  SET ydoc = p_ydoc, plain_text = left(coalesce(p_plain_text, ''), 2000000), updated_at = now(),
+  SET ydoc = p_ydoc, content_json = v_json, plain_text = left(coalesce(p_plain_text, ''), 2000000),
+      updated_at = now(),
       editors_since_version = ARRAY(SELECT DISTINCT e FROM unnest(editors_since_version || p_editor_ids) AS e
                                     WHERE e IS NOT NULL ORDER BY e)
   WHERE page_id = p_page_id;
@@ -70,9 +75,9 @@ BEGIN
   SELECT coalesce(max(version), 0) + 1 INTO v_version FROM page_versions WHERE page_id = p_page_id;
 
   INSERT INTO page_versions (tenant_id, page_id, version, kind, restored_from, title, ydoc,
-                             plain_text, author_ids, created_by)
+                             content_json, plain_text, author_ids, created_by)
   VALUES (v_tenant, p_page_id, v_version, p_kind, p_restored_from, v_title, v_content.ydoc,
-          v_content.plain_text, v_content.editors_since_version, p_actor_id);
+          v_content.content_json, v_content.plain_text, v_content.editors_since_version, p_actor_id);
   UPDATE page_contents SET editors_since_version = '{}' WHERE page_id = p_page_id;
   RETURN v_version;
 END $$;

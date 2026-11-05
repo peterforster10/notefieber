@@ -257,12 +257,13 @@ Der aktuelle Inhalt einer Seite, eine Zeile pro Seite.
 | Spalte | Typ | Bedeutung |
 |---|---|---|
 | `page_id` | uuid | Primärschlüssel, 1 : 1 zu `pages`. |
-| `ydoc` | bytea | Zustand des Yjs-Dokuments (`Y.encodeStateAsUpdate`). Neue Seiten bekommen den leeren Zustand `\x0000`; der Collab-Server schreibt dann zuerst `pages.title` in `Y.Text` „title“. Höchstens 50 MB. |
+| `ydoc` | bytea | Zustand des Yjs-Dokuments (`Y.encodeStateAsUpdate`), der maßgebliche Inhalt. Neue Seiten bekommen den leeren Zustand `\x0000`; der Collab-Server schreibt dann zuerst `pages.title` in `Y.Text` „title“. Höchstens 50 MB. |
+| `content_json` | jsonb | Derselbe Inhalt als BlockNote-Dokument (Array von Blöcken), vom Collab-Server bei jedem Speichern mitgeschrieben. Grundlage für Export, Import und einen späteren Editorwechsel, ohne Yjs lesen zu müssen. Neue Seiten: `[]`. `NULL` heißt „nicht vorhanden“: Ist das JSON größer als 20 MB oder kein Array, speichert `store_content` `NULL` statt abzulehnen, und Export bzw. Import müssen auf `ydoc` zurückgreifen. Ein `CHECK` lässt nur Arrays bis 20 MB zu. |
 | `plain_text` | text | Klartext aus dem Dokument, für Suche und später KI. `store_content` kürzt auf 2 Mio. Zeichen, statt das Speichern abzulehnen. |
 | `editors_since_version` | uuid[] | Wer seit der letzten Version bearbeitet hat. Wird zur Autorenliste der nächsten Version und danach geleert. |
 | `updated_at` | timestamptz | Letztes Speichern. |
 
-- **Schreiben:** angelegt von `create_page` und `create_space`, danach nur `app.store_content` (Collab-Server, entprellt etwa alle 2 s). Export und Import arbeiten mit BlockNote-JSON bzw. Markdown, nie direkt mit `ydoc`.
+- **Schreiben:** angelegt von `create_page` und `create_space`, danach nur `app.store_content` (Collab-Server, entprellt etwa alle 2 s). Export und Import arbeiten mit `content_json` bzw. Markdown, nie direkt mit `ydoc`, außer `content_json` fehlt.
 - **Lesen:** wenn die Seite lesbar ist.
 
 ### `page_versions`
@@ -274,7 +275,7 @@ Versionshistorie. Zeilen werden nie geändert.
 | `version` | integer | Fortlaufend pro Seite ab 1, eindeutig mit `page_id`. Die Funktion sperrt die Seite, damit keine Nummer doppelt vergeben wird. |
 | `kind` | text | `auto` (Worker nach 10 Minuten Ruhe), `manual` (Person speichert ausdrücklich, `app.save_version`), `restore` (Collab-Server nach dem Wiederherstellen) oder `import`. |
 | `restored_from` | integer | Bei `restore`: aus welcher Version. Muss eine vorhandene, ältere Version derselben Seite sein (Fremdschlüssel, `CHECK`). Gesetzt genau dann, wenn `kind = restore`. |
-| `title`, `ydoc`, `plain_text` | | Momentaufnahme von Titel und Inhalt. |
+| `title`, `ydoc`, `content_json`, `plain_text` | | Momentaufnahme von Titel und Inhalt. `content_json` wie in `page_contents` (`NULL`, wenn es dort fehlte), damit sich auch alte Versionen ohne Yjs exportieren lassen. |
 | `author_ids` | uuid[] | Wer seit der vorigen Version bearbeitet hat (aus `editors_since_version`). |
 | `created_by` | uuid | Wer manuell gespeichert oder wiederhergestellt hat, bei `auto` leer. |
 
@@ -583,7 +584,7 @@ Alle Funktionen liegen im Schema `app`. Zu jeder Funktion: wer sie aufruft, was 
 |---|---|---|
 | `page_rank(seite) → integer` | DEFINER, App/Worker | Rang der **angemeldeten** Person auf der Seite. Ruft `page_rank(seite, current_user_id())` auf. Die Leseregeln und `require_page` nutzen diese Variante. |
 | `space_rank(space) → integer` | DEFINER, App/Worker | Dasselbe für einen Space. |
-| `page_rank(seite, person) → integer` | DEFINER, intern/Worker | Rang einer beliebigen Person: (1) Seite im eigenen Mandanten, Person aktives Mitglied des Workspaces, sonst 0. (2) Rechtequelle suchen: die nächste Seite auf dem `path` nach oben (oder die Seite selbst) mit `inherit_perms = false`, sonst der Space. (3) Höchste Rolle aus den Grants dieser Quelle für die Person, ihre Gruppen und, außer bei Gästen, „alle im Workspace“. (4) In archivierten Spaces höchstens 1. Für `wiki_app` gesperrt, damit die API nicht die Rechte anderer abfragen kann. |
+| `page_rank(seite, person) → integer` | DEFINER, intern/Worker | Rang einer beliebigen Person: (1) Seite im eigenen Mandanten, Person aktives Mitglied des Workspaces, sonst 0. (2) Rechtequelle suchen: die nächste Seite auf dem `path` nach oben (oder die Seite selbst) mit `inherit_perms = false`, sonst der Space. (3) Höchste Rolle aus den Grants dieser Quelle für die Person, ihre Gruppen und, außer bei Gästen, „alle im Workspace“. (4) In archivierten Spaces höchstens 1. Für `wiki_app` gesperrt, damit die API nicht die Rechte anderer abfragen kann; „Ansehen als …“ geht nur über `view_as` (12.7). |
 | `space_rank(space, person) → integer` | DEFINER, intern/Worker | Wie oben, nur mit den Grants des Spaces. |
 | `page_role(seite) → text`, `space_role(space) → text` | INVOKER, App | Rang der angemeldeten Person als Rollenname (`viewer` … `admin`, `NULL` ohne Zugriff). Für die API, z. B. für `onAuthenticate` des Collab-Servers und für Schaltflächen in der Oberfläche. |
 | `grant_rank(space, seite, person, ws_rolle) → integer` | DEFINER, intern | Höchster Rang aus den Grants **eines** Objekts für eine Person. `ws_rolle` ist ihre Workspace-Rolle; bei `guest` zählen Grants für „alle im Workspace“ nicht. |
@@ -685,6 +686,15 @@ Ereignis: `grant.changed` (der Collab-Server prüft betroffene Verbindungen neu)
 DEFINER, App. Kappt die Vererbung (`erben = false`) oder stellt sie wieder her. Erlaubt für Admins der Seite, des Spaces und Organisations-Admins. Beim **Kappen** kopiert sie die bisher geltenden Grants (der nächsten eingeschränkten Seite oberhalb oder des Spaces) auf die Seite und macht die handelnde Person zum Admin der Seite; danach lassen sich die Rechte mit `set_grant` einschränken, ohne dass sich jemand aussperrt. Beim **Wiederherstellen** löscht sie die Grants der Seite. Sperrt den Baum exklusiv. Ändert sich nichts, passiert nichts.
 Ereignis: `page.permissions_changed`. Audit: `page.inheritance_cut` bzw. `page.inheritance_restored`.
 
+#### `view_as(space, person, actor) → (page_id, parent_id, path, position, title, inherit_perms, role)`
+DEFINER, App. „Ansehen als …“: zeigt, wie eine Person einen Space sieht, z. B. um nach einem Import zu prüfen, dass niemand mehr sieht als in Confluence. Die API darf `page_rank(seite, person)` nicht aufrufen; diese Funktion gibt dieselbe Rolle heraus, aber nur so:
+- **Wer:** Admins des Spaces über ihre Grants (auch im archivierten Space) und Organisations-Admins, sonst `insufficient_privilege`.
+- **Was:** nur Struktur und Rolle, keine Inhalte. Seiten, die die Person nicht lesen darf, stehen mit `role = NULL` drin; genau die sucht man beim Prüfen.
+- **Was nicht:** Seiten mit eigenen Rechten, auf denen die handelnde Person nicht Admin ist, fehlen samt ihren erbenden Unterseiten. Wer eine Seite nicht verwaltet, erfährt auch hier nichts über sie. Seiten im Papierkorb fehlen.
+- Sortiert nach `position, page_id`; den Baum baut die App über `parent_id`. Für „Suche als …“ filtert die API ihre eigenen Treffer auf die Seiten, für die hier eine Rolle steht.
+
+Audit: `space.viewed_as` mit der angesehenen Person, bei jedem Aufruf.
+
 ### 12.8 Seitenbaum
 
 #### `create_page(space, eltern, titel, actor, position = NULL) → uuid`
@@ -711,8 +721,8 @@ Ereignis: `page.restored`. Audit: `page.restored` mit Anzahl.
 
 ### 12.9 Inhalt und Versionen
 
-#### `store_content(seite, ydoc, klartext, titel, bearbeitende)`
-INVOKER, Worker (Collab-Server, `onStoreDocument`). Speichert den Yjs-Zustand, den Klartext und den Titel aus `Y.Text` „title“ und ergänzt `editors_since_version`. Prüft keine Rechte; das hat die API beim Verbindungsaufbau getan. Zu lange Titel (255) und Texte (2 Mio. Zeichen) werden gekürzt statt abgelehnt, sonst ließe sich die Seite gar nicht mehr speichern. `titel = NULL` lässt den Titel unverändert. Abgelehnt für Seiten im Papierkorb.
+#### `store_content(seite, ydoc, blocknote_json, klartext, titel, bearbeitende)`
+INVOKER, Worker (Collab-Server, `onStoreDocument`). Speichert den Yjs-Zustand, das BlockNote-Dokument (`editor.document`), den Klartext und den Titel aus `Y.Text` „title“ und ergänzt `editors_since_version`. Prüft keine Rechte; das hat die API beim Verbindungsaufbau getan. Nichts davon führt zur Ablehnung, sonst ließe sich die Seite gar nicht mehr speichern: zu lange Titel (255) und Texte (2 Mio. Zeichen) werden gekürzt, ein JSON über 20 MB oder ohne Array wird als `NULL` gespeichert. `titel = NULL` lässt den Titel unverändert. Abgelehnt für Seiten im Papierkorb.
 Ereignis: `page.updated` (der Worker aktualisiert danach Suche und Verlinkungen).
 
 #### `create_version(seite, art, actor = NULL, restored_from = NULL) → integer`
@@ -722,7 +732,7 @@ INVOKER, Worker (für `manual` auch App). Legt eine Version an und gibt ihre Num
 DEFINER, App. Manuelle Version durch eine Person mit editor-Recht. Getrennt von `create_version`, weil eine `SECURITY DEFINER`-Funktion nicht erkennen kann, ob ein Worker sie aufruft.
 
 #### `insert_version(seite, art, actor, restored_from) → integer`
-INVOKER, intern/Worker. Der gemeinsame Kern: sperrt die Seite (damit Versionsnummern nicht doppelt vergeben werden), kopiert Titel, `ydoc` und Klartext in die nächste Version, übernimmt `editors_since_version` als Autoren und leert die Liste. Für `wiki_app` gesperrt, sonst ließen sich Versionen ohne Prüfung anlegen.
+INVOKER, intern/Worker. Der gemeinsame Kern: sperrt die Seite (damit Versionsnummern nicht doppelt vergeben werden), kopiert Titel, `ydoc`, `content_json` und Klartext in die nächste Version, übernimmt `editors_since_version` als Autoren und leert die Liste. Für `wiki_app` gesperrt, sonst ließen sich Versionen ohne Prüfung anlegen.
 
 #### `replace_page_links(seite, ziele)`
 INVOKER, Worker. Ersetzt alle ausgehenden Verlinkungen einer Seite durch `ziele`. Doppelte Ziele, Links auf sich selbst und Ziele, die es im Mandanten nicht gibt, werden übergangen.

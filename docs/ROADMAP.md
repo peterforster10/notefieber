@@ -26,6 +26,7 @@ Das Wiki kommt vor TalkFieber. Es legt deshalb die gemeinsame Plattform an (Zita
 - [x] **Stack festlegen:** entschieden, TypeScript mit Next.js, Express, BlockNote, Hocuspocus, PostgreSQL 18 (CloudNativePG), Zitadel, Garage, K3s.
 - [ ] **5–10 Gespräche mit Confluence-Data-Center-Kunden:** Wann müssen sie entscheiden, was hält sie bei Confluence, welche Makros und Apps nutzen sie, SaaS oder on-prem, was würden sie zahlen?
 - [ ] **2–3 echte Confluence-Space-Exporte besorgen** (anonymisiert reicht). Sie sind ab M1 Testdaten.
+- [ ] **XWiki und BlueSpice ausprobieren:** einen echten Export in beide importieren und notieren, wo es hakt. Diese Schwachstellen sind das eigene Produkt. In den Gesprächen fragen, ob die Kunden XWiki schon geprüft haben.
 - [ ] **Codenamen und Domain sichern.** Über einen gemeinsamen Markennamen für Wiki und Chat nachdenken.
 
 **Weiter, wenn** die Gespräche zeigen, dass der Wechsel von Confluence Data Center ein echter Bedarf ist und mindestens ein Pilotkunde einen Export bereitstellt.
@@ -38,7 +39,7 @@ Infrastruktur: eigener Rechner. Node direkt, PostgreSQL 18, Zitadel und Garage p
 
 ### M0 – Fundament
 Epics: E01 (lokal), E02, E03 (einfach)
-- [ ] Repository mit Lizenz, `../CLAUDE.md`, `EPICS.md`, `ROADMAP.md`, Ordner `docs/adr/`
+- [ ] Repository mit Lizenz, `CLAUDE.md`, `docs/EPICS.md`, `docs/ROADMAP.md`, Ordner `docs/adr/`
 - [ ] Lokale Umgebung mit PostgreSQL 18, Zitadel, Garage
 - [ ] Migrationswerkzeug wählen, `roles_database.sql` und das Schema als erste Migration (die Teile aus `database/scripts/schema/` gebündelt, falls das Werkzeug kein `psql` nutzt), `schema_test.sql` in der CI (eingespielt als `wiki_owner`, nie als `postgres`)
 - [ ] CI: Build, Tests, Prüfung der Abhängigkeiten und Lizenzen (keine BlockNote-XL-Pakete)
@@ -69,6 +70,7 @@ Epics: E05, E06, E07, E08, E15
 ### M3 – Rechte, Suche, Kommentare (MVP ohne Import)
 Epics: E09, E10, E11, E12, E14
 - [ ] Rollen und Vererbung, Vererbung kappen, Gruppen, „Alle im Workspace“
+- [ ] „Ansehen als …“ für Space-Admins (Prüfwerkzeug für den Import)
 - [ ] Kommentare an Textstellen und Seiten
 - [ ] Dateien mit Virenscan und Vorschau
 - [ ] Volltextsuche, Rechte in jedem Lesepfad
@@ -106,7 +108,7 @@ Epics: E01 (VPS), E22 (einfach)
 - [ ] 2–3 Pilotkunden, die mit ihrem importierten Space arbeiten, mit regelmäßigem Feedback
 - [ ] Installations- und Admin-Doku
 
-**Weiter, wenn** ein Pilot vier Wochen ohne Confluence arbeitet und mindestens einer sagt: „Dafür würden wir zahlen.“
+**Weiter, wenn** ein Pilot vier Wochen ohne Confluence arbeitet, lieber mit NoteFieber arbeitet als mit Confluence und mindestens einer sagt: „Dafür würden wir zahlen.“
 
 ---
 
@@ -168,7 +170,7 @@ Rund 6 Monate in Vollzeit bis zum Pilot. Nebenbei wird es mit der Atlassian-Fris
 ## Arbeitsweise mit Claude Code
 
 - **Kleine Aufgaben:** eine User Story pro Sitzung. Größere Stücke erst im Planungsmodus durchsprechen.
-- **Entscheidungen dokumentieren:** sofort in `../CLAUDE.md` und als kurze Notiz in `docs/adr/`. Was beide Projekte betrifft, auch in der TalkFieber-`CLAUDE.md`.
+- **Entscheidungen dokumentieren:** sofort in `CLAUDE.md` und als kurze Notiz in `docs/adr/`. Was beide Projekte betrifft, auch in der TalkFieber-`CLAUDE.md`.
 - **Tests zuerst** bei allem, was Rechte, Mandantentrennung oder Sichtbarkeit berührt.
 - **Diffs lesen:** besonders bei Rechten, Datenbankzugriffen, Login und dem Collab-Server.
 - **Mit echten Exporten testen:** Der Import wird an echten Confluence-Daten gemessen, nicht an selbstgebauten.

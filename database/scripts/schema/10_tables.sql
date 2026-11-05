@@ -164,11 +164,17 @@ CREATE INDEX pages_trash     ON pages (trash_root_id) WHERE trash_root_id IS NOT
 
 ALTER TABLE spaces ADD FOREIGN KEY (home_page_id, id) REFERENCES pages (id, space_id);
 
--- Aktueller Inhalt: Yjs-Zustand plus abgeleiteter Klartext. Geschrieben vom Collab-Server.
+-- Aktueller Inhalt: Yjs-Zustand plus abgeleitete Fassungen (BlockNote-JSON, Klartext).
+-- Geschrieben vom Collab-Server.
 CREATE TABLE page_contents (
   page_id               uuid PRIMARY KEY,
   tenant_id             uuid NOT NULL,
   ydoc                  bytea NOT NULL,               -- Yjs: encodeStateAsUpdate
+  -- BlockNote-Dokument (Array von Blöcken) für Export, Import und einen späteren Editorwechsel.
+  -- NULL = nicht vorhanden (zu groß oder nicht erzeugt); dann gilt nur ydoc.
+  content_json          jsonb DEFAULT '[]'::jsonb
+                          CHECK (content_json IS NULL OR (jsonb_typeof(content_json) = 'array'
+                                 AND pg_column_size(content_json) <= 20000000)),
   plain_text            text NOT NULL DEFAULT '' CHECK (length(plain_text) <= 2000000),
   editors_since_version uuid[] NOT NULL DEFAULT '{}', -- für die Autorenliste der nächsten Version
   updated_at            timestamptz NOT NULL DEFAULT now(),
@@ -186,6 +192,9 @@ CREATE TABLE page_versions (
   restored_from integer,                    -- bei kind = restore
   title         text NOT NULL CHECK (length(title) <= 255),
   ydoc          bytea NOT NULL,
+  content_json  jsonb                       -- BlockNote-Dokument wie in page_contents, NULL = nicht vorhanden
+                  CHECK (content_json IS NULL OR (jsonb_typeof(content_json) = 'array'
+                         AND pg_column_size(content_json) <= 20000000)),
   plain_text    text NOT NULL DEFAULT '',
   author_ids    uuid[] NOT NULL DEFAULT '{}',
   created_by    uuid,                       -- wer manuell gespeichert oder wiederhergestellt hat

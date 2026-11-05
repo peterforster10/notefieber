@@ -1,6 +1,6 @@
 # Epics: NoteFieber – europäische Wiki-Plattform
 
-Diese Epics sind die Grundlage für die späteren User Stories. Architektur, Datenmodell und Entscheidungen beschreibt die `../CLAUDE.md`, auf deren Abschnitte hier verwiesen wird. Die Nummern gelten nur in diesem Projekt; Verweise auf das Schwesterprojekt heißen „TalkFieber E…“.
+Diese Epics sind die Grundlage für die späteren User Stories. Architektur, Datenmodell und Entscheidungen beschreibt die `CLAUDE.md` im Wurzelverzeichnis, auf deren Abschnitte hier verwiesen wird. Die Nummern gelten nur in diesem Projekt; Verweise auf das Schwesterprojekt heißen „TalkFieber E…“.
 
 ## Rollen
 
@@ -126,9 +126,10 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 **Umfang:**
 - Hocuspocus mit `onAuthenticate` (Rolle über die API), `onLoadDocument`, `onStoreDocument`
 - Lesende Verbindung für viewer und commenter, schreibende für editor
-- Entprelltes Speichern über `app.store_content` als `wiki_worker`, mit Klartext und Bearbeitenden
+- Entprelltes Speichern über `app.store_content` als `wiki_worker`, mit BlockNote-JSON (`editor.document`), Klartext und Bearbeitenden
 - Cursor und Anwesenheit über Yjs Awareness
-- Verbindungen trennen, wenn sich Rechte ändern (`grant.changed`, `page.permissions_changed`)
+- Verbindungen trennen, wenn sich Rechte ändern (`grant.changed`, `page.permissions_changed`, `member.removed`, `member.changed`, `user.deactivated`, `space.archived`)
+- Bei einer neuen, leeren Seite zuerst den Titel aus `pages.title` ins Yjs-Dokument schreiben
 - Kurze Verbindungsabbrüche lokal puffern (IndexedDB)
 
 **Nicht enthalten:** echter Offline-Modus (E30), mehrere Collab-Instanzen (E28).
@@ -170,7 +171,8 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 
 **Umfang:**
 - Seiten anlegen, Unterseiten, Reihenfolge per Fractional Index
-- Verschieben per Drag & Drop mit ganzem Teilbaum (`app.move_page`)
+- Verschieben und Umsortieren per Drag & Drop mit ganzem Teilbaum (`app.move_page`)
+- Wer eine Seite aus einem Bereich mit eigenen Rechten herausschiebt, muss dort Admin sein
 - Brotkrume, zuletzt besuchte Seiten
 - Rückverweise („Wer verlinkt hierher?“) über `page_links`
 
@@ -214,7 +216,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 **Ziel:** Nichts geht unbemerkt verloren, jeder Stand ist nachvollziehbar.
 
 **Umfang:**
-- Automatische Version nach 10 Minuten Ruhe, manuelle Version mit Klick (`app.create_version`)
+- Automatische Version nach 10 Minuten Ruhe, manuelle Version mit Klick (`app.save_version`)
 - Versionen mit Autoren anzeigen und vergleichen
 - Wiederherstellen als neue Version (im Collab-Server über Yjs)
 - Papierkorb für ganze Teilbäume, Wiederherstellen, endgültiges Löschen nach 30 Tagen durch den Worker
@@ -241,17 +243,20 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Vererbung kappen (kopiert bisherige Rechte, macht die handelnde Person zum Admin), danach einschränken
 - Anzeige „Erbt Rechte von …“ bzw. Schloss-Symbol
 - Wiederherstellung durch Organisations-Admins, im Audit-Log festgehalten
+- **„Ansehen als …“:** Space-Admins sehen eine Seite, den Baum oder die Suche so, wie eine bestimmte Person sie sieht. In der Datenbank fertig: `app.view_as(space, person, actor)` liefert Struktur und Rolle der Person (keine Inhalte), nur für Admins des Spaces und Organisations-Admins, ohne Seiten mit eigenen Rechten, die die handelnde Person nicht verwaltet, jeder Aufruf im Audit-Log. Offen sind API und Oberfläche; die Suche „als …“ filtert die API auf die Seiten mit Rolle
+- „Alle im Workspace“ höchstens Bearbeiten, Admins immer namentlich oder als Gruppe
 - Eine zentrale Rechte-Funktion (`app.page_rank`) für alle Lesepfade
 
 **Nicht enthalten:** Freigaben nach außen (E18).
 
 **Abnahmekriterien:**
 - Baum, Suche, Links, Kommentare, Versionen, Dateien und Export zeigen nichts ohne Leserecht. Durch Tests abgesichert.
-- Jeder Space und jede eingeschränkte Seite behält mindestens einen Admin.
+- Jeder Space und jede eingeschränkte Seite behält mindestens einen wirksamen Admin (aktive Person oder Gruppe mit aktivem Mitglied).
+- Ein Space-Admin prüft nach einem Import mit „Ansehen als“, dass niemand mehr sieht als in Confluence.
 
 **Abhängigkeiten:** E02, E05, E06.
 
-**Story-Kandidaten:** Space für eine Gruppe freigeben · Seite einschränken · Sehen, wer Zugriff hat · Rechte als Organisations-Admin wiederherstellen
+**Story-Kandidaten:** Space für eine Gruppe freigeben · Seite einschränken · Sehen, wer Zugriff hat · Space als eine bestimmte Person ansehen · Rechte als Organisations-Admin wiederherstellen
 
 ---
 
@@ -262,7 +267,9 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 **Umfang:**
 - Kommentare an Textstellen (verankert über relative Yjs-Positionen) und an der Seite
 - Antworten eine Ebene tief, Thread als erledigt markieren, Antwort öffnet wieder
-- Löschen überschreibt den Inhalt, fremde Kommentare nur durch Space-Admins
+- Eigene Kommentare bearbeiten (`app.edit_comment`)
+- Löschen überschreibt den Inhalt, fremde Kommentare nur durch Admins der Seite (bei eingeschränkten Seiten deren Admins, sonst Space-Admins)
+- Keine neuen Kommentare auf Seiten im Papierkorb
 
 **Nicht enthalten:** Benachrichtigungen (E16).
 
@@ -351,9 +358,9 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 **Ziel:** Die Daten gehören dem Kunden, und wichtige Aktionen sind nachvollziehbar.
 
 **Umfang:**
-- Export einer Seite, eines Teilbaums oder eines Spaces als Markdown + Anhänge (ZIP), ohne Support-Ticket
+- Export einer Seite, eines Teilbaums oder eines Spaces als Markdown plus BlockNote-JSON plus Anhänge (ZIP), ohne Support-Ticket. Markdown zum Lesen und Weiterverwenden, BlockNote-JSON verlustfrei für den Re-Import und einen späteren Editorwechsel. Grundlage ist `page_contents.content_json` (bei alten Versionen `page_versions.content_json`); fehlt es, wandelt der Worker den Yjs-Zustand um
 - Export enthält nur, was die Person lesen darf
-- Audit-Log für Rechte, Vererbung, Papierkorb, Verschieben, Import, Export, Löschen fremder Kommentare
+- Audit-Log für Rechte, Vererbung, Papierkorb, Verschieben, Import, Export, „Ansehen als …“, Löschen fremder Kommentare
 
 **Nicht enthalten:** PDF-, Word- und ODT-Export (offene Entscheidung zu BlockNote XL), Audit-Ansicht für Admins (E17).
 
@@ -374,7 +381,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 **Umfang:**
 - Next.js als reine Oberfläche, Daten nur über die API
 - Seitenleiste mit Space-Umschalter und Seitenbaum, Kopfbereich mit Brotkrume und Anwesenheit, Kommentarspalte
-- Designsystem gemeinsam mit TalkFieber (IBM Plex, Farben aus der TalkFieber-`../CLAUDE.md`)
+- Designsystem gemeinsam mit TalkFieber (IBM Plex, Farben aus der TalkFieber-`CLAUDE.md`)
 - Tastaturbedienung, WCAG 2.2 AA, Deutsch und Englisch, responsiv bis Tablet
 
 **Nicht enthalten:** Mobile-Apps (E30).

@@ -1,8 +1,8 @@
 @startuml data_model
-' Datenmodell NoteFieber (Stand 03.11.2026, maßgeblich ist database/scripts/schema/schema.sql)
+' Datenmodell NoteFieber (Stand 05.11.2026, maßgeblich ist database/scripts/schema/, Details in docs/SCHEMA.md)
 ' * = NOT NULL, <<PK>> Primärschlüssel, <<FK>> Fremdschlüssel, <<UK>> eindeutig
 
-title Datenmodell NoteFieber (Stand 03.11.2026)
+title Datenmodell NoteFieber (Stand 05.11.2026)
 
 hide circle
 skinparam linetype ortho
@@ -34,7 +34,7 @@ entity "users" as users {
   * id : uuid <<PK>>
   --
   * tenant_id : uuid <<FK>>
-  idp_subject : text <<UK>> -- Person in Zitadel
+  idp_subject : text -- Person in Zitadel, eindeutig pro Mandant
   * email : text -- eindeutig pro Mandant
   * display_name : text
   * role : text -- org_admin, member
@@ -131,6 +131,7 @@ entity "page_contents" as page_contents {
   --
   * tenant_id : uuid <<FK>>
   * ydoc : bytea -- Yjs-Zustand
+  content_json : jsonb -- BlockNote-Dokument, NULL = fehlt
   * plain_text : text
   * editors_since_version : uuid[]
   * updated_at : timestamptz
@@ -143,9 +144,10 @@ entity "page_versions" as page_versions {
   * page_id : uuid <<FK>>
   * version : integer -- fortlaufend pro Seite
   * kind : text -- auto, manual, restore, import
-  restored_from : integer
+  restored_from : integer <<FK>> -- ältere Version derselben Seite
   * title : text
   * ydoc : bytea
+  content_json : jsonb
   * plain_text : text
   * author_ids : uuid[]
   created_by : uuid <<FK>>
@@ -176,7 +178,7 @@ entity "grants" as grants {
   * subject_type : text -- user, group, workspace
   user_id : uuid <<FK>>
   group_id : uuid <<FK>>
-  * role : text -- viewer, commenter, editor, admin
+  * role : text -- viewer, commenter, editor, admin (workspace nie admin)
 }
 
 entity "comments" as comments {

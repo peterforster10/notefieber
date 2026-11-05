@@ -126,13 +126,13 @@ Die Rollen und Rechte erklärt [SCHEMA.md, Abschnitt 9](SCHEMA.md#9-datenbank-ro
 
 ## 6. Tests ausführen
 
-**Funktionstest** (42 Tests für Rechte, Sichtbarkeit und Regeln):
+**Funktionstest** (44 Tests für Rechte, Sichtbarkeit und Regeln):
 
 ```bash
 docker exec nf-pg18 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f /scripts/schema_test/schema_test.sql
 ```
 
-Erwartet: `NOTICE: OK 1 …` bis `NOTICE: OK 42 …`, dann `Alle Tests bestanden (zurückgerollt, die Datenbank ist unverändert).` Der Test läuft in einer Transaktion und rollt am Ende zurück. Man kann ihn also beliebig oft wiederholen, und die Datenbank bleibt leer. Bricht ein Test ab, zeigt `ERROR:` den Grund, und die Datenbank ist ebenfalls unverändert.
+Erwartet: `NOTICE: OK 1 …` bis `NOTICE: OK 44 …`, dann `Alle Tests bestanden (zurückgerollt, die Datenbank ist unverändert).` Der Test läuft in einer Transaktion und rollt am Ende zurück. Man kann ihn also beliebig oft wiederholen, und die Datenbank bleibt leer. Bricht ein Test ab, zeigt `ERROR:` den Grund, und die Datenbank ist ebenfalls unverändert.
 
 **Nebenläufigkeitstest** (Sperren im Seitenbaum mit zwei gleichzeitigen Sitzungen, dauert etwa 10 Sekunden):
 
@@ -169,7 +169,7 @@ Mit `SET LOCAL ROLE wiki_worker` und ohne `app.user_id` sieht man, was Collab-Se
 
 Solange es keine Produktivdaten gibt, ist das Schema in `database/scripts/schema/` vollständig und es gibt noch keine Migrationen. `schema.sql` ist der Einstieg und bindet die Teile (`00_setup.sql` … `90_privileges.sql`) mit `\ir` in einer Transaktion ein. Welche Datei was enthält, zeigt die Tabelle am Anfang von [SCHEMA.md](SCHEMA.md). Ein Änderungszyklus sieht so aus:
 
-1. **Test zuerst:** Alles, was Rechte oder Sichtbarkeit berührt, bekommt zuerst einen Test (Regel aus der `CLAUDE.md`). Die Tests liegen in `database/scripts/schema_test/`: `schema_test.sql` ist der Einstieg, die Tests stehen in den Teilen `01_basics.sql` … `09_users_rules.sql`. Neue Tests hinten an den passenden Teil oder als neuer Teil am Ende (mit `\ir`-Zeile in `schema_test.sql`). Die Teile bauen aufeinander auf; welche Testdaten ein Teil nutzt und anlegt, steht in seinem Kopf. Die Tests laufen als `wiki_app` bzw. `wiki_worker`.
+1. **Test zuerst:** Alles, was Rechte oder Sichtbarkeit berührt, bekommt zuerst einen Test (Regel aus der `CLAUDE.md`). Die Tests liegen in `database/scripts/schema_test/`: `schema_test.sql` ist der Einstieg, die Tests stehen in den Teilen `01_basics.sql` … `11_content_json.sql`. Neue Tests hinten an den passenden Teil oder als neuer Teil am Ende (mit `\ir`-Zeile in `schema_test.sql`). Die Teile bauen aufeinander auf; welche Testdaten ein Teil nutzt und anlegt, steht in seinem Kopf. Die Tests laufen als `wiki_app` bzw. `wiki_worker`.
 2. Den passenden Teil ändern, z. B. eine neue Seitenfunktion in `60_functions_pages.sql`, ihre Freigabe in `90_privileges.sql`, eine neue Leseregel in `80_rls.sql`. Die Regeln für neue Funktionen stehen in der `CLAUDE.md` (Abschnitt 13) und in [SCHEMA.md, Abschnitt 9](SCHEMA.md#9-datenbank-rollen-und-schemas): Mandant in jeder Abfrage prüfen, `require_actor` zuerst, neue Funktionen ausdrücklich freigeben. Ein **neuer Teil** braucht eine `\ir`-Zeile in `schema.sql` an der richtigen Stelle der Reihenfolge.
 3. Datenbank zurücksetzen und neu einspielen ([Abschnitt 9](#9-alltag-starten-stoppen-zurücksetzen)).
 4. Beide Tests ausführen ([Abschnitt 6](#6-tests-ausführen)).

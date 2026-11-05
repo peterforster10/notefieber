@@ -22,6 +22,8 @@
 --   07_write_paths.sql        Tests 29–35  Vererbung, direkte Zugriffe, Verschieben, letzter Admin, Events
 --   08_titles_positions.sql   Tests 36–37  Titel aus Yjs, Positionen
 --   09_users_rules.sql        Tests 38–42  Personen, Gäste, Deaktivierte, kleine Regeln, Funktionsrechte
+--   10_view_as.sql            Test  43     „Ansehen als …“
+--   11_content_json.sql       Test  44     BlockNote-JSON neben dem Yjs-Zustand
 --
 -- Testdaten: Die erfundene Firma Alpenwerk (Mandant t1) mit Anna (Organisations-Admin),
 -- Lukas, Max, Sophie und dem Gast Elena, dazu Eva im zweiten Mandanten (t2). IDs liegen
@@ -57,6 +59,8 @@ CREATE FUNCTION pg_temp.id(p text) RETURNS uuid LANGUAGE sql AS $$ SELECT v FROM
 \ir 07_write_paths.sql
 \ir 08_titles_positions.sql
 \ir 09_users_rules.sql
+\ir 10_view_as.sql
+\ir 11_content_json.sql
 
 RESET ROLE;
 ROLLBACK;

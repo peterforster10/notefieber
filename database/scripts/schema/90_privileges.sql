@@ -15,6 +15,11 @@ ALTER DEFAULT PRIVILEGES REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
 GRANT USAGE ON SCHEMA public, app TO wiki_app, wiki_worker;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA app TO wiki_app, wiki_worker;
 
+-- „Ansehen als …“ für die API, ausdrücklich: Die Funktion gibt Rollen anderer Personen
+-- heraus und prüft selbst, dass nur Admins sie aufrufen (siehe 50_functions_spaces.sql).
+-- In einer späteren Migration wäre dies die nötige Freigabe (Default Privileges).
+GRANT EXECUTE ON FUNCTION app.view_as(uuid, uuid, uuid) TO wiki_app;
+
 -- Interne Bausteine: nur aus Funktionen heraus, die als Eigentümer laufen, bzw. vom Worker.
 -- Sonst könnte wiki_app Events und Audit-Einträge fälschen, Versionen ohne Prüfung anlegen
 -- oder die Rechte anderer Personen abfragen.

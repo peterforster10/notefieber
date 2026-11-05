@@ -223,3 +223,57 @@ BEGIN
   PERFORM app.audit(p_actor_id, CASE WHEN p_archived THEN 'space.archived' ELSE 'space.unarchived' END,
                     'space', p_space_id);
 END $$;
+
+-- „Ansehen als …“: Wie sieht eine Person (p_user_id) diesen Space? Prüfwerkzeug, z. B. nach
+-- einem Import. Die API darf page_rank(seite, person) bewusst nicht aufrufen; diese Funktion
+-- gibt dieselbe Rolle heraus, aber nur unter diesen Bedingungen:
+--   - Aufrufen dürfen Admins des Spaces (über ihre Grants, auch im archivierten Space) und
+--     Organisations-Admins.
+--   - Nur Struktur und Rolle (Titel, Pfad, Position, eigene Rechte ja/nein), keine Inhalte.
+--     Seiten, die die Person nicht lesen darf, stehen mit role = NULL drin.
+--   - Seiten mit eigenen Rechten, auf denen die handelnde Person nicht Admin ist, fehlen samt
+--     ihren erbenden Unterseiten: Wer sie nicht verwaltet, erfährt auch hier nichts über sie.
+--   - Seiten im Papierkorb fehlen.
+--   - Jeder Aufruf steht im Audit-Log (space.viewed_as).
+-- Den Baum baut die App daraus mit ORDER BY position, page_id; für die Suche filtert sie ihre
+-- Treffer auf die Seiten mit Rolle.
+CREATE FUNCTION app.view_as(p_space_id uuid, p_user_id uuid, p_actor_id uuid)
+RETURNS TABLE (page_id uuid, parent_id uuid, path ltree, "position" text, title text,
+               inherit_perms boolean, role text)
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $$
+#variable_conflict use_column
+DECLARE
+  v_tenant  uuid := app.current_tenant();
+  v_ws_role text;
+BEGIN
+  PERFORM app.require_actor(p_actor_id);
+  IF NOT EXISTS (SELECT 1 FROM spaces s WHERE s.id = p_space_id AND s.tenant_id = v_tenant) THEN
+    RAISE EXCEPTION 'view_as: Space nicht gefunden';
+  END IF;
+  v_ws_role := app.space_ws_role(p_space_id, p_actor_id);
+  IF NOT ((v_ws_role IS NOT NULL AND app.grant_rank(p_space_id, NULL, p_actor_id, v_ws_role) = 4)
+          OR app.is_org_admin(p_actor_id)) THEN
+    RAISE EXCEPTION USING
+      ERRCODE = 'insufficient_privilege',
+      MESSAGE = 'Nur Admins des Spaces dürfen ansehen, was andere sehen';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM users u WHERE u.id = p_user_id AND u.tenant_id = v_tenant) THEN
+    RAISE EXCEPTION 'view_as: Person nicht gefunden';
+  END IF;
+
+  PERFORM app.audit(p_actor_id, 'space.viewed_as', 'space', p_space_id,
+                    jsonb_build_object('user_id', p_user_id));
+
+  RETURN QUERY
+  SELECT p.id, p.parent_id, p.path, p.position, p.title, p.inherit_perms,
+         app.rank_role(app.page_rank(p.id, p_user_id))
+  FROM pages p
+  LEFT JOIN LATERAL (
+    SELECT s.id AS source FROM pages s
+    WHERE s.space_id = p.space_id AND s.path @> p.path AND NOT s.inherit_perms
+    ORDER BY nlevel(s.path) DESC LIMIT 1) src ON true
+  WHERE p.space_id = p_space_id AND p.tenant_id = v_tenant AND p.deleted_at IS NULL
+    AND (src.source IS NULL
+         OR (v_ws_role IS NOT NULL AND app.grant_rank(NULL, src.source, p_actor_id, v_ws_role) = 4))
+  ORDER BY p.position, p.id;
+END $$;
