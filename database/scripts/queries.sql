@@ -1,4 +1,5 @@
 BEGIN;
+
 -- Mandanten
 SELECT * from tenants order by id;
 
@@ -15,4 +16,5 @@ WHERE p.deleted_at IS NULL ORDER BY s.key, p.path;
 -- Volltextsuche als Max
 -- SELECT p.title FROM page_search ps JOIN pages p ON p.id = ps.page_id
 -- WHERE ps.tsv @@ websearch_to_tsquery('german', 'Rechte') AND p.deleted_at IS NULL;
+
 ROLLBACK;
