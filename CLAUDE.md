@@ -12,7 +12,7 @@
 - **Weitere Dokumente im Projekt:**
   - `docs/ROADMAP.md`: Stufen 0–4 und Meilensteine M0–M5
   - `docs/EPICS.md`: Epics als Basis für User Stories, nach Roadmap-Stufen geordnet
-  - `database/scripts/roles_database.sql`, `database/scripts/schema/schema.sql` und `schema_test.sql`: Datenbank
+  - `database/scripts/roles_database.sql` und `database/scripts/schema/`: Datenbank. `schema.sql` ist der Einstieg und bindet die Teile `00_setup.sql` … `90_privileges.sql` ein. Tests in `database/scripts/schema_test/`: `schema_test.sql` (Einstieg, Teile `01_basics.sql` … `09_users_rules.sql`) und `schema_concurrency_test.sh`
   - `docs/SCHEMA.md`: Referenz zum Datenmodell (jede Tabelle und Spalte, Rollen, Regeln, jede Funktion). Bei Änderungen am Schema mit anpassen.
   - `docs/LOCAL_SETUP.md`: lokale Entwicklung (Voraussetzungen, PostgreSQL 18 in Docker, Schema, Tests, Fehlerbehebung). Mit jedem neuen Baustein (Compose, Zitadel, Garage, Apps) ergänzen.
   - `docs/models/data_model/data_model.mmd` (ER-Diagramm), `docs/models/architecture` (Startsetup), `docs/models/architecture` (Zielarchitektur)
@@ -140,7 +140,7 @@ Zitadel: Login (OIDC), Gruppen
 
 ## 8. Datenmodell (PostgreSQL)
 
-Maßgeblich ist `database/scripts/schema/schema.sql`. Jede Tabelle hat `tenant_id` und Row Level Security. IDs sind UUIDv7 (in PostgreSQL 18 eingebaut).
+Maßgeblich ist das Schema in `database/scripts/schema/` (Einstieg `schema.sql`, Teile nach Bereichen). Jede Tabelle hat `tenant_id` und Row Level Security. IDs sind UUIDv7 (in PostgreSQL 18 eingebaut).
 
 **Gleich wie in TalkFieber:** `tenants` (mit `idp_org_id` für Zitadel), `users`, `workspaces`, `workspace_members`, `invites`, `outbox`, `audit_log`, dieselben Funktionen `create_tenant`, `accept_invite`, `resolve_tenant`, `find_invite`, `remove_workspace_member` und die Schutz-Trigger für letzten Owner und letzten Organisations-Admin.
 
@@ -264,14 +264,14 @@ Wiki allein etwa 3–4 GB, mit TalkFieber etwa 5–8 GB. KVM 4 mit 16 GB reicht 
 
 Meilensteine und Übergangskriterien stehen in der `docs/ROADMAP.md`.
 
-1. ~~`schema.sql`~~ **erledigt:** `schema.sql` und `schema_test.sql` liegen unter `database/scripts/schema`. Alle 42 Tests sind auf PostgreSQL 18.6 bestanden (Docker-Image `postgres:18`). `schema_test.sql` läuft in einer Transaktion und rollt am Ende zurück, ist also beliebig oft wiederholbar. Gleichzeitige Sitzungen (Sperren im Seitenbaum, gegenseitiges Entfernen von Admins) prüft `schema_concurrency_test.sh`, z. B. `PSQL="docker exec -i nf-pg18 psql -U wiki_owner -d wiki" ./schema_concurrency_test.sh`. Regeln für die Arbeit damit:
+1. ~~`schema.sql`~~ **erledigt:** Das Schema liegt unter `database/scripts/schema`, die Tests unter `database/scripts/schema_test`. `schema.sql` bindet die Teile in fester Reihenfolge in einer Transaktion ein (`\ir`, nur mit `psql`): `00_setup`, `10_tables`, `20_functions_base`, `30_triggers`, `40_functions_tenants`, `50_functions_spaces`, `60_functions_pages`, `70_functions_content`, `72_functions_comments`, `74_functions_import`, `80_rls`, `90_privileges`. Neue Objekte kommen in den passenden Teil; ein neuer Teil braucht eine `\ir`-Zeile in `schema.sql` an der richtigen Stelle (SQL-Funktionen, Trigger und Regeln brauchen beim Anlegen die Objekte aus früheren Teilen). Die Teile nie einzeln einspielen. Alle 42 Tests sind auf PostgreSQL 18.6 bestanden (Docker-Image `postgres:18`). `schema_test.sql` bindet die Testteile genauso ein, läuft in einer Transaktion und rollt am Ende zurück, ist also beliebig oft wiederholbar. Gleichzeitige Sitzungen (Sperren im Seitenbaum, gegenseitiges Entfernen von Admins) prüft `schema_concurrency_test.sh`, z. B. `PSQL="docker exec -i nf-pg18 psql -U wiki_owner -d wiki" bash database/scripts/schema_test/schema_concurrency_test.sh`. Regeln für die Arbeit damit:
    - `database/scripts/roles_database.sql` legt die Rollen und die Datenbank `wiki` an. Das Schema spielt `wiki_owner` ein, nie `postgres`, sonst laufen die `SECURITY DEFINER`-Funktionen als Superuser.
    - Die API verbindet sich als `wiki_app`, Collab-Server und Worker als `wiki_worker`, **nie als Eigentümer** (der umgeht RLS).
    - Pro Transaktion `app.tenant_id` und bei `wiki_app` zusätzlich `app.user_id` setzen.
    - Schreibende Abläufe über die Funktionen im Schema `app` (`create_space`, `update_space`, `archive_space`, `create_page`, `move_page`, `trash_page`, `set_grant`, `set_page_inheritance`, `add_workspace_member`, `set_workspace_member_role`, `remove_workspace_member`, `set_user_role`, `set_user_active`, `add_comment`, `edit_comment`, `store_content`, `create_version` usw.). Direkte INSERTs scheitern für `wiki_app` an fehlenden Rechten.
    - Neue `SECURITY DEFINER`-Funktionen: Mandant in jeder Abfrage prüfen (RLS greift dort nicht), zuerst `require_actor` bzw. `require_page`/`require_space`, nie `require_worker` (dort ist `current_user` der Eigentümer).
    - Wie bei TalkFieber: bei Tabellen mit Leseregeln kein `INSERT … RETURNING` und kein `ON CONFLICT`, solange die neue Zeile für die Person noch nicht lesbar ist (z. B. ein Space vor seinem ersten Grant). IDs vorher mit `uuidv7()` erzeugen.
-   - Alles, was Rechte oder Sichtbarkeit berührt, bekommt zuerst einen Test in `schema_test.sql`. Die Tests laufen als `wiki_app` bzw. `wiki_worker`.
+   - Alles, was Rechte oder Sichtbarkeit berührt, bekommt zuerst einen Test in `database/scripts/schema_test/`: hinten an den passenden Teil oder als neuer Teil am Ende (mit `\ir`-Zeile in `schema_test.sql`), Nummern fortlaufend. Die Teile bauen aufeinander auf (gemeinsame Testdaten, Kopf jedes Teils: „Nutzt“ und „Legt an“) und laufen nur über `schema_test.sql`. Die Tests laufen als `wiki_app` bzw. `wiki_worker`.
 2. Repository und Grundgerüst: Next.js-Frontend, Express-API mit OIDC-Login über Zitadel, Hocuspocus mit `onAuthenticate`, `onLoadDocument`, `onStoreDocument` gegen diese Datenbank.
 3. Lokale Umgebung (Docker Compose oder k3d) mit PostgreSQL, Zitadel und Garage; danach K3s-Manifeste, die lokal und auf dem VPS gleich laufen.
 4. **Früh echte Confluence-Exporte besorgen** (2–3 Pilotkunden). Die häufigsten Makros zählen, bevor der Importer gebaut wird.

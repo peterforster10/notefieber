@@ -13,7 +13,7 @@ Was man braucht und wie man PostgreSQL 18 mit Schema und Tests aufsetzt, steht i
 ```bash
 psql -U postgres -f database/scripts/roles_database.sql
 psql -U wiki_owner -d wiki -f database/scripts/schema/schema.sql
-psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f database/scripts/schema/schema_test.sql
+psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f database/scripts/schema_test/schema_test.sql
 # Erwartet: OK 1 … OK 42, dann "Alle Tests bestanden (zurückgerollt …)."
 ```
 

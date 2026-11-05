@@ -129,7 +129,7 @@ Die Rollen und Rechte erklärt [SCHEMA.md, Abschnitt 9](SCHEMA.md#9-datenbank-ro
 **Funktionstest** (42 Tests für Rechte, Sichtbarkeit und Regeln):
 
 ```bash
-docker exec nf-pg18 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f /scripts/schema/schema_test.sql
+docker exec nf-pg18 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f /scripts/schema_test/schema_test.sql
 ```
 
 Erwartet: `NOTICE: OK 1 …` bis `NOTICE: OK 42 …`, dann `Alle Tests bestanden (zurückgerollt, die Datenbank ist unverändert).` Der Test läuft in einer Transaktion und rollt am Ende zurück. Man kann ihn also beliebig oft wiederholen, und die Datenbank bleibt leer. Bricht ein Test ab, zeigt `ERROR:` den Grund, und die Datenbank ist ebenfalls unverändert.
@@ -137,7 +137,7 @@ Erwartet: `NOTICE: OK 1 …` bis `NOTICE: OK 42 …`, dann `Alle Tests bestanden
 **Nebenläufigkeitstest** (Sperren im Seitenbaum mit zwei gleichzeitigen Sitzungen, dauert etwa 10 Sekunden):
 
 ```bash
-PSQL="docker exec -i nf-pg18 psql -U wiki_owner -d wiki" bash database/scripts/schema/schema_concurrency_test.sh
+PSQL="docker exec -i nf-pg18 psql -U wiki_owner -d wiki" bash database/scripts/schema_test/schema_concurrency_test.sh
 ```
 
 Erwartet: `OK 1` bis `OK 4`, dann `Alle Nebenläufigkeitstests bestanden`. Dieser Test muss committen und lässt deshalb einen Mandanten `nebenlaeufig-<zeitstempel>` in der Datenbank stehen. Wer das nicht möchte, setzt die Datenbank danach zurück ([Abschnitt 9](#9-alltag-starten-stoppen-zurücksetzen)).
@@ -167,10 +167,10 @@ Mit `SET LOCAL ROLE wiki_worker` und ohne `app.user_id` sieht man, was Collab-Se
 
 ## 8. Das Schema ändern
 
-Solange es keine Produktivdaten gibt, ist `schema.sql` das vollständige Schema und es gibt noch keine Migrationen. Ein Änderungszyklus sieht so aus:
+Solange es keine Produktivdaten gibt, ist das Schema in `database/scripts/schema/` vollständig und es gibt noch keine Migrationen. `schema.sql` ist der Einstieg und bindet die Teile (`00_setup.sql` … `90_privileges.sql`) mit `\ir` in einer Transaktion ein. Welche Datei was enthält, zeigt die Tabelle am Anfang von [SCHEMA.md](SCHEMA.md). Ein Änderungszyklus sieht so aus:
 
-1. **Test zuerst:** Alles, was Rechte oder Sichtbarkeit berührt, bekommt zuerst einen Test in `schema_test.sql` (Regel aus der `CLAUDE.md`). Die Tests laufen als `wiki_app` bzw. `wiki_worker`.
-2. `schema.sql` ändern. Die Regeln für neue Funktionen stehen in der `CLAUDE.md` (Abschnitt 13) und in [SCHEMA.md, Abschnitt 9](SCHEMA.md#9-datenbank-rollen-und-schemas): Mandant in jeder Abfrage prüfen, `require_actor` zuerst, neue Funktionen ausdrücklich freigeben.
+1. **Test zuerst:** Alles, was Rechte oder Sichtbarkeit berührt, bekommt zuerst einen Test (Regel aus der `CLAUDE.md`). Die Tests liegen in `database/scripts/schema_test/`: `schema_test.sql` ist der Einstieg, die Tests stehen in den Teilen `01_basics.sql` … `09_users_rules.sql`. Neue Tests hinten an den passenden Teil oder als neuer Teil am Ende (mit `\ir`-Zeile in `schema_test.sql`). Die Teile bauen aufeinander auf; welche Testdaten ein Teil nutzt und anlegt, steht in seinem Kopf. Die Tests laufen als `wiki_app` bzw. `wiki_worker`.
+2. Den passenden Teil ändern, z. B. eine neue Seitenfunktion in `60_functions_pages.sql`, ihre Freigabe in `90_privileges.sql`, eine neue Leseregel in `80_rls.sql`. Die Regeln für neue Funktionen stehen in der `CLAUDE.md` (Abschnitt 13) und in [SCHEMA.md, Abschnitt 9](SCHEMA.md#9-datenbank-rollen-und-schemas): Mandant in jeder Abfrage prüfen, `require_actor` zuerst, neue Funktionen ausdrücklich freigeben. Ein **neuer Teil** braucht eine `\ir`-Zeile in `schema.sql` an der richtigen Stelle der Reihenfolge.
 3. Datenbank zurücksetzen und neu einspielen ([Abschnitt 9](#9-alltag-starten-stoppen-zurücksetzen)).
 4. Beide Tests ausführen ([Abschnitt 6](#6-tests-ausführen)).
 5. [SCHEMA.md](SCHEMA.md) und bei Bedarf `CLAUDE.md` nachziehen.
@@ -224,7 +224,10 @@ docker volume rm notefieber-pgdata
 | `$'\r': command not found` beim Nebenläufigkeitstest | Windows-Zeilenenden im Skript, siehe [Abschnitt 2](#2-voraussetzungen). |
 | `role "wiki_owner" does not exist` | Schritt 1 (`roles_database.sql`) fehlt. |
 | `database "wiki" already exists` | `roles_database.sql` wurde schon einmal ausgeführt. Zum Neuaufsetzen zuerst die Datenbank löschen ([Abschnitt 9](#9-alltag-starten-stoppen-zurücksetzen)). |
-| `relation "…" already exists` beim Schema | Das Schema ist schon eingespielt. `schema.sql` ist kein Migrationsskript und lässt sich nicht zweimal einspielen; Datenbank zurücksetzen. |
+| `relation "…" already exists` beim Schema | Das Schema ist schon eingespielt. `schema.sql` ist kein Migrationsskript und lässt sich nicht zweimal einspielen; Datenbank zurücksetzen. Es wird dabei nichts geändert (eine Transaktion). |
+| `Rollen wiki_app und wiki_worker fehlen: zuerst roles_database.sql ausführen` | Schritt 1 aus [Abschnitt 5](#5-rollen-datenbank-und-schema-einspielen) fehlt. |
+| Fehlermeldungen beginnen mit `psql:/scripts/schema/60_functions_pages.sql:42:` | So soll es sein: Die Meldung nennt den Teil und die Zeile, in der der Fehler steckt. |
+| `syntax error at or near "\"` oder `\ir` wird nicht erkannt | `schema.sql` wurde nicht mit `psql` ausgeführt, z. B. über „Run“ in der IDE. `\ir` ist ein Befehl von `psql`; das Schema immer mit `psql` einspielen wie in [Abschnitt 5](#5-rollen-datenbank-und-schema-einspielen). |
 | `password authentication failed for user "wiki_owner"` in der IDE | Passwort noch nicht gesetzt oder falsch, Schritt 3 wiederholen. |
 | Ein Test meldet `ERROR: …` mit `CONTEXT: … at ASSERT` | Ein Test ist fehlgeschlagen; die Meldung nennt, was nicht stimmt. Die Datenbank ist unverändert (Rollback). |
 | Die Tests finden Funktionen oder Spalten nicht, die es im Schema gibt | Die Datenbank hat einen älteren Stand des Schemas. Zurücksetzen und neu einspielen. |

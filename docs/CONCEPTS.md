@@ -1,6 +1,6 @@
 # Kernkonzepte von NoteFieber
 
-Dieses Dokument erklärt einem Neuling, wie NoteFieber funktioniert und warum es so gebaut ist. Es geht der Reihe nach vom Fachlichen zum Technischen. Wer nur die Entscheidungen und den aktuellen Stand braucht, liest `CLAUDE.md`. Maßgeblich für jedes Detail der Datenbank ist `database/scripts/schema/schema.sql`.
+Dieses Dokument erklärt einem Neuling, wie NoteFieber funktioniert und warum es so gebaut ist. Es geht der Reihe nach vom Fachlichen zum Technischen. Wer nur die Entscheidungen und den aktuellen Stand braucht, liest `CLAUDE.md`. Maßgeblich für jedes Detail der Datenbank ist das Schema in `database/scripts/schema/` (Einstieg `schema.sql`), nachschlagen lässt es sich in `docs/SCHEMA.md`.
 
 Alle Beispiele nutzen die erfundene Firma **Alpenwerk** mit Anna Huber (Organisations-Admin), Lukas Gruber, Sophie Bauer, Max Mustermann und dem Gast Elena Novak von der Agentur Nord.
 
@@ -775,7 +775,7 @@ docs/
 
 ### Migrationen
 
-- Die erste Migration ist das heutige `schema.sql`. Danach bekommt **jede Änderung eine neue Migrationsdatei**. Eingespielte Migrationen werden nie mehr geändert.
+- Die erste Migration ist das heutige Schema. Weil `schema.sql` seine Teile mit dem `psql`-Befehl `\ir` einbindet, Migrationswerkzeuge wie dbmate aber reines SQL ausführen, kommen die Teile dafür in ihrer Reihenfolge gebündelt in eine Datei. Danach bekommt **jede Änderung eine neue Migrationsdatei**. Eingespielte Migrationen werden nie mehr geändert.
 - Migrationen laufen immer als `wiki_owner`.
 - Jede Migration ist **eine Version rückwärtskompatibel**: Die alte App-Version muss mit dem neuen Schema noch laufen. Das ermöglicht Updates ohne Ausfall und ist für On-Prem-Kunden Pflicht, die Updates spät einspielen.
 - *Empfehlung:* Migrationen als reines SQL (z. B. mit dbmate), weil das Schema viel Logik in Funktionen, Triggern und Policies enthält, die ein ORM nicht abbildet. Drizzle nur für Abfragen in der App.

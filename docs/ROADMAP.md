@@ -40,7 +40,7 @@ Infrastruktur: eigener Rechner. Node direkt, PostgreSQL 18, Zitadel und Garage p
 Epics: E01 (lokal), E02, E03 (einfach)
 - [ ] Repository mit Lizenz, `../CLAUDE.md`, `EPICS.md`, `ROADMAP.md`, Ordner `docs/adr/`
 - [ ] Lokale Umgebung mit PostgreSQL 18, Zitadel, Garage
-- [ ] Migrationswerkzeug wählen, `roles_database.sql` und `schema.sql` als erste Migration, `schema_test.sql` in der CI (eingespielt als `wiki_owner`, nie als `postgres`)
+- [ ] Migrationswerkzeug wählen, `roles_database.sql` und das Schema als erste Migration (die Teile aus `database/scripts/schema/` gebündelt, falls das Werkzeug kein `psql` nutzt), `schema_test.sql` in der CI (eingespielt als `wiki_owner`, nie als `postgres`)
 - [ ] CI: Build, Tests, Prüfung der Abhängigkeiten und Lizenzen (keine BlockNote-XL-Pakete)
 - [ ] Login per OIDC über Zitadel, Gruppen aus dem Token übernehmen
 - [ ] Space anlegen, Seitenbaum per API

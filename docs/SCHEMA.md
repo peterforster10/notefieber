@@ -1,6 +1,25 @@
 # Datenmodell: Referenz
 
-Dieses Dokument beschreibt jede Tabelle der Datenbank `wiki` und ihre wichtigen Spalten: was sie bedeuten, welche Regeln die Datenbank selbst durchsetzt, wer sie schreibt und wer sie lesen darf. Es ist ein Nachschlagewerk. Warum das Modell so aussieht, erklärt [CONCEPTS.md](CONCEPTS.md) (Abschnitte 11 und 12), die Entscheidungen stehen in der `CLAUDE.md` (Abschnitt 8). Maßgeblich ist immer [`schema.sql`](../database/scripts/schema/schema.sql). Weicht dieses Dokument davon ab, gilt das Schema, und dieses Dokument wird angepasst.
+Dieses Dokument beschreibt jede Tabelle der Datenbank `wiki` und ihre wichtigen Spalten: was sie bedeuten, welche Regeln die Datenbank selbst durchsetzt, wer sie schreibt und wer sie lesen darf. Es ist ein Nachschlagewerk. Warum das Modell so aussieht, erklärt [CONCEPTS.md](CONCEPTS.md) (Abschnitte 11 und 12), die Entscheidungen stehen in der `CLAUDE.md` (Abschnitt 8). Maßgeblich ist immer das Schema in [`database/scripts/schema/`](../database/scripts/schema/). Weicht dieses Dokument davon ab, gilt das Schema, und dieses Dokument wird angepasst.
+
+**Wo steht was?** [`schema.sql`](../database/scripts/schema/schema.sql) ist der Einstieg und bindet die Teile in dieser Reihenfolge in einer Transaktion ein:
+
+| Datei | Inhalt | Hier im Dokument |
+|---|---|---|
+| [`00_setup.sql`](../database/scripts/schema/00_setup.sql) | Erweiterungen, Schema `app`, Prüfung der Rollen | Abschnitt 9 |
+| [`10_tables.sql`](../database/scripts/schema/10_tables.sql) | alle Tabellen und Indexe | Abschnitte 3–8 |
+| [`20_functions_base.sql`](../database/scripts/schema/20_functions_base.sql) | Kontext, Rechte auflösen, Prüfungen, Ereignisse, Audit, Sperren | 12.1–12.4 |
+| [`30_triggers.sql`](../database/scripts/schema/30_triggers.sql) | Trigger | Abschnitt 13 |
+| [`40_functions_tenants.sql`](../database/scripts/schema/40_functions_tenants.sql) | vor dem Login, Mandanten, Personen, Workspaces, Gruppen | 12.5, 12.6 |
+| [`50_functions_spaces.sql`](../database/scripts/schema/50_functions_spaces.sql) | Spaces, Rechte, Vererbung | 12.7 |
+| [`60_functions_pages.sql`](../database/scripts/schema/60_functions_pages.sql) | Seitenbaum, Papierkorb | 12.8 |
+| [`70_functions_content.sql`](../database/scripts/schema/70_functions_content.sql) | Inhalt, Versionen, Verlinkungen | 12.9 |
+| [`72_functions_comments.sql`](../database/scripts/schema/72_functions_comments.sql) | Kommentare | 12.10 |
+| [`74_functions_import.sql`](../database/scripts/schema/74_functions_import.sql) | Import | 12.11 |
+| [`80_rls.sql`](../database/scripts/schema/80_rls.sql) | Row Level Security | Abschnitt 10 |
+| [`90_privileges.sql`](../database/scripts/schema/90_privileges.sql) | Rechte an Schemas, Funktionen und Tabellen | Abschnitte 9 und 11 |
+
+Die Rollen und die Datenbank legt [`roles_database.sql`](../database/scripts/roles_database.sql) an. Die Tests liegen in [`database/scripts/schema_test/`](../database/scripts/schema_test/).
 
 ## Inhalt
 
