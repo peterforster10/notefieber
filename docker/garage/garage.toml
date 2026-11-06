@@ -1,0 +1,21 @@
+# Garage (S3-kompatibler Dateispeicher) für die lokale Entwicklung, siehe docs/LOCAL_SETUP.md.
+# Ein einzelner Knoten ohne Replikation. Die Geheimnisse (rpc_secret, admin_token) kommen
+# aus Umgebungsvariablen in compose.yaml, nicht aus dieser Datei.
+
+metadata_dir = "/var/lib/garage/meta"
+data_dir = "/var/lib/garage/data"
+db_engine = "sqlite"
+replication_factor = 1
+
+rpc_bind_addr = "[::]:3901"
+rpc_public_addr = "127.0.0.1:3901"
+
+[s3_api]
+s3_region = "garage"
+api_bind_addr = "[::]:3900"
+# Für Anfragen im virtuellen Host-Stil (wiki.s3.garage.localhost); die Apps nutzen den
+# Pfad-Stil (http://localhost:3900/wiki/…), der immer geht.
+root_domain = ".s3.garage.localhost"
+
+[admin]
+api_bind_addr = "[::]:3903"

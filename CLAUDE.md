@@ -11,15 +11,15 @@
 - **Kern des MVP:** ein Team von 10 bis 50 Personen importiert seinen Confluence-Space und arbeitet danach im Alltag ohne Rückfall weiter. Alles, was diesem Beweis nicht dient, kommt später.
 - **Weitere Dokumente im Projekt:**
   - `docs/CONCEPTS.md`: alle Kernkonzepte ausführlich erklärt, für Neulinge zuerst lesen
-  - `docs/MVP.md` (und `docs/MVP.pdf`): Architektur und Umfang des MVP auf einen Blick
+  - `docs/MVP.md`: Architektur und Umfang des MVP auf einen Blick
   - `docs/ROADMAP.md`: Stufen 0–4 und Meilensteine M0–M5
   - `docs/EPICS.md`: Epics als Basis für User Stories, nach Roadmap-Stufen geordnet
   - `database/scripts/roles_database.sql` und `database/scripts/schema/`: Datenbank. `schema.sql` ist der Einstieg und bindet die Teile `00_setup.sql` … `90_privileges.sql` ein. Tests in `database/scripts/schema_test/`: `schema_test.sql` (Einstieg, Teile `01_basics.sql` … `11_content_json.sql`) und `schema_concurrency_test.sh`
   - `docs/SCHEMA.md`: Referenz zum Datenmodell (jede Tabelle und Spalte, Rollen, Regeln, jede Funktion). Bei Änderungen am Schema mit anpassen.
   - `database/scripts/seed/seed.sql`: Testdaten für die lokale Entwicklung (Mandanten Alpenwerk und Nordlicht, Personen, Spaces und Seiten wie im Prototyp). Geht über die Funktionen in `app`; bei geänderten Funktionen mitziehen.
-  - `compose.yaml`: lokale Umgebung (bisher PostgreSQL 18, Container `nf-pg18`, Volume `notefieber-pgdata`). Beim ersten Start spielt `database/docker/initdb/10-notefieber.sh` Rollen, Schema und Testdaten ein.
+  - `compose.yaml`: lokale Umgebung: PostgreSQL 18 (Container `nf-pg18`, Volume `notefieber-pgdata`) und Garage (`nf-garage`, S3 auf `localhost:3900`). Beim ersten Start spielt `docker/postgres/initdb/10-notefieber.sh` Rollen, Schema und Testdaten ein; `docker/garage/` richtet Garage ein (Bucket `wiki`).
   - `docs/LOCAL_SETUP.md`: lokale Entwicklung (Voraussetzungen, `docker compose up`, Schema, Tests, Testdaten, Fehlerbehebung). Mit jedem neuen Baustein (Zitadel, Garage, Apps) ergänzen.
-  - `docs/models/data_model/`: ER-Diagramm als `data_model.mmd` (Mermaid), `data_model.puml` (PlantUML) und `data_model.svg`/`.pdf` (draw.io). Bei Änderungen am Schema alle drei nachziehen.
+  - `docs/models/data_model/`: ER-Diagramm als `data_model.mmd` (Mermaid) und `data_model.svg`. Bei Änderungen am Schema alle zwei nachziehen.
   - `docs/models/architecture/`: `architecture.svg` (Startsetup), `architecture_target.svg` (Zielarchitektur)
   - `prototype/`: klickbarer UI-Prototyp (Seitenansicht mit Kommentaren und Rechte-Dialog, Confluence-Import). Referenz für Gestaltung und Abläufe, kein Produktcode.
 - **Betriebsmodell:** Start als SaaS auf eigenem K3s. Self-Hosting per Helm-Chart ist das zweite Standbein, weil gerade Confluence-Data-Center-Kunden bewusst on-prem arbeiten (Reihenfolge offen, Abschnitt 4).
@@ -289,7 +289,7 @@ Meilensteine und Übergangskriterien stehen in der `docs/ROADMAP.md`.
    - Wie bei TalkFieber: bei Tabellen mit Leseregeln kein `INSERT … RETURNING` und kein `ON CONFLICT`, solange die neue Zeile für die Person noch nicht lesbar ist (z. B. ein Space vor seinem ersten Grant). IDs vorher mit `uuidv7()` erzeugen.
    - Alles, was Rechte oder Sichtbarkeit berührt, bekommt zuerst einen Test in `database/scripts/schema_test/`: hinten an den passenden Teil oder als neuer Teil am Ende (mit `\ir`-Zeile in `schema_test.sql`), Nummern fortlaufend. Die Teile bauen aufeinander auf (gemeinsame Testdaten, Kopf jedes Teils: „Nutzt“ und „Legt an“) und laufen nur über `schema_test.sql`. Die Tests laufen als `wiki_app` bzw. `wiki_worker`.
 2. Repository und Grundgerüst: Next.js-Frontend, Express-API mit OIDC-Login über Zitadel, Hocuspocus mit `onAuthenticate`, `onLoadDocument`, `onStoreDocument` gegen diese Datenbank.
-3. Lokale Umgebung mit Docker Compose: PostgreSQL ist drin (`compose.yaml`), Zitadel und Garage fehlen noch. k3d erst für die K3s-Manifeste, die lokal und auf dem VPS gleich laufen.
+3. Lokale Umgebung mit Docker Compose: PostgreSQL und Garage sind drin (`compose.yaml`), Zitadel fehlt noch. k3d erst für die K3s-Manifeste, die lokal und auf dem VPS gleich laufen.
 4. **Früh echte Confluence-Exporte besorgen** (2–3 Pilotkunden). Die häufigsten Makros zählen, bevor der Importer gebaut wird.
 5. Offene Entscheidungen aus Abschnitt 4 klären, vor allem Name, Lizenz und SaaS vs. On-Prem.
 6. In der TalkFieber-`CLAUDE.md` den Satz zum exklusiven VPS anpassen (Abschnitt 11 hier). Dort auch `users.idp_subject` auf pro Mandant eindeutig umstellen (Index auf `tenant_id, idp_subject`), damit beide Produkte Personen gleich zuordnen.

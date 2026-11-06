@@ -446,7 +446,7 @@ Der Import ist das Feature, das Kaufentscheidungen trifft. Wenn die erste Migrat
 
 ## 11. Das Datenmodell
 
-Alle Daten liegen in **PostgreSQL**. Das ER-Diagramm steht in `docs/data_model.mmd` bzw. `docs/data_model.puml`.
+Alle Daten liegen in **PostgreSQL**. Das ER-Diagramm steht in `docs/data_model.mmd` bzw. `docs/data_model.svg`.
 
 ### Die Tabellen im Überblick
 

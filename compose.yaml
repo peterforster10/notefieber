@@ -1,18 +1,29 @@
 # Lokale Entwicklungsumgebung, siehe docs/LOCAL_SETUP.md.
-# Bisher nur PostgreSQL 18; Zitadel und Garage kommen dazu.
+# PostgreSQL 18 und Garage (Dateien, S3); Zitadel kommt dazu.
 #
-#   docker compose up -d        starten (beim ersten Mal mit Rollen, Schema und Testdaten)
-#   docker compose stop         anhalten, die Daten bleiben im Volume
-#   docker compose down         Container entfernen, die Daten bleiben im Volume
-#   docker compose down -v      Container UND Daten entfernen
+#   docker compose up -d --wait  starten (beim ersten Mal mit Rollen, Schema, Testdaten, Bucket)
+#   docker compose stop          anhalten, die Daten bleiben in den Volumes
+#   docker compose down          Container entfernen, die Daten bleiben in den Volumes
+#   docker compose down -v       Container UND Daten entfernen
 #
 # Einstellungen über Umgebungsvariablen oder eine Datei .env neben dieser Datei
-# (nicht im Repository, siehe .gitignore):
-#   POSTGRES_PASSWORD   Passwort des Superusers postgres (Standard: postgres-lokal)
-#   NF_PG_PORT          Port auf dem eigenen Rechner (Standard: 5432)
-#   NF_SEED             Testdaten beim ersten Start einspielen (Standard: true)
-#   NF_PG_CONTAINER     Name des Containers (Standard: nf-pg18)
-#   NF_PG_VOLUME        Name des Volumes mit den Daten (Standard: notefieber-pgdata)
+# (nicht im Repository, siehe .gitignore). Alle Standardwerte sind nur für den eigenen
+# Rechner gedacht, nie für einen Server.
+#   PostgreSQL
+#     POSTGRES_PASSWORD      Passwort des Superusers postgres (Standard: postgres-lokal)
+#     NF_PG_PORT             Port auf dem eigenen Rechner (Standard: 5432)
+#     NF_SEED                Testdaten beim ersten Start einspielen (Standard: true)
+#     NF_PG_CONTAINER        Name des Containers (Standard: nf-pg18)
+#     NF_PG_VOLUME           Name des Volumes mit den Daten (Standard: notefieber-pgdata)
+#   Garage
+#     NF_S3_PORT             Port der S3-API (Standard: 3900)
+#     NF_GARAGE_ADMIN_PORT   Port der Admin-API (Standard: 3903)
+#     NF_S3_BUCKET           Bucket (Standard: wiki)
+#     NF_S3_ACCESS_KEY_ID    Zugangsschlüssel: GK + 24 Hexziffern
+#     NF_S3_SECRET_ACCESS_KEY  Geheimnis: 64 Hexziffern
+#     NF_GARAGE_ADMIN_TOKEN  Token der Admin-API (Standard: garage-admin-lokal)
+#     NF_GARAGE_RPC_SECRET   Interner Schlüssel von Garage: 64 Hexziffern
+#     NF_GARAGE_CONTAINER, NF_GARAGE_VOLUME_PREFIX  Namen (Standard: nf-garage, notefieber-garage)
 name: notefieber
 
 services:
@@ -27,7 +38,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql             # Daten (beim Image postgres:18 dieser Pfad)
       - ./database/scripts:/scripts:ro         # Rollen, Schema, Tests, Testdaten
-      - ./database/docker/initdb:/docker-entrypoint-initdb.d:ro   # nur beim ersten Start
+      - ./docker/postgres/initdb:/docker-entrypoint-initdb.d:ro   # nur beim ersten Start
     healthcheck:
       # Über TCP: Während der Ersteinrichtung lauscht PostgreSQL nur auf dem Socket,
       # „healthy“ heißt also: Rollen, Schema und Testdaten sind eingespielt.
@@ -37,7 +48,55 @@ services:
       retries: 30
       start_period: 60s
 
+  garage:
+    image: dxflrs/garage:v2.5.0
+    container_name: ${NF_GARAGE_CONTAINER:-nf-garage}
+    environment:
+      GARAGE_RPC_SECRET: ${NF_GARAGE_RPC_SECRET:-7270632d6e75722d6c6f6b616c2d6e6f74656669656265722d67617261676521}
+      GARAGE_ADMIN_TOKEN: ${NF_GARAGE_ADMIN_TOKEN:-garage-admin-lokal}
+    ports:
+      - "127.0.0.1:${NF_S3_PORT:-3900}:3900"             # S3-API für die Apps
+      - "127.0.0.1:${NF_GARAGE_ADMIN_PORT:-3903}:3903"   # Admin-API
+    volumes:
+      - garage-meta:/var/lib/garage/meta
+      - garage-data:/var/lib/garage/data
+      - ./docker/garage/garage.toml:/etc/garage.toml:ro
+    healthcheck:
+      # Das Image enthält nur das Garage-Programm, keine Shell; „garage status“ fragt den Knoten.
+      test: ["CMD", "/garage", "status"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # Einrichtung von Garage: Layout, Schlüssel, Bucket (docker/garage/init.sh). Ändert nichts,
+  # wenn schon alles da ist, und bleibt danach wartend stehen; „healthy“ heißt: Garage nutzbar.
+  garage-init:
+    image: curlimages/curl:8.23.0
+    init: true   # damit „stop“ sofort wirkt
+    depends_on:
+      garage:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "test", "-f", "/tmp/garage-ready"]
+      interval: 2s
+      timeout: 2s
+      retries: 60
+    environment:
+      GARAGE_ADMIN_TOKEN: ${NF_GARAGE_ADMIN_TOKEN:-garage-admin-lokal}
+      GARAGE_CAPACITY: "10000000000"   # 10 GB, nur eine Angabe für die Verteilung, keine Grenze
+      S3_BUCKET: ${NF_S3_BUCKET:-wiki}
+      S3_KEY_NAME: wiki-lokal
+      S3_ACCESS_KEY_ID: ${NF_S3_ACCESS_KEY_ID:-GK6e6f74656669656265720001}
+      S3_SECRET_ACCESS_KEY: ${NF_S3_SECRET_ACCESS_KEY:-6c6f6b616c2d6e75722d7a756d2d656e747769636b656c6e2d67617261676521}
+    volumes:
+      - ./docker/garage/init.sh:/init.sh:ro
+    entrypoint: ["sh", "/init.sh"]
+
 volumes:
   pgdata:
     # Fester Name statt notefieber_pgdata: Daten aus dem früheren „docker run“ bleiben nutzbar.
     name: ${NF_PG_VOLUME:-notefieber-pgdata}
+  garage-meta:
+    name: ${NF_GARAGE_VOLUME_PREFIX:-notefieber-garage}-meta
+  garage-data:
+    name: ${NF_GARAGE_VOLUME_PREFIX:-notefieber-garage}-data

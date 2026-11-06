@@ -4,7 +4,7 @@
 --   psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f seed.sql
 -- Läuft in einer Transaktion: Entweder ist danach alles da oder nichts. Ein zweiter Lauf
 -- bricht ab (Mandant alpenwerk vorhanden); zum Neuaufsetzen die Datenbank zurücksetzen
--- (docs/LOCAL_SETUP.md, Abschnitt 10).
+-- (docs/LOCAL_SETUP.md, Abschnitt 11).
 --
 -- Wie die Tests geht das Skript über die Funktionen in app, jeweils als die handelnde
 -- Person (wiki_app). Nur den Seiteninhalt schreibt es direkt als wiki_worker, so wie es
@@ -34,7 +34,7 @@
 --   Mandantentrennung
 --
 -- Die Personen haben noch kein idp_subject: Mit Zitadel verbindet sie erst die lokale
--- Login-Einrichtung (geplant, docs/LOCAL_SETUP.md Abschnitt 12). E-Mail-Adressen unter
+-- Login-Einrichtung (geplant, docs/LOCAL_SETUP.md Abschnitt 13). E-Mail-Adressen unter
 -- example, damit nie echte Post rausgeht.
 -- =============================================================================
 \set QUIET on
