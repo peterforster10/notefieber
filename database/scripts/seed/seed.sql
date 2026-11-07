@@ -33,9 +33,11 @@
 --   Mandant Nordlicht GmbH (nordlicht) mit Eva Fischer und Space DOKU, zum Prüfen der
 --   Mandantentrennung
 --
--- Die Personen haben noch kein idp_subject: Mit Zitadel verbindet sie erst die lokale
--- Login-Einrichtung (geplant, docs/LOCAL_SETUP.md Abschnitt 6). E-Mail-Adressen unter
--- example, damit nie echte Post rausgeht.
+-- Login: Mandanten und Personen tragen dieselben festen IDs wie in der lokalen Zitadel-
+-- Instanz (tenants.idp_org_id = Organisation, users.idp_subject = Person, groups.idp_group_id
+-- = Projektrolle). Die legt docker/zitadel/init.mjs an; beide Dateien zusammen ändern
+-- (docs/LOCAL_SETUP.md Abschnitt 6). E-Mail-Adressen unter example, damit nie echte Post
+-- rausgeht.
 -- =============================================================================
 \set QUIET on
 \pset tuples_only on
@@ -97,6 +99,7 @@ DECLARE t uuid;
 BEGIN
   t := app.create_tenant('alpenwerk', 'Alpenwerk GmbH', 'eu-central',
                          'anna.huber@alpenwerk.example', 'Anna Huber',
+                         p_admin_idp_subject => 'user-anna-huber', p_idp_org_id => 'org-alpenwerk',
                          p_workspace_slug => 'alpenwerk', p_workspace_name => 'Alpenwerk');
   INSERT INTO ids SELECT 't1', t;
   INSERT INTO ids SELECT 'anna', id FROM users WHERE email = 'anna.huber@alpenwerk.example';
@@ -104,6 +107,7 @@ BEGIN
 
   t := app.create_tenant('nordlicht', 'Nordlicht GmbH', 'eu-central',
                          'eva.fischer@nordlicht.example', 'Eva Fischer',
+                         p_admin_idp_subject => 'user-eva-fischer', p_idp_org_id => 'org-nordlicht',
                          p_workspace_slug => 'nordlicht', p_workspace_name => 'Nordlicht');
   INSERT INTO ids SELECT 't2', t;
   INSERT INTO ids SELECT 'eva', id FROM users WHERE email = 'eva.fischer@nordlicht.example';
@@ -126,14 +130,16 @@ BEGIN
     ) AS v (k, email, name, ws_role, external)
   LOOP
     u := uuidv7();
-    INSERT INTO users (id, tenant_id, email, display_name, is_external)
-    VALUES (u, app.current_tenant(), r.email, r.name, r.external);
+    INSERT INTO users (id, tenant_id, idp_subject, email, display_name, is_external)
+    VALUES (u, app.current_tenant(), 'user-' || replace(split_part(r.email, '@', 1), '.', '-'),
+            r.email, r.name, r.external);
     INSERT INTO ids VALUES (r.k, u);
     PERFORM app.add_workspace_member(pg_temp.id('ws1'), u, r.ws_role, pg_temp.id('anna'));
   END LOOP;
 END $$;
 
--- Gruppen kommen beim Login aus Zitadel; hier so, als hätte sich jede Person angemeldet
+-- Gruppen kommen beim Login aus Zitadel (Projektrollen, Schlüssel = idp_group_id); hier so,
+-- als hätte sich jede Person angemeldet
 DO $$
 DECLARE r record;
 BEGIN

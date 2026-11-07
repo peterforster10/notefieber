@@ -9,7 +9,7 @@ Diese Anleitung beschreibt, was man für die Entwicklung am eigenen Rechner brau
 3. [Repository holen und Umgebung starten](#3-repository-holen-und-umgebung-starten)
 4. [Datenbank (PostgreSQL)](#4-datenbank-postgresql)
 5. [Dateien (Garage)](#5-dateien-garage)
-6. [Login (Zitadel), geplant](#6-login-zitadel-geplant)
+6. [Login (Zitadel)](#6-login-zitadel)
 7. [Alltag: starten, stoppen, neu anfangen](#7-alltag-starten-stoppen-neu-anfangen)
 8. [Fehlerbehebung](#8-fehlerbehebung)
 9. [Was noch dazukommt](#9-was-noch-dazukommt)
@@ -18,13 +18,13 @@ Diese Anleitung beschreibt, was man für die Entwicklung am eigenen Rechner brau
 
 ## 1. Überblick
 
-Das Projekt steht am Anfang von Stufe 1 der [ROADMAP](ROADMAP.md). Lokal laufen bisher die Datenbank und der Dateispeicher, beide per Docker Compose ([`compose.yaml`](../compose.yaml)) und beide richten sich beim ersten Start selbst ein.
+Das Projekt steht am Anfang von Stufe 1 der [ROADMAP](ROADMAP.md). Lokal laufen bisher Datenbank, Dateispeicher und Login-Dienst, alle per Docker Compose ([`compose.yaml`](../compose.yaml)), und alle richten sich beim ersten Start selbst ein.
 
 | Baustein | Stand | Container | Erreichbar unter | Abschnitt |
 |---|---|---|---|---|
 | Datenbank: PostgreSQL 18 mit Schema, Tests und Testdaten | fertig | `nf-pg18` | `localhost:5432` | [4](#4-datenbank-postgresql) |
 | Dateien: Garage (S3), Bucket `wiki` | fertig | `nf-garage`, `garage-init` | `localhost:3900` (S3), `localhost:3903` (Admin) | [5](#5-dateien-garage) |
-| Login: Zitadel | geplant | – | – | [6](#6-login-zitadel-geplant) |
+| Login: Zitadel v4 mit Organisationen, Testpersonen und OIDC-Clients | fertig | `nf-zitadel`, `nf-zitadel-login`, `nf-zitadel-proxy`, `zitadel-init` | `localhost:8080` | [6](#6-login-zitadel) |
 | Frontend, API, Collab-Server, Worker (`apps/…`) | geplant | – (Node.js direkt auf dem Rechner) | – | [9](#9-was-noch-dazukommt) |
 
 Wer heute mitarbeitet, braucht also Git, Docker und eine Bash. Node.js wird erst mit den Apps nötig, lohnt sich aber gleich mit zu installieren.
@@ -34,7 +34,7 @@ Wer heute mitarbeitet, braucht also Git, Docker und eine Bash. Node.js wird erst
 | Was | Version | Wofür | Hinweise |
 |---|---|---|---|
 | **Git** | aktuell | Repository | Unter Windows „Git for Windows“, bringt Git Bash mit. |
-| **Docker** | Docker Desktop (Windows, macOS) oder Docker Engine (Linux), mit Compose | PostgreSQL 18 und Garage, später Zitadel | Docker 4 GB Arbeitsspeicher geben, später mit Zitadel eher 6–8 GB. |
+| **Docker** | Docker Desktop (Windows, macOS) oder Docker Engine (Linux), mit Compose | PostgreSQL 18, Garage und Zitadel | Alle Container zusammen brauchen im Leerlauf etwa 0,5 GB; Docker 4 GB Arbeitsspeicher geben. |
 | **Bash** | 4 oder neuer | `schema_concurrency_test.sh` | Unter Windows Git Bash, unter macOS und Linux die vorhandene Shell. |
 | **curl** | 7.75 oder neuer | Dateien in Garage von Hand prüfen (`--aws-sigv4`) | Unter Windows bringt Git Bash ein passendes curl mit. |
 | **Node.js** | 24 (LTS) mit npm | später die Apps; jetzt schon für Prüfungen gegen npm-Pakete | Am einfachsten über einen Versionsmanager (`fnm`, `nvm`, `nvm-windows`). |
@@ -64,7 +64,7 @@ Wichtige Dateien für den Einstieg: `CLAUDE.md` (Entscheidungen und aktueller St
 docker compose up -d --wait
 ```
 
-`--wait` wartet, bis alle Bausteine fertig eingerichtet sind. Beim **ersten Start** (leere Volumes) spielt PostgreSQL selbst Rollen, Datenbank, Schema und Testdaten ein ([Abschnitt 4](#4-datenbank-postgresql)), und `garage-init` legt in Garage Bucket und Schlüssel an ([Abschnitt 5](#5-dateien-garage)). Das dauert wenige Sekunden. Danach:
+`--wait` wartet, bis alle Bausteine fertig eingerichtet sind. Beim **ersten Start** (leere Volumes) spielt PostgreSQL selbst Rollen, Datenbank, Schema und Testdaten ein ([Abschnitt 4](#4-datenbank-postgresql)), `garage-init` legt in Garage Bucket und Schlüssel an ([Abschnitt 5](#5-dateien-garage)), und Zitadel richtet seine Instanz mit Organisationen, Testpersonen und OIDC-Clients ein ([Abschnitt 6](#6-login-zitadel)). Beim allerersten Mal laden die Images (zusammen gut 1 GB), danach dauert der Start unter einer Minute. Dann:
 
 ```bash
 docker compose ps
@@ -73,14 +73,18 @@ docker compose ps
 Erwartet, alle mit Status `Up … (healthy)`:
 
 ```
-nf-garage                  Up … (healthy)   127.0.0.1:3900->3900/tcp, 127.0.0.1:3903->3903/tcp
-nf-pg18                    Up … (healthy)   127.0.0.1:5432->5432/tcp
-notefieber-garage-init-1   Up … (healthy)
+nf-garage                   Up … (healthy)   127.0.0.1:3900->3900/tcp, 127.0.0.1:3903->3903/tcp
+nf-pg18                     Up … (healthy)   127.0.0.1:5432->5432/tcp
+nf-zitadel                  Up … (healthy)   8080/tcp
+nf-zitadel-login            Up … (healthy)
+nf-zitadel-proxy            Up … (healthy)   127.0.0.1:8080->80/tcp
+notefieber-garage-init-1    Up … (healthy)
+notefieber-zitadel-init-1   Up … (healthy)
 ```
 
 Alle Ports sind nur auf dem eigenen Rechner offen, nicht im Netzwerk.
 
-**Einstellungen ändern** (optional): über Umgebungsvariablen oder eine Datei `.env` neben `compose.yaml`. Sie ist in `.gitignore` eingetragen und kommt nie ins Repository. Die Variablen stehen bei den Bausteinen ([PostgreSQL](#einstellungen-für-postgresql), [Garage](#einstellungen-für-garage)) und gesammelt im Kopf von `compose.yaml`. Alle Standardwerte sind nur für den eigenen Rechner gedacht, nie für einen Server. Beispiel `.env`:
+**Einstellungen ändern** (optional): über Umgebungsvariablen oder eine Datei `.env` neben `compose.yaml`. Sie ist in `.gitignore` eingetragen und kommt nie ins Repository. Die Variablen stehen bei den Bausteinen ([PostgreSQL](#einstellungen-für-postgresql), [Garage](#einstellungen-für-garage), [Zitadel](#einstellungen-für-zitadel)) und gesammelt im Kopf von `compose.yaml`. Alle Standardwerte sind nur für den eigenen Rechner gedacht, nie für einen Server. Beispiel `.env`:
 
 ```
 NF_PG_PORT=5433
@@ -193,7 +197,7 @@ Das Skript läuft in einer Transaktion: Entweder ist danach alles da oder nichts
 - **Inhalt:** Die Seiten haben BlockNote-JSON (`content_json`) und Klartext, aber noch keinen Yjs-Zustand (`ydoc` leer). Beim ersten Öffnen baut der Collab-Server das Dokument aus dem JSON (CLAUDE.md, Abschnitt 6). Der Suchindex ist gefüllt, die Suche geht also sofort.
 - **Kommentare** sind Seitenkommentare. Kommentare an Textstellen brauchen eine Yjs-Position und kommen erst mit dem Collab-Server.
 - **Dateien:** Die Testdaten enthalten keine Anhänge; der Bucket in Garage ist leer.
-- **Login:** Die Personen haben noch kein `idp_subject`. Mit Zitadel verbindet sie erst die lokale Login-Einrichtung ([Abschnitt 6](#6-login-zitadel-geplant)).
+- **Login:** Mandanten und Personen tragen dieselben festen IDs wie in Zitadel (`tenants.idp_org_id` = `org-alpenwerk`, `users.idp_subject` = `user-anna-huber` …), die Gruppen dieselben Schlüssel wie die Projektrollen. Anmelden geht mit der E-Mail-Adresse und dem Passwort `NoteFieber-lokal-1` ([Abschnitt 6](#6-login-zitadel)). Wer Personen oder Gruppen ändert, ändert auch [`docker/zitadel/init.mjs`](../docker/zitadel/init.mjs).
 - **Ereignisse** liegen unveröffentlicht in der Outbox, bis ein Worker läuft.
 - Ändert sich eine Funktion, die das Skript aufruft (z. B. eine neue Signatur), muss `seed.sql` mitgezogen werden. Ein Lauf nach jeder Schemaänderung ist deshalb ein guter zusätzlicher Test.
 
@@ -373,17 +377,157 @@ docker exec nf-garage /garage status
 docker exec nf-garage /garage bucket info wiki
 ```
 
-## 6. Login (Zitadel), geplant
+## 6. Login (Zitadel)
 
-Noch nicht eingebaut. Geplant ist derselbe Aufbau wie bei den anderen Bausteinen:
+Zitadel (fest eingetragene Version `v4.20.1`) ist der Login-Dienst, später gemeinsam mit TalkFieber. Die Apps sprechen nur generisches OIDC mit ihm. Lokal ist alles unter **`http://localhost:8080`** erreichbar und startet mit `docker compose up` ohne weitere Schritte. Seit Version 4 besteht Zitadel aus zwei Programmen; zusammen mit Proxy und Einrichtung sind es vier Dienste:
 
-- **Zitadel in `compose.yaml`**, erreichbar unter `http://localhost:8080`. Zitadel bekommt eine eigene Datenbank `zitadel` im selben PostgreSQL, wie später im gemeinsamen Cluster (CLAUDE.md, Abschnitt 11). Die Version wird fest eingetragen, weil sich Konfiguration und Einrichtungs-API zwischen Hauptversionen merklich ändern.
-- **Einrichtung beim Start als Skript**, wiederholbar wie bei Garage:
-  - Organisationen **Alpenwerk** und **Nordlicht** passend zu den [Testdaten](#testdaten); ihre Zitadel-ID landet in `tenants.idp_org_id`,
-  - die Testpersonen (Anna, Lukas, Max, Elena …) als Zitadel-Nutzer mit einem gemeinsamen Testpasswort; ihre Zitadel-ID landet in `users.idp_subject`, damit man sich als sie anmelden kann,
-  - die Gruppen Entwicklung, Vertrieb und Geschäftsleitung, damit `app.sync_user_groups` beim Login etwas zu tun hat,
-  - ein Projekt „NoteFieber“ mit je einem OIDC-Client für Frontend und API, mit Redirect-URLs für `localhost`.
-- **Werte für die Apps** (Issuer, Client-IDs) und die Anmeldung als Testperson stehen dann hier.
+| Dienst | Container | Aufgabe |
+|---|---|---|
+| `zitadel` | `nf-zitadel` | OIDC, Console, Verwaltungs-APIs. Speichert alles in der Datenbank **`zitadel`** im selben PostgreSQL (Rolle `zitadel`), wie später im gemeinsamen Cluster (CLAUDE.md, Abschnitt 11). |
+| `zitadel-login` | `nf-zitadel-login` | Die Anmeldeseiten (Next.js) unter `/ui/v2/login`. |
+| `zitadel-proxy` | `nf-zitadel-proxy` | Ein kleiner Traefik, der beide unter einem Ursprung zusammenführt ([`docker/zitadel/traefik.yml`](../docker/zitadel/traefik.yml)). Nur er hat einen Port auf dem Rechner. |
+| `zitadel-init` | `notefieber-zitadel-init-1` | Einrichtung beim Start ([`docker/zitadel/init.mjs`](../docker/zitadel/init.mjs), [unten](#einrichtung-beim-start-1)). |
+
+| In `compose.yaml` | Bedeutung |
+|---|---|
+| Port `127.0.0.1:8080` | Issuer, Anmeldeseiten und Console. Zitadel erkennt seine Instanz am Hostnamen: immer **`localhost:8080`**, nicht `127.0.0.1:8080`. |
+| Datenbank `zitadel` im Volume `notefieber-pgdata` | Alle Daten von Zitadel. Sie überstehen `stop` und `down`; weg mit `docker compose down -v` oder beim [Zurücksetzen von Zitadel](#zitadel-zurücksetzen). |
+| Volume `notefieber-zitadel-bootstrap` | Zugangstokens der beiden Dienstkonten aus der Ersteinrichtung. |
+| `./.local` (auf dem Rechner, nicht im Repository) | Ausgabe der Einrichtung: [Werte für die Apps](#werte-für-die-apps-1). |
+
+### Ersteinrichtung
+
+Beim ersten Start (Datenbank `zitadel` gibt es noch nicht) richtet sich Zitadel selbst ein:
+
+1. Rolle und Datenbank `zitadel` im PostgreSQL, angelegt als Superuser `postgres`.
+2. Die Instanz **„NoteFieber lokal“**: Sprache Deutsch, keine Selbstregistrierung, keine Aufforderung zur Einrichtung eines zweiten Faktors.
+3. Die Organisation **NoteFieber** (der Betreiber, kein Mandant) mit dem Admin `zitadel-admin` und zwei Dienstkonten: `nf-setup` für die Einrichtung und `login-client` für die Anmeldeseiten. Ihre Tokens landen im Volume `notefieber-zitadel-bootstrap`.
+
+Das dauert etwa 20 Sekunden. Alles danach erledigt `zitadel-init`.
+
+### Einrichtung beim Start
+
+Der Dienst `zitadel-init` spricht mit dem Token von `nf-setup` mit der Verwaltungs-API (v2) und legt an, was fehlt:
+
+1. das **Projekt `notefieber`** in der Organisation NoteFieber, mit den Gruppen der Testdaten als **Projektrollen** `entwicklung`, `vertrieb`, `geschaeftsleitung`,
+2. den OIDC-Client **`notefieber-web`** (Frontend) und den API-Client **`notefieber-api`**,
+3. die Organisationen **Alpenwerk GmbH** (`org-alpenwerk`) und **Nordlicht GmbH** (`org-nordlicht`), denen das Projekt freigegeben wird,
+4. die **sieben Testpersonen** aus den [Testdaten](#testdaten) mit bestätigter E-Mail, dem Testpasswort und ihren Gruppen,
+5. die Datei **`.local/zitadel.env`** mit den Werten für die Apps (und `.local/zitadel-admin.pat`).
+
+Jeder Schritt prüft, ob er schon erledigt ist; bei jedem weiteren Start ändert sich nichts. Danach bleibt `zitadel-init` wartend stehen und meldet „healthy“ (wie `garage-init`). Was passiert ist:
+
+```bash
+docker compose logs --no-log-prefix zitadel-init
+```
+
+Erwartet beim ersten Start „angelegt“ für Projekt, Rollen, Clients, Organisationen und Personen, zum Schluss `Zitadel: bereit: http://localhost:8080, Client web …`; bei späteren Starts „schon vorhanden“.
+
+### Wie Zitadel und das Datenmodell zusammenpassen
+
+| In Zitadel | In NoteFieber | In den Testdaten |
+|---|---|---|
+| Organisation | Mandant, `tenants.idp_org_id` | `org-alpenwerk`, `org-nordlicht` |
+| Person (`sub` im Token) | `users.idp_subject`, pro Mandant eindeutig | `user-anna-huber`, `user-lukas-gruber` … (aus der E-Mail gebildet) |
+| Rolle im Projekt `notefieber` | Gruppe, `groups.idp_group_id` | `entwicklung`, `vertrieb`, `geschaeftsleitung` |
+| Organisation NoteFieber | kein Mandant, nur Betreiber | `zitadel-admin` |
+
+- **Feste IDs:** Zitadel erlaubt eigene IDs für Organisationen und Personen. Die Einrichtung nutzt dieselben IDs wie [`seed.sql`](../database/scripts/seed/seed.sql). Deshalb passen Zitadel und Datenbank zusammen, egal in welcher Reihenfolge man sie aufsetzt. Wer Testpersonen, Organisationen oder Gruppen ändert, ändert **beide Dateien**. Echte Mandanten bekommen später von Zitadel erzeugte IDs.
+- **Gruppen sind vorerst Projektrollen.** Zitadel v4.20 hat keine Gruppen (keine Gruppen-API, kein Gruppen-Claim). Die übliche Lösung sind Rollen im Projekt: Die Organisation bekommt bei der Freigabe die Rollen, die sie nutzen darf (Nordlicht keine), und jede Person ihre Gruppen als Rollen. Einschränkung: Die Rollen gelten für das ganze Projekt, also für alle Mandanten gleich. Für eigene Gruppen pro Kunde (oder Gruppen aus Entra ID) muss das neu entschieden werden.
+- **Elena Novak** ist in Zitadel ein normales Mitglied der Organisation Alpenwerk. Gast ist sie nur in NoteFieber (`workspace_members`).
+
+### Anmelden als Testperson
+
+Anmeldename ist die **E-Mail-Adresse** aus der Tabelle in den [Testdaten](#testdaten), das Passwort für alle **`NoteFieber-lokal-1`** (`NF_TEST_PASSWORD`). Solange es keine Apps gibt, lässt sich das in der Console ausprobieren:
+
+- **Console** (Verwaltung von Zitadel): `http://localhost:8080/ui/console`, Anmeldename `zitadel-admin@notefieber.localhost`, Passwort `NoteFieber-lokal-1` (`NF_ZITADEL_ADMIN_PASSWORD`). Dort sieht man die Organisationen Alpenwerk und Nordlicht mit ihren Personen und im Projekt NoteFieber die Rollen (Gruppen) und wer sie hat.
+- **Als Testperson:** Die Testpersonen haben in der Console keine Rechte. Sie melden sich später über das Frontend an; die Anmeldeseiten selbst gehen schon jetzt (`http://localhost:8080/ui/v2/login`).
+
+Die Anmeldeseiten erscheinen in der Sprache des Browsers. Es werden keine E-Mails verschickt (kein SMTP); Passwort vergessen und ähnliche Abläufe gehen deshalb lokal nicht.
+
+### Werte für die Apps
+
+`zitadel-init` schreibt sie bei jedem Start nach **`.local/zitadel.env`** (in `.gitignore`), weil Zitadel die Client-IDs selbst vergibt:
+
+```
+ZITADEL_ISSUER=http://localhost:8080
+ZITADEL_PROJECT_ID=notefieber
+ZITADEL_WEB_CLIENT_ID=3985858…
+ZITADEL_WEB_REDIRECT_URI=http://localhost:3000/auth/callback
+ZITADEL_API_CLIENT_ID=3985858…
+ZITADEL_API_CLIENT_SECRET=…
+```
+
+| Client | Art | Einstellungen |
+|---|---|---|
+| `notefieber-web` | OIDC, öffentlich (ohne Geheimnis), **Authorization Code mit PKCE** und Refresh-Token | Redirect `http://localhost:3000/auth/callback`, nach dem Abmelden `http://localhost:3000/` (aus `NF_WEB_URL`). Entwicklungsmodus (erlaubt `http`). Access-Token als **JWT**. |
+| `notefieber-api` | API, Client-ID und Geheimnis (Basic Auth) | Für die **Token-Introspection** (`/oauth/v2/introspect`), falls die API Tokens nicht selbst prüft. |
+
+Die API kann die JWT-Access-Tokens auch selbst prüfen: Schlüssel unter `http://localhost:8080/oauth/v2/keys`, Issuer `http://localhost:8080`, die Audience enthält die Projekt-ID `notefieber`. Discovery: `http://localhost:8080/.well-known/openid-configuration`.
+
+**Scopes:** `openid profile email offline_access urn:zitadel:iam:user:resourceowner`. Die Rollen kommen ohne eigenen Scope ins Token, weil das Projekt sie immer mitgibt. Was im Token von Lukas steht (gekürzt, mit Zitadel v4.20.1 geprüft):
+
+```json
+{
+  "iss": "http://localhost:8080",
+  "sub": "user-lukas-gruber",
+  "email": "lukas.gruber@alpenwerk.example",
+  "name": "Lukas Gruber",
+  "locale": "de",
+  "urn:zitadel:iam:user:resourceowner:id": "org-alpenwerk",
+  "urn:zitadel:iam:org:project:roles": {
+    "entwicklung": { "org-alpenwerk": "alpenwerk-gmbh.localhost" }
+  }
+}
+```
+
+Für den Login in der API heißt das (Epic E03, noch nicht gebaut): Mandant über `urn:zitadel:iam:user:resourceowner:id` = `tenants.idp_org_id` (`app.resolve_tenant`), Person über `(tenant_id, sub)` = `users.idp_subject`, Gruppen = die Schlüssel von `urn:zitadel:iam:org:project:roles` für `app.sync_user_groups`. Im Token stehen nur die Schlüssel der Rollen, nicht ihre Anzeigenamen („Entwicklung“). Die muss die API bei Zitadel nachfragen oder den Schlüssel als Namen nehmen; das entscheidet sich mit dem Login.
+
+### Einstellungen für Zitadel
+
+Fast alle wirken **nur beim allerersten Start** (leere Datenbank `zitadel`). Wer sie danach ändert, [setzt Zitadel zurück](#zitadel-zurücksetzen).
+
+| Variable | Standard | Wofür |
+|---|---|---|
+| `NF_ZITADEL_PORT` | `8080` | Port auf dem Rechner. Steckt auch im Issuer (`http://localhost:<port>`). |
+| `NF_ZITADEL_VERSION` | `v4.20.1` | Version von `zitadel` und `zitadel-login`; beide immer gleich. Beim Wechsel der Hauptversion vorher die Versionshinweise lesen. |
+| `NF_ZITADEL_ADMIN_PASSWORD` | `NoteFieber-lokal-1` | Passwort von `zitadel-admin`. Muss die Passwortregeln erfüllen (8 Zeichen, Groß- und Kleinbuchstaben, Ziffer, Sonderzeichen), sonst scheitert die Ersteinrichtung. |
+| `NF_TEST_PASSWORD` | `NoteFieber-lokal-1` | Passwort der Testpersonen. Gilt für neu angelegte Personen; bestehende behalten ihres. |
+| `NF_WEB_URL` | `http://localhost:3000` | Frontend-Adresse für die Redirect-URLs. Gilt beim Anlegen des Clients. |
+| `NF_ZITADEL_MASTERKEY` | lokaler Wert | Verschlüsselt Geheimnisse in der Datenbank. Genau 32 Zeichen; nach dem ersten Start nicht mehr ändern. |
+| `NF_ZITADEL_DB_PASSWORD` | `zitadel-lokal` | Passwort der Datenbankrolle `zitadel`. |
+| `NF_ZITADEL_COOKIE_SECRET` | lokaler Wert | Signiert die Cookies der Anmeldeseiten, mindestens 32 Zeichen. Darf sich ändern (dann einmal neu anmelden). |
+| `NF_ZITADEL_CONTAINER`, `NF_ZITADEL_LOGIN_CONTAINER`, `NF_ZITADEL_PROXY_CONTAINER`, `NF_ZITADEL_VOLUME` | `nf-zitadel`, … | Nur für eine zweite, getrennte Umgebung. |
+
+Zitadel meldet sich bei PostgreSQL als `postgres` mit `POSTGRES_PASSWORD` an ([Einstellungen für PostgreSQL](#einstellungen-für-postgresql)), um Rolle und Datenbank anzulegen.
+
+### Von Hand prüfen
+
+```bash
+curl -s http://localhost:8080/.well-known/openid-configuration
+```
+
+Die Verwaltungs-API mit dem Token des Dienstkontos `nf-setup` (darf alles in der Instanz), z. B. alle Personen:
+
+```bash
+curl -s -H "Authorization: Bearer $(cat .local/zitadel-admin.pat)" -H "Content-Type: application/json" \
+  -X POST http://localhost:8080/zitadel.user.v2.UserService/ListUsers -d '{}'
+```
+
+### Zitadel zurücksetzen
+
+Nur Zitadel neu, z. B. nach geänderten Einstellungen. Die Datenbank `wiki` und Garage bleiben unberührt. Danach vergibt Zitadel neue Client-IDs; `.local/zitadel.env` wird neu geschrieben, laufende Apps neu starten.
+
+```bash
+export MSYS_NO_PATHCONV=1
+docker compose rm -sf zitadel-init zitadel-proxy zitadel-login zitadel
+docker volume rm notefieber-zitadel-bootstrap
+docker exec nf-pg18 psql -U postgres -c "DROP DATABASE IF EXISTS zitadel WITH (FORCE)" -c "DROP ROLE IF EXISTS zitadel"
+```
+
+```bash
+docker compose up -d --wait
+```
 
 ## 7. Alltag: starten, stoppen, neu anfangen
 
@@ -409,7 +553,11 @@ docker compose logs --tail 50 postgres
 docker compose logs --tail 50 garage garage-init
 ```
 
-**Alles neu** (Container und alle Daten weg, auch die Dateien in Garage; danach Ersteinrichtung mit frischem Schema, Testdaten und leerem Bucket). Danach muss das [Passwort von `wiki_owner`](#passwort-für-wiki_owner) neu gesetzt werden. Nur die Datenbank neu: [Datenbank zurücksetzen](#datenbank-zurücksetzen).
+```bash
+docker compose logs --tail 50 zitadel zitadel-login zitadel-init
+```
+
+**Alles neu** (Container und alle Daten weg, auch die Dateien in Garage und die Zitadel-Instanz; danach Ersteinrichtung mit frischem Schema, Testdaten, leerem Bucket und neuer Zitadel-Instanz mit neuen Client-IDs). Danach muss das [Passwort von `wiki_owner`](#passwort-für-wiki_owner) neu gesetzt werden. Nur die Datenbank neu: [Datenbank zurücksetzen](#datenbank-zurücksetzen); nur Zitadel neu: [Zitadel zurücksetzen](#zitadel-zurücksetzen).
 
 ```bash
 docker compose down -v
@@ -425,7 +573,7 @@ docker compose up -d --wait
 docker compose down -v
 ```
 
-Ohne `-v` bleiben die Volumes (`notefieber-pgdata`, `notefieber-garage-meta`, `notefieber-garage-data`) mit den Daten erhalten; ein späteres `docker compose up` nimmt sie wieder auf.
+Ohne `-v` bleiben die Volumes (`notefieber-pgdata` mit den Datenbanken `wiki` und `zitadel`, `notefieber-garage-meta`, `notefieber-garage-data`, `notefieber-zitadel-bootstrap`) mit den Daten erhalten; ein späteres `docker compose up` nimmt sie wieder auf.
 
 ## 8. Fehlerbehebung
 
@@ -468,13 +616,26 @@ Ohne `-v` bleiben die Volumes (`notefieber-pgdata`, `notefieber-garage-meta`, `n
 | S3 antwortet `SignatureDoesNotMatch` | Region nicht `garage`, falsches Geheimnis, oder der Client nutzt den virtuellen Host-Stil: `forcePathStyle: true` setzen. |
 | S3 antwortet `403` bzw. `AccessDenied` | Ohne oder mit falschem Schlüssel angefragt. [Werte für die Apps](#werte-für-die-apps) prüfen. |
 
+### Zitadel
+
+| Meldung | Ursache und Abhilfe |
+|---|---|
+| `Bind for 127.0.0.1:8080 failed: port is already allocated` | Ein anderer Dienst belegt 8080. `NF_ZITADEL_PORT=8081` in `.env`; weil der Port im Issuer steckt, danach [Zitadel zurücksetzen](#zitadel-zurücksetzen). |
+| `docker compose up --wait` endet mit `nf-zitadel` „unhealthy“, im Log `password authentication failed for user "postgres"` | `POSTGRES_PASSWORD` passt nicht zum Passwort im Volume (z. B. aus dem früheren `docker run` mit anderem Passwort). Das richtige Passwort in `.env` eintragen oder es angleichen: `docker exec -it nf-pg18 psql -U postgres -c "\password postgres"`. |
+| Im Log von `nf-zitadel` Fehler zum Masterkey oder `cipher` | Der Masterkey wurde nach dem ersten Start geändert. Alten Wert zurück oder [Zitadel zurücksetzen](#zitadel-zurücksetzen). |
+| `zitadel-init` „unhealthy“ oder `exited (1)` | `docker compose logs zitadel-init` zeigt den Schritt und die Antwort von Zitadel. Häufig nach einem halben Zurücksetzen (Datenbank weg, Volume noch da oder umgekehrt): [vollständig zurücksetzen](#zitadel-zurücksetzen). |
+| Browser zeigt `Instance not found` oder `unable to set instance using origin` | Über `127.0.0.1` statt `localhost` aufgerufen. Zitadel erkennt die Instanz am Hostnamen: immer `http://localhost:8080`. |
+| Anmeldung endet mit `redirect_uri is missing in the client configuration` | Die App nutzt eine andere Redirect-URL als `http://localhost:3000/auth/callback`. In der Console im Projekt NoteFieber beim Client `notefieber-web` ergänzen, oder `NF_WEB_URL` setzen und [Zitadel zurücksetzen](#zitadel-zurücksetzen). |
+| Token-Tausch meldet `invalid_grant` mit `invalid code_verifier` | Code-Challenge und Verifier passen nicht zusammen. Unter Windows verfälscht `openssl dgst -binary` in einer Pipe von Git Bash die Bytes; die Challenge mit Node berechnen (`crypto.createHash('sha256').update(v).digest('base64url')`). |
+| Anmeldung als Testperson scheitert mit falschem Passwort | Die Person wurde mit einem anderen `NF_TEST_PASSWORD` angelegt (gilt nur beim Anlegen). In der Console das Passwort setzen oder [Zitadel zurücksetzen](#zitadel-zurücksetzen). |
+
 ## 9. Was noch dazukommt
 
 Mit den nächsten Schritten aus der `CLAUDE.md` (Abschnitt 13) und Stufe 1 der [ROADMAP](ROADMAP.md) wächst die lokale Umgebung:
 
-- **Zitadel** als dritter Baustein ([Abschnitt 6](#6-login-zitadel-geplant)).
 - **Die Apps** (`apps/web`, `apps/api`, `apps/collab`, `apps/worker`, siehe README) laufen mit Node.js direkt auf dem Rechner und verbinden sich mit eigenen Login-Rollen (`wiki_api` in `wiki_app`, `wiki_collab` und `wiki_jobs` in `wiki_worker`), nie als `wiki_owner`. Diese Rollen legt dann die [Ersteinrichtung](#ersteinrichtung-rollen-datenbank-schema) mit an.
-- Eine **`.env.example`** mit allen Einstellungen für die Apps: Datenbank-URLs pro Login-Rolle, Zitadel, die [Garage-Werte](#werte-für-die-apps). Die echte `.env` kommt nie ins Repository.
+- Eine **`.env.example`** mit allen Einstellungen für die Apps: Datenbank-URLs pro Login-Rolle, die [Garage-Werte](#werte-für-die-apps), dazu die Zitadel-Werte aus [`.local/zitadel.env`](#werte-für-die-apps-1). Die echte `.env` kommt nie ins Repository.
+- Für Zitadel offen: wie die API die Anzeigenamen der Gruppen erfährt und ob Gruppen später echte Zitadel-Gruppen (oder Gruppen aus Entra ID) werden statt Projektrollen ([Abschnitt 6](#wie-zitadel-und-das-datenmodell-zusammenpassen)).
 - **k3d** erst, wenn die K3s-Manifeste entstehen (`CLAUDE.md`, Abschnitt 13, Schritt 3): Dann lassen sie sich lokal prüfen. Für die tägliche Arbeit bleibt Compose.
 
 Diese Anleitung wird mit jedem dieser Schritte ergänzt.

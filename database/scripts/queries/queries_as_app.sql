@@ -1,10 +1,5 @@
 BEGIN;
 
--- Mandanten
-SELECT *
-FROM tenants
-ORDER BY id;
-
 -- Kontext der Person setzen (noch als wiki_owner, der darf users lesen)
 SELECT set_config('app.tenant_id', tenant_id::text, true),
        set_config('app.user_id',   id::text,        true)

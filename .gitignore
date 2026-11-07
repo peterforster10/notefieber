@@ -1,2 +1,5 @@
 # Lokale Einstellungen für docker compose (Passwörter, Ports), siehe docs/LOCAL_SETUP.md
 .env
+
+# Von zitadel-init erzeugte Werte (Client-IDs, Geheimnisse), siehe docs/LOCAL_SETUP.md
+.local/
