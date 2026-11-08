@@ -1,0 +1,24 @@
+{
+  // Gemeinsame Einstellungen für alle Pakete. Die Node-Apps (api, collab) laufen ohne
+  // Build-Schritt: Node 24 entfernt die Typen beim Laden selbst. Deshalb nur Syntax, die
+  // sich einfach wegstreichen lässt (keine enums, namespaces, Parameter-Properties), und
+  // relative Importe mit Endung .ts. tsc prüft nur (noEmit).
+  "compilerOptions": {
+    "target": "ES2024",
+    "lib": ["ES2024"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  }
+}

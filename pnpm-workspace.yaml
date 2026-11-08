@@ -1,0 +1,4 @@
+# Pakete des Monorepos, siehe README.md („Projektstruktur“)
+packages:
+  - apps/*
+  - packages/*

@@ -24,6 +24,8 @@
   - `docs/LOCAL_SETUP.md`: lokale Entwicklung (Voraussetzungen, `docker compose up`, Schema, Tests, Testdaten, Fehlerbehebung). Mit jedem neuen Baustein (Zitadel, Garage, Apps) ergänzen.
   - `docs/models/data_model/`: ER-Diagramm als `data_model.mmd` (Mermaid) und `data_model.svg`. Bei Änderungen am Schema alle zwei nachziehen.
   - `docs/models/architecture/`: `architecture.svg` (Startsetup), `architecture_target.svg` (Zielarchitektur)
+  - `apps/`, `packages/`, `package.json`, `pnpm-workspace.yaml`: die Apps als pnpm-Monorepo. `apps/web` (Next.js), `apps/api` (Express-API und Worker, zwei Einstiegspunkte `src/api.ts` und `src/worker.ts`), `apps/collab` (Hocuspocus), `packages/shared` (Rollen, Ereignisse, Zod-Schemas, Prüfung der Datenbankrolle). Stand: Grundgerüst ohne Fachlogik. Einstellungen in `.env` (Vorlage `.env.example`), Login-Rollen der Apps lokal aus `database/scripts/local_login_roles.sql` (`wiki_api`, `wiki_collab`, `wiki_jobs`). Prüfen mit `pnpm check` (auch CI-Job `apps`). Anleitung in `docs/LOCAL_SETUP.md`, Abschnitt 7.
+  - `LICENSE`: proprietär, alle Rechte vorbehalten. Lizenzen der Abhängigkeiten prüft `scripts/check-licenses.mjs`.
   - `prototype/`: klickbarer UI-Prototyp (Seitenansicht mit Kommentaren und Rechte-Dialog, Confluence-Import). Referenz für Gestaltung und Abläufe, kein Produktcode.
 - **Betriebsmodell:** vorrangig SaaS auf eigenem K3s. Self-Hosting per Helm-Chart kommt später als zweites Standbein, weil gerade Confluence-Data-Center-Kunden bewusst on-prem arbeiten (Abschnitt 3).
 
@@ -61,6 +63,8 @@
 | Produktname | **NoteFieber** bleibt vorerst (Arbeitstitel, Abschnitt 4) |
 | Lizenz | **Proprietär**, vorerst |
 | Betrieb zuerst | **SaaS** vorrangig, On-Prem (Helm-Chart, E23) später |
+| Monorepo | **pnpm-Workspaces**: eine `package.json` pro App, eine Lock-Datei, gemeinsame Typen in `packages/shared`. API und Worker teilen ein Paket (ein Image, zwei Deployments), Collab-Server und Frontend eigene |
+| Laufzeit | **Node.js 24** führt TypeScript direkt aus (Typen werden beim Laden entfernt): kein Build-Schritt für API, Worker und Collab-Server, nur Syntax, die sich wegstreichen lässt (`erasableSyntaxOnly`, Importe mit `.ts`). TypeScript 6.0 und ESLint 9, bis `typescript-eslint` TypeScript 7 und die Next.js-Regeln ESLint 10 unterstützen. Alle Versionen fest |
 | Repository und CI | **GitHub** als Repository (`peterforster10/notefieber`), **CI auf GitLab** (`peterforster101/notefieber`, `.gitlab-ci.yml`). Die GitHub Action `sync-to-gitlab.yml` spiegelt jeden Push auf `main` ohne `--force` nach GitLab; dort nie direkt committen. Keine CI in GitHub Actions |
 | Dateien | **Garage** (S3-kompatibel) im Cluster, eigener Bucket pro Produkt |
 | Suche | Volltext in PostgreSQL (`tsvector`, `pg_trgm`), Index vom Worker gepflegt |
@@ -297,7 +301,7 @@ Meilensteine und Übergangskriterien stehen in der `docs/ROADMAP.md`.
    - Neue `SECURITY DEFINER`-Funktionen: Mandant in jeder Abfrage prüfen (RLS greift dort nicht), zuerst `require_actor` bzw. `require_page`/`require_space`, nie `require_worker` (dort ist `current_user` der Eigentümer).
    - Wie bei TalkFieber: bei Tabellen mit Leseregeln kein `INSERT … RETURNING` und kein `ON CONFLICT`, solange die neue Zeile für die Person noch nicht lesbar ist (z. B. ein Space vor seinem ersten Grant). IDs vorher mit `uuidv7()` erzeugen.
    - Alles, was Rechte oder Sichtbarkeit berührt, bekommt zuerst einen Test in `database/scripts/schema_test/`: hinten an den passenden Teil oder als neuer Teil am Ende (mit `\ir`-Zeile in `schema_test.sql`), Nummern fortlaufend. Die Teile bauen aufeinander auf (gemeinsame Testdaten, Kopf jedes Teils: „Nutzt“ und „Legt an“) und laufen nur über `schema_test.sql`. Die Tests laufen als `wiki_app` bzw. `wiki_worker`.
-2. Repository und Grundgerüst: Next.js-Frontend, Express-API mit OIDC-Login über Zitadel, Hocuspocus mit `onAuthenticate`, `onLoadDocument`, `onStoreDocument` gegen diese Datenbank.
+2. Repository und Grundgerüst: ~~Monorepo mit Next.js-Frontend, Express-API mit Worker, Hocuspocus~~ **Grundgerüst erledigt** (8. November 2026): Die Apps starten, prüfen ihre Datenbankrolle, die API antwortet unter `/api/v1/health` und `/api/v1/tenants/:slug`. Offen: OIDC-Login über Zitadel in der API (Claims an einer Stelle), Spaces und Seitenbaum per API, Hocuspocus mit `onAuthenticate`, `onLoadDocument`, `onStoreDocument` gegen diese Datenbank, Aufgaben im Worker.
 3. ~~Lokale Umgebung mit Docker Compose~~ **erledigt:** PostgreSQL, Garage und Zitadel in `compose.yaml`, alle richten sich beim ersten Start selbst ein (`docs/LOCAL_SETUP.md`). Anmeldung per PKCE mit Testperson, Person und Mandant im Token sowie Introspection über `notefieber-api` sind mit Zitadel v4.20.1 geprüft. k3d erst für die K3s-Manifeste, die lokal und auf dem VPS gleich laufen.
 4. **Echte Confluence-Exporte besorgen, wenn der Importer gebaut wird** (M4, 2–3 Pilotkunden). Zuerst die häufigsten Makros zählen.
 5. Übrige offene Entscheidungen aus Abschnitt 4 klären, wenn sie anstehen (Name, Lizenz und SaaS vs. On-Prem sind vorerst entschieden).

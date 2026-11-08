@@ -5,3 +5,10 @@
 .local/
 
 .idea/
+
+# Node und Next.js
+node_modules/
+.next/
+next-env.d.ts
+*.tsbuildinfo
+.pnpm-store/

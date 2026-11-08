@@ -1,12 +1,33 @@
 # CI auf GitLab (gitlab.com/peterforster101/notefieber). Das Repository liegt auf GitHub;
 # .github/workflows/sync-to-gitlab.yml spiegelt main nach GitLab, dort läuft diese Pipeline.
 #
-# Derzeit nur die Datenbank: Migrationen und alle Datenbanktests, siehe
-# database/scripts/schema_test/ci.sh und docs/LOCAL_SETUP.md („Tests ausführen“). Build,
-# Lint und Lizenzprüfung der Apps kommen mit dem App-Code dazu (ROADMAP, M0).
+# Zwei Jobs, die parallel laufen (docs/LOCAL_SETUP.md, „CI (GitLab)“):
+#   database  Migrationen und alle Datenbanktests (database/scripts/schema_test/ci.sh)
+#   apps      Lint, Formatierung, Typprüfung, Lizenzprüfung und Build des Monorepos (pnpm check)
 
 stages:
   - test
+
+apps:
+  stage: test
+  image: node:24
+  variables:
+    COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+    NEXT_TELEMETRY_DISABLED: "1"
+    GIT_DEPTH: "1"
+  cache:
+    key:
+      files:
+        - pnpm-lock.yaml
+    paths:
+      - .pnpm-store
+  timeout: 20 minutes
+  before_script:
+    - corepack enable
+    - pnpm config set store-dir .pnpm-store
+    - pnpm install --frozen-lockfile
+  script:
+    - pnpm check
 
 database:
   stage: test

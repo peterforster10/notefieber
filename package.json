@@ -1,0 +1,33 @@
+{
+  "name": "notefieber",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "packageManager": "pnpm@12.18.0",
+  "engines": {
+    "node": ">=24.11"
+  },
+  "scripts": {
+    "dev:api": "pnpm --filter @notefieber/api dev",
+    "dev:worker": "pnpm --filter @notefieber/api dev:worker",
+    "dev:collab": "pnpm --filter @notefieber/collab dev",
+    "dev:web": "pnpm --filter @notefieber/web dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "eslint .",
+    "format": "prettier --write apps packages scripts",
+    "format:check": "prettier --check apps packages scripts",
+    "licenses:check": "node scripts/check-licenses.mjs",
+    "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm licenses:check && pnpm build"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@types/node": "24.19.2",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.4.5",
+    "globals": "17.14.0",
+    "prettier": "3.9.10",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.1"
+  }
+}

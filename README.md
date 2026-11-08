@@ -2,7 +2,7 @@
 
 Eine europäische Alternative zu Confluence, entwickelt und gehostet in der EU. Zielgruppe sind vor allem Organisationen auf Confluence Data Center, das am 28. März 2029 schreibgeschützt wird. Schwesterprojekt von **TalkFieber** (Team-Chat); beide teilen Login, Mandantenmodell und Cluster.
 
-**Stand:** Planung abgeschlossen, Datenbankschema mit Tests fertig, UI-Prototyp vorhanden, noch kein Anwendungscode.
+**Stand:** Datenbankschema mit Migrationen und Tests fertig, lokale Umgebung und CI laufen, Grundgerüst der Apps (pnpm-Monorepo) steht, noch ohne Fachlogik. UI-Prototyp vorhanden.
 
 ## Dokumente
 
@@ -20,7 +20,9 @@ Eine europäische Alternative zu Confluence, entwickelt und gehostet in der EU. 
 | `database/scripts/` | Rollen, Schema (`schema/`), Migrationen (`migrations/`, eingespielt mit `migrate.sh`), Tests (`schema_test/`), Testdaten (`seed/`) und Abfragen zum Nachsehen (`queries/`) |
 | `compose.yaml`, `docker/` | Lokale Umgebung: PostgreSQL, Garage und Zitadel, richten sich beim ersten Start selbst ein |
 | `.gitlab-ci.yml`, `.github/workflows/` | CI auf GitLab (Datenbanktests mit `ci.sh`); GitHub spiegelt `main` dorthin |
+| `apps/`, `packages/` | Die Apps im pnpm-Monorepo: Frontend, API mit Worker, Collab-Server, gemeinsames Paket ([LOCAL_SETUP, Abschnitt 7](docs/LOCAL_SETUP.md#7-apps-nodejs)) |
 | `prototype/` | Klickbarer UI-Prototyp: Seitenansicht mit Rechte-Dialog, Confluence-Import |
+| [LICENSE](LICENSE) | Proprietär, alle Rechte vorbehalten |
 
 ## Stack in einem Satz
 
@@ -46,6 +48,16 @@ psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f database/scripts/seed/seed.sql
 # Optional: Testdaten (Alpenwerk mit Peter, Lukas, Max …), siehe docs/LOCAL_SETUP.md Abschnitt 4 („Testdaten“)
 ```
 
+Dann die Apps (Node.js 24, pnpm über corepack; Einzelheiten in [docs/LOCAL_SETUP.md, Abschnitt 7](docs/LOCAL_SETUP.md#7-apps-nodejs)):
+
+```bash
+corepack enable
+pnpm install
+cp .env.example .env
+pnpm dev:api        # und in weiteren Terminals: pnpm dev:worker, pnpm dev:collab, pnpm dev:web
+pnpm check          # Lint, Formatierung, Typen, Lizenzen, Build (wie in der CI)
+```
+
 Die App verbindet sich nie als `wiki_owner`, sondern mit Login-Rollen in `wiki_app` (API) bzw. `wiki_worker` (Collab-Server, Worker). Das Datenmodell beschreibt [docs/SCHEMA.md](docs/SCHEMA.md), die Entscheidungen stehen in `CLAUDE.md`.
 
 ## Repository und CI
@@ -58,19 +70,19 @@ Gearbeitet wird im Repository auf **GitHub** (`github.com/peterforster10/notefie
 
 Einzelheiten, Fehlerbilder und wie man `ci.sh` lokal laufen lässt: [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md), Abschnitt „CI (GitLab)“.
 
-## Projektstruktur (geplant)
+## Projektstruktur
 
 ```
 apps/
   web/        Next.js-Frontend (nur Oberfläche)
-  api/        Express-API
+  api/        Express-API und Worker (ein Paket, zwei Einstiegspunkte: src/api.ts, src/worker.ts)
   collab/     Hocuspocus-Server
-  worker/     Suchindex, Versionen, Import, Export, Outbox
 packages/
-  shared/     Typen, Zod-Schemas, Rechte-Konstanten
+  shared/     Typen, Zod-Schemas, Rollen, Ereignisse
+scripts/      Hilfsskripte (Lizenzprüfung)
 database/
   scripts/    Rollen, Schema (schema/), Migrationen (migrations/), Tests (schema_test/)
-deploy/
+deploy/       (geplant)
   k8s/        Manifeste bzw. Kustomize, später Helm-Chart
 docs/
   models/     Diagramme

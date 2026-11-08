@@ -10,24 +10,25 @@ Diese Anleitung beschreibt, was man für die Entwicklung am eigenen Rechner brau
 4. [Datenbank (PostgreSQL)](#4-datenbank-postgresql)
 5. [Dateien (Garage)](#5-dateien-garage)
 6. [Login (Zitadel)](#6-login-zitadel)
-7. [Alltag: starten, stoppen, neu anfangen](#7-alltag-starten-stoppen-neu-anfangen)
-8. [Fehlerbehebung](#8-fehlerbehebung)
-9. [Was noch dazukommt](#9-was-noch-dazukommt)
+7. [Apps (Node.js)](#7-apps-nodejs)
+8. [Alltag: starten, stoppen, neu anfangen](#8-alltag-starten-stoppen-neu-anfangen)
+9. [Fehlerbehebung](#9-fehlerbehebung)
+10. [Was noch dazukommt](#10-was-noch-dazukommt)
 
 ---
 
 ## 1. Überblick
 
-Das Projekt steht am Anfang von Stufe 1 der [ROADMAP](ROADMAP.md). Lokal laufen bisher Datenbank, Dateispeicher und Login-Dienst, alle per Docker Compose ([`compose.yaml`](../compose.yaml)), und alle richten sich beim ersten Start selbst ein.
+Das Projekt steht am Anfang von Stufe 1 der [ROADMAP](ROADMAP.md). Datenbank, Dateispeicher und Login-Dienst laufen per Docker Compose ([`compose.yaml`](../compose.yaml)) und richten sich beim ersten Start selbst ein. Die Apps laufen mit Node.js direkt auf dem Rechner; bisher als Grundgerüst ohne Fachlogik.
 
 | Baustein | Stand | Container | Erreichbar unter | Abschnitt |
 |---|---|---|---|---|
 | Datenbank: PostgreSQL 18 mit Schema, Tests und Testdaten | fertig | `nf-pg18` | `localhost:5432` | [4](#4-datenbank-postgresql) |
 | Dateien: Garage (S3), Bucket `wiki` | fertig | `nf-garage`, `garage-init` | `localhost:3900` (S3), `localhost:3903` (Admin) | [5](#5-dateien-garage) |
 | Login: Zitadel v4 mit Organisationen, Testpersonen und OIDC-Clients | fertig | `nf-zitadel`, `nf-zitadel-login`, `nf-zitadel-proxy`, `zitadel-init` | `localhost:8080` | [6](#6-login-zitadel) |
-| Frontend, API, Collab-Server, Worker (`apps/…`) | geplant | – (Node.js direkt auf dem Rechner) | – | [9](#9-was-noch-dazukommt) |
+| Frontend, API, Worker, Collab-Server (`apps/…`) | Grundgerüst | – (Node.js direkt auf dem Rechner) | `localhost:3000` (Frontend), `localhost:4000` (API), `localhost:1234` (Collab) | [7](#7-apps-nodejs) |
 
-Wer heute mitarbeitet, braucht also Git, Docker und eine Bash. Node.js wird erst mit den Apps nötig, lohnt sich aber gleich mit zu installieren.
+Wer mitarbeitet, braucht Git, Docker, eine Bash und Node.js 24 mit pnpm.
 
 ## 2. Voraussetzungen
 
@@ -37,7 +38,8 @@ Wer heute mitarbeitet, braucht also Git, Docker und eine Bash. Node.js wird erst
 | **Docker** | Docker Desktop (Windows, macOS) oder Docker Engine (Linux), mit Compose | PostgreSQL 18, Garage und Zitadel | Alle Container zusammen brauchen im Leerlauf etwa 0,5 GB; Docker 4 GB Arbeitsspeicher geben. |
 | **Bash** | 4 oder neuer | `schema_concurrency_test.sh` | Unter Windows Git Bash, unter macOS und Linux die vorhandene Shell. |
 | **curl** | 7.75 oder neuer | Dateien in Garage von Hand prüfen (`--aws-sigv4`) | Unter Windows bringt Git Bash ein passendes curl mit. |
-| **Node.js** | 24 (LTS) mit npm | später die Apps; jetzt schon für Prüfungen gegen npm-Pakete | Am einfachsten über einen Versionsmanager (`fnm`, `nvm`, `nvm-windows`). |
+| **Node.js** | 24 (LTS), mindestens 24.11 | die Apps | Am einfachsten über einen Versionsmanager (`fnm`, `nvm`, `nvm-windows`). Node 24 führt TypeScript direkt aus. |
+| **pnpm** | 12.18.0 (steht in `package.json`) | Pakete des Monorepos | Kommt über **corepack**, das Node mitbringt: einmal `corepack enable` ([Abschnitt 7](#7-apps-nodejs)). |
 | **IDE** | z. B. IntelliJ IDEA Ultimate oder DataGrip, VS Code | Code und Datenbank | Ein Datenbank-Werkzeug in der IDE erleichtert das Ansehen von Tabellen und Abfragen ([Abschnitt 4](#mit-der-ide-verbinden)). |
 | `psql` (optional) | 18 | Datenbank vom Rechner aus | Nicht nötig: Alle Befehle unten laufen mit `docker exec` über das `psql` im Container. |
 
@@ -91,7 +93,7 @@ NF_PG_PORT=5433
 NF_SEED=false
 ```
 
-Starten, anhalten und neu anfangen für alle Bausteine zusammen: [Abschnitt 7](#7-alltag-starten-stoppen-neu-anfangen).
+Starten, anhalten und neu anfangen für alle Bausteine zusammen: [Abschnitt 8](#8-alltag-starten-stoppen-neu-anfangen).
 
 ## 4. Datenbank (PostgreSQL)
 
@@ -313,7 +315,7 @@ Dass beide Stellen dasselbe Schema ergeben, prüft der [Migrationstest](#tests-a
 
 ### Datenbank zurücksetzen
 
-Nur die Datenbank `wiki`, z. B. um mit frischen Testdaten anzufangen. Für Schemaänderungen ist das nicht nötig ([Migration einspielen](#das-schema-ändern)). Schneller als [alles neu](#7-alltag-starten-stoppen-neu-anfangen), Garage bleibt unberührt, und das Passwort von `wiki_owner` bleibt erhalten (es hängt an der Rolle, nicht an der Datenbank). Die Hinweise `role "wiki_owner" has already been granted membership …` sind harmlos:
+Nur die Datenbank `wiki`, z. B. um mit frischen Testdaten anzufangen. Für Schemaänderungen ist das nicht nötig ([Migration einspielen](#das-schema-ändern)). Schneller als [alles neu](#8-alltag-starten-stoppen-neu-anfangen), Garage bleibt unberührt, und das Passwort von `wiki_owner` bleibt erhalten (es hängt an der Rolle, nicht an der Datenbank). Die Hinweise `role "wiki_owner" has already been granted membership …` sind harmlos:
 
 ```bash
 export MSYS_NO_PATHCONV=1
@@ -372,7 +374,7 @@ Erwartet beim ersten Start: `Garage: … Schlüssel … importiert`, `Garage: Bu
 
 ### Werte für die Apps
 
-Nur lokal; später auch in der `.env.example` ([Abschnitt 9](#9-was-noch-dazukommt)).
+Nur lokal; dieselben Werte stehen in der [`.env.example`](../.env.example).
 
 | Einstellung | Wert |
 |---|---|
@@ -575,7 +577,90 @@ docker exec nf-pg18 psql -U postgres -c "DROP DATABASE IF EXISTS zitadel WITH (F
 docker compose up -d --wait
 ```
 
-## 7. Alltag: starten, stoppen, neu anfangen
+## 7. Apps (Node.js)
+
+Die Apps liegen in einem **pnpm-Monorepo** (ein Repository, mehrere Node-Projekte mit je eigener `package.json`, eine gemeinsame Lock-Datei):
+
+| Paket | Ordner | Was | Datenbankrolle | Start | Adresse |
+|---|---|---|---|---|---|
+| `@notefieber/web` | `apps/web` | Frontend (Next.js 16, nur Oberfläche) | – (spricht nur mit der API) | `pnpm dev:web` | `http://localhost:3000` |
+| `@notefieber/api` | `apps/api` | API (Express 5) **und** Worker: ein Paket, später ein Image, zwei Deployments | API: `wiki_api` (in `wiki_app`), Worker: `wiki_jobs` (in `wiki_worker`) | `pnpm dev:api`, `pnpm dev:worker` | `http://localhost:4000/api/v1/health` |
+| `@notefieber/collab` | `apps/collab` | Collab-Server (Hocuspocus) | `wiki_collab` (in `wiki_worker`) | `pnpm dev:collab` | `ws://127.0.0.1:1234` |
+| `@notefieber/shared` | `packages/shared` | gemeinsame Typen und Zod-Schemas: Rollen, Ereignisse, Kurznamen, Prüfung der Datenbankrolle | – | – | – |
+
+Stand: **Grundgerüst.** Die API beantwortet `GET /api/v1/health` und `GET /api/v1/tenants/<kurzname>` (`app.resolve_tenant`, vor dem Login), der Worker meldet sich regelmäßig, der Collab-Server startet und lehnt bis E04 jede Verbindung ab, das Frontend zeigt eine Startseite.
+
+### Einrichten
+
+Einmal pro Rechner pnpm über corepack einschalten. Corepack legt dafür kleine Starter neben `node`; liegt Node unter `C:\Program Files\nodejs`, braucht das eine Shell als Administrator. Ohne Administrator geht es auch mit `corepack enable --install-directory <ordner im PATH>`.
+
+```bash
+corepack enable
+```
+
+Dann im Repository die Pakete installieren und die Einstellungen anlegen:
+
+```bash
+pnpm install
+```
+
+```bash
+cp .env.example .env
+```
+
+Die [`.env.example`](../.env.example) passt ohne Änderung zur lokalen Umgebung. Die `.env` liest auch `docker compose` (für seine eigenen Variablen); sie kommt nie ins Repository.
+
+**Login-Rollen der Apps:** Jede App verbindet sich mit einer eigenen Login-Rolle, nie als `wiki_owner` oder `postgres`; sie prüft das beim Start und bricht sonst mit `Datenbank: Datenbankrolle … ist Superuser oder Eigentümer` bzw. `… muss Mitglied von … sein` ab. Die Rollen `wiki_api`, `wiki_collab` und `wiki_jobs` legt [`local_login_roles.sql`](../database/scripts/local_login_roles.sql) beim ersten Start mit an, mit den lokalen Passwörtern aus der `.env.example`. Für eine Datenbank aus der Zeit davor einmal von Hand (ein zweiter Lauf schadet nicht):
+
+```bash
+docker exec nf-pg18 psql -U postgres -d wiki -v ON_ERROR_STOP=1 -f /scripts/local_login_roles.sql
+```
+
+### Starten
+
+Jede App in einem eigenen Terminal, sie laden sich bei Änderungen selbst neu:
+
+```bash
+pnpm dev:api
+```
+
+```bash
+pnpm dev:worker
+```
+
+```bash
+pnpm dev:collab
+```
+
+```bash
+pnpm dev:web
+```
+
+Prüfen:
+
+```bash
+curl -s localhost:4000/api/v1/health
+```
+
+Erwartet: `{"status":"ok","database":{"login":"wiki_api"}}`. `curl -s localhost:4000/api/v1/tenants/alpenwerk` liefert Mandanten-ID, Name und `idpOrgId: org-alpenwerk`.
+
+**Wie die Apps laufen:** Node 24 führt TypeScript direkt aus und streicht dabei nur die Typen weg; für API, Worker und Collab-Server gibt es deshalb keinen Build-Schritt. Erlaubt ist nur Syntax, die sich so wegstreichen lässt (keine `enum`, `namespace` oder Parameter-Properties, `erasableSyntaxOnly` in [`tsconfig.base.json`](../tsconfig.base.json)), und relative Importe mit Endung `.ts`. `tsc` prüft nur. Das Frontend baut Next.js selbst.
+
+### Prüfen wie in der CI
+
+```bash
+pnpm check
+```
+
+Das sind nacheinander: `pnpm lint` (ESLint, eine Konfiguration für alles in [`eslint.config.mjs`](../eslint.config.mjs), die Next.js-Regeln nur für `apps/web`), `pnpm format:check` (Prettier; `pnpm format` formatiert), `pnpm typecheck` (alle Pakete), `pnpm licenses:check` und `pnpm build`. Der CI-Job `apps` in [`.gitlab-ci.yml`](../.gitlab-ci.yml) führt genau das aus, im Image `node:24`.
+
+**Lizenzprüfung** ([`scripts/check-licenses.mjs`](../scripts/check-licenses.mjs)): Der eigene Code ist proprietär ([`LICENSE`](../LICENSE)). Abgelehnt werden starke Copyleft-Lizenzen (GPL, AGPL, SSPL, EUPL), alle `@blocknote/xl-*`-Pakete und unbekannte Lizenzen; LGPL nur für geprüfte Pakete, derzeit `@img/sharp-*` (libvips, von Next.js für Bilder). Eine neue Ausnahme kommt mit Begründung in das Skript.
+
+**Versionen:** alle Pakete mit fester Version. TypeScript bleibt vorerst auf 6.0 und ESLint auf 9, weil `typescript-eslint` TypeScript 7 und die Regeln von Next.js ESLint 10 noch nicht unterstützen.
+
+**`apps/web/AGENTS.md`** schreibt `next dev` selbst (ein Hinweis für KI-Werkzeuge auf die Doku von Next.js in `node_modules/next/dist/docs/`). Die Datei ist im Repository, damit sie nicht bei jedem Start als Änderung auftaucht.
+
+## 8. Alltag: starten, stoppen, neu anfangen
 
 Alle Befehle im Hauptordner des Repositorys; sie gelten für alle Bausteine zusammen.
 
@@ -621,7 +706,7 @@ docker compose down -v
 
 Ohne `-v` bleiben die Volumes (`notefieber-pgdata` mit den Datenbanken `wiki` und `zitadel`, `notefieber-garage-meta`, `notefieber-garage-data`, `notefieber-zitadel-bootstrap`) mit den Daten erhalten; ein späteres `docker compose up` nimmt sie wieder auf.
 
-## 8. Fehlerbehebung
+## 9. Fehlerbehebung
 
 ### Allgemein
 
@@ -678,12 +763,24 @@ Ohne `-v` bleiben die Volumes (`notefieber-pgdata` mit den Datenbanken `wiki` un
 | Token-Tausch meldet `invalid_grant` mit `invalid code_verifier` | Code-Challenge und Verifier passen nicht zusammen. Unter Windows verfälscht `openssl dgst -binary` in einer Pipe von Git Bash die Bytes; die Challenge mit Node berechnen (`crypto.createHash('sha256').update(v).digest('base64url')`). |
 | Anmeldung als Testperson scheitert mit falschem Passwort | Die Person wurde mit einem anderen `NF_TEST_PASSWORD` angelegt (gilt nur beim Anlegen). In der Console das Passwort setzen oder [Zitadel zurücksetzen](#zitadel-zurücksetzen). |
 
-## 9. Was noch dazukommt
+### Apps
+
+| Meldung | Ursache und Lösung |
+|---|---|
+| `pnpm: command not found` bzw. „pnpm is not recognized“ | corepack ist noch nicht eingeschaltet: `corepack enable` ([Abschnitt 7](#einrichten)). Ohne Administrator unter Windows: `corepack enable --install-directory <ordner im PATH>`. |
+| `API_DATABASE_URL fehlt …` (ZodError beim Start) | Keine `.env`: `cp .env.example .env`. |
+| `password authentication failed for user "wiki_api"` oder `role "wiki_api" does not exist` | Die Login-Rollen fehlen (Datenbank aus der Zeit davor): `local_login_roles.sql` von Hand ausführen ([Abschnitt 7](#einrichten)). |
+| `Datenbank: Datenbankrolle … ist Superuser oder Eigentümer` | Eine Datenbank-URL in der `.env` nutzt `postgres` oder `wiki_owner`. Die Werte aus der `.env.example` nehmen. |
+| `EADDRINUSE` | Der Port ist belegt, meist läuft die App schon in einem anderen Terminal. Anderen Port in der `.env` setzen (`API_PORT`, `COLLAB_PORT`) oder die andere Instanz beenden. |
+| `ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX` oder `… only supported in strip-only mode` | Syntax, die Node nicht einfach wegstreichen kann (`enum`, `namespace`, Parameter-Properties). Umschreiben, z. B. `as const`-Objekte statt `enum`. |
+| `Cannot find module './…'` beim Start | Relativer Import ohne Endung. In den Node-Apps immer mit `.ts` importieren. |
+
+## 10. Was noch dazukommt
 
 Mit den nächsten Schritten aus der `CLAUDE.md` (Abschnitt 13) und Stufe 1 der [ROADMAP](ROADMAP.md) wächst die lokale Umgebung:
 
-- **Die Apps** (`apps/web`, `apps/api`, `apps/collab`, `apps/worker`, siehe README) laufen mit Node.js direkt auf dem Rechner und verbinden sich mit eigenen Login-Rollen (`wiki_api` in `wiki_app`, `wiki_collab` und `wiki_jobs` in `wiki_worker`), nie als `wiki_owner`. Diese Rollen legt dann die [Ersteinrichtung](#ersteinrichtung-rollen-datenbank-schema) mit an.
-- Eine **`.env.example`** mit allen Einstellungen für die Apps: Datenbank-URLs pro Login-Rolle, die [Garage-Werte](#werte-für-die-apps), dazu die Zitadel-Werte aus [`.local/zitadel.env`](#werte-für-die-apps-1). Die echte `.env` kommt nie ins Repository.
+- **Fachlogik in den Apps:** Login über OIDC in der API (E03), Spaces und Seitenbaum per API (M0), Hocuspocus mit `onAuthenticate`, `onLoadDocument` und `onStoreDocument` (E04), Aufgaben im Worker mit pg-boss. Die Zitadel-Werte lesen die Apps dann aus [`.local/zitadel.env`](#werte-für-die-apps-1).
+- **Container-Images** für die Apps (Next.js als `output: standalone`) mit den K3s-Manifesten.
 - Weitere Quellen für Gruppen: SCIM (E17) und ein Gruppen-Claim im Token, etwa aus Entra ID (E03). Bis dahin gibt es Gruppen nur im Wiki ([Abschnitt 6](#wie-zitadel-und-das-datenmodell-zusammenpassen)).
 - **k3d** erst, wenn die K3s-Manifeste entstehen (`CLAUDE.md`, Abschnitt 13, Schritt 3): Dann lassen sie sich lokal prüfen. Für die tägliche Arbeit bleibt Compose.
 

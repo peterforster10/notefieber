@@ -11,7 +11,9 @@
 #   2. migrate.sh          als wiki_owner  (alle Migrationen aus migrations/; nie als
 #                                           postgres, sonst liefen die SECURITY-DEFINER-
 #                                           Funktionen als Superuser)
-#   3. seed/seed.sql       als wiki_owner  (Testdaten, nur wenn NF_SEED=true)
+#   3. local_login_roles.sql als postgres  (Login-Rollen der Apps: wiki_api, wiki_collab,
+#                                           wiki_jobs, mit lokalen Standardpasswörtern)
+#   4. seed/seed.sql       als wiki_owner  (Testdaten, nur wenn NF_SEED=true)
 #
 # Der Entrypoint führt die Datei aus oder liest sie ein (je nach Dateirechten). Deshalb
 # kein exit und kein set -u; ein Fehler bricht die Einrichtung über ON_ERROR_STOP ab.
@@ -22,6 +24,9 @@ psql -v ON_ERROR_STOP=1 -q --username "$POSTGRES_USER" --dbname postgres -f /scr
 
 echo "NoteFieber: Schema (migrate.sh)"
 PSQL="psql --username wiki_owner --dbname wiki" bash /scripts/migrate.sh
+
+echo "NoteFieber: Login-Rollen der Apps (local_login_roles.sql)"
+psql -v ON_ERROR_STOP=1 -q --username "$POSTGRES_USER" --dbname wiki -f /scripts/local_login_roles.sql
 
 if [ "${NF_SEED:-true}" = "true" ]; then
   echo "NoteFieber: Testdaten (seed/seed.sql)"

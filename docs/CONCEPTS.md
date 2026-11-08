@@ -780,26 +780,26 @@ Unter „Architektur“ liegt „Datenmodell“, darunter die Seite „Intern“
 
 ## 20. Entwicklungsablauf
 
-### Projektstruktur (geplant)
+### Projektstruktur
 
 ```
 apps/
   web/        Next.js-Oberfläche (nur Oberfläche)
-  api/        Express-API
+  api/        Express-API und Worker (Suchindex, Versionen, Import, Export, Outbox):
+              ein Paket, später ein Image, zwei Deployments
   collab/     Hocuspocus-Server
-  worker/     Suchindex, Versionen, Import, Export, Outbox
 packages/
   shared/     Typen, Zod-Schemas, Rollen, Ereignisse
 database/
   scripts/    Rollen, Schema (schema/), Migrationen (migrations/), Tests (schema_test/)
-deploy/
+deploy/       (geplant)
   k8s/        Manifeste (Kustomize), später Helm-Chart
 docs/
   models/     Datenmodell und Architektur als Diagramme
 prototype/    UI-Prototyp (Referenz, kein Produktcode)
 ```
 
-*Empfehlung:* ein Repository mit pnpm-Workspaces. Typen für Ereignisse und Rollen leben einmal in `packages/shared` und werden von allen Apps genutzt.
+Ein Repository mit pnpm-Workspaces (Monorepo): jede App ein eigenes Node-Projekt mit eigener `package.json`, eine gemeinsame Lock-Datei. Typen für Ereignisse und Rollen leben einmal in `packages/shared` und werden von allen Apps genutzt. Node 24 führt TypeScript direkt aus, API, Worker und Collab-Server brauchen deshalb keinen Build-Schritt. Jede App verbindet sich mit einer eigenen Login-Rolle und prüft beim Start, dass es nicht `wiki_owner` oder ein Superuser ist. Einzelheiten in [LOCAL_SETUP.md, Abschnitt 7](LOCAL_SETUP.md#7-apps-nodejs).
 
 ### Lokal arbeiten
 

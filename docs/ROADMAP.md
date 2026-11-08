@@ -40,12 +40,13 @@ Infrastruktur: eigener Rechner. Node direkt, PostgreSQL 18, Zitadel und Garage p
 
 ### M0 – Fundament
 Epics: E01 (lokal), E02, E03 (einfach)
-- [ ] Repository mit Lizenz, `CLAUDE.md`, `docs/EPICS.md`, `docs/ROADMAP.md`
+- [x] Repository mit Lizenz (proprietär, `LICENSE`), `CLAUDE.md`, `docs/EPICS.md`, `docs/ROADMAP.md`
+- [x] Grundgerüst der Apps als pnpm-Monorepo: `apps/web`, `apps/api` (mit Worker), `apps/collab`, `packages/shared`; eigene Login-Rollen pro App
 - [x] Lokale Umgebung mit PostgreSQL 18, Zitadel, Garage (alle per `compose.yaml`, siehe [LOCAL_SETUP](LOCAL_SETUP.md))
 - [x] Migrationen: eigenes Skript `migrate.sh` (psql) statt eines Werkzeugs, das Schema als erste Migration (`0001_initial_schema.sql`, gebündelt mit `schema/bundle.sh`), Gleichheit von `schema/` und Migrationen geprüft (`schema_migrations_test.sh`)
 - [x] Sync GitHub → GitLab: `.github/workflows/sync-to-gitlab.yml` spiegelt jeden Push auf `main`
 - [x] Tests der Datenbank in der CI auf GitLab: `.gitlab-ci.yml` mit `ci.sh` (`schema_test.sql`, `schema_concurrency_test.sh`, `schema_migrations_test.sh`, eingespielt als `wiki_owner`, nie als `postgres`). Erste Pipeline am 8. November 2026 grün
-- [ ] CI auf GitLab für die Apps: Build, Tests, Prüfung der Abhängigkeiten und Lizenzen (keine BlockNote-XL-Pakete)
+- [ ] CI auf GitLab für die Apps: Job `apps` mit `pnpm check` (Lint, Formatierung, Typen, Lizenzen ohne BlockNote-XL-Pakete, Build). Eingerichtet; abhaken, sobald die erste Pipeline grün war. Tests der Apps kommen mit dem ersten Code, der welche braucht
 - [ ] Login per OIDC über Zitadel (Mandant und Person aus dem Token), Gruppen im Wiki pflegen
 - [ ] Space anlegen, Seitenbaum per API
 

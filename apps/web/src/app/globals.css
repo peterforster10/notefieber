@@ -1,0 +1,26 @@
+/* Farben aus dem Designsystem von NoteFieber und TalkFieber (CLAUDE.md, Abschnitt 9) */
+:root {
+  --nf-sidebar: #0f2537;
+  --nf-accent: #1f5fd6;
+  --nf-attention: #c2410c;
+  --nf-done-bg: #e3f1e8;
+  --nf-done-fg: #1e5135;
+  --nf-text: #1b2430;
+  --nf-muted: #5b6675;
+  --nf-bg: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  color: var(--nf-text);
+  background: var(--nf-bg);
+}
+
+code {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+}
