@@ -262,6 +262,29 @@ ADMIN="docker exec -i nf-pg18 psql -U postgres" OWNER="docker exec -i nf-pg18 ps
 
 Erwartet: `OK 1` und `OK 2`, dann `Alle Migrationstests bestanden`. Der Test spielt beide Wege in je eine eigene, frische Datenbank (`nf_check_schema`, `nf_check_migrations`) ein, vergleicht sie mit `pg_dump` und löscht sie danach wieder. Die Datenbank `wiki` berührt er nicht. Schlägt er fehl, zeigt er die Unterschiede: Zeilen mit `<` stehen nur in `schema/`, Zeilen mit `>` nur in den Migrationen.
 
+**Alle Datenbanktests wie in der CI** ([`ci.sh`](../database/scripts/schema_test/ci.sh), etwa 15 Sekunden): Rollen, Migrationen, Funktionstest ohne und mit Testdaten, ein zweiter Lauf von `migrate.sh`, Nebenläufigkeits- und Migrationstest. `ci.sh` braucht einen **leeren** Server und bricht ab, wenn es die Datenbank `wiki` schon gibt; gegen `nf-pg18` läuft es deshalb nicht. Lokal so, mit zwei Wegwerf-Containern wie in GitLab:
+
+```bash
+export MSYS_NO_PATHCONV=1
+docker network create nf-ci
+docker run -d --name nf-ci-service --network nf-ci --network-alias postgres -e POSTGRES_PASSWORD=ci -e POSTGRES_HOST_AUTH_METHOD=trust postgres:18
+docker run --rm --network nf-ci --entrypoint "" -e PGHOST=postgres -v "$(pwd -W):/builds/notefieber:ro" -w /builds/notefieber postgres:18 bash database/scripts/schema_test/ci.sh
+docker rm -f nf-ci-service && docker network rm nf-ci
+```
+
+Erwartet: zum Schluss `Alle Datenbanktests bestanden.` (`$(pwd -W)` ist der Pfad des Repositorys in Git Bash; unter macOS und Linux `$(pwd)`.)
+
+### CI (GitLab)
+
+Das Repository liegt auf GitHub, die CI läuft auf GitLab:
+
+- [`.github/workflows/sync-to-gitlab.yml`](../.github/workflows/sync-to-gitlab.yml) spiegelt bei jedem Push auf `main` das Repository nach `gitlab.com/peterforster101/notefieber`. Dafür braucht das GitHub-Repository das Secret `GITLAB_TOKEN`: ein Project Access Token in GitLab mit Scope `write_repository` und einer Rolle, die auf `main` pushen darf (standardmäßig Maintainer). Der Workflow pusht `main` und die Tags **ohne `--force`**, nacheinander (nie zwei Läufe gleichzeitig) und liest vom GitHub-Token nur. Weicht `main` auf GitLab ab (etwa weil dort jemand direkt committet oder auf GitHub der Verlauf umgeschrieben wurde), schlägt der Lauf mit `rejected … (fetch first)` bzw. `(non-fast-forward)` fehl. Dann auf GitLab nichts direkt ändern und den Unterschied bewusst auflösen, notfalls einmal von Hand mit `--force` pushen.
+- [`.gitlab-ci.yml`](../.gitlab-ci.yml) startet dort bei jedem Push den Job `database`: Image `postgres:18` (psql und pg_dump in derselben Version wie der Server) mit einem Service `postgres:18`, der ohne Passwort anmeldet (nur im Job). Er führt `ci.sh` aus, also genau die Schritte oben.
+- Andere Branches als `main` spiegelt der Workflow nicht; Pipelines gibt es also nur für `main`.
+- Auf gitlab.com laufen Jobs auf den gemeinsamen Runnern. Neue Konten müssen dafür einmal ihre Identität bestätigen (Telefon oder Kreditkarte), sonst bleibt die Pipeline hängen.
+
+Build, Lint und Lizenzprüfung der Apps kommen mit dem App-Code dazu.
+
 ### Das Schema ändern
 
 Das Schema steht an zwei Stellen, und jede Änderung kommt in beide:

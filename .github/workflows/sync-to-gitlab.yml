@@ -1,9 +1,22 @@
+# Spiegelt main nach GitLab (gitlab.com/peterforster101/notefieber), dort läuft die CI
+# (.gitlab-ci.yml). Braucht das Secret GITLAB_TOKEN: Project Access Token in GitLab mit
+# Scope write_repository und einer Rolle, die auf main pushen darf (Maintainer).
+# Siehe docs/LOCAL_SETUP.md, „CI (GitLab)“.
 name: Sync to GitLab
 
 on:
   push:
     branches:
       - main
+
+# Vom GitHub-Token wird nur gelesen; gepusht wird mit GITLAB_TOKEN.
+permissions:
+  contents: read
+
+# Pushes nacheinander spiegeln, damit GitLab nie einen älteren Stand bekommt.
+concurrency:
+  group: sync-to-gitlab
+  cancel-in-progress: false
 
 jobs:
   sync:
@@ -14,13 +27,14 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-
-      - name: Add remote for GitLab
-        run: |
-          git remote remove gitlab || true
-          git remote add gitlab https://oauth2:${{ secrets.GITLAB_TOKEN }}@gitlab.com/peterforster101/notefieber.git
+          persist-credentials: false   # GitHub-Token nicht in .git/config lassen
 
       - name: Push to GitLab
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        # Ohne --force: Weicht GitLab einmal ab (etwa nach einem umgeschriebenen Verlauf),
+        # bricht der Push sichtbar ab, statt dort still etwas zu überschreiben.
         run: |
-          git push --all --force gitlab
-          git push --tags --force gitlab
+          git remote add gitlab "https://oauth2:${GITLAB_TOKEN}@gitlab.com/peterforster101/notefieber.git"
+          git push gitlab HEAD:refs/heads/main
+          git push gitlab --tags

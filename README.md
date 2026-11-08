@@ -19,6 +19,7 @@ Eine europäische Alternative zu Confluence, entwickelt und gehostet in der EU. 
 | `docs/models/` | ER-Diagramm (Mermaid, exportiert als SVG) und Architekturdiagramme (Startsetup, Zielarchitektur) |
 | `database/scripts/` | Rollen, Schema (`schema/`), Migrationen (`migrations/`, eingespielt mit `migrate.sh`), Tests (`schema_test/`), Testdaten (`seed/`) und Abfragen zum Nachsehen (`queries/`) |
 | `compose.yaml`, `docker/` | Lokale Umgebung: PostgreSQL, Garage und Zitadel, richten sich beim ersten Start selbst ein |
+| `.gitlab-ci.yml`, `.github/workflows/` | CI auf GitLab (Datenbanktests mit `ci.sh`); GitHub spiegelt `main` dorthin |
 | `prototype/` | Klickbarer UI-Prototyp: Seitenansicht mit Rechte-Dialog, Confluence-Import |
 
 ## Stack in einem Satz
