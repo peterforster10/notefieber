@@ -39,7 +39,7 @@ Das Wiki kommt vor TalkFieber. Es legt deshalb die gemeinsame Plattform an (Zita
 Infrastruktur: eigener Rechner. Node direkt, PostgreSQL 18, Zitadel und Garage per Docker Compose oder k3d mit denselben Manifesten wie später auf dem Server.
 
 ### M0 – Fundament
-Epics: E01 (lokal), E02, E03 (einfach)
+Epics: E01 (lokal), E02 (ohne Gruppenpflege, die kommt mit M3), E03 (einfach), vorgezogen Teile von E05 und E06 (Spaces anlegen, Seitenbaum)
 - [x] Repository mit Lizenz (proprietär, `LICENSE`), `CLAUDE.md`, `docs/EPICS.md`, `docs/ROADMAP.md`
 - [x] Grundgerüst der Apps als pnpm-Monorepo: `apps/web`, `apps/api` (mit Worker), `apps/collab`, `packages/shared`; eigene Login-Rollen pro App
 - [x] Lokale Umgebung mit PostgreSQL 18, Zitadel, Garage (alle per `compose.yaml`, siehe [LOCAL_SETUP](LOCAL_SETUP.md))
@@ -73,7 +73,7 @@ Epics: E05, E06, E07, E08, E15
 - [ ] **Ab hier selbst nutzen**, z. B. für die eigene Projektdokumentation
 
 ### M3 – Rechte, Suche, Kommentare (MVP ohne Import)
-Epics: E09, E10, E11, E12, E14
+Epics: E09, E10, E11, E12, E14, dazu aus E02 die Gruppenpflege (aus M0 verschoben)
 - [ ] Rollen und Vererbung, Vererbung kappen, Gruppen, „Alle im Workspace“
 - [ ] Gruppen im Wiki pflegen: API und Oberfläche für Organisations-Admins (anlegen, umbenennen, Mitglieder). Aus M0 hierher verschoben; die Datenbank kann es schon, Rechte über Gruppen wirken bereits (Testdaten)
 - [ ] „Ansehen als …“ für Space-Admins (Prüfwerkzeug für den Import)

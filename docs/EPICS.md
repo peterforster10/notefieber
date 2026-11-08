@@ -592,10 +592,10 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 
 Meilensteine und Übergangskriterien stehen in der `ROADMAP.md`.
 
-1. **E01, E02, E03** parallel, weil alles darauf aufbaut (M0).
+1. **E01, E02, E03** parallel, weil alles darauf aufbaut (M0). Fürs Gate von M0 vorgezogen: Spaces anlegen und Seitenbaum aus **E05** und **E06**.
 2. **E04** früh fertigstellen und mit Lasttests absichern (M1).
 3. **E05, E06, E07, E08** zusammen mit **E15** Stück für Stück (M2). Ab hier selbst nutzen.
-4. **E09, E10, E11, E12, E14** schließen das MVP ab (M3). Rechte zuerst, weil der Import sie braucht.
+4. **E09, E10, E11, E12, E14** schließen das MVP ab (M3), dazu die Gruppenpflege aus **E02** (mit dem Rechte-Dialog). Rechte zuerst, weil der Import sie braucht.
 5. **E13** Confluence-Import (M4).
 6. **Stufe 2:** Pilot auf dem VPS mit den VPS- und Backup-Teilen von E01 und einer einfachen Version von E22 (M5).
 7. **Stufe 3** nach Rückmeldung der Pilotkunden. **E17, E21, E24** sind Voraussetzung für zahlende Geschäftskunden, **E23** für On-Prem-Kunden.
