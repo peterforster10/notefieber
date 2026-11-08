@@ -5,3 +5,4 @@ export * from './roles.ts';
 export * from './events.ts';
 export * from './schemas.ts';
 export * from './db-role.ts';
+export * from './urls.ts';

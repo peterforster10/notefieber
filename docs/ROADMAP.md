@@ -50,9 +50,9 @@ Epics: E01 (lokal), E02, E03 (einfach)
 - [x] Login per OIDC über Zitadel (Mandant und Person aus dem Token): Sitzung in der API (`sessions`, Cookie `nf_session`), Claims an einer Stelle, Prüfskript `scripts/check-login.mjs`
 - [ ] Gruppen im Wiki pflegen (API und Oberfläche; die Datenbank kann es schon)
 - [ ] Einladungen: erste Anmeldung über `app.accept_invite` (bis dahin nur Personen, die es im Mandanten schon gibt)
-- [ ] Space anlegen, Seitenbaum per API
+- [x] Space anlegen, Seitenbaum per API (anlegen, verschieben, Papierkorb) und Seitenleiste im Frontend; API-Tests gegen die Datenbank (`pnpm test:db`, CI-Job `api`)
 
-**Gate:** Login über Zitadel, Seite anlegen, im Baum verschieben.
+**Gate:** Login über Zitadel, Seite anlegen, im Baum verschieben. Lokal erreicht am 8. November 2026.
 
 ### M1 – Durchstich Editor und Echtzeit
 Epics: E04, Teile von E06 und E07

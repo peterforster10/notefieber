@@ -281,11 +281,13 @@ Erwartet: zum Schluss `Alle Datenbanktests bestanden.` (`$(pwd -W)` ist der Pfad
 Das Repository liegt auf GitHub, die CI läuft auf GitLab:
 
 - [`.github/workflows/sync-to-gitlab.yml`](../.github/workflows/sync-to-gitlab.yml) spiegelt bei jedem Push auf `main` das Repository nach `gitlab.com/peterforster101/notefieber`. Dafür braucht das GitHub-Repository das Secret `GITLAB_TOKEN`: ein Project Access Token in GitLab mit Scope `write_repository` und einer Rolle, die auf `main` pushen darf (standardmäßig Maintainer). Der Workflow pusht `main` und die Tags **ohne `--force`**, nacheinander (nie zwei Läufe gleichzeitig) und liest vom GitHub-Token nur. Weicht `main` auf GitLab ab (etwa weil dort jemand direkt committet oder auf GitHub der Verlauf umgeschrieben wurde), schlägt der Lauf mit `rejected … (fetch first)` bzw. `(non-fast-forward)` fehl. Dann auf GitLab nichts direkt ändern und den Unterschied bewusst auflösen, notfalls einmal von Hand mit `--force` pushen.
-- [`.gitlab-ci.yml`](../.gitlab-ci.yml) startet dort bei jedem Push den Job `database`: Image `postgres:18` (psql und pg_dump in derselben Version wie der Server) mit einem Service `postgres:18`, der ohne Passwort anmeldet (nur im Job). Er führt `ci.sh` aus, also genau die Schritte oben.
+- [`.gitlab-ci.yml`](../.gitlab-ci.yml) startet dort bei jedem Push drei Jobs, die parallel laufen:
+  - `database`: Image `postgres:18` (psql und pg_dump in derselben Version wie der Server) mit einem Service `postgres:18`, der ohne Passwort anmeldet (nur im Job). Er führt `ci.sh` aus, also genau die Schritte oben.
+  - `apps`: Image `node:24`, führt `pnpm check` aus ([Abschnitt 7](#prüfen-wie-in-der-ci)).
+  - `api`: Image `node:24` mit Service `postgres:18`. Richtet die Datenbank mit [`setup_test_db.sh`](../database/scripts/setup_test_db.sh) ein (Rollen, Migrationen, Login-Rollen, Testdaten; `psql` aus Debian) und führt die [API-Tests gegen die Datenbank](#api-tests-gegen-die-datenbank) aus.
 - Andere Branches als `main` spiegelt der Workflow nicht; Pipelines gibt es also nur für `main`.
 - Auf gitlab.com laufen Jobs auf den gemeinsamen Runnern. Neue Konten müssen dafür einmal ihre Identität bestätigen (Telefon oder Kreditkarte), sonst bleibt die Pipeline hängen.
 
-Build, Lint und Lizenzprüfung der Apps kommen mit dem App-Code dazu.
 
 ### Das Schema ändern
 
@@ -595,7 +597,7 @@ Die Apps liegen in einem **pnpm-Monorepo** (ein Repository, mehrere Node-Projekt
 | `@notefieber/collab` | `apps/collab` | Collab-Server (Hocuspocus) | `wiki_collab` (in `wiki_worker`) | `pnpm dev:collab` | `ws://127.0.0.1:1234` |
 | `@notefieber/shared` | `packages/shared` | gemeinsame Typen und Zod-Schemas: Rollen, Ereignisse, Kurznamen, Prüfung der Datenbankrolle | – | – | – |
 
-Stand: Die API beantwortet `GET /api/v1/health` und `GET /api/v1/tenants/<kurzname>` und **meldet über Zitadel an** ([unten](#anmelden)). Der Worker meldet sich regelmäßig, der Collab-Server startet und lehnt bis E04 jede Verbindung ab, das Frontend zeigt Anmelden und Abmelden.
+Stand: Die API **meldet über Zitadel an** ([unten](#anmelden)) und kennt **Spaces und Seitenbaum** ([unten](#spaces-und-seitenbaum)). Der Worker meldet sich regelmäßig, der Collab-Server startet und lehnt bis E04 jede Verbindung ab. Das Frontend zeigt Anmelden, die eigenen Spaces und pro Space die Seitenleiste mit dem Baum; Seiten haben noch keinen Inhalt (Editor mit M1).
 
 ### Einrichten
 
@@ -679,6 +681,45 @@ node scripts/check-login.mjs "$(docker compose exec -T zitadel-init cat /zitadel
 ```
 
 Erwartet: 15 Zeilen mit `OK`, dann `Alle Prüfungen bestanden.` Das Skript meldet sich bei Zitadel über die Session-API an (wie die Anmeldeseiten selbst), deshalb braucht es das Token von `login-client`.
+
+### Spaces und Seitenbaum
+
+Nach dem Anmelden zeigt `http://localhost:3000` die eigenen Spaces und „Neuer Space“. Ein Space öffnet sich unter `/spaces/<schlüssel>` (klein geschrieben, z. B. `/spaces/entw`; gespeichert und angezeigt wird `ENTW`), eine Seite unter `/spaces/entw/pages/<titel>-<kurze id>`, z. B. `/spaces/entw/pages/architektur-034uANlqQWodlcQ4FIOXYJ`. Die kurze ID ist die UUID der Seite in Base62 (22 Zeichen, [`urls.ts`](../packages/shared/src/urls.ts)); der Titel davor ist nur zum Lesen. Alte Links mit altem Titel oder großem Schlüssel funktionieren weiter, das Frontend zieht die Adresse dann nach. Die API selbst arbeitet mit UUIDs und nimmt Schlüssel in beiden Schreibweisen an. In der Seitenleiste: Space-Umschalter, „+ Neue Seite“ (unter der Startseite), der Eintrag „Startseite“, der Baum und der Papierkorb. Wie in Confluence steht die Startseite selbst nicht im Baum; der Baum beginnt mit ihren Unterseiten, „Ausrücken“ geht deshalb nur bis zu dieser obersten Ebene. Fährt man über eine Seite (oder springt mit der Tab-Taste hinein), erscheinen die Knöpfe: neue Unterseite, nach oben, nach unten, einrücken (unter die vorige Seite), ausrücken (hinter die Elternseite), in den Papierkorb. Wer nur liest, sieht keine Knöpfe. Drag & Drop kommt mit M2.
+
+Die API dazu (alle nur mit Sitzung):
+
+| Anfrage | Was | Funktion in der Datenbank |
+|---|---|---|
+| `GET /api/v1/workspaces` | eigene Workspaces | – |
+| `GET /api/v1/spaces` | sichtbare Spaces mit eigener Rolle | – (RLS) |
+| `POST /api/v1/spaces` | Space anlegen: `key`, `name`, optional `workspaceId` (nötig bei mehreren Workspaces), `workspaceAccess` (Standard `viewer`) | `app.create_space` |
+| `GET /api/v1/spaces/:key` | ein Space | – |
+| `GET /api/v1/spaces/:key/pages` | Seitenbaum, flach, sortiert nach `position, id`, mit eigener Rolle und `restricted` | – (RLS, `app.page_role`) |
+| `GET /api/v1/spaces/:key/trash` | Papierkorb (die gemeinsam gelöschten Wurzeln) | – |
+| `POST /api/v1/spaces/:key/pages` | Seite anlegen: `parentId` (`null` = oberste Ebene), `title`, optional `afterId` | `app.create_page` |
+| `GET /api/v1/pages/:id` | Seite mit Brotkrume (nur lesbare Vorfahren) | – |
+| `POST /api/v1/pages/:id/move` | verschieben: `parentId`, dazu `afterId` oder `beforeId` (sonst ans Ende) | `app.move_page` |
+| `DELETE /api/v1/pages/:id` | in den Papierkorb, mit Unterseiten | `app.trash_page` |
+| `POST /api/v1/pages/:id/restore` | aus dem Papierkorb zurück | `app.restore_page` |
+
+Rechte prüft die Datenbank: Seiten, die die Person nicht sehen darf, fehlen im Baum, und was sie nicht ändern darf, lehnen die Funktionen ab (`403`; fachliche Regeln wie „nicht unter die eigene Unterseite“ oder „Startseite nicht löschen“ mit `409` und Meldung). Positionen rechnet die API mit dem Paket `fractional-indexing` aus den sichtbaren Nachbarn ([`positions.ts`](../apps/api/src/positions.ts)); dieselben Schlüssel erzeugt `app.next_position` in der Datenbank.
+
+### API-Tests gegen die Datenbank
+
+[`*.dbtest.ts`](../apps/api/src/routes/spaces.dbtest.ts) starten die API und prüfen gegen eine echte Datenbank mit den Testdaten, was Personen sehen und tun dürfen (Peter, Lukas, Max, Gast Elena). Angemeldet wird direkt über `app.create_session`, ohne Zitadel. Die Tests legen Spaces an, die sich nicht löschen lassen; sie laufen deshalb nie gegen `nf-pg18`, sondern gegen einen Wegwerf-Container, der sich mit denselben Init-Skripten einrichtet:
+
+```bash
+export MSYS_NO_PATHCONV=1
+docker run -d --name nf-pg18-apitest -p 127.0.0.1:55433:5432 -e POSTGRES_PASSWORD=probe -v "$(pwd -W)/database/scripts:/scripts:ro" -v "$(pwd -W)/docker/postgres/initdb:/docker-entrypoint-initdb.d:ro" postgres:18
+```
+
+Nach etwa 20 Sekunden (`docker logs nf-pg18-apitest` zeigt `Testdaten eingespielt`):
+
+```bash
+API_TEST_DATABASE_URL=postgres://wiki_api:api-lokal@localhost:55433/wiki pnpm test:db
+```
+
+Erwartet: `pass 6`, `fail 0`. Danach `docker rm -f nf-pg18-apitest`. Ohne `API_TEST_DATABASE_URL` überspringt `pnpm test:db` die Tests mit einem Hinweis. (`$(pwd -W)` ist der Pfad in Git Bash; unter macOS und Linux `$(pwd)`.)
 
 ### Prüfen wie in der CI
 
