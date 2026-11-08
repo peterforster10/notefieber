@@ -175,7 +175,7 @@ Das Skript läuft in einer Transaktion: Entweder ist danach alles da oder nichts
 
 | Person | E-Mail | Rolle | Sieht |
 |---|---|---|---|
-| Anna Huber | `anna.huber@alpenwerk.example` | Organisations-Admin, Owner | ENTW (8 Seiten), VERT (3), PERS (3), ALT (2) |
+| Peter Forster | `peter.forster@alpenwerk.example` | Organisations-Admin, Owner | ENTW (8 Seiten), VERT (3), PERS (3), ALT (2) |
 | Lukas Gruber | `lukas.gruber@alpenwerk.example` | Gruppe Entwicklung | ENTW (8, auch „Personalplanung 2027“), VERT, ALT |
 | Sophie Bauer | `sophie.bauer@alpenwerk.example` | Gruppe Entwicklung | ENTW (7), VERT, ALT |
 | Markus Wagner | `markus.wagner@alpenwerk.example` | Gruppe Entwicklung | ENTW (7), VERT, ALT |
@@ -187,9 +187,9 @@ Das Skript läuft in einer Transaktion: Entweder ist danach alles da oder nichts
 
 | Space | Rechte | Besonderheiten |
 |---|---|---|
-| ENTW Entwicklung | alle im Workspace lesen, Gruppe Entwicklung bearbeitet, Anna Admin | Baum wie im Prototyp (Architektur, Datenmodell, Rechte-Konzept, Release-Prozess, Betrieb, Backups). „Personalplanung 2027“ hat eigene Rechte (nur Anna und Lukas). „Datenmodell“ hat zwei Kommentare und eine Version, „Release-Prozess“ einen erledigten Thread. „Alte Notizen“ liegt im Papierkorb. |
+| ENTW Entwicklung | alle im Workspace lesen, Gruppe Entwicklung bearbeitet, Peter Admin | Baum wie im Prototyp (Architektur, Datenmodell, Rechte-Konzept, Release-Prozess, Betrieb, Backups). „Personalplanung 2027“ hat eigene Rechte (nur Peter und Lukas). „Datenmodell“ hat zwei Kommentare und eine Version, „Release-Prozess“ einen erledigten Thread. „Alte Notizen“ liegt im Papierkorb. |
 | VERT Vertrieb | von Max angelegt, alle im Workspace kommentieren | „Kampagne Frühjahr“ hat eigene Rechte und ist für den Gast Elena freigegeben, mit einem Kommentar von ihr. |
-| PERS Personal | privat, nur Anna | gut, um „Ansehen als …“ und Organisations-Admins auszuprobieren |
+| PERS Personal | privat, nur Peter | gut, um „Ansehen als …“ und Organisations-Admins auszuprobieren |
 | ALT Altes Intranet | alle lesen | archiviert, also für alle höchstens lesbar |
 
 **Was man über die Testdaten wissen muss:**
@@ -197,8 +197,8 @@ Das Skript läuft in einer Transaktion: Entweder ist danach alles da oder nichts
 - **Inhalt:** Die Seiten haben BlockNote-JSON (`content_json`) und Klartext, aber noch keinen Yjs-Zustand (`ydoc` leer). Beim ersten Öffnen baut der Collab-Server das Dokument aus dem JSON (CLAUDE.md, Abschnitt 6). Der Suchindex ist gefüllt, die Suche geht also sofort.
 - **Kommentare** sind Seitenkommentare. Kommentare an Textstellen brauchen eine Yjs-Position und kommen erst mit dem Collab-Server.
 - **Dateien:** Die Testdaten enthalten keine Anhänge; der Bucket in Garage ist leer.
-- **Login:** Mandanten und Personen tragen dieselben festen IDs wie in Zitadel (`tenants.idp_org_id` = `org-alpenwerk`, `users.idp_subject` = `user-anna-huber` …). Anmelden geht mit der E-Mail-Adresse und dem Passwort `NoteFieber-lokal-1` ([Abschnitt 6](#6-login-zitadel)). Wer Personen ändert, ändert auch [`docker/zitadel/init.mjs`](../docker/zitadel/init.mjs).
-- **Gruppen** (Geschäftsleitung, Entwicklung, Vertrieb) gehören dem Wiki: Anna legt sie als Organisations-Admin mit `app.create_group` an und nimmt die Mitglieder auf (Quelle `local`). In Zitadel gibt es sie nicht.
+- **Login:** Mandanten und Personen tragen dieselben festen IDs wie in Zitadel (`tenants.idp_org_id` = `org-alpenwerk`, `users.idp_subject` = `user-peter-forster` …). Anmelden geht mit der E-Mail-Adresse und dem Passwort `NoteFieber-lokal-1` ([Abschnitt 6](#6-login-zitadel)). Wer Personen ändert, ändert auch [`docker/zitadel/init.mjs`](../docker/zitadel/init.mjs).
+- **Gruppen** (Geschäftsleitung, Entwicklung, Vertrieb) gehören dem Wiki: Peter legt sie als Organisations-Admin mit `app.create_group` an und nimmt die Mitglieder auf (Quelle `local`). In Zitadel gibt es sie nicht.
 - **Ereignisse** liegen unveröffentlicht in der Outbox, bis ein Worker läuft.
 - Ändert sich eine Funktion, die das Skript aufruft (z. B. eine neue Signatur), muss `seed.sql` mitgezogen werden. Ein Lauf nach jeder Schemaänderung ist deshalb ein guter zusätzlicher Test.
 
@@ -234,7 +234,7 @@ WHERE ps.tsv @@ websearch_to_tsquery('german', 'Rechte') AND p.deleted_at IS NUL
 ROLLBACK;
 ```
 
-Mit `SET LOCAL ROLE wiki_worker` und ohne `app.user_id` sieht man, was Collab-Server und Worker sehen: alles im Mandanten. „Ansehen als …“ probiert man so aus wie oben, aber als Anna (`anna.huber@…`) mit `SELECT * FROM app.view_as(<space-id>, <personen-id>, app.current_user_id());`.
+Mit `SET LOCAL ROLE wiki_worker` und ohne `app.user_id` sieht man, was Collab-Server und Worker sehen: alles im Mandanten. „Ansehen als …“ probiert man so aus wie oben, aber als Peter (`peter.forster@…`) mit `SELECT * FROM app.view_as(<space-id>, <personen-id>, app.current_user_id());`.
 
 ### Tests ausführen
 
@@ -429,7 +429,7 @@ Erwartet beim ersten Start „angelegt“ für Projekt, Clients, Organisationen 
 | In Zitadel | In NoteFieber | In den Testdaten |
 |---|---|---|
 | Organisation | Mandant, `tenants.idp_org_id` | `org-alpenwerk`, `org-nordlicht` |
-| Person (`sub` im Token) | `users.idp_subject`, pro Mandant eindeutig | `user-anna-huber`, `user-lukas-gruber` … (aus der E-Mail gebildet) |
+| Person (`sub` im Token) | `users.idp_subject`, pro Mandant eindeutig | `user-peter-forster`, `user-lukas-gruber` … (aus der E-Mail gebildet) |
 | Organisation NoteFieber | kein Mandant, nur Betreiber | `zitadel-admin` |
 
 - **Feste IDs:** Zitadel erlaubt eigene IDs für Organisationen und Personen. Die Einrichtung nutzt dieselben IDs wie [`seed.sql`](../database/scripts/seed/seed.sql). Deshalb passen Zitadel und Datenbank zusammen, egal in welcher Reihenfolge man sie aufsetzt. Wer Testpersonen oder Organisationen ändert, ändert **beide Dateien**. Echte Mandanten bekommen später von Zitadel erzeugte IDs.

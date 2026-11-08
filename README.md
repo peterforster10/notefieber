@@ -42,7 +42,7 @@ psql -U wiki_owner -d wiki -f database/scripts/schema/schema.sql
 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f database/scripts/schema_test/schema_test.sql
 # Erwartet: OK 1 … OK 46, dann "Alle Tests bestanden (zurückgerollt …)."
 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f database/scripts/seed/seed.sql
-# Optional: Testdaten (Alpenwerk mit Anna, Lukas, Max …), siehe docs/LOCAL_SETUP.md Abschnitt 4 („Testdaten“)
+# Optional: Testdaten (Alpenwerk mit Peter, Lukas, Max …), siehe docs/LOCAL_SETUP.md Abschnitt 4 („Testdaten“)
 ```
 
 Die App verbindet sich nie als `wiki_owner`, sondern mit Login-Rollen in `wiki_app` (API) bzw. `wiki_worker` (Collab-Server, Worker). Das Datenmodell beschreibt [docs/SCHEMA.md](docs/SCHEMA.md), die Entscheidungen stehen in `CLAUDE.md`.

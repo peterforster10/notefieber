@@ -36,7 +36,7 @@ const ORGS = [
   { id: "org-nordlicht", name: "Nordlicht GmbH" },
 ];
 const USERS = [
-  { id: "user-anna-huber", org: "org-alpenwerk", email: "anna.huber@alpenwerk.example", given: "Anna", family: "Huber" },
+  { id: "user-peter-forster", org: "org-alpenwerk", email: "peter.forster@alpenwerk.example", given: "Peter", family: "Forster" },
   { id: "user-lukas-gruber", org: "org-alpenwerk", email: "lukas.gruber@alpenwerk.example", given: "Lukas", family: "Gruber" },
   { id: "user-sophie-bauer", org: "org-alpenwerk", email: "sophie.bauer@alpenwerk.example", given: "Sophie", family: "Bauer" },
   { id: "user-markus-wagner", org: "org-alpenwerk", email: "markus.wagner@alpenwerk.example", given: "Markus", family: "Wagner" },
