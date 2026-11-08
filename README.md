@@ -12,6 +12,7 @@ Eine europäische Alternative zu Confluence, entwickelt und gehostet in der EU. 
 | [docs/MVP.md](docs/MVP.md) | Architektur und Umfang des MVP auf einen Blick (Momentaufnahme vom 5. November 2026) |
 | [CLAUDE.md](CLAUDE.md) | Entscheidungen und aktueller Stand, Übergabe für Claude Code |
 | [TODOS.md](TODOS.md) | Offene Punkte aus der letzten Konsistenzprüfung |
+| [docs/OPEN_QUESTIONS.md](docs/OPEN_QUESTIONS.md) | Offene Fragen: Themen, die in EPICS und ROADMAP noch fehlen |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Stufen 0–4, Meilensteine M0–M5, Kriterien für den nächsten Schritt |
 | [docs/EPICS.md](docs/EPICS.md) | Epics E01–E31 als Grundlage für User Stories |
 | [docs/SCHEMA.md](docs/SCHEMA.md) | Referenz zum Datenmodell: jede Tabelle, Regel und Funktion |
