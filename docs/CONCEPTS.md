@@ -785,7 +785,6 @@ database/
 deploy/
   k8s/        Manifeste (Kustomize), später Helm-Chart
 docs/
-  adr/        Entscheidungsnotizen
   models/     Datenmodell und Architektur als Diagramme
 prototype/    UI-Prototyp (Referenz, kein Produktcode)
 ```
@@ -814,10 +813,6 @@ Die vollständige Anleitung steht in [LOCAL_SETUP.md](LOCAL_SETUP.md). Kurz:
 - API-Tests laufen gegen eine **echte PostgreSQL**, nicht gegen Mocks. Die Rechte stecken in der Datenbank, ein Mock würde genau das nicht testen.
 - Später Ende-zu-Ende-Tests mit Playwright, z. B. zwei Browser, die dieselbe Seite bearbeiten.
 - Alles, was Rechte, Mandantentrennung oder Sichtbarkeit berührt, bekommt **zuerst** einen Test.
-
-### Entscheidungsnotizen (ADR)
-
-Jede Entscheidung mit Folgen bekommt eine kurze Notiz in `docs/adr/`, fortlaufend nummeriert, z. B. `0007-sitzungscookie-statt-tokens-im-browser.md`:
 
 ```markdown
 # 7. Sitzungscookie statt Tokens im Browser
@@ -941,8 +936,7 @@ UUIDs lassen sich nicht erraten, die App kann sie schon vor dem Speichern erzeug
 ## 24. Glossar
 
 | Begriff | Bedeutung |
-|---|---|
-| **ADR** | Architecture Decision Record: kurze, nummerierte Entscheidungsnotiz in `docs/adr/` |
+|---|---||
 | **Audit-Log** | Unveränderbares Protokoll sicherheitsrelevanter Aktionen |
 | **AVV** | Auftragsverarbeitungsvertrag nach Art. 28 DSGVO zwischen Kunde und Anbieter |
 | **BlockNote** | Block-Editor im Browser, auf Basis von Tiptap und ProseMirror |

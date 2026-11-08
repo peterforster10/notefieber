@@ -20,7 +20,7 @@ Das Wiki kommt vor TalkFieber. Es legt deshalb die gemeinsame Plattform an (Zita
 
 ## Stufe 0: Vorbereitung
 
-- [ ] **Arbeitsvertrag prüfen** (gilt für beide Projekte): Klauseln zu Nebentätigkeit und Rechten an Software.
+- [x] **Arbeitsvertrag prüfen** (gilt für beide Projekte): Klauseln zu Nebentätigkeit und Rechten an Software.
 - [ ] **Lizenz entscheiden**, für Wiki und TalkFieber gleich: Open Core (AGPL + Enterprise-Lizenz) oder proprietär.
 - [x] **Eigenbau statt Fork von La Suite Docs:** entschieden. BlockNote, Yjs und Hocuspocus als Bibliotheken.
 - [x] **Stack festlegen:** entschieden, TypeScript mit Next.js, Express, BlockNote, Hocuspocus, PostgreSQL 18 (CloudNativePG), Zitadel, Garage, K3s.
@@ -39,7 +39,7 @@ Infrastruktur: eigener Rechner. Node direkt, PostgreSQL 18, Zitadel und Garage p
 
 ### M0 – Fundament
 Epics: E01 (lokal), E02, E03 (einfach)
-- [ ] Repository mit Lizenz, `CLAUDE.md`, `docs/EPICS.md`, `docs/ROADMAP.md`, Ordner `docs/adr/`
+- [ ] Repository mit Lizenz, `CLAUDE.md`, `docs/EPICS.md`, `docs/ROADMAP.md`
 - [x] Lokale Umgebung mit PostgreSQL 18, Zitadel, Garage (alle per `compose.yaml`, siehe [LOCAL_SETUP](LOCAL_SETUP.md))
 - [ ] Migrationswerkzeug wählen, `roles_database.sql` und das Schema als erste Migration (die Teile aus `database/scripts/schema/` gebündelt, falls das Werkzeug kein `psql` nutzt), `schema_test.sql` in der CI (eingespielt als `wiki_owner`, nie als `postgres`)
 - [ ] CI: Build, Tests, Prüfung der Abhängigkeiten und Lizenzen (keine BlockNote-XL-Pakete)
@@ -170,7 +170,7 @@ Rund 6 Monate in Vollzeit bis zum Pilot. Nebenbei wird es mit der Atlassian-Fris
 ## Arbeitsweise mit Claude Code
 
 - **Kleine Aufgaben:** eine User Story pro Sitzung. Größere Stücke erst im Planungsmodus durchsprechen.
-- **Entscheidungen dokumentieren:** sofort in `CLAUDE.md` und als kurze Notiz in `docs/adr/`. Was beide Projekte betrifft, auch in der TalkFieber-`CLAUDE.md`.
+- **Entscheidungen dokumentieren:** sofort in `CLAUDE.md`. Was beide Projekte betrifft, auch in der TalkFieber-`CLAUDE.md`.
 - **Tests zuerst** bei allem, was Rechte, Mandantentrennung oder Sichtbarkeit berührt.
 - **Diffs lesen:** besonders bei Rechten, Datenbankzugriffen, Login und dem Collab-Server.
 - **Mit echten Exporten testen:** Der Import wird an echten Confluence-Daten gemessen, nicht an selbstgebauten.

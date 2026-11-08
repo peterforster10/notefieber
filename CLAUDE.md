@@ -10,8 +10,10 @@
 - **Zuerst das Wiki, danach TalkFieber.** Beide Produkte teilen Login, Mandantenmodell und Cluster (Abschnitt 12).
 - **Kern des MVP:** ein Team von 10 bis 50 Personen importiert seinen Confluence-Space und arbeitet danach im Alltag ohne Rückfall weiter. Alles, was diesem Beweis nicht dient, kommt später.
 - **Weitere Dokumente im Projekt:**
+  - `README.md`: Einstieg ins Repository, Überblick über alle Dokumente, Kurzfassung der lokalen Einrichtung
+  - `TODOS.md`: offene Punkte aus der letzten Konsistenzprüfung. Erledigtes abhaken und löschen, Entscheidungen wandern hierher
   - `docs/CONCEPTS.md`: alle Kernkonzepte ausführlich erklärt, für Neulinge zuerst lesen
-  - `docs/MVP.md`: Architektur und Umfang des MVP auf einen Blick
+  - `docs/MVP.md`: Architektur und Umfang des MVP auf einen Blick, **Momentaufnahme vom 5. November 2026**, wird nicht nachgeführt
   - `docs/ROADMAP.md`: Stufen 0–4 und Meilensteine M0–M5
   - `docs/EPICS.md`: Epics als Basis für User Stories, nach Roadmap-Stufen geordnet
   - `database/scripts/roles_database.sql` und `database/scripts/schema/`: Datenbank. `schema.sql` ist der Einstieg und bindet die Teile `00_setup.sql` … `90_privileges.sql` ein. Tests in `database/scripts/schema_test/`: `schema_test.sql` (Einstieg, Teile `01_basics.sql` … `11_content_json.sql`) und `schema_concurrency_test.sh`

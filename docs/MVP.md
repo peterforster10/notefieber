@@ -2,6 +2,8 @@
 
 Stand: 5. November 2026 · Peter Forster
 
+> **Momentaufnahme vom 5. November 2026.** Dieses Dokument wird nicht mehr nachgeführt. Den aktuellen Stand beschreiben [CONCEPTS.md](CONCEPTS.md), [SCHEMA.md](SCHEMA.md), [ROADMAP.md](ROADMAP.md) und die `CLAUDE.md`.
+
 Dieses Dokument fasst Ziel, Architektur und Umfang des MVP auf wenigen Seiten zusammen. Die Details stehen in [CONCEPTS.md](CONCEPTS.md) (wie alles funktioniert), [SCHEMA.md](SCHEMA.md) (Datenmodell), [ROADMAP.md](ROADMAP.md) (Meilensteine) und in der `CLAUDE.md` (Entscheidungen). Weicht etwas ab, gelten das Schema und die `CLAUDE.md`.
 
 ## Ziel & Leitplanken

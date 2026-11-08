@@ -9,15 +9,16 @@ Eine europäische Alternative zu Confluence, entwickelt und gehostet in der EU. 
 | Datei | Inhalt |
 |---|---|
 | [docs/CONCEPTS.md](docs/CONCEPTS.md) | **Für Neulinge zuerst lesen:** alle Kernkonzepte ausführlich erklärt |
-| [docs/MVP.md](docs/MVP.md) | Architektur und Umfang des MVP auf einen Blick (auch als PDF) |
+| [docs/MVP.md](docs/MVP.md) | Architektur und Umfang des MVP auf einen Blick (Momentaufnahme vom 5. November 2026) |
 | [CLAUDE.md](CLAUDE.md) | Entscheidungen und aktueller Stand, Übergabe für Claude Code |
 | [TODOS.md](TODOS.md) | Offene Punkte aus der letzten Konsistenzprüfung |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Stufen 0–4, Meilensteine M0–M5, Kriterien für den nächsten Schritt |
 | [docs/EPICS.md](docs/EPICS.md) | Epics E01–E31 als Grundlage für User Stories |
 | [docs/SCHEMA.md](docs/SCHEMA.md) | Referenz zum Datenmodell: jede Tabelle, Regel und Funktion |
-| [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md) | Lokale Entwicklung: Voraussetzungen, PostgreSQL 18, Schema, Tests |
-| `docs/models/` | ER-Diagramm (Mermaid, PlantUML, draw.io) und Architekturdiagramme (Startsetup, Zielarchitektur) |
-| `database/scripts/` | Rollen, Schema (`schema/`) und Tests (`schema_test/`) |
+| [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md) | Lokale Entwicklung: Voraussetzungen, PostgreSQL 18 mit Schema, Tests und Testdaten, Garage (Dateien), Zitadel (Login) |
+| `docs/models/` | ER-Diagramm (Mermaid, exportiert als SVG) und Architekturdiagramme (Startsetup, Zielarchitektur) |
+| `database/scripts/` | Rollen, Schema (`schema/`), Tests (`schema_test/`), Testdaten (`seed/`) und Abfragen zum Nachsehen (`queries/`) |
+| `compose.yaml`, `docker/` | Lokale Umgebung: PostgreSQL, Garage und Zitadel, richten sich beim ersten Start selbst ein |
 | `prototype/` | Klickbarer UI-Prototyp: Seitenansicht mit Rechte-Dialog, Confluence-Import |
 
 ## Stack in einem Satz
@@ -26,7 +27,7 @@ TypeScript durchgängig: Next.js als Oberfläche, BlockNote als Editor, Yjs mit 
 
 ## Lokal entwickeln
 
-Was man braucht und wie man PostgreSQL 18 mit Schema und Tests aufsetzt, steht in [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md). Kurzfassung mit Docker (richtet beim ersten Start Rollen, Schema und Testdaten selbst ein):
+Was man braucht und wie man PostgreSQL 18 (Schema, Tests, Testdaten), Garage (Dateien) und Zitadel (Login) aufsetzt, steht in [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md). Kurzfassung mit Docker (richtet beim ersten Start Rollen, Schema, Testdaten, den Bucket `wiki` und die Testpersonen in Zitadel selbst ein; Login unter `http://localhost:8080`):
 
 ```bash
 docker compose up -d --wait
@@ -61,7 +62,6 @@ database/
 deploy/
   k8s/        Manifeste bzw. Kustomize, später Helm-Chart
 docs/
-  adr/        Entscheidungsnotizen
   models/     Diagramme
 prototype/    UI-Prototyp (Referenz, kein Produktcode)
 ```

@@ -3,7 +3,7 @@
 Offene Punkte aus der Konsistenzprüfung vom 5. November 2026. Erledigte Punkte abhaken und
 danach löschen; Entscheidungen wandern in die `CLAUDE.md`.
 
-## 4. TalkFieber angleichen
+## 1. TalkFieber angleichen
 
 Damit beide Produkte dieselbe Plattform teilen, müssen die TalkFieber-Dokumente zwei Dinge
 übernehmen:
