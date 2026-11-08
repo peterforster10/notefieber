@@ -3,3 +3,5 @@
 
 # Von zitadel-init erzeugte Werte (Client-IDs, Geheimnisse), siehe docs/LOCAL_SETUP.md
 .local/
+
+.idea/

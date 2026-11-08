@@ -46,7 +46,7 @@ SELECT app.sync_user_groups(pg_temp.id('lukas'), ARRAY['grp-dev'], ARRAY['Entwic
 SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('anna'));
 DO $$
 BEGIN
-  INSERT INTO ids SELECT 'grp_dev', id FROM groups WHERE idp_group_id = 'grp-dev';
+  INSERT INTO ids SELECT 'grp_dev', id FROM groups WHERE source = 'idp' AND external_id = 'grp-dev';
   PERFORM app.set_grant(pg_temp.id('entw'), NULL, 'group', NULL, pg_temp.id('grp_dev'), 'editor', pg_temp.id('anna'));
 END $$;
 SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('lukas'));

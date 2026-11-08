@@ -93,7 +93,18 @@ Der Workspace ist **keine Sicherheitsgrenze zwischen Kunden** (das ist der Manda
 
 Eine **Person** gehört zu genau einem Mandanten. Sie meldet sich über Zitadel an. Mit `role = 'org_admin'` ist sie **Organisations-Admin** und verwaltet den ganzen Mandanten.
 
-**Gruppen** kommen aus dem Login-Dienst (z. B. „Entwicklung“, „Personalabteilung“). Bei jedem Login übernimmt die App die Gruppen der Person aus ihrem Token (`app.sync_user_groups`). Wer in Zitadel oder im Firmen-Verzeichnis aus einer Gruppe entfernt wird, verliert beim nächsten Login deren Rechte im Wiki. Rechte an Gruppen zu vergeben statt an einzelne Personen ist deshalb die Regel.
+**Gruppen** (z. B. „Entwicklung“, „Personalabteilung“) bündeln Personen eines Mandanten, damit Rechte nicht an Einzelnen hängen: Wer neu in die Entwicklung kommt, wird in die Gruppe aufgenommen und sieht sofort alle Entwicklungsseiten; wer wechselt, verliert die alten Rechte genauso. Rechte an Gruppen zu vergeben statt an einzelne Personen ist deshalb die Regel.
+
+Die Gruppen **gehören dem Wiki**, nicht dem Login-Dienst (Zitadel hat keine Gruppen). Jede Gruppe hat eine Quelle (`groups.source`):
+
+| Quelle | Woher | Wer pflegt die Mitglieder |
+|---|---|---|
+| `local` | in der Oberfläche angelegt (`app.create_group`) | Organisations-Admins (`app.add_group_member`, `app.remove_group_member`) |
+| `import` | vom Confluence-Import angelegt | wie `local` |
+| `idp` | Gruppen-Claim im Token, z. B. aus Entra ID (`app.sync_user_groups` beim Login), **noch nicht genutzt** | der Login-Dienst; der Abgleich beim Login fügt hinzu und entfernt |
+| `scim` | später per SCIM aus dem Firmen-Verzeichnis (E17) | das Verzeichnis |
+
+Gruppen aus dem Login-Dienst oder per SCIM lassen sich im Wiki nicht ändern, sonst überschriebe der nächste Abgleich die Änderung. Umgekehrt berührt der Abgleich beim Login nur Gruppen mit Quelle `idp`.
 
 ### Space
 
@@ -124,7 +135,7 @@ Viele Kunden und Pilotnutzer kommen von Confluence. Diese Tabelle hilft beim Üb
 | Space-Berechtigungen (Matrix aus Einzelrechten) | Grants auf dem Space mit vier Rollen | Lesen, Kommentieren, Bearbeiten, Admin |
 | Seiten-Einschränkungen (Anzeigen, Bearbeiten) | Seite mit eigenen Rechten (Vererbung gekappt) | Andere Logik, siehe [Häufige Fragen](#23-häufige-fragen) |
 | Gruppe `confluence-users` | meist „Alle im Workspace“ | |
-| Andere Gruppen | Gruppen aus dem Login-Dienst | Beim Import zugeordnet |
+| Andere Gruppen | Gruppen im Wiki | Beim Import einer vorhandenen Gruppe zugeordnet oder neu angelegt (Quelle `import`) |
 | Anonymer Zugriff | nicht vorgesehen | Später öffentliche Lese-Links (E18) |
 | Seitenverlauf | Versionen | |
 | Inline-Kommentar | Kommentar an einer Textstelle | |
@@ -202,7 +213,7 @@ Wer die Vererbung einer Seite kappt (`app.set_page_inheritance`), dem passiert n
 2. Die handelnde Person wird **Admin der Seite**.
 3. Danach schränkt man die Rechte ein, z. B. „Alle im Workspace“ entfernen (`app.set_grant`).
 
-Jeder Space und jede Seite mit eigenen Rechten muss **mindestens einen wirksamen Admin** behalten: eine aktive Person oder eine Gruppe mit mindestens einem aktiven Mitglied. Den letzten zu entfernen, lehnt die Datenbank ab. Nicht abfangen lässt sich, dass der letzte Admin deaktiviert wird oder die letzte Person eine Admin-Gruppe verlässt, weil sich dabei keine Grants ändern. Dann setzt ein Organisations-Admin einen neuen Admin.
+Jeder Space und jede Seite mit eigenen Rechten muss **mindestens einen wirksamen Admin** behalten: eine aktive Person oder eine Gruppe mit mindestens einem aktiven Mitglied. Den letzten zu entfernen, lehnt die Datenbank ab, ebenso das Entfernen des letzten aktiven Mitglieds aus einer Admin-Gruppe und das Löschen einer solchen Gruppe. Nicht abfangen lässt sich, dass der letzte Admin deaktiviert wird oder der Login-Dienst die letzte Person aus einer Admin-Gruppe nimmt, weil sich dabei keine Grants ändern. Dann setzt ein Organisations-Admin einen neuen Admin.
 
 Wird die Vererbung wieder eingeschaltet, fallen die Grants der Seite weg und sie erbt wieder.
 
@@ -241,7 +252,7 @@ NoteFieber baut kein eigenes Login. Angemeldet wird über **Zitadel**, den Login
 2. **Weiterleitung zu Zitadel.** Die Person meldet sich dort an, mit Passwort, Passkey oder über das Firmen-Login. Technisch ist das der OIDC *Authorization Code Flow* mit PKCE.
 3. **Zurück zur API.** Zitadel leitet mit einem einmaligen Code zurück. Die API tauscht ihn gegen Tokens und prüft, dass die Organisation im Token zur `idp_org_id` des Mandanten passt.
 4. **Person zuordnen.** Über Mandant und `users.idp_subject` findet die API die Person. `idp_subject` ist pro Mandant eindeutig, nicht global: Dieselbe Person aus Zitadel, etwa ein Dienstleister, kann in mehreren Mandanten je ein eigenes Konto haben. Bei der ersten Anmeldung kommt sie über eine Einladung: `app.find_invite` prüft den Link, `app.accept_invite` legt die Person an und macht sie zum Mitglied des Workspaces.
-5. **Gruppen übernehmen.** `app.sync_user_groups` gleicht die Gruppen aus dem Token ab (siehe [Rechte](#4-rechte)).
+5. **Gruppen.** Gruppen kommen nicht aus dem Token, sie stehen im Wiki ([Personen und Gruppen](#personen-und-gruppen)). Erst wenn ein Login-Dienst einen Gruppen-Claim liefert, gleicht `app.sync_user_groups` die Gruppen mit Quelle `idp` ab.
 6. **Sitzung.** *Empfehlung:* Die API setzt ein Sitzungs-Cookie (`HttpOnly`, `Secure`, `SameSite=Lax`). Die Tokens von Zitadel bleiben auf dem Server und kommen nie in den Browser. Weil Oberfläche und API unter derselben Adresse laufen (`/` und `/api`), funktioniert das ohne Umwege.
 
 ### Bei jeder Anfrage
@@ -432,7 +443,7 @@ Der Import ist das Feature, das Kaufentscheidungen trifft. Wenn die erste Migrat
 
 1. Ein Space-Admin lädt einen **Space-Export** aus Confluence hoch (HTML oder XML). Er wird auf Viren geprüft.
 2. **Probelauf** (Standard): Der Worker liest den Export und schreibt einen Bericht, ohne etwas anzulegen. Darin steht, was übernommen wird, was als Platzhalter kommt und was übersprungen wird.
-3. **Gruppen zuordnen:** Jede Confluence-Gruppe wird einer Gruppe aus dem Login-Dienst zugeordnet oder bewusst nicht übernommen.
+3. **Gruppen zuordnen:** Jede Confluence-Gruppe wird einer vorhandenen Gruppe im Wiki zugeordnet, als neue Gruppe übernommen (Quelle `import`, mit ihren Mitgliedern) oder bewusst nicht übernommen.
 4. **Echter Import:** Seiten, Hierarchie, Inhalte, Anhänge, optional Versionen, Erstellende und Datum.
 5. **Rückgängig** machen ist jederzeit möglich.
 
@@ -522,7 +533,7 @@ Ist nichts gesetzt, ist **nichts** sichtbar. Ein vergessener Kontext führt also
 
 ### Schreiben nur über Funktionen
 
-`wiki_app` schreibt fast nur über Funktionen im Schema `app`. Direkt erlaubt sind wenige Fälle, jeweils durch eine Regel abgesichert: das eigene Profil, neue Personen als einfaches Mitglied beim ersten Login, Einladungen und Workspaces (nur wer sie verwaltet) und Datei-Uploads. Seiten, Rechte, Mitgliedschaften, Gruppen, Inhalt, Versionen, Kommentare, Import, Outbox und Audit-Log gehen nur über Funktionen wie `create_space`, `archive_space`, `create_page`, `move_page`, `trash_page`, `restore_page`, `set_grant`, `set_page_inheritance`, `add_workspace_member`, `remove_workspace_member`, `set_user_active`, `add_comment`, `save_version`, `start_import`. Jede Funktion prüft:
+`wiki_app` schreibt fast nur über Funktionen im Schema `app`. Direkt erlaubt sind wenige Fälle, jeweils durch eine Regel abgesichert: das eigene Profil, neue Personen als einfaches Mitglied beim ersten Login, Einladungen und Workspaces (nur wer sie verwaltet) und Datei-Uploads. Seiten, Rechte, Mitgliedschaften, Gruppen, Inhalt, Versionen, Kommentare, Import, Outbox und Audit-Log gehen nur über Funktionen wie `create_space`, `archive_space`, `create_page`, `move_page`, `trash_page`, `restore_page`, `set_grant`, `set_page_inheritance`, `add_workspace_member`, `remove_workspace_member`, `set_user_active`, `create_group`, `add_group_member`, `add_comment`, `save_version`, `start_import`. Jede Funktion prüft:
 
 - **Ist die handelnde Person die angemeldete?** Niemand kann im Namen anderer handeln (`app.require_actor`).
 - **Hat sie die nötige Rolle?** (`app.require_page`, `app.require_space`)
@@ -533,7 +544,7 @@ Interne Bausteine (Ereignisse schreiben, Audit-Einträge, Rechte anderer Persone
 
 ### Die Tests
 
-`schema_test.sql` prüft das alles in 44 Tests als `wiki_app` und `wiki_worker` (gleichzeitige Sitzungen prüft `schema_concurrency_test.sh`), z. B.: Ein Leser kann weder direkt noch über Funktionen schreiben, eingeschränkte Seiten sind samt Inhalt, Versionen, Suchtreffern, Kommentaren, Dateien und Links unsichtbar, fremde Mandanten sind unsichtbar, jede Tabelle hat RLS. **Jede Änderung am Schema bekommt zuerst einen Test.**
+`schema_test.sql` prüft das alles in 46 Tests als `wiki_app` und `wiki_worker` (gleichzeitige Sitzungen prüft `schema_concurrency_test.sh`), z. B.: Ein Leser kann weder direkt noch über Funktionen schreiben, eingeschränkte Seiten sind samt Inhalt, Versionen, Suchtreffern, Kommentaren, Dateien und Links unsichtbar, fremde Mandanten sind unsichtbar, jede Tabelle hat RLS. **Jede Änderung am Schema bekommt zuerst einen Test.**
 
 ---
 
@@ -552,11 +563,11 @@ Jede wichtige Änderung schreibt in derselben Transaktion ein Ereignis in die Ta
 | `page.trashed` | `app.trash_page` | `id`, `count` (Seiten im Teilbaum) |
 | `page.restored` | `app.restore_page` | `id`, `count` |
 | `page.permissions_changed` | `app.set_page_inheritance`, `app.move_page` | `id`, `inherit`; beim Verschieben `reason: moved`, `from_source`, `to_source` |
-| `grant.changed` | `app.set_grant` | `space` oder `page`, `subject_type`, `user`, `group`, `role` (`null` = entfernt) |
+| `grant.changed` | `app.set_grant`, `app.delete_group` | `space` oder `page`, `subject_type`, `user`, `group`, `role` (`null` = entfernt); beim Löschen einer Gruppe an jeden Space, in dem sie Rechte hatte |
 | `comment.created` | `app.add_comment` | `id`, `page`, `parent`, `author` |
 | `import.requested` | `app.start_import` | `id`, `dry_run` |
 | `member.removed` | `app.remove_workspace_member` | `user`, `workspace` |
-| `member.changed` | `app.set_workspace_member_role` | `user`, `workspace`, `role` |
+| `member.changed` | `app.set_workspace_member_role`, `app.add_group_member`, `app.remove_group_member` | `user`, `workspace`, `role` bzw. `user`, `group` (an jeden Space, in dem die Gruppe Rechte hat) |
 | `user.deactivated` | `app.set_user_active` | `user` |
 
 Die drei Ereignisse zu Personen gehen an jeden Space des betroffenen Workspaces (bei `user.deactivated` aller Workspaces der Person), damit jeder Collab-Server sie mitbekommt.
@@ -860,7 +871,7 @@ Manches ist mit Absicht einfach gehalten. Wer es ändern will, sollte den Grund 
 | Jede Version speichert den vollen Yjs-Zustand | Wiederherstellen ist trivial | Wenn der Speicher wächst: Versionen ausdünnen oder komprimieren |
 | Kein Verschieben zwischen Spaces | Rechte und Keys würden kompliziert | Nach Bedarf |
 | Kein Offline-Modus | Rechte könnten sich zwischendurch ändern | Mit den Mobile-Apps (E30) |
-| Deaktivieren einer Person und Austritt aus einer Gruppe ändern keine Grants | Grants bleiben für eine spätere Reaktivierung erhalten | Fehlt einem Space dadurch der wirksame Admin, setzt ein Organisations-Admin einen neuen. Später ein Hinweis in der Admin-Konsole (E17) |
+| Deaktivieren einer Person und Gruppenwechsel aus dem Login-Dienst ändern keine Grants | Grants bleiben für eine spätere Reaktivierung erhalten | Fehlt einem Space dadurch der wirksame Admin, setzt ein Organisations-Admin einen neuen. Später ein Hinweis in der Admin-Konsole (E17) |
 | Positionen unter Geschwistern nicht eindeutig | Die App sieht eingeschränkte Geschwister nicht | Bleibt so, immer nach `position, id` sortieren |
 | Kein sofortiges endgültiges Löschen, nur Papierkorb und Worker nach 30 Tagen | Schutz vor Fehlbedienung | Mit Aufbewahrungsrichtlinien und DSGVO-Löschung (E17) |
 

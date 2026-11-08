@@ -197,7 +197,8 @@ Das Skript läuft in einer Transaktion: Entweder ist danach alles da oder nichts
 - **Inhalt:** Die Seiten haben BlockNote-JSON (`content_json`) und Klartext, aber noch keinen Yjs-Zustand (`ydoc` leer). Beim ersten Öffnen baut der Collab-Server das Dokument aus dem JSON (CLAUDE.md, Abschnitt 6). Der Suchindex ist gefüllt, die Suche geht also sofort.
 - **Kommentare** sind Seitenkommentare. Kommentare an Textstellen brauchen eine Yjs-Position und kommen erst mit dem Collab-Server.
 - **Dateien:** Die Testdaten enthalten keine Anhänge; der Bucket in Garage ist leer.
-- **Login:** Mandanten und Personen tragen dieselben festen IDs wie in Zitadel (`tenants.idp_org_id` = `org-alpenwerk`, `users.idp_subject` = `user-anna-huber` …), die Gruppen dieselben Schlüssel wie die Projektrollen. Anmelden geht mit der E-Mail-Adresse und dem Passwort `NoteFieber-lokal-1` ([Abschnitt 6](#6-login-zitadel)). Wer Personen oder Gruppen ändert, ändert auch [`docker/zitadel/init.mjs`](../docker/zitadel/init.mjs).
+- **Login:** Mandanten und Personen tragen dieselben festen IDs wie in Zitadel (`tenants.idp_org_id` = `org-alpenwerk`, `users.idp_subject` = `user-anna-huber` …). Anmelden geht mit der E-Mail-Adresse und dem Passwort `NoteFieber-lokal-1` ([Abschnitt 6](#6-login-zitadel)). Wer Personen ändert, ändert auch [`docker/zitadel/init.mjs`](../docker/zitadel/init.mjs).
+- **Gruppen** (Geschäftsleitung, Entwicklung, Vertrieb) gehören dem Wiki: Anna legt sie als Organisations-Admin mit `app.create_group` an und nimmt die Mitglieder auf (Quelle `local`). In Zitadel gibt es sie nicht.
 - **Ereignisse** liegen unveröffentlicht in der Outbox, bis ein Worker läuft.
 - Ändert sich eine Funktion, die das Skript aufruft (z. B. eine neue Signatur), muss `seed.sql` mitgezogen werden. Ein Lauf nach jeder Schemaänderung ist deshalb ein guter zusätzlicher Test.
 
@@ -237,13 +238,13 @@ Mit `SET LOCAL ROLE wiki_worker` und ohne `app.user_id` sieht man, was Collab-Se
 
 ### Tests ausführen
 
-**Funktionstest** (44 Tests für Rechte, Sichtbarkeit und Regeln):
+**Funktionstest** (46 Tests für Rechte, Sichtbarkeit und Regeln):
 
 ```bash
 docker exec nf-pg18 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f /scripts/schema_test/schema_test.sql
 ```
 
-Erwartet: `NOTICE: OK 1 …` bis `NOTICE: OK 44 …`, dann `Alle Tests bestanden (zurückgerollt, die Datenbank ist unverändert).` Der Test läuft in einer Transaktion und rollt am Ende zurück. Man kann ihn also beliebig oft wiederholen, auch auf einer Datenbank mit Testdaten (die Tests nutzen eigene Mandanten). Bricht ein Test ab, zeigt `ERROR:` den Grund, und die Datenbank ist ebenfalls unverändert.
+Erwartet: `NOTICE: OK 1 …` bis `NOTICE: OK 46 …`, dann `Alle Tests bestanden (zurückgerollt, die Datenbank ist unverändert).` Der Test läuft in einer Transaktion und rollt am Ende zurück. Man kann ihn also beliebig oft wiederholen, auch auf einer Datenbank mit Testdaten (die Tests nutzen eigene Mandanten). Bricht ein Test ab, zeigt `ERROR:` den Grund, und die Datenbank ist ebenfalls unverändert.
 
 **Nebenläufigkeitstest** (Sperren im Seitenbaum mit zwei gleichzeitigen Sitzungen, dauert etwa 10 Sekunden):
 
@@ -251,7 +252,7 @@ Erwartet: `NOTICE: OK 1 …` bis `NOTICE: OK 44 …`, dann `Alle Tests bestanden
 PSQL="docker exec -i nf-pg18 psql -U wiki_owner -d wiki" bash database/scripts/schema_test/schema_concurrency_test.sh
 ```
 
-Erwartet: `OK 1` bis `OK 4`, dann `Alle Nebenläufigkeitstests bestanden`. Dieser Test muss committen und lässt deshalb einen Mandanten `nebenlaeufig-<zeitstempel>` in der Datenbank stehen. Wer das nicht möchte, [setzt die Datenbank danach zurück](#datenbank-zurücksetzen).
+Erwartet: `OK 1` bis `OK 4`, dann `Alle Nebenläufigkeitstests bestanden`. Dieser Test muss committen und legt deshalb einen eigenen Mandanten `nebenlaeufig-<zeitstempel>` an. Am Ende löscht er ihn wieder, auch wenn ein Test fehlschlägt. Bleibt doch einer stehen (etwa nach einem Abbruch mit Strg+C), stört er nicht; wer ihn loswerden will, [setzt die Datenbank zurück](#datenbank-zurücksetzen).
 
 ### Das Schema ändern
 
@@ -409,10 +410,10 @@ Das dauert etwa 20 Sekunden. Alles danach erledigt `zitadel-init`.
 
 Der Dienst `zitadel-init` spricht mit dem Token von `nf-setup` mit der Verwaltungs-API (v2) und legt an, was fehlt:
 
-1. das **Projekt `notefieber`** in der Organisation NoteFieber, mit den Gruppen der Testdaten als **Projektrollen** `entwicklung`, `vertrieb`, `geschaeftsleitung`,
+1. das **Projekt `notefieber`** in der Organisation NoteFieber,
 2. den OIDC-Client **`notefieber-web`** (Frontend) und den API-Client **`notefieber-api`**,
 3. die Organisationen **Alpenwerk GmbH** (`org-alpenwerk`) und **Nordlicht GmbH** (`org-nordlicht`), denen das Projekt freigegeben wird,
-4. die **sieben Testpersonen** aus den [Testdaten](#testdaten) mit bestätigter E-Mail, dem Testpasswort und ihren Gruppen,
+4. die **sieben Testpersonen** aus den [Testdaten](#testdaten) mit bestätigter E-Mail und dem Testpasswort,
 5. die Datei **`.local/zitadel.env`** mit den Werten für die Apps (und `.local/zitadel-admin.pat`).
 
 Jeder Schritt prüft, ob er schon erledigt ist; bei jedem weiteren Start ändert sich nichts. Danach bleibt `zitadel-init` wartend stehen und meldet „healthy“ (wie `garage-init`). Was passiert ist:
@@ -421,7 +422,7 @@ Jeder Schritt prüft, ob er schon erledigt ist; bei jedem weiteren Start ändert
 docker compose logs --no-log-prefix zitadel-init
 ```
 
-Erwartet beim ersten Start „angelegt“ für Projekt, Rollen, Clients, Organisationen und Personen, zum Schluss `Zitadel: bereit: http://localhost:8080, Client web …`; bei späteren Starts „schon vorhanden“.
+Erwartet beim ersten Start „angelegt“ für Projekt, Clients, Organisationen und Personen, zum Schluss `Zitadel: bereit: http://localhost:8080, Client web …`; bei späteren Starts „schon vorhanden“.
 
 ### Wie Zitadel und das Datenmodell zusammenpassen
 
@@ -429,11 +430,10 @@ Erwartet beim ersten Start „angelegt“ für Projekt, Rollen, Clients, Organis
 |---|---|---|
 | Organisation | Mandant, `tenants.idp_org_id` | `org-alpenwerk`, `org-nordlicht` |
 | Person (`sub` im Token) | `users.idp_subject`, pro Mandant eindeutig | `user-anna-huber`, `user-lukas-gruber` … (aus der E-Mail gebildet) |
-| Rolle im Projekt `notefieber` | Gruppe, `groups.idp_group_id` | `entwicklung`, `vertrieb`, `geschaeftsleitung` |
 | Organisation NoteFieber | kein Mandant, nur Betreiber | `zitadel-admin` |
 
-- **Feste IDs:** Zitadel erlaubt eigene IDs für Organisationen und Personen. Die Einrichtung nutzt dieselben IDs wie [`seed.sql`](../database/scripts/seed/seed.sql). Deshalb passen Zitadel und Datenbank zusammen, egal in welcher Reihenfolge man sie aufsetzt. Wer Testpersonen, Organisationen oder Gruppen ändert, ändert **beide Dateien**. Echte Mandanten bekommen später von Zitadel erzeugte IDs.
-- **Gruppen sind vorerst Projektrollen.** Zitadel v4.20 hat keine Gruppen (keine Gruppen-API, kein Gruppen-Claim). Die übliche Lösung sind Rollen im Projekt: Die Organisation bekommt bei der Freigabe die Rollen, die sie nutzen darf (Nordlicht keine), und jede Person ihre Gruppen als Rollen. Einschränkung: Die Rollen gelten für das ganze Projekt, also für alle Mandanten gleich. Für eigene Gruppen pro Kunde (oder Gruppen aus Entra ID) muss das neu entschieden werden.
+- **Feste IDs:** Zitadel erlaubt eigene IDs für Organisationen und Personen. Die Einrichtung nutzt dieselben IDs wie [`seed.sql`](../database/scripts/seed/seed.sql). Deshalb passen Zitadel und Datenbank zusammen, egal in welcher Reihenfolge man sie aufsetzt. Wer Testpersonen oder Organisationen ändert, ändert **beide Dateien**. Echte Mandanten bekommen später von Zitadel erzeugte IDs.
+- **Gruppen stehen nicht in Zitadel.** Zitadel v4.20 hat keine Gruppen (keine Gruppen-API, kein Gruppen-Claim). Die Gruppen gehören deshalb dem Wiki (`groups`, CLAUDE.md Abschnitt 8): Organisations-Admins pflegen sie, der Confluence-Import bringt welche mit, später kommen SCIM und ein Gruppen-Claim (etwa aus Entra ID) als Quellen dazu. Zitadel liefert nur Person und Mandant.
 - **Elena Novak** ist in Zitadel ein normales Mitglied der Organisation Alpenwerk. Gast ist sie nur in NoteFieber (`workspace_members`).
 
 ### Anmelden als Testperson
@@ -465,7 +465,7 @@ ZITADEL_API_CLIENT_SECRET=…
 
 Die API kann die JWT-Access-Tokens auch selbst prüfen: Schlüssel unter `http://localhost:8080/oauth/v2/keys`, Issuer `http://localhost:8080`, die Audience enthält die Projekt-ID `notefieber`. Discovery: `http://localhost:8080/.well-known/openid-configuration`.
 
-**Scopes:** `openid profile email offline_access urn:zitadel:iam:user:resourceowner`. Die Rollen kommen ohne eigenen Scope ins Token, weil das Projekt sie immer mitgibt. Was im Token von Lukas steht (gekürzt, mit Zitadel v4.20.1 geprüft):
+**Scopes:** `openid profile email offline_access urn:zitadel:iam:user:resourceowner`. Was im Token von Lukas steht (gekürzt, mit Zitadel v4.20.1 geprüft):
 
 ```json
 {
@@ -474,14 +474,13 @@ Die API kann die JWT-Access-Tokens auch selbst prüfen: Schlüssel unter `http:/
   "email": "lukas.gruber@alpenwerk.example",
   "name": "Lukas Gruber",
   "locale": "de",
-  "urn:zitadel:iam:user:resourceowner:id": "org-alpenwerk",
-  "urn:zitadel:iam:org:project:roles": {
-    "entwicklung": { "org-alpenwerk": "alpenwerk-gmbh.localhost" }
-  }
+  "urn:zitadel:iam:user:resourceowner:id": "org-alpenwerk"
 }
 ```
 
-Für den Login in der API heißt das (Epic E03, noch nicht gebaut): Mandant über `urn:zitadel:iam:user:resourceowner:id` = `tenants.idp_org_id` (`app.resolve_tenant`), Person über `(tenant_id, sub)` = `users.idp_subject`, Gruppen = die Schlüssel von `urn:zitadel:iam:org:project:roles` für `app.sync_user_groups`. Im Token stehen nur die Schlüssel der Rollen, nicht ihre Anzeigenamen („Entwicklung“). Die muss die API bei Zitadel nachfragen oder den Schlüssel als Namen nehmen; das entscheidet sich mit dem Login.
+Für den Login in der API heißt das (Epic E03, noch nicht gebaut): Mandant über `urn:zitadel:iam:user:resourceowner:id` = `tenants.idp_org_id` (`app.resolve_tenant`), Person über `(tenant_id, sub)` = `users.idp_subject`. Gruppen kommen nicht aus dem Token, sie stehen im Wiki. Die Claim-Namen liest die API an einer Stelle aus der Konfiguration, damit später auch ein anderer Login-Dienst passt.
+
+Wer Zitadel schon vor dem 8. November 2026 eingerichtet hat, hat im Projekt noch die Rollen `entwicklung`, `vertrieb` und `geschaeftsleitung`, und sie stehen auch im Token (`urn:zitadel:iam:org:project:roles`). Die App wertet sie nicht aus; wer sie loswerden will, [setzt Zitadel zurück](#zitadel-zurücksetzen).
 
 ### Einstellungen für Zitadel
 
@@ -635,7 +634,7 @@ Mit den nächsten Schritten aus der `CLAUDE.md` (Abschnitt 13) und Stufe 1 der [
 
 - **Die Apps** (`apps/web`, `apps/api`, `apps/collab`, `apps/worker`, siehe README) laufen mit Node.js direkt auf dem Rechner und verbinden sich mit eigenen Login-Rollen (`wiki_api` in `wiki_app`, `wiki_collab` und `wiki_jobs` in `wiki_worker`), nie als `wiki_owner`. Diese Rollen legt dann die [Ersteinrichtung](#ersteinrichtung-rollen-datenbank-schema) mit an.
 - Eine **`.env.example`** mit allen Einstellungen für die Apps: Datenbank-URLs pro Login-Rolle, die [Garage-Werte](#werte-für-die-apps), dazu die Zitadel-Werte aus [`.local/zitadel.env`](#werte-für-die-apps-1). Die echte `.env` kommt nie ins Repository.
-- Für Zitadel offen: wie die API die Anzeigenamen der Gruppen erfährt und ob Gruppen später echte Zitadel-Gruppen (oder Gruppen aus Entra ID) werden statt Projektrollen ([Abschnitt 6](#wie-zitadel-und-das-datenmodell-zusammenpassen)).
+- Weitere Quellen für Gruppen: SCIM (E17) und ein Gruppen-Claim im Token, etwa aus Entra ID (E03). Bis dahin gibt es Gruppen nur im Wiki ([Abschnitt 6](#wie-zitadel-und-das-datenmodell-zusammenpassen)).
 - **k3d** erst, wenn die K3s-Manifeste entstehen (`CLAUDE.md`, Abschnitt 13, Schritt 3): Dann lassen sie sich lokal prüfen. Für die tägliche Arbeit bleibt Compose.
 
 Diese Anleitung wird mit jedem dieser Schritte ergänzt.

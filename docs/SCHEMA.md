@@ -47,7 +47,7 @@ Die Rollen und die Datenbank legt [`roles_database.sql`](../database/scripts/rol
 | `users` | Personen eines Mandanten | Login, eigenes Profil, Funktionen | alle im Mandanten |
 | `workspaces` | Bereich innerhalb eines Mandanten | Organisations- und Workspace-Admins | alle im Mandanten |
 | `workspace_members` | Wer gehört mit welcher Rolle zu einem Workspace | Funktionen | alle im Mandanten |
-| `groups`, `group_members` | Gruppen aus Zitadel | `sync_user_groups` beim Login | alle im Mandanten |
+| `groups`, `group_members` | Gruppen des Wikis (im Wiki angelegt, aus dem Import, später aus dem Login-Dienst oder per SCIM) | Gruppen-Funktionen (Organisations-Admins), `sync_user_groups` | alle im Mandanten |
 | `invites` | Einladungen per Link | Workspace-Admins | Workspace-Admins |
 | `spaces` | Confluence-Bereich, Einheit für Rechte und Import | Funktionen | mit Rolle im Space oder einer lesbaren Seite darin |
 | `pages` | Seitenbaum | Funktionen | mit Leserecht auf der Seite |
@@ -180,16 +180,17 @@ Wer zu einem Workspace gehört. Mitgliedschaft ist Voraussetzung für jedes Rech
 
 ### `groups` und `group_members`
 
-Gruppen aus Zitadel. Sie werden nicht im Wiki gepflegt, sondern bei jedem Login aus dem Token übernommen.
+Gruppen gehören dem Wiki und gelten für den ganzen Mandanten. Zitadel hat keine Gruppen; aus dem Login kommen nur Person und Mandant.
 
 | Spalte | Typ | Bedeutung |
 |---|---|---|
-| `groups.idp_group_id` | text | ID der Gruppe (oder Rolle) in Zitadel, pro Mandant eindeutig. |
-| `groups.name` | text | Anzeigename aus Zitadel, beim Login aktualisiert. |
+| `groups.name` | text | Anzeigename, 1–200 Zeichen. Nicht eindeutig erzwungen. |
+| `groups.source` | text | Woher die Gruppe kommt: `local` (im Wiki angelegt, Standard), `import` (Confluence-Import), `idp` (Gruppen-Claim im Token, derzeit ungenutzt), `scim` (später). |
+| `groups.external_id` | text | ID in der Quelle: bei `idp` der Schlüssel im Login-Dienst, bei `scim` die SCIM-ID, bei `import` optional der Gruppenname in Confluence. Bei `local` leer, bei `idp` und `scim` Pflicht (`CHECK`). Eindeutig pro Mandant und Quelle. |
 | `group_members.group_id`, `user_id` | uuid | Mitgliedschaft, Primärschlüssel. |
 
-- **Schreiben:** nur `app.sync_user_groups(person, ids, namen)`, aufgerufen beim Login. Neue Gruppen werden angelegt, Mitgliedschaften der Person ergänzt und entfernt. Gruppen selbst werden nie automatisch gelöscht.
-- **Hinweis:** Verlässt jemand in Zitadel eine Gruppe, wirkt das erst beim nächsten Login. Zählt eine Gruppe als einziger Admin eines Spaces und hat kein aktives Mitglied mehr, muss ein Organisations-Admin einen neuen Admin setzen.
+- **Schreiben:** Gruppen mit Quelle `local` und `import` pflegen Organisations-Admins: `app.create_group`, `app.rename_group`, `app.delete_group`, `app.add_group_member`, `app.remove_group_member`. Gruppen mit Quelle `idp` und `scim` pflegt nur ihre Quelle, die Funktionen lehnen sie ab. `app.sync_user_groups` (Login) berührt nur `idp`-Gruppen.
+- **Hinweis:** Entfernen des letzten aktiven Mitglieds einer Admin-Gruppe und Löschen einer Gruppe, die irgendwo letzter Admin ist, lehnt die Datenbank ab. Nimmt dagegen der Login-Dienst die letzte Person aus einer `idp`-Gruppe, die einziger Admin eines Spaces ist, muss ein Organisations-Admin einen neuen Admin setzen.
 - **Lesen:** alle im Mandanten.
 
 ### `invites`
@@ -607,6 +608,9 @@ Bausteine am Anfang anderer Funktionen. Sie werfen einen Fehler oder tun nichts.
 | `require_space(space, person, mindestrolle)` | INVOKER | Dasselbe für einen Space. |
 | `require_worker()` | INVOKER | `insufficient_privilege`, wenn der Aufrufer kein Hintergrunddienst ist. Nur in INVOKER-Funktionen sinnvoll. |
 | `require_member_admin(workspace, person, rolle)` | DEFINER, intern | Darf die Person einer anderen diese Workspace-Rolle geben? Verlangt Workspace-Admin; `owner` vergeben nur Owner und Organisations-Admins. |
+| `require_group_admin(gruppe, person) → text` | DEFINER, intern | `require_actor`, dann Organisations-Admin; sperrt die Gruppe (`FOR UPDATE`), damit gleichzeitige Änderungen an ihr nacheinander laufen. Gibt die Quelle der Gruppe zurück. |
+| `group_admin_objects(gruppe) → uuid[]` | DEFINER, intern | Spaces und Seiten, auf denen die Gruppe Admin ist. Für `wiki_app` gesperrt. |
+| `require_admins_remain(objekte)` | DEFINER, intern | `restrict_violation`, wenn eines der Objekte keinen wirksamen Admin mehr hat (`has_admin`). Für `wiki_app` gesperrt. |
 
 ### 12.4 Ereignisse, Audit, Sperren (intern)
 
@@ -614,6 +618,7 @@ Bausteine am Anfang anderer Funktionen. Sie werfen einen Fehler oder tun nichts.
 |---|---|---|
 | `emit(mandant, space, typ, daten)` | INVOKER, intern/Worker | Schreibt ein Ereignis in die Outbox mit Subject `t.<mandant>.wiki.s.<space>`. Für `wiki_app` gesperrt, sonst ließen sich Ereignisse fälschen (z. B. `import.requested`). |
 | `emit_user_spaces(person, workspace, typ, daten)` | INVOKER, intern/Worker | Dasselbe Ereignis an jeden Space eines Workspaces bzw. (bei `workspace = NULL`) aller Workspaces, in denen die Person Mitglied ist. Für Ereignisse, nach denen der Collab-Server die Verbindungen einer Person trennen muss. |
+| `emit_group_spaces(gruppe, typ, daten)` | INVOKER, intern/Worker | Dasselbe Ereignis an jeden Space, in dem die Gruppe Rechte hat (auf dem Space oder einer seiner Seiten). Für Änderungen an Gruppen, nach denen der Collab-Server Verbindungen neu prüfen muss. |
 | `audit(person, aktion, objektart, objekt, details = '{}')` | INVOKER, intern/Worker | Schreibt einen Eintrag ins Audit-Log. Für `wiki_app` gesperrt. |
 | `audit_event(person, aktion, objektart, objekt, details = '{}')` | DEFINER, App | Audit-Eintrag aus der API, z. B. `export.created`. `person` muss die angemeldete sein, Einträge im Namen anderer sind so unmöglich. |
 | `lock_tree(space, exklusiv)` | DEFINER, intern | Sperrt den Seitenbaum eines Spaces über dessen Zeile in `spaces`: exklusiv (`FOR NO KEY UPDATE`) für Verschieben, Papierkorb und Vererbung, geteilt (`FOR SHARE`) für neue Seiten. Änderungen am Baum laufen so pro Space nacheinander; Zyklen, veraltete Pfade und neue Seiten unter gerade gelöschten Seiten sind ausgeschlossen. |
@@ -632,14 +637,14 @@ DEFINER, App. Liefert die Angaben zu einer **gültigen** Einladung (nicht angeno
 DEFINER, App, mit gesetztem Mandanten. Nimmt eine gültige Einladung an: findet die Person über die E-Mail (ohne Beachtung der Groß- und Kleinschreibung) oder legt sie an (bei Gast-Einladungen mit `is_external`), fügt sie mit der Rolle aus der Einladung in den Workspace ein (bestehende Mitgliedschaft bleibt) und markiert die Einladung als angenommen. Lehnt ab, wenn die Person deaktiviert ist. Gibt die Personen-ID zurück. **Die API prüft vorher, dass die angemeldete E-Mail zur Einladung passt.**
 Audit: `invite.accepted`.
 
-### 12.6 Mandanten, Personen, Workspaces
+### 12.6 Mandanten, Personen, Workspaces, Gruppen
 
 #### `create_tenant(slug, name, region, admin_email, admin_name, admin_idp_subject = NULL, workspace_slug = 'main', workspace_name = NULL, idp_org_id = NULL, tenant_id = NULL) → uuid`
 DEFINER, App (Registrierung). Legt Mandant, ersten Workspace und erste Person an; diese wird Organisations-Admin und Owner des Workspaces. Mit `tenant_id` übernimmt sie die ID eines Kunden, den es in TalkFieber schon gibt. Setzt `app.tenant_id` für den Rest der Transaktion. Gibt die Mandanten-ID zurück.
 Audit: `tenant.created`.
 
 #### `sync_user_groups(person, gruppen_ids, namen)`
-DEFINER, App, beim Login. Übernimmt die Gruppen aus dem Zitadel-Token: legt unbekannte Gruppen an, aktualisiert Namen, fügt fehlende Mitgliedschaften der Person hinzu und entfernt solche, die nicht mehr im Token stehen. Nur für die angemeldete Person selbst. Gleichzeitige Logins kollidieren nicht (`ON CONFLICT DO NOTHING`).
+DEFINER, App, beim Login. Für einen künftigen Gruppen-Claim im Token (z. B. aus Entra ID), derzeit ungenutzt, weil Zitadel keine Gruppen liefert. Berührt nur Gruppen mit Quelle `idp`: legt unbekannte an (`external_id` = Schlüssel aus dem Token), aktualisiert Namen, fügt fehlende Mitgliedschaften der Person hinzu und entfernt solche, die nicht mehr im Token stehen. Gruppen mit Quelle `local` oder `import` bleiben unverändert. Nur für die angemeldete Person selbst. Gleichzeitige Logins kollidieren nicht (`ON CONFLICT DO NOTHING`).
 
 #### `add_workspace_member(workspace, person, rolle, actor)`
 DEFINER, App. Nimmt eine bestehende Person des Mandanten in einen Workspace auf, ohne Einladung. Erlaubt für Workspace-Admins, `owner` nur durch Owner und Organisations-Admins (`require_member_admin`). Fehler, wenn die Person schon Mitglied ist.
@@ -660,6 +665,26 @@ Audit: `user.role_changed`.
 #### `set_user_active(person, aktiv, actor)`
 DEFINER, App. Sperrt eine Person (`aktiv = false`) oder entsperrt sie. Nur für Organisations-Admins; der letzte Organisations-Admin lässt sich nicht sperren (Trigger). Gesperrte Personen haben überall den Rang 0 und zählen nicht als Admin; ihre Grants bleiben für eine spätere Entsperrung erhalten. Ändert sich nichts, passiert nichts.
 Ereignis: beim Sperren `user.deactivated` an jeden Space ihrer Workspaces. Audit: `user.deactivated` bzw. `user.reactivated`.
+
+#### `create_group(name, actor) → uuid`
+DEFINER, App. Legt eine Gruppe mit Quelle `local` an (Name ohne Leerzeichen am Rand). Nur für Organisations-Admins.
+Audit: `group.created`.
+
+#### `rename_group(gruppe, name, actor)`
+DEFINER, App. Benennt eine Gruppe mit Quelle `local` oder `import` um; bei `idp` und `scim` kommt der Name aus der Quelle. Nur für Organisations-Admins.
+Audit: `group.renamed`.
+
+#### `delete_group(gruppe, actor)`
+DEFINER, App. Löscht eine Gruppe mit Quelle `local` oder `import` samt ihren Grants und Mitgliedschaften. Nur für Organisations-Admins. Lehnt ab (`restrict_violation`), wenn die Gruppe irgendwo der letzte wirksame Admin ist.
+Ereignis: `grant.changed` (`subject_type` `group`, `role` `null`) an jeden Space, in dem sie Rechte hatte. Audit: `group.deleted`.
+
+#### `add_group_member(gruppe, person, actor)`
+DEFINER, App. Nimmt eine Person des Mandanten in eine Gruppe mit Quelle `local` oder `import` auf. Nur für Organisations-Admins. Ist sie schon Mitglied, passiert nichts.
+Ereignis: `member.changed` (`user`, `group`) an jeden Space, in dem die Gruppe Rechte hat. Audit: `group.member_added`.
+
+#### `remove_group_member(gruppe, person, actor)`
+DEFINER, App. Entfernt eine Person aus einer Gruppe mit Quelle `local` oder `import`. Nur für Organisations-Admins. Lehnt ab (`restrict_violation`), wenn die Gruppe dadurch irgendwo als letzter wirksamer Admin wegfällt. Ist sie kein Mitglied, passiert nichts.
+Ereignis: `member.changed` (`user`, `group`) an jeden Space, in dem die Gruppe Rechte hat (der Collab-Server prüft ihre Verbindungen neu). Audit: `group.member_removed`.
 
 ### 12.7 Spaces und Rechte
 
@@ -768,4 +793,4 @@ Ereignis: `import.requested`. Audit: `import.started`.
 | `set_page_path` | `pages`, vor `INSERT` | `app.set_page_path()` (DEFINER) | Setzt `path` aus dem Pfad der Elternseite (die nicht sichtbar sein muss, z. B. beim Import) und sperrt den Baum geteilt. Fehler, wenn die Elternseite nicht im selben Space und Mandanten liegt. |
 | `protect_last_owner` | `workspace_members`, vor `UPDATE OF role` und `DELETE` | `app.protect_last_owner()` | Jeder Workspace behält mindestens einen aktiven Owner (`restrict_violation`). Sperrt den Workspace, damit zwei gleichzeitige Änderungen nicht beide durchkommen. |
 | `protect_last_org_admin` | `users`, vor `UPDATE OF role, deactivated_at` und `DELETE` | `app.protect_last_org_admin()` | Jeder Mandant behält mindestens einen aktiven Organisations-Admin (`restrict_violation`). Sperrt den Mandanten. |
-| `admin_remains` | `grants`, nach `DELETE` und `UPDATE OF role`, **beim Commit** (`DEFERRABLE INITIALLY DEFERRED`) | `app.check_admin_remains()` (DEFINER) | Rückfallebene für alle Wege an `set_grant` vorbei (Worker, gelöschte Personen): Jeder Space und jede Seite mit gekappter Vererbung behält einen wirksamen Admin. Prüft erst beim Commit, damit „löschen und neu anlegen“ in einer Transaktion geht; ausgenommen sind gelöschte Objekte und Seiten, die wieder erben. Sperren und Gruppenaustritte ändern keine Grants und lösen ihn deshalb nicht aus. |
+| `admin_remains` | `grants`, nach `DELETE` und `UPDATE OF role`, **beim Commit** (`DEFERRABLE INITIALLY DEFERRED`) | `app.check_admin_remains()` (DEFINER) | Rückfallebene für alle Wege an `set_grant` vorbei (Worker, gelöschte Personen): Jeder Space und jede Seite mit gekappter Vererbung behält einen wirksamen Admin. Prüft erst beim Commit, damit „löschen und neu anlegen“ in einer Transaktion geht; ausgenommen sind gelöschte Objekte und Seiten, die wieder erben. Sperren und Gruppenaustritte ändern keine Grants und lösen ihn deshalb nicht aus; Austritte aus Wiki-Gruppen prüft `remove_group_member` selbst. |

@@ -16,15 +16,15 @@
   - `docs/MVP.md`: Architektur und Umfang des MVP auf einen Blick, **Momentaufnahme vom 5. November 2026**, wird nicht nachgeführt
   - `docs/ROADMAP.md`: Stufen 0–4 und Meilensteine M0–M5
   - `docs/EPICS.md`: Epics als Basis für User Stories, nach Roadmap-Stufen geordnet
-  - `database/scripts/roles_database.sql` und `database/scripts/schema/`: Datenbank. `schema.sql` ist der Einstieg und bindet die Teile `00_setup.sql` … `90_privileges.sql` ein. Tests in `database/scripts/schema_test/`: `schema_test.sql` (Einstieg, Teile `01_basics.sql` … `11_content_json.sql`) und `schema_concurrency_test.sh`
+  - `database/scripts/roles_database.sql` und `database/scripts/schema/`: Datenbank. `schema.sql` ist der Einstieg und bindet die Teile `00_setup.sql` … `90_privileges.sql` ein. Tests in `database/scripts/schema_test/`: `schema_test.sql` (Einstieg, Teile `01_basics.sql` … `12_groups.sql`) und `schema_concurrency_test.sh`
   - `docs/SCHEMA.md`: Referenz zum Datenmodell (jede Tabelle und Spalte, Rollen, Regeln, jede Funktion). Bei Änderungen am Schema mit anpassen.
   - `database/scripts/seed/seed.sql`: Testdaten für die lokale Entwicklung (Mandanten Alpenwerk und Nordlicht, Personen, Spaces und Seiten wie im Prototyp). Geht über die Funktionen in `app`; bei geänderten Funktionen mitziehen.
-  - `compose.yaml`: lokale Umgebung: PostgreSQL 18 (Container `nf-pg18`, Volume `notefieber-pgdata`), Garage (`nf-garage`, S3 auf `localhost:3900`) und Zitadel v4 (`nf-zitadel` mit Anmeldeseiten `nf-zitadel-login` hinter dem Traefik `nf-zitadel-proxy`, Issuer `http://localhost:8080`, Datenbank `zitadel` im selben PostgreSQL). Beim ersten Start spielt `docker/postgres/initdb/10-notefieber.sh` Rollen, Schema und Testdaten ein; `docker/garage/` richtet Garage ein (Bucket `wiki`); `docker/zitadel/init.mjs` legt Projekt `notefieber`, die OIDC-Clients `notefieber-web` (PKCE) und `notefieber-api`, die Organisationen und Testpersonen aus `seed.sql` mit **denselben festen IDs** an (`org-alpenwerk`, `user-anna-huber` …) und schreibt Client-IDs nach `.local/zitadel.env` (nicht im Repository). Testpersonen und Gruppen immer in `seed.sql` und `init.mjs` zusammen ändern.
+  - `compose.yaml`: lokale Umgebung: PostgreSQL 18 (Container `nf-pg18`, Volume `notefieber-pgdata`), Garage (`nf-garage`, S3 auf `localhost:3900`) und Zitadel v4 (`nf-zitadel` mit Anmeldeseiten `nf-zitadel-login` hinter dem Traefik `nf-zitadel-proxy`, Issuer `http://localhost:8080`, Datenbank `zitadel` im selben PostgreSQL). Beim ersten Start spielt `docker/postgres/initdb/10-notefieber.sh` Rollen, Schema und Testdaten ein; `docker/garage/` richtet Garage ein (Bucket `wiki`); `docker/zitadel/init.mjs` legt Projekt `notefieber`, die OIDC-Clients `notefieber-web` (PKCE) und `notefieber-api`, die Organisationen und Testpersonen aus `seed.sql` mit **denselben festen IDs** an (`org-alpenwerk`, `user-anna-huber` …) und schreibt Client-IDs nach `.local/zitadel.env` (nicht im Repository). Testpersonen immer in `seed.sql` und `init.mjs` zusammen ändern. Gruppen stehen nur in `seed.sql` (sie gehören dem Wiki, Abschnitt 8).
   - `docs/LOCAL_SETUP.md`: lokale Entwicklung (Voraussetzungen, `docker compose up`, Schema, Tests, Testdaten, Fehlerbehebung). Mit jedem neuen Baustein (Zitadel, Garage, Apps) ergänzen.
   - `docs/models/data_model/`: ER-Diagramm als `data_model.mmd` (Mermaid) und `data_model.svg`. Bei Änderungen am Schema alle zwei nachziehen.
   - `docs/models/architecture/`: `architecture.svg` (Startsetup), `architecture_target.svg` (Zielarchitektur)
   - `prototype/`: klickbarer UI-Prototyp (Seitenansicht mit Kommentaren und Rechte-Dialog, Confluence-Import). Referenz für Gestaltung und Abläufe, kein Produktcode.
-- **Betriebsmodell:** Start als SaaS auf eigenem K3s. Self-Hosting per Helm-Chart ist das zweite Standbein, weil gerade Confluence-Data-Center-Kunden bewusst on-prem arbeiten (Reihenfolge offen, Abschnitt 4).
+- **Betriebsmodell:** vorrangig SaaS auf eigenem K3s. Self-Hosting per Helm-Chart kommt später als zweites Standbein, weil gerade Confluence-Data-Center-Kunden bewusst on-prem arbeiten (Abschnitt 3).
 
 ## 2. Markt und Positionierung (Stand November 2026)
 
@@ -55,7 +55,11 @@
 | Inhalt speichern | **Yjs-Zustand maßgeblich, BlockNote-JSON daneben** (`content_json` in `page_contents` und `page_versions`), damit Export, Import und ein späterer Editorwechsel nicht an Yjs hängen |
 | Rechte prüfen | **„Ansehen als …“** über `app.view_as`: nur für Admins, nur Struktur und Rolle, im Audit-Log |
 | Datenbank | **PostgreSQL 18** über **CloudNativePG**, eigene Datenbank `wiki` im selben Cluster wie TalkFieber (`chat`) und Zitadel |
-| Login | **Zitadel**, selbst gehostet, gemeinsam mit TalkFieber. Die App spricht nur generisches OIDC |
+| Login | **Zitadel**, selbst gehostet, gemeinsam mit TalkFieber. Die App spricht nur generisches OIDC und liest Zitadel-Claims nur an einer Stelle der API (einstellbare Claim-Namen), damit später ein anderer Login-Dienst passt |
+| Gruppen | **Gehören dem Wiki** (Tabelle `groups`), nicht dem Login-Dienst: Zitadel v4 hat keine Gruppen. Quellen: im Wiki angelegt (Organisations-Admins), Confluence-Import, später SCIM und ein Gruppen-Claim im Token (z. B. Entra ID) |
+| Produktname | **NoteFieber** bleibt vorerst (Arbeitstitel, Abschnitt 4) |
+| Lizenz | **Proprietär**, vorerst |
+| Betrieb zuerst | **SaaS** vorrangig, On-Prem (Helm-Chart, E23) später |
 | Dateien | **Garage** (S3-kompatibel) im Cluster, eigener Bucket pro Produkt |
 | Suche | Volltext in PostgreSQL (`tsvector`, `pg_trgm`), Index vom Worker gepflegt |
 | Mandanten | **Mandantenfähig von Anfang an:** `tenant_id` auf jeder Tabelle, Row Level Security, gleiches Modell wie TalkFieber (Mandant → Workspaces). Dieselbe `tenant_id` in beiden Produkten |
@@ -66,16 +70,17 @@
 
 ## 4. Offene Entscheidungen
 
-1. **Produktname.** „NoteFieber“ ist Arbeitstitel. Es gelten dieselben Bedenken wie bei „TalkFieber“: „Fieber“ klingt hektisch und nach Krankheit, funktioniert nur auf Deutsch. „Note“ klingt nach persönlicher Notiz-App, nicht nach Firmen-Wiki. Für ein Produktpaar lohnt sich ein gemeinsamer Markenname mit zwei Produktnamen. Vor der Festlegung Marke (EUIPO/TMview, Klassen 9, 38, 42), Domains und Sprachcheck prüfen.
-2. **Lizenz des eigenen Codes:** Open Core (AGPL + Enterprise-Lizenz) oder proprietär mit Quelltext für Kunden. Sinnvollerweise für beide Produkte gleich.
+1. **Produktname.** Vorerst bleibt es bei „NoteFieber“ (Abschnitt 3). Endgültig ist der Name nicht. Es gelten dieselben Bedenken wie bei „TalkFieber“: „Fieber“ klingt hektisch und nach Krankheit, funktioniert nur auf Deutsch. „Note“ klingt nach persönlicher Notiz-App, nicht nach Firmen-Wiki. Für ein Produktpaar lohnt sich ein gemeinsamer Markenname mit zwei Produktnamen. Vor der Festlegung Marke (EUIPO/TMview, Klassen 9, 38, 42), Domains und Sprachcheck prüfen.
+2. ~~**Lizenz des eigenen Codes**~~ **Vorerst entschieden:** proprietär (Abschnitt 3). Open Core (AGPL + Enterprise-Lizenz) oder Quelltext für Kunden bleiben spätere Optionen, etwa für das On-Prem-Paket.
 3. **BlockNote-XL-Pakete** (PDF-, Word-, ODT-Export, mehrspaltige Layouts, KI): GPL-3.0 oder kommerzielle Lizenz, oder selbst bauen.
-4. **Reihenfolge SaaS vs. On-Prem:** Confluence-DC-Kunden wollen oft on-prem. Empfehlung: SaaS-Pilot zuerst, Helm-Chart für Kunden in Stufe 3 (Epic E23).
+4. ~~**Reihenfolge SaaS vs. On-Prem**~~ **Entschieden:** vorrangig SaaS, On-Prem später (Helm-Chart für Kunden in Stufe 3, Epic E23).
 5. **Rechte-Semantik beim Import:** Confluence schränkt Leserechte über Seiten hinweg ein (Schnittmenge), Bearbeitungsrechte erben nicht. Unser Modell kennt nur „erben“ oder „gekappt“. Beim Import wird eine eingeschränkte Confluence-Seite zu einer Seite mit gekappter Vererbung, deren Rechte der Importer ausrechnet. An echten Exporten prüfen, ob das reicht.
 6. **Eindeutige Seitentitel pro Space?** Confluence verlangt sie, wir verlinken über IDs. Vorerst nicht erzwingen, der Import löst Titel-Links über `import_items` auf.
 7. **Ab wann eigene Zellen** (komplett getrennte Instanz des ganzen Stacks für große Kunden oder Behörden), wie bei TalkFieber geplant.
 8. **Zielgruppe:** breit für KMU oder vertikal (Verwaltung, Finanz, KRITIS, Industrie). Die Confluence-Frist spricht für regulierte Organisationen.
 9. ~~**BlockNote-JSON zusätzlich speichern?**~~ **Erledigt:** `page_contents.content_json` und `page_versions.content_json` (siehe Abschnitt 8). Der Collab-Server schreibt das JSON mit jedem `store_content`; der Export liefert Markdown plus BlockNote-JSON plus Anhänge.
 10. ~~**„Ansehen als …“**~~ **Erledigt in der Datenbank:** `app.view_as(space, person, actor)` (siehe Abschnitt 8). API und Oberfläche fehlen noch (E09).
+11. ~~**Wem gehören die Gruppen?**~~ **Entschieden:** dem Wiki (Abschnitte 3 und 8). Zitadel hat keine Gruppen; die vorläufigen Projektrollen sind entfernt. Offen bleibt, wie SCIM und ein Gruppen-Claim später angebunden werden (E17, E03).
 
 ## 5. Mindestumfang
 
@@ -85,7 +90,7 @@
 - Echtzeit-Bearbeitung mit Cursorn und Anwesenheit
 - Kommentare an Textstellen und an der Seite
 - Versionshistorie mit Wiederherstellen, Papierkorb
-- Rechte auf Space- und Seitenebene mit Vererbung, Gruppen aus dem Login-Dienst
+- Rechte auf Space- und Seitenebene mit Vererbung, Gruppen im Wiki (von Organisations-Admins gepflegt oder aus dem Import)
 - „Ansehen als …“ für Space-Admins, um nach dem Import zu prüfen, dass niemand mehr sieht als vorher (`app.view_as`)
 - Volltextsuche über Titel und Inhalt
 - Login über OIDC (Zitadel)
@@ -123,7 +128,7 @@ Kommentare, Import starten            │
                     (Struktur, Rechte, Yjs-Zustand, Versionen, Suche, Outbox)
 Worker: Suchindex, Versionen, Links, Import, Export, Outbox → NATS (mit TalkFieber)
 Garage (S3): Anhänge, Bilder, Export- und Import-Archive
-Zitadel: Login (OIDC), Gruppen
+Zitadel: Login (OIDC), Person und Mandant
 ```
 
 **Der Weg einer Änderung:**
@@ -150,7 +155,7 @@ Zitadel: Login (OIDC), Gruppen
   - Spaces: `space.created`, `space.updated`, `space.archived`
   - Seiten: `page.created`, `page.updated`, `page.moved`, `page.trashed`, `page.restored`, `page.permissions_changed`
   - Rechte: `grant.changed`
-  - Personen (an jeden betroffenen Space): `member.removed`, `member.changed`, `user.deactivated`
+  - Personen (an jeden betroffenen Space): `member.removed`, `member.changed` (auch bei Ein- und Austritt in eine Gruppe, an jeden Space, in dem die Gruppe Rechte hat), `user.deactivated`
   - Kommentare: `comment.created`
   - Import: `import.requested`
 
@@ -161,7 +166,7 @@ Maßgeblich ist das Schema in `database/scripts/schema/` (Einstieg `schema.sql`,
 **Gleich wie in TalkFieber:** `tenants` (mit `idp_org_id` für Zitadel), `users`, `workspaces`, `workspace_members`, `invites`, `outbox`, `audit_log`, dieselben Funktionen `create_tenant`, `accept_invite`, `resolve_tenant`, `find_invite`, `remove_workspace_member` und die Schutz-Trigger für letzten Owner und letzten Organisations-Admin.
 
 **Wiki-Tabellen:**
-- **`groups`, `group_members`:** Gruppen aus Zitadel, beim Login über `app.sync_user_groups` übernommen. Zitadel v4 hat keine Gruppen; vorerst sind es Rollen im Projekt `notefieber` (`idp_group_id` = Rollenschlüssel, im Token unter `urn:zitadel:iam:org:project:roles`, nur Schlüssel ohne Anzeigenamen). Der Mandant kommt aus `urn:zitadel:iam:user:resourceowner:id` (= `tenants.idp_org_id`).
+- **`groups`, `group_members`:** Gruppen gehören dem Wiki und gelten für den ganzen Mandanten. `source` sagt, woher eine Gruppe kommt: `local` (in der Oberfläche angelegt), `import` (Confluence-Import), `idp` (Gruppen-Claim im Token, `app.sync_user_groups`, derzeit ungenutzt), `scim` (später); `external_id` ist ihre ID in der Quelle. `local` und `import` pflegen Organisations-Admins (`app.create_group`, `rename_group`, `delete_group`, `add_group_member`, `remove_group_member`), `idp` und `scim` nur ihre Quelle. Der Login-Abgleich berührt nur `idp`-Gruppen. Aus Zitadel kommen nur Person (`sub` = `users.idp_subject`) und Mandant (`urn:zitadel:iam:user:resourceowner:id` = `tenants.idp_org_id`).
 - **`spaces`:** `key` (wie Confluence, z. B. `ENTW`, eindeutig pro Mandant), `name`, `workspace_id`, `home_page_id`, `archived_at` (archiviert = nur lesbar).
 - **`pages`:** `parent_id`, `path` (ltree aus den IDs, vom Trigger gesetzt), `position` (Fractional Index), `title`, `inherit_perms`, `deleted_at` und `trash_root_id` für den Papierkorb.
 - **`page_contents`:** `ydoc` (Yjs-Zustand, maßgeblich), `content_json` (BlockNote-JSON, `NULL` = fehlt), `plain_text`, `editors_since_version`. `page_versions` hat dieselben Fassungen als Momentaufnahme.
@@ -188,7 +193,7 @@ Maßgeblich ist das Schema in `database/scripts/schema/` (Einstieg `schema.sql`,
 - Leser können weder direkt noch über Funktionen Seiten anlegen oder Inhalt ändern.
 - Inhalt (`store_content`) und automatische Versionen schreibt nur `wiki_worker`, manuelle Versionen `app.save_version` (editor).
 - „Alle im Workspace“ kann höchstens editor sein (`CHECK`), Admins werden namentlich oder als Gruppe vergeben.
-- Jeder Space und jede Seite mit gekappter Vererbung behält mindestens einen **wirksamen** Admin: Grant für eine aktive Person oder eine Gruppe mit aktivem Mitglied (`app.has_admin`). Geprüft in `app.set_grant` und `app.remove_workspace_member`, als Rückfallebene beim Commit im Trigger `admin_remains`. Nicht abgedeckt: Deaktivieren und Gruppenaustritt ändern keine Grants. Dann setzt ein Organisations-Admin einen neuen Admin.
+- Jeder Space und jede Seite mit gekappter Vererbung behält mindestens einen **wirksamen** Admin: Grant für eine aktive Person oder eine Gruppe mit aktivem Mitglied (`app.has_admin`). Geprüft in `app.set_grant`, `app.remove_workspace_member`, `app.remove_group_member` und `app.delete_group`, als Rückfallebene beim Commit im Trigger `admin_remains`. Nicht abgedeckt: Deaktivieren und Gruppenwechsel aus dem Login-Dienst (`idp`, später `scim`) ändern keine Grants. Dann setzt ein Organisations-Admin einen neuen Admin.
 - Audit-Log lesen nur Organisations-Admins. Einträge aus der API über `app.audit_event`, immer im Namen der angemeldeten Person.
 - Gelöschte Kommentare haben keinen Inhalt mehr (`CHECK`). Auf Seiten im Papierkorb lässt sich nicht kommentieren.
 - Wiederherstellen einer Version verweist nur auf eine vorhandene, ältere Version (`restored_from`, Fremdschlüssel).
@@ -237,7 +242,7 @@ Ein klickbarer Prototyp liegt unter `prototype/` (`pages/Main.dc.html`: Seitenba
 
 **Stufen wie bei TalkFieber:** Entwicklung lokal (Node direkt, PostgreSQL und Zitadel per Docker Compose oder k3d mit denselben Manifesten), dann Demo und Pilot auf dem eigenen VPS mit den Namespaces `staging` und `pilot`, vor dem ersten zahlenden Geschäftskunden Umzug zu einem zertifizierten EU-Anbieter (Hetzner, STACKIT, IONOS).
 
-**Ein Cluster für die Produktfamilie.** In der TalkFieber-`CLAUDE.md` (Abschnitt 11) steht „Der VPS ist ausschließlich für dieses Projekt da“. Mit der gemeinsamen Plattform heißt das: **ausschließlich für Wiki und TalkFieber**, keine anderen Anwendungen. Die Gründe gelten weiter. Diesen Satz in der TalkFieber-`CLAUDE.md` entsprechend anpassen. Weil das Wiki zuerst kommt, wird der VPS (KVM 4, 16 GB) mit dem Wiki-Pilot gemietet.
+**Ein Cluster für die Produktfamilie.** Der VPS ist **ausschließlich für das Wiki und später TalkFieber** da, keine anderen Anwendungen. Weil das Wiki zuerst kommt, wird der VPS (KVM 4, 16 GB) mit dem Wiki-Pilot gemietet.
 
 **Bausteine im Cluster:**
 
@@ -282,16 +287,15 @@ Wiki allein etwa 3–4 GB, mit TalkFieber etwa 5–8 GB. KVM 4 mit 16 GB reicht 
 
 Meilensteine und Übergangskriterien stehen in der `docs/ROADMAP.md`.
 
-1. ~~`schema.sql`~~ **erledigt:** Das Schema liegt unter `database/scripts/schema`, die Tests unter `database/scripts/schema_test`. `schema.sql` bindet die Teile in fester Reihenfolge in einer Transaktion ein (`\ir`, nur mit `psql`): `00_setup`, `10_tables`, `20_functions_base`, `30_triggers`, `40_functions_tenants`, `50_functions_spaces`, `60_functions_pages`, `70_functions_content`, `72_functions_comments`, `74_functions_import`, `80_rls`, `90_privileges`. Neue Objekte kommen in den passenden Teil; ein neuer Teil braucht eine `\ir`-Zeile in `schema.sql` an der richtigen Stelle (SQL-Funktionen, Trigger und Regeln brauchen beim Anlegen die Objekte aus früheren Teilen). Die Teile nie einzeln einspielen. Alle 44 Tests sind auf PostgreSQL 18.6 bestanden (Docker-Image `postgres:18`). `schema_test.sql` bindet die Testteile genauso ein, läuft in einer Transaktion und rollt am Ende zurück, ist also beliebig oft wiederholbar. Gleichzeitige Sitzungen (Sperren im Seitenbaum, gegenseitiges Entfernen von Admins) prüft `schema_concurrency_test.sh`, z. B. `PSQL="docker exec -i nf-pg18 psql -U wiki_owner -d wiki" bash database/scripts/schema_test/schema_concurrency_test.sh`. Regeln für die Arbeit damit:
+1. ~~`schema.sql`~~ **erledigt:** Das Schema liegt unter `database/scripts/schema`, die Tests unter `database/scripts/schema_test`. `schema.sql` bindet die Teile in fester Reihenfolge in einer Transaktion ein (`\ir`, nur mit `psql`): `00_setup`, `10_tables`, `20_functions_base`, `30_triggers`, `40_functions_tenants`, `50_functions_spaces`, `60_functions_pages`, `70_functions_content`, `72_functions_comments`, `74_functions_import`, `80_rls`, `90_privileges`. Neue Objekte kommen in den passenden Teil; ein neuer Teil braucht eine `\ir`-Zeile in `schema.sql` an der richtigen Stelle (SQL-Funktionen, Trigger und Regeln brauchen beim Anlegen die Objekte aus früheren Teilen). Die Teile nie einzeln einspielen. Alle 46 Tests sind auf PostgreSQL 18.6 bestanden (Docker-Image `postgres:18`). `schema_test.sql` bindet die Testteile genauso ein, läuft in einer Transaktion und rollt am Ende zurück, ist also beliebig oft wiederholbar. Gleichzeitige Sitzungen (Sperren im Seitenbaum, gegenseitiges Entfernen von Admins) prüft `schema_concurrency_test.sh` mit einem eigenen Mandanten, den es am Ende wieder löscht, z. B. `PSQL="docker exec -i nf-pg18 psql -U wiki_owner -d wiki" bash database/scripts/schema_test/schema_concurrency_test.sh`. Regeln für die Arbeit damit:
    - `database/scripts/roles_database.sql` legt die Rollen und die Datenbank `wiki` an. Das Schema spielt `wiki_owner` ein, nie `postgres`, sonst laufen die `SECURITY DEFINER`-Funktionen als Superuser.
    - Die API verbindet sich als `wiki_app`, Collab-Server und Worker als `wiki_worker`, **nie als Eigentümer** (der umgeht RLS).
    - Pro Transaktion `app.tenant_id` und bei `wiki_app` zusätzlich `app.user_id` setzen.
-   - Schreibende Abläufe über die Funktionen im Schema `app` (`create_space`, `update_space`, `archive_space`, `create_page`, `move_page`, `trash_page`, `set_grant`, `set_page_inheritance`, `add_workspace_member`, `set_workspace_member_role`, `remove_workspace_member`, `set_user_role`, `set_user_active`, `add_comment`, `edit_comment`, `store_content`, `create_version` usw.). Direkte INSERTs scheitern für `wiki_app` an fehlenden Rechten.
+   - Schreibende Abläufe über die Funktionen im Schema `app` (`create_space`, `update_space`, `archive_space`, `create_page`, `move_page`, `trash_page`, `set_grant`, `set_page_inheritance`, `add_workspace_member`, `set_workspace_member_role`, `remove_workspace_member`, `set_user_role`, `set_user_active`, `create_group`, `add_group_member`, `remove_group_member`, `add_comment`, `edit_comment`, `store_content`, `create_version` usw.). Direkte INSERTs scheitern für `wiki_app` an fehlenden Rechten.
    - Neue `SECURITY DEFINER`-Funktionen: Mandant in jeder Abfrage prüfen (RLS greift dort nicht), zuerst `require_actor` bzw. `require_page`/`require_space`, nie `require_worker` (dort ist `current_user` der Eigentümer).
    - Wie bei TalkFieber: bei Tabellen mit Leseregeln kein `INSERT … RETURNING` und kein `ON CONFLICT`, solange die neue Zeile für die Person noch nicht lesbar ist (z. B. ein Space vor seinem ersten Grant). IDs vorher mit `uuidv7()` erzeugen.
    - Alles, was Rechte oder Sichtbarkeit berührt, bekommt zuerst einen Test in `database/scripts/schema_test/`: hinten an den passenden Teil oder als neuer Teil am Ende (mit `\ir`-Zeile in `schema_test.sql`), Nummern fortlaufend. Die Teile bauen aufeinander auf (gemeinsame Testdaten, Kopf jedes Teils: „Nutzt“ und „Legt an“) und laufen nur über `schema_test.sql`. Die Tests laufen als `wiki_app` bzw. `wiki_worker`.
 2. Repository und Grundgerüst: Next.js-Frontend, Express-API mit OIDC-Login über Zitadel, Hocuspocus mit `onAuthenticate`, `onLoadDocument`, `onStoreDocument` gegen diese Datenbank.
-3. ~~Lokale Umgebung mit Docker Compose~~ **erledigt:** PostgreSQL, Garage und Zitadel in `compose.yaml`, alle richten sich beim ersten Start selbst ein (`docs/LOCAL_SETUP.md`). Anmeldung per PKCE mit Testperson, Rollen und Mandant im Token sowie Introspection über `notefieber-api` sind mit Zitadel v4.20.1 geprüft. k3d erst für die K3s-Manifeste, die lokal und auf dem VPS gleich laufen.
-4. **Früh echte Confluence-Exporte besorgen** (2–3 Pilotkunden). Die häufigsten Makros zählen, bevor der Importer gebaut wird.
-5. Offene Entscheidungen aus Abschnitt 4 klären, vor allem Name, Lizenz und SaaS vs. On-Prem.
-6. In der TalkFieber-`CLAUDE.md` den Satz zum exklusiven VPS anpassen (Abschnitt 11 hier). Dort auch `users.idp_subject` auf pro Mandant eindeutig umstellen (Index auf `tenant_id, idp_subject`), damit beide Produkte Personen gleich zuordnen.
+3. ~~Lokale Umgebung mit Docker Compose~~ **erledigt:** PostgreSQL, Garage und Zitadel in `compose.yaml`, alle richten sich beim ersten Start selbst ein (`docs/LOCAL_SETUP.md`). Anmeldung per PKCE mit Testperson, Person und Mandant im Token sowie Introspection über `notefieber-api` sind mit Zitadel v4.20.1 geprüft. k3d erst für die K3s-Manifeste, die lokal und auf dem VPS gleich laufen.
+4. **Echte Confluence-Exporte besorgen, wenn der Importer gebaut wird** (M4, 2–3 Pilotkunden). Zuerst die häufigsten Makros zählen.
+5. Übrige offene Entscheidungen aus Abschnitt 4 klären, wenn sie anstehen (Name, Lizenz und SaaS vs. On-Prem sind vorerst entschieden).

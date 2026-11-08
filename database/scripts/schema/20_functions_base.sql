@@ -315,6 +315,19 @@ RETURNS void LANGUAGE sql AS $$
                SELECT wm.workspace_id FROM workspace_members wm WHERE wm.user_id = p_user_id)))
 $$;
 
+-- Dasselbe Event an jeden Space, in dem eine Gruppe Rechte hat (auf dem Space oder auf
+-- einer seiner Seiten). Für Änderungen an Gruppen, nach denen der Collab-Server
+-- Verbindungen neu prüfen muss.
+CREATE FUNCTION app.emit_group_spaces(p_group_id uuid, p_type text, p_payload jsonb)
+RETURNS void LANGUAGE sql AS $$
+  INSERT INTO outbox (tenant_id, subject, event_type, payload)
+  SELECT DISTINCT g.tenant_id, 't.' || g.tenant_id || '.wiki.s.' || coalesce(g.space_id, p.space_id),
+         p_type, p_payload
+  FROM grants g
+  LEFT JOIN pages p ON p.id = g.page_id
+  WHERE g.group_id = p_group_id AND g.tenant_id = app.current_tenant()
+$$;
+
 -- Intern: Audit-Eintrag aus einer Funktion heraus.
 CREATE FUNCTION app.audit(p_actor_id uuid, p_action text, p_target_type text, p_target_id uuid,
                           p_details jsonb DEFAULT '{}'::jsonb)

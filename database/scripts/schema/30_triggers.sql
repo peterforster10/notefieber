@@ -82,8 +82,9 @@ CREATE TRIGGER protect_last_org_admin BEFORE UPDATE OF role, deactivated_at OR D
 -- Admin (app.has_admin). Rückfallebene für alle Wege an app.set_grant vorbei (Worker,
 -- Löschen von Personen); geprüft beim Commit, damit "erst löschen, dann neu anlegen"
 -- in einer Transaktion geht. Ausgenommen: Objekt gelöscht oder Seite erbt wieder.
--- Nicht abgedeckt: Deaktivieren und Gruppenaustritt ändern keine Grants. Dann hilft der
--- Organisations-Admin (app.set_grant), siehe CLAUDE.md Abschnitt 8.
+-- Austritt aus einer im Wiki gepflegten Gruppe prüft app.remove_group_member selbst.
+-- Nicht abgedeckt: Deaktivieren und Gruppenwechsel aus dem Login-Dienst ändern keine Grants.
+-- Dann hilft der Organisations-Admin (app.set_grant), siehe CLAUDE.md Abschnitt 8.
 CREATE FUNCTION app.check_admin_remains() RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $$
 DECLARE

@@ -26,6 +26,9 @@ GRANT EXECUTE ON FUNCTION app.view_as(uuid, uuid, uuid) TO wiki_app;
 REVOKE EXECUTE ON FUNCTION
   app.emit(uuid, uuid, text, jsonb),
   app.emit_user_spaces(uuid, uuid, text, jsonb),
+  app.emit_group_spaces(uuid, text, jsonb),
+  app.group_admin_objects(uuid),
+  app.require_admins_remain(uuid[]),
   app.audit(uuid, text, text, uuid, jsonb),
   app.insert_version(uuid, text, uuid, integer),
   app.lock_tree(uuid, boolean),

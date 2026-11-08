@@ -19,7 +19,7 @@ Diese Epics sind die Grundlage für die späteren User Stories. Architektur, Dat
 
 | Stufe | Ziel | Epics |
 |---|---|---|
-| **0 – Vorbereitung** | Entscheidungen, Gespräche, Confluence-Exporte | keine |
+| **0 – Vorbereitung** | Entscheidungen, Gespräche | keine |
 | **1 – Lokal entwickeln** (M0–M4) | Fundament, MVP und Import | E01–E15 |
 | **2 – Demo und Pilot** (M5) | Pilotkunden auf eigenem VPS | Teile von E01 (VPS, Backups), einfache Version von E22 |
 | **3 – Bereit für Geschäftskunden** | Erfüllt, was der Einkauf verlangt, SaaS und On-Prem | E03 (voll), E16–E25 |
@@ -73,24 +73,25 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 
 ### E02 – Mandanten, Workspaces, Personen und Gruppen
 
-**Ziel:** Eine Organisation registriert sich, lädt ihr Team ein, und ihre Gruppen aus dem Login-Dienst stehen für Rechte zur Verfügung.
+**Ziel:** Eine Organisation registriert sich, lädt ihr Team ein, und legt Gruppen an, über die sie Rechte vergibt.
 
 **Umfang:**
 - Mandant mit erstem Workspace und Organisations-Admin in einer Transaktion (`app.create_tenant`), optional mit der ID aus TalkFieber
 - Einladung per Link, Rollen owner, admin, member, guest pro Workspace
 - Profil mit Name, Bild, Sprache, Zeitzone
-- Gruppen aus Zitadel beim Login übernehmen (`app.sync_user_groups`)
+- Gruppen im Wiki anlegen und pflegen, nur Organisations-Admins (`app.create_group`, `app.add_group_member` …). Zitadel hat keine Gruppen; SCIM (E17) und ein Gruppen-Claim im Token (E03) kommen später als Quellen dazu
 - Personen deaktivieren, aus Workspaces entfernen (persönliche Rechte fallen weg)
 
 **Nicht enthalten:** SCIM (E17), Login über mehrere Mandanten.
 
 **Abnahmekriterien:**
 - Niemand sieht Daten eines anderen Mandanten, abgesichert durch Tests gegen RLS.
-- Wer eine Gruppe im Login-Dienst verlässt, verliert beim nächsten Login deren Rechte.
+- Wer aus einer Gruppe entfernt wird, verliert sofort deren Rechte; offene Verbindungen zum Collab-Server werden neu geprüft.
+- Eine Gruppe, die irgendwo letzter Admin ist, verliert ihr letztes aktives Mitglied nicht.
 
 **Abhängigkeiten:** E01, E03.
 
-**Story-Kandidaten:** Organisation registrieren · Team einladen · Gruppen übernehmen · Person deaktivieren · Person aus Workspace entfernen
+**Story-Kandidaten:** Organisation registrieren · Team einladen · Gruppen anlegen und pflegen · Person deaktivieren · Person aus Workspace entfernen
 
 ---
 
@@ -100,7 +101,8 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 
 **Umfang:**
 - Zitadel als Login-Dienst, gemeinsam mit TalkFieber (eine Organisation pro Mandant)
-- Die App spricht nur generisches OIDC
+- Die App spricht nur generisches OIDC; Zitadel-Claims (Mandant, Person) liest die API an einer Stelle mit einstellbaren Claim-Namen
+- Später: Gruppen aus einem Gruppen-Claim im Token übernehmen (Quelle `idp`, `app.sync_user_groups`), z. B. bei Entra ID
 - E-Mail und Passwort, Magic Link, Passkeys, Zwei-Faktor
 - Kurzlebige Tokens für die WebSocket-Verbindung zum Collab-Server
 - SSO über OIDC und SAML, insbesondere Entra ID (Stufe 1 und 2 als Pilotfunktion, Stufe 3 voll)
@@ -335,7 +337,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Space-Export (HTML bzw. XML) hochladen, nur durch Space-Admins (`app.start_import`)
 - Probelauf mit Bericht: übernommen, als Platzhalter, übersprungen
 - Hierarchie, Inhalte, Anhänge, Versionen (optional), Erstellende und Datum
-- Rechte übersetzen: eingeschränkte Seiten werden Seiten mit gekappter Vererbung, Confluence-Gruppen werden Zitadel-Gruppen zugeordnet
+- Rechte übersetzen: eingeschränkte Seiten werden Seiten mit gekappter Vererbung, Confluence-Gruppen werden Gruppen im Wiki zugeordnet oder neu angelegt (Quelle `import`)
 - Die häufigsten Makros (aus echten Exporten gezählt) in BlockNote-Blöcke übersetzen, Rest als sichtbarer Platzhalter-Block mit Originalinhalt
 - Interne Links umschreiben über `import_items`
 - Import wiederholbar und vollständig rückgängig machbar
@@ -591,7 +593,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 Meilensteine und Übergangskriterien stehen in der `ROADMAP.md`.
 
 1. **E01, E02, E03** parallel, weil alles darauf aufbaut (M0).
-2. **E04** früh fertigstellen und mit Lasttests absichern (M1). Parallel echte Confluence-Exporte ansehen.
+2. **E04** früh fertigstellen und mit Lasttests absichern (M1).
 3. **E05, E06, E07, E08** zusammen mit **E15** Stück für Stück (M2). Ab hier selbst nutzen.
 4. **E09, E10, E11, E12, E14** schließen das MVP ab (M3). Rechte zuerst, weil der Import sie braucht.
 5. **E13** Confluence-Import (M4).

@@ -40,7 +40,7 @@ Für ein vorhandenes PostgreSQL 18 ohne Docker:
 psql -U postgres -f database/scripts/roles_database.sql
 psql -U wiki_owner -d wiki -f database/scripts/schema/schema.sql
 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f database/scripts/schema_test/schema_test.sql
-# Erwartet: OK 1 … OK 44, dann "Alle Tests bestanden (zurückgerollt …)."
+# Erwartet: OK 1 … OK 46, dann "Alle Tests bestanden (zurückgerollt …)."
 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f database/scripts/seed/seed.sql
 # Optional: Testdaten (Alpenwerk mit Anna, Lukas, Max …), siehe docs/LOCAL_SETUP.md Abschnitt 4 („Testdaten“)
 ```

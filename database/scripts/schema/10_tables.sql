@@ -64,14 +64,23 @@ CREATE TABLE workspace_members (
 );
 CREATE INDEX workspace_members_by_user ON workspace_members (user_id);
 
--- Gruppen aus dem Login-Dienst (Zitadel), beim Login synchronisiert.
+-- Gruppen gehören dem Wiki. Quelle (source):
+--   local   in der Oberfläche angelegt (app.create_group)
+--   import  vom Confluence-Import angelegt, external_id = Gruppenname in Confluence (optional)
+--   idp     aus dem Login-Token übernommen (app.sync_user_groups), external_id = Schlüssel im Login-Dienst
+--   scim    später per SCIM geliefert, external_id = SCIM-ID
+-- Mitglieder von local- und import-Gruppen pflegt das Wiki (app.add_group_member …), die von
+-- idp- und scim-Gruppen ihre Quelle. Namen sind nicht eindeutig erzwungen.
 CREATE TABLE groups (
   id           uuid PRIMARY KEY DEFAULT uuidv7(),
   tenant_id    uuid NOT NULL REFERENCES tenants (id),
-  idp_group_id text NOT NULL CHECK (length(idp_group_id) BETWEEN 1 AND 200),
   name         text NOT NULL CHECK (length(btrim(name)) BETWEEN 1 AND 200),
+  source       text NOT NULL DEFAULT 'local' CHECK (source IN ('local', 'import', 'idp', 'scim')),
+  external_id  text CHECK (length(external_id) BETWEEN 1 AND 200),
   created_at   timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (tenant_id, idp_group_id),
+  CHECK (source <> 'local' OR external_id IS NULL),
+  CHECK (source NOT IN ('idp', 'scim') OR external_id IS NOT NULL),
+  UNIQUE (tenant_id, source, external_id),
   UNIQUE (id, tenant_id)
 );
 

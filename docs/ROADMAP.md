@@ -8,7 +8,7 @@ Das Wiki kommt vor TalkFieber. Es legt deshalb die gemeinsame Plattform an (Zita
 
 | Stufe | Ziel | Infrastruktur | Kosten (ca.) |
 |---|---|---|---|
-| **0 Vorbereitung** | Entscheidungen treffen, Confluence-Exporte besorgen | keine | Domain, 10–30 € pro Jahr |
+| **0 Vorbereitung** | Entscheidungen treffen, mit Confluence-Kunden sprechen | keine | Domain, 10–30 € pro Jahr |
 | **1 Lokal entwickeln** | MVP inkl. Confluence-Import bauen und selbst nutzen | eigener Rechner (Docker Compose oder k3d) | unter 5 € pro Monat |
 | **2 Demo und Pilot** | Erste Teams arbeiten ohne Confluence | Hostinger-VPS (KVM 4, 16 GB), gemeinsam mit TalkFieber | 20–25 € pro Monat plus externer Backup-Speicher, Marke einmalig ca. 1.050 € (für beide Produkte gemeinsam planen) |
 | **3 Geschäftskunden** | Erste zahlende Organisationen, SaaS und On-Prem | zertifizierter EU-Anbieter, mehrere Server | Hosting 50–150 € pro Monat, dazu Recht, Versicherung, Sicherheitsnachweise |
@@ -21,15 +21,16 @@ Das Wiki kommt vor TalkFieber. Es legt deshalb die gemeinsame Plattform an (Zita
 ## Stufe 0: Vorbereitung
 
 - [x] **Arbeitsvertrag prüfen** (gilt für beide Projekte): Klauseln zu Nebentätigkeit und Rechten an Software.
-- [ ] **Lizenz entscheiden**, für Wiki und TalkFieber gleich: Open Core (AGPL + Enterprise-Lizenz) oder proprietär.
+- [x] **Lizenz:** vorerst proprietär. Open Core oder Quelltext für Kunden bleiben spätere Optionen.
+- [x] **Betrieb:** vorrangig SaaS, On-Prem (Helm-Chart, E23) später.
+- [x] **Name:** vorerst NoteFieber (Arbeitstitel).
 - [x] **Eigenbau statt Fork von La Suite Docs:** entschieden. BlockNote, Yjs und Hocuspocus als Bibliotheken.
 - [x] **Stack festlegen:** entschieden, TypeScript mit Next.js, Express, BlockNote, Hocuspocus, PostgreSQL 18 (CloudNativePG), Zitadel, Garage, K3s.
 - [ ] **5–10 Gespräche mit Confluence-Data-Center-Kunden:** Wann müssen sie entscheiden, was hält sie bei Confluence, welche Makros und Apps nutzen sie, SaaS oder on-prem, was würden sie zahlen?
-- [ ] **2–3 echte Confluence-Space-Exporte besorgen** (anonymisiert reicht). Sie sind ab M1 Testdaten.
-- [ ] **XWiki und BlueSpice ausprobieren:** einen echten Export in beide importieren und notieren, wo es hakt. Diese Schwachstellen sind das eigene Produkt. In den Gesprächen fragen, ob die Kunden XWiki schon geprüft haben.
+- [ ] **XWiki und BlueSpice ausprobieren** (sobald echte Exporte da sind, M4): einen echten Export in beide importieren und notieren, wo es hakt. Diese Schwachstellen sind das eigene Produkt. In den Gesprächen fragen, ob die Kunden XWiki schon geprüft haben.
 - [ ] **Codenamen und Domain sichern.** Über einen gemeinsamen Markennamen für Wiki und Chat nachdenken.
 
-**Weiter, wenn** die Gespräche zeigen, dass der Wechsel von Confluence Data Center ein echter Bedarf ist und mindestens ein Pilotkunde einen Export bereitstellt.
+**Weiter, wenn** die Gespräche zeigen, dass der Wechsel von Confluence Data Center ein echter Bedarf ist .
 
 ---
 
@@ -43,7 +44,7 @@ Epics: E01 (lokal), E02, E03 (einfach)
 - [x] Lokale Umgebung mit PostgreSQL 18, Zitadel, Garage (alle per `compose.yaml`, siehe [LOCAL_SETUP](LOCAL_SETUP.md))
 - [ ] Migrationswerkzeug wählen, `roles_database.sql` und das Schema als erste Migration (die Teile aus `database/scripts/schema/` gebündelt, falls das Werkzeug kein `psql` nutzt), `schema_test.sql` in der CI (eingespielt als `wiki_owner`, nie als `postgres`)
 - [ ] CI: Build, Tests, Prüfung der Abhängigkeiten und Lizenzen (keine BlockNote-XL-Pakete)
-- [ ] Login per OIDC über Zitadel, Gruppen aus dem Token übernehmen
+- [ ] Login per OIDC über Zitadel (Mandant und Person aus dem Token), Gruppen im Wiki pflegen
 - [ ] Space anlegen, Seitenbaum per API
 
 **Gate:** Login über Zitadel, Seite anlegen, im Baum verschieben.
@@ -81,6 +82,7 @@ Epics: E09, E10, E11, E12, E14
 
 ### M4 – Confluence-Import
 Epic: E13
+- [ ] 2–3 echte Confluence-Space-Exporte besorgen (anonymisiert reicht), zu Beginn von M4, und die häufigsten Makros zählen
 - [ ] Space-Export (HTML bzw. XML) einlesen: Hierarchie, Inhalte, Anhänge, Versionen
 - [ ] Rechte übersetzen, Gruppen zuordnen
 - [ ] Die häufigsten Makros abbilden (aus den echten Exporten gezählt), Rest als sichtbarer Platzhalter mit Originalinhalt
@@ -170,7 +172,7 @@ Rund 6 Monate in Vollzeit bis zum Pilot. Nebenbei wird es mit der Atlassian-Fris
 ## Arbeitsweise mit Claude Code
 
 - **Kleine Aufgaben:** eine User Story pro Sitzung. Größere Stücke erst im Planungsmodus durchsprechen.
-- **Entscheidungen dokumentieren:** sofort in `CLAUDE.md`. Was beide Projekte betrifft, auch in der TalkFieber-`CLAUDE.md`.
+- **Entscheidungen dokumentieren:** sofort in `CLAUDE.md`.
 - **Tests zuerst** bei allem, was Rechte, Mandantentrennung oder Sichtbarkeit berührt.
 - **Diffs lesen:** besonders bei Rechten, Datenbankzugriffen, Login und dem Collab-Server.
 - **Mit echten Exporten testen:** Der Import wird an echten Confluence-Daten gemessen, nicht an selbstgebauten.

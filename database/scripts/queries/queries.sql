@@ -3,8 +3,8 @@
 -- zeigt queries_as_app.sql.
 -- Gesucht wird über feste Schlüssel statt über IDs, weil die UUIDs bei jeder Einrichtung neu
 -- entstehen: Mandant und Workspace über slug, Space über key, Seite über den Titel im Space,
--- Gruppe über idp_group_id. Seitentitel sind nicht eindeutig erzwungen (CLAUDE.md, Abschnitt 4,
--- Punkt 6), in den Testdaten aber pro Space eindeutig.
+-- Gruppe über den Namen. Seitentitel und Gruppennamen sind nicht eindeutig erzwungen
+-- (CLAUDE.md, Abschnitt 4, Punkt 6), in den Testdaten aber eindeutig.
 
 select * from tenants order by slug;
 
@@ -77,12 +77,12 @@ select g.*
 from groups g
     join tenants t on t.id = g.tenant_id
 where t.slug = 'alpenwerk'
-order by g.idp_group_id;
+order by g.name;
 
-select g.idp_group_id, u.email, gm.*
+select g.name, u.email, gm.*
 from group_members gm
     join groups g on g.id = gm.group_id
     join tenants t on t.id = g.tenant_id
     join users u on u.id = gm.user_id
-where t.slug = 'alpenwerk' and g.idp_group_id = 'entwicklung'
+where t.slug = 'alpenwerk' and g.name = 'Entwicklung'
 order by u.email;

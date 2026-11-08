@@ -3,21 +3,19 @@
 // prüft, ob er schon erledigt ist, ein zweiter Lauf ändert also nichts. Danach bleibt der
 // Container wartend stehen und meldet „healthy“ (wie garage-init).
 //
-//   1. Projekt „NoteFieber“ in der Organisation NoteFieber (Betreiber), mit den Gruppen der
-//      Testdaten als Projektrollen
+//   1. Projekt „NoteFieber“ in der Organisation NoteFieber (Betreiber)
 //   2. OIDC-Client „web“ (Frontend, PKCE ohne Geheimnis) und API-Client „api“ (prüft Tokens)
 //   3. Organisationen Alpenwerk und Nordlicht mit festen IDs (= tenants.idp_org_id in seed.sql),
 //      jede bekommt das Projekt freigegeben
-//   4. die Testpersonen mit festen IDs (= users.idp_subject in seed.sql), bestätigter E-Mail,
-//      Testpasswort und ihren Gruppen (Projektrollen)
+//   4. die Testpersonen mit festen IDs (= users.idp_subject in seed.sql), bestätigter E-Mail
+//      und Testpasswort
 //   5. Werte für die Apps nach /out/zitadel.env (auf dem Rechner .local/zitadel.env)
 //
-// Gruppen: Zitadel v4 hat (noch) keine Gruppen. Die Gruppen sind deshalb Rollen im Projekt
-// NoteFieber; der Rollenschlüssel ist groups.idp_group_id. Im Token stehen sie unter
-// "urn:zitadel:iam:org:project:roles" (siehe LOCAL_SETUP.md).
+// Gruppen stehen nicht in Zitadel: Sie gehören dem Wiki (Tabelle groups, Quelle local) und
+// kommen aus seed.sql. Zitadel liefert nur Person und Mandant (siehe LOCAL_SETUP.md).
 //
-// Die Testdaten hier und in database/scripts/seed/seed.sql gehören zusammen: IDs, E-Mails
-// und Gruppen bei Änderungen in beiden Dateien nachziehen.
+// Die Testdaten hier und in database/scripts/seed/seed.sql gehören zusammen: IDs und
+// E-Mails bei Änderungen in beiden Dateien nachziehen.
 //
 // Spricht die Connect-Schnittstelle (v2) von Zitadel mit dem Token des Dienstkontos nf-setup,
 // das Zitadel beim ersten Start ins Volume schreibt. Nur Node.js, keine Pakete.
@@ -33,23 +31,18 @@ const PASSWORD = process.env.NF_TEST_PASSWORD ?? "NoteFieber-lokal-1";
 const WEB_URL = process.env.NF_WEB_URL ?? "http://localhost:3000";
 
 const PROJECT_ID = "notefieber";
-const ROLES = [
-  { key: "entwicklung", name: "Entwicklung" },
-  { key: "vertrieb", name: "Vertrieb" },
-  { key: "geschaeftsleitung", name: "Geschäftsleitung" },
-];
 const ORGS = [
-  { id: "org-alpenwerk", name: "Alpenwerk GmbH", roles: ["entwicklung", "vertrieb", "geschaeftsleitung"] },
-  { id: "org-nordlicht", name: "Nordlicht GmbH", roles: [] },
+  { id: "org-alpenwerk", name: "Alpenwerk GmbH" },
+  { id: "org-nordlicht", name: "Nordlicht GmbH" },
 ];
 const USERS = [
-  { id: "user-anna-huber", org: "org-alpenwerk", email: "anna.huber@alpenwerk.example", given: "Anna", family: "Huber", roles: ["geschaeftsleitung"] },
-  { id: "user-lukas-gruber", org: "org-alpenwerk", email: "lukas.gruber@alpenwerk.example", given: "Lukas", family: "Gruber", roles: ["entwicklung"] },
-  { id: "user-sophie-bauer", org: "org-alpenwerk", email: "sophie.bauer@alpenwerk.example", given: "Sophie", family: "Bauer", roles: ["entwicklung"] },
-  { id: "user-markus-wagner", org: "org-alpenwerk", email: "markus.wagner@alpenwerk.example", given: "Markus", family: "Wagner", roles: ["entwicklung"] },
-  { id: "user-max-mustermann", org: "org-alpenwerk", email: "max.mustermann@alpenwerk.example", given: "Max", family: "Mustermann", roles: ["vertrieb"] },
-  { id: "user-elena-novak", org: "org-alpenwerk", email: "elena.novak@agentur-nord.example", given: "Elena", family: "Novak", roles: [] },
-  { id: "user-eva-fischer", org: "org-nordlicht", email: "eva.fischer@nordlicht.example", given: "Eva", family: "Fischer", roles: [] },
+  { id: "user-anna-huber", org: "org-alpenwerk", email: "anna.huber@alpenwerk.example", given: "Anna", family: "Huber" },
+  { id: "user-lukas-gruber", org: "org-alpenwerk", email: "lukas.gruber@alpenwerk.example", given: "Lukas", family: "Gruber" },
+  { id: "user-sophie-bauer", org: "org-alpenwerk", email: "sophie.bauer@alpenwerk.example", given: "Sophie", family: "Bauer" },
+  { id: "user-markus-wagner", org: "org-alpenwerk", email: "markus.wagner@alpenwerk.example", given: "Markus", family: "Wagner" },
+  { id: "user-max-mustermann", org: "org-alpenwerk", email: "max.mustermann@alpenwerk.example", given: "Max", family: "Mustermann" },
+  { id: "user-elena-novak", org: "org-alpenwerk", email: "elena.novak@agentur-nord.example", given: "Elena", family: "Novak" },
+  { id: "user-eva-fischer", org: "org-nordlicht", email: "eva.fischer@nordlicht.example", given: "Eva", family: "Fischer" },
 ];
 
 const log = (msg) => console.log(`Zitadel: ${msg}`);
@@ -133,7 +126,7 @@ const OPERATOR_ORG = operatorOrg.result?.[0]?.id;
 if (!OPERATOR_ORG) throw new Error("Organisation NoteFieber (erste Instanz) nicht gefunden");
 log(`Instanz ${instance.instance?.name ?? "?"}, Betreiber-Organisation ${OPERATOR_ORG}`);
 
-// --- 1. Projekt und Rollen ---------------------------------------------------------------
+// --- 1. Projekt ---------------------------------------------------------------------------
 if (await exists("zitadel.project.v2.ProjectService/GetProject", { projectId: PROJECT_ID })) {
   log(`Projekt ${PROJECT_ID} schon vorhanden`);
 } else {
@@ -141,17 +134,11 @@ if (await exists("zitadel.project.v2.ProjectService/GetProject", { projectId: PR
     organizationId: OPERATOR_ORG,
     projectId: PROJECT_ID,
     name: "NoteFieber",
-    projectRoleAssertion: true,    // Rollen (= Gruppen) immer ins Token, ohne eigenen Scope
-    authorizationRequired: false,  // auch Personen ohne Gruppe dürfen sich anmelden
+    projectRoleAssertion: true,    // Projektrollen (derzeit keine) immer ins Token, ohne eigenen Scope
+    authorizationRequired: false,  // anmelden ohne Rolle im Projekt
     projectAccessRequired: true,   // aber nur aus Organisationen, denen das Projekt freigegeben ist
   });
   log(`Projekt ${PROJECT_ID} angelegt`);
-}
-for (const role of ROLES) {
-  const s = await create("zitadel.project.v2.ProjectService/AddProjectRole", {
-    projectId: PROJECT_ID, roleKey: role.key, displayName: role.name, group: "Gruppen",
-  });
-  log(`Rolle ${role.key}: ${s}`);
 }
 
 // --- 2. Clients --------------------------------------------------------------------------
@@ -215,7 +202,7 @@ for (const org of ORGS) {
     log(`Organisation ${org.name} (${org.id}) angelegt`);
   }
   const s = await create("zitadel.project.v2.ProjectService/CreateProjectGrant", {
-    projectId: PROJECT_ID, grantedOrganizationId: org.id, roleKeys: org.roles,
+    projectId: PROJECT_ID, grantedOrganizationId: org.id, roleKeys: [],
   });
   log(`Projekt für ${org.name} freigegeben: ${s}`);
 }
@@ -234,12 +221,6 @@ for (const u of USERS) {
       password: { password: PASSWORD, changeRequired: false },
     });
     log(`Person ${u.email} angelegt`);
-  }
-  if (u.roles.length) {
-    const s = await create("zitadel.authorization.v2.AuthorizationService/CreateAuthorization", {
-      userId: u.id, projectId: PROJECT_ID, organizationId: u.org, roleKeys: u.roles,
-    });
-    log(`  Gruppen ${u.roles.join(", ")}: ${s}`);
   }
 }
 

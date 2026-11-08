@@ -34,10 +34,10 @@
 --   Mandantentrennung
 --
 -- Login: Mandanten und Personen tragen dieselben festen IDs wie in der lokalen Zitadel-
--- Instanz (tenants.idp_org_id = Organisation, users.idp_subject = Person, groups.idp_group_id
--- = Projektrolle). Die legt docker/zitadel/init.mjs an; beide Dateien zusammen ändern
--- (docs/LOCAL_SETUP.md Abschnitt 6). E-Mail-Adressen unter example, damit nie echte Post
--- rausgeht.
+-- Instanz (tenants.idp_org_id = Organisation, users.idp_subject = Person). Die legt
+-- docker/zitadel/init.mjs an; beide Dateien zusammen ändern (docs/LOCAL_SETUP.md
+-- Abschnitt 6). Gruppen gehören dem Wiki (Quelle local) und stehen nur hier, nicht in
+-- Zitadel. E-Mail-Adressen unter example, damit nie echte Post rausgeht.
 -- =============================================================================
 \set QUIET on
 \pset tuples_only on
@@ -138,24 +138,23 @@ BEGIN
   END LOOP;
 END $$;
 
--- Gruppen kommen beim Login aus Zitadel (Projektrollen, Schlüssel = idp_group_id); hier so,
--- als hätte sich jede Person angemeldet
+-- Gruppen im Wiki (Quelle local), angelegt und befüllt von Anna als Organisations-Admin
 DO $$
-DECLARE r record;
+DECLARE r record; g uuid; m text;
 BEGIN
-  FOR r IN SELECT * FROM (VALUES
-      ('anna',   ARRAY['geschaeftsleitung'], ARRAY['Geschäftsleitung']),
-      ('lukas',  ARRAY['entwicklung'],       ARRAY['Entwicklung']),
-      ('sophie', ARRAY['entwicklung'],       ARRAY['Entwicklung']),
-      ('markus', ARRAY['entwicklung'],       ARRAY['Entwicklung']),
-      ('max',    ARRAY['vertrieb'],          ARRAY['Vertrieb'])
-    ) AS v (k, gids, names)
-  LOOP
-    PERFORM pg_temp.ctx(pg_temp.id('t1'), pg_temp.id(r.k));
-    PERFORM app.sync_user_groups(pg_temp.id(r.k), r.gids, r.names);
-  END LOOP;
   PERFORM pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('anna'));
-  INSERT INTO ids SELECT 'grp_entw', id FROM groups WHERE idp_group_id = 'entwicklung';
+  FOR r IN SELECT * FROM (VALUES
+      ('grp_gl',   'Geschäftsleitung', ARRAY['anna']),
+      ('grp_entw', 'Entwicklung',      ARRAY['lukas', 'sophie', 'markus']),
+      ('grp_vert', 'Vertrieb',         ARRAY['max'])
+    ) AS v (k, name, members)
+  LOOP
+    g := app.create_group(r.name, pg_temp.id('anna'));
+    INSERT INTO ids VALUES (r.k, g);
+    FOREACH m IN ARRAY r.members LOOP
+      PERFORM app.add_group_member(g, pg_temp.id(m), pg_temp.id('anna'));
+    END LOOP;
+  END LOOP;
 END $$;
 
 -- -----------------------------------------------------------------------------

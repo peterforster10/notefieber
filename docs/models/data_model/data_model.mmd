@@ -72,8 +72,9 @@ erDiagram
   GROUPS {
     uuid id PK
     uuid tenant_id FK
-    text idp_group_id "eindeutig pro Mandant"
     text name
+    text source "local, import, idp, scim"
+    text external_id "ID in der Quelle, eindeutig pro Mandant und Quelle"
   }
   GROUP_MEMBERS {
     uuid group_id PK,FK

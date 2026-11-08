@@ -6,8 +6,9 @@
 #   PSQL="psql -U wiki_owner -d wiki" ./schema_concurrency_test.sh
 #   PSQL="docker exec -i nf-pg18 psql -U wiki_owner -d wiki" ./schema_concurrency_test.sh
 #
-# Legt einen eigenen Mandanten an (Slug mit Zeitstempel) und lässt ihn stehen: Die Sitzungen
-# müssen committen, damit die andere Sitzung warten muss.
+# Legt einen eigenen Mandanten an (Slug mit Zeitstempel), weil die Sitzungen committen
+# müssen, damit die andere Sitzung warten muss. Am Ende, auch nach einem Fehler, löscht das
+# Skript ihn wieder (als wiki_owner, der RLS umgeht).
 set -euo pipefail
 
 PSQL=${PSQL:-psql -U wiki_owner -d wiki}
@@ -21,6 +22,42 @@ ok()   { echo "OK  $*"; }
 SLUG="nebenlaeufig-$(date +%s)"
 T=$(q -c "SET ROLE wiki_app" \
       -c "SELECT app.create_tenant('$SLUG', 'Nebenläufigkeit', 'eu-central', 'anna@$SLUG.example', 'Anna')" | tail -1)
+
+# Mandanten mit allem, was an ihm hängt, wieder löschen. Eine Funktion zum Löschen von
+# Mandanten gibt es nicht; die Reihenfolge folgt den Fremdschlüsseln. Der Trigger für den
+# letzten Organisations-Admin würde das Löschen der letzten Person verhindern und ist
+# deshalb nur in dieser Transaktion abgeschaltet (wiki_owner besitzt die Tabelle).
+cleanup() {
+  wait 2>/dev/null || true   # Sitzungen im Hintergrund zuerst beenden lassen
+  $PSQL -X -q -v ON_ERROR_STOP=1 >/dev/null <<SQL || echo "FEHLER: Mandant $SLUG nicht gelöscht" >&2
+BEGIN;
+UPDATE users  SET avatar_file_id = NULL WHERE tenant_id = '$T';
+UPDATE spaces SET home_page_id = NULL   WHERE tenant_id = '$T';
+DELETE FROM outbox       WHERE tenant_id = '$T';
+DELETE FROM audit_log    WHERE tenant_id = '$T';
+DELETE FROM import_items WHERE tenant_id = '$T';
+DELETE FROM imports      WHERE tenant_id = '$T';
+DELETE FROM comments     WHERE tenant_id = '$T';
+DELETE FROM page_links   WHERE tenant_id = '$T';
+DELETE FROM page_search  WHERE tenant_id = '$T';
+DELETE FROM page_versions WHERE tenant_id = '$T';
+DELETE FROM page_contents WHERE tenant_id = '$T';
+DELETE FROM grants       WHERE tenant_id = '$T';
+DELETE FROM files        WHERE tenant_id = '$T';
+DELETE FROM pages        WHERE tenant_id = '$T';
+DELETE FROM spaces       WHERE tenant_id = '$T';
+DELETE FROM invites      WHERE tenant_id = '$T';
+DELETE FROM workspaces   WHERE tenant_id = '$T';   -- Mitgliedschaften fallen mit
+DELETE FROM groups       WHERE tenant_id = '$T';   -- Gruppenmitglieder fallen mit
+ALTER TABLE users DISABLE TRIGGER protect_last_org_admin;
+DELETE FROM users        WHERE tenant_id = '$T';
+ALTER TABLE users ENABLE TRIGGER protect_last_org_admin;
+DELETE FROM tenants      WHERE id = '$T';
+COMMIT;
+SQL
+}
+trap cleanup EXIT
+
 ANNA=$(q -c "SELECT id FROM users WHERE tenant_id = '$T'")
 WS=$(q -c "SELECT id FROM workspaces WHERE tenant_id = '$T'")
 ctx() { echo "SET ROLE wiki_app; SELECT set_config('app.tenant_id', '$T', false), set_config('app.user_id', '$1', false);"; }
@@ -74,4 +111,4 @@ N=$(q -c "SELECT count(*) FROM grants WHERE space_id = '$SPACE' AND role = 'admi
 [[ "$N" -ge 1 ]] || fail "Space ohne Admin"
 ok "4 Zwei Admins entfernen sich gleichzeitig: einer bleibt"
 
-echo "Alle Nebenläufigkeitstests bestanden (Mandant $SLUG bleibt stehen)."
+echo "Alle Nebenläufigkeitstests bestanden (Mandant $SLUG wird wieder gelöscht)."
