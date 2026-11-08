@@ -2,14 +2,14 @@
 -- Tests 13–14: Inhalt, Versionen und Kommentare
 -- Teil von schema_test.sql: nur über schema_test.sql ausführen. Die Teile bauen
 -- aufeinander auf (gemeinsame Testdaten, eine Transaktion, Reihenfolge fest).
--- Nutzt Testdaten aus früheren Teilen: anna dm lukas max sophie t1
+-- Nutzt Testdaten aus früheren Teilen: dm lukas max peter sophie t1
 -- Legt Testdaten an: c1 c1r
 -- =============================================================================
 
 -- 13. Inhalt und Versionen: nur der Collab-Server speichert, Autoren pro Version
 DO $$
 BEGIN
-  PERFORM app.store_content(pg_temp.id('dm'), '\x01'::bytea, '[]'::jsonb, 'x', 'x', ARRAY[pg_temp.id('anna')]);
+  PERFORM app.store_content(pg_temp.id('dm'), '\x01'::bytea, '[]'::jsonb, 'x', 'x', ARRAY[pg_temp.id('peter')]);
   RAISE EXCEPTION 'FEHLER: App speichert Yjs-Inhalt';
 EXCEPTION WHEN insufficient_privilege THEN NULL;
 END $$;

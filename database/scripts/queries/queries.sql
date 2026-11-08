@@ -6,42 +6,46 @@
 -- Gruppe über den Namen. Seitentitel und Gruppennamen sind nicht eindeutig erzwungen
 -- (CLAUDE.md, Abschnitt 4, Punkt 6), in den Testdaten aber eindeutig.
 
-select * from tenants order by slug;
+select t.slug, t.name, t.region, t.plan, t.idp_org_id
+from tenants t
+order by t.id;
 
-select w.*
+select w.slug, w.name, w.tenant_id
 from workspaces w
     join tenants t on t.id = w.tenant_id
 where t.slug = 'alpenwerk'
-order by w.slug;
+order by w.id;
 
-select s.*
+select s.key, s.name, s.description, s.home_page_id, s.workspace_id
 from spaces s
     join workspaces w on w.id = s.workspace_id
     join tenants t on t.id = s.tenant_id
 where t.slug = 'alpenwerk' and w.slug = 'alpenwerk'
-order by s.key;
+order by s.id;
 
-select p.*
+select p.parent_id, p.space_id, p.path, p.position, p.title, p.inherit_perms
 from pages p
     join spaces s on s.id = p.space_id
     join tenants t on t.id = p.tenant_id
 where t.slug = 'alpenwerk' and s.key = 'ENTW'
-order by p.path;
+order by p.id;
 
-select c.*
-from page_contents c
-    join pages p on p.id = c.page_id
-    join spaces s on s.id = p.space_id
-    join tenants t on t.id = p.tenant_id
-where t.slug = 'alpenwerk' and s.key = 'ENTW' and p.title = 'Datenmodell';
-
-select v.*
-from page_versions v
-    join pages p on p.id = v.page_id
+select pc.page_id, pc.ydoc, pc.content_json, pc.plain_text, pc.editors_since_version
+from page_contents pc
+    join pages p on p.id = pc.page_id
     join spaces s on s.id = p.space_id
     join tenants t on t.id = p.tenant_id
 where t.slug = 'alpenwerk' and s.key = 'ENTW' and p.title = 'Datenmodell'
-order by v.version;
+order by p.id;
+
+select pv.page_id, pv.version, pv.kind, pv.restored_from,
+       pv.title, pv.ydoc, pv.content_json, pv.plain_text, pv.author_ids
+from page_versions pv
+    join pages p on p.id = pv.page_id
+    join spaces s on s.id = p.space_id
+    join tenants t on t.id = p.tenant_id
+where t.slug = 'alpenwerk' and s.key = 'ENTW' and p.title = 'Datenmodell'
+order by pv.version;
 
 -- Verlinkungen mit Titeln statt IDs
 select s.key, von.title as von, nach.title as nach, l.*
@@ -51,7 +55,7 @@ from page_links l
     join spaces s on s.id = von.space_id
 order by s.key, von.title, nach.title;
 
-select ps.*
+select ps.page_id, ps.tsv
 from page_search ps
     join pages p on p.id = ps.page_id
     join spaces s on s.id = p.space_id
@@ -59,13 +63,14 @@ from page_search ps
 where t.slug = 'alpenwerk' and s.key = 'ENTW' and p.title = 'Entwicklung';
 
 
-select u.*
+select u.idp_subject, u.email, u.display_name, u.role, u.is_external, u.locale, u.time_zone,
+       u.avatar_file_id
 from users u
     join tenants t on t.id = u.tenant_id
 where t.slug = 'alpenwerk'
 order by u.email;
 
-select u.email, u.display_name, m.*
+select w.name, u.email, u.display_name, m.role
 from workspace_members m
     join workspaces w on w.id = m.workspace_id
     join tenants t on t.id = w.tenant_id
@@ -73,13 +78,13 @@ from workspace_members m
 where t.slug = 'alpenwerk' and w.slug = 'alpenwerk'
 order by u.email;
 
-select g.*
+select g.name, g.source, g.external_id
 from groups g
     join tenants t on t.id = g.tenant_id
 where t.slug = 'alpenwerk'
 order by g.name;
 
-select g.name, u.email, gm.*
+select g.name, u.email
 from group_members gm
     join groups g on g.id = gm.group_id
     join tenants t on t.id = g.tenant_id

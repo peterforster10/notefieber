@@ -21,7 +21,7 @@ ok()   { echo "OK  $*"; }
 # --- Aufbau: Mandant, zwei Personen, Space ---------------------------------------
 SLUG="nebenlaeufig-$(date +%s)"
 T=$(q -c "SET ROLE wiki_app" \
-      -c "SELECT app.create_tenant('$SLUG', 'Nebenläufigkeit', 'eu-central', 'anna@$SLUG.example', 'Anna')" | tail -1)
+      -c "SELECT app.create_tenant('$SLUG', 'Nebenläufigkeit', 'eu-central', 'peter@$SLUG.example', 'Peter')" | tail -1)
 
 # Mandanten mit allem, was an ihm hängt, wieder löschen. Eine Funktion zum Löschen von
 # Mandanten gibt es nicht; die Reihenfolge folgt den Fremdschlüsseln. Der Trigger für den
@@ -58,17 +58,17 @@ SQL
 }
 trap cleanup EXIT
 
-ANNA=$(q -c "SELECT id FROM users WHERE tenant_id = '$T'")
+PETER=$(q -c "SELECT id FROM users WHERE tenant_id = '$T'")
 WS=$(q -c "SELECT id FROM workspaces WHERE tenant_id = '$T'")
 ctx() { echo "SET ROLE wiki_app; SELECT set_config('app.tenant_id', '$T', false), set_config('app.user_id', '$1', false);"; }
 as()  { local user=$1; shift; q -c "$(ctx "$user")" "$@" | tail -1; }
 
 BEN=$(q -c "SELECT uuidv7()")
-as "$ANNA" -c "INSERT INTO users (id, tenant_id, email, display_name) VALUES ('$BEN', '$T', 'ben@$SLUG.example', 'Ben')" >/dev/null
-as "$ANNA" -c "SELECT app.add_workspace_member('$WS', '$BEN', 'member', '$ANNA')" >/dev/null
-SPACE=$(as "$ANNA" -c "SELECT app.create_space('$WS', 'NEBEN', 'Nebenläufig', '$ANNA')")
-X=$(as "$ANNA" -c "SELECT app.create_page('$SPACE', NULL, 'X', '$ANNA')")
-Y=$(as "$ANNA" -c "SELECT app.create_page('$SPACE', NULL, 'Y', '$ANNA')")
+as "$PETER" -c "INSERT INTO users (id, tenant_id, email, display_name) VALUES ('$BEN', '$T', 'ben@$SLUG.example', 'Ben')" >/dev/null
+as "$PETER" -c "SELECT app.add_workspace_member('$WS', '$BEN', 'member', '$PETER')" >/dev/null
+SPACE=$(as "$PETER" -c "SELECT app.create_space('$WS', 'NEBEN', 'Nebenläufig', '$PETER')")
+X=$(as "$PETER" -c "SELECT app.create_page('$SPACE', NULL, 'X', '$PETER')")
+Y=$(as "$PETER" -c "SELECT app.create_page('$SPACE', NULL, 'Y', '$PETER')")
 
 # Sitzung 1 im Hintergrund: Befehl in einer Transaktion, Sperre $HOLD Sekunden halten
 hold() {
@@ -80,31 +80,31 @@ hold() {
 try() { local user=$1 sql=$2; as "$user" -c "$sql" 2>&1 >/dev/null || true; }
 
 # --- 1. Kreuzweises Verschieben erzeugt keinen Zyklus -----------------------------
-hold "$ANNA" "SELECT app.move_page('$X', '$Y', 'a0', '$ANNA')"
-ERR=$(try "$ANNA" "SELECT app.move_page('$Y', '$X', 'a0', '$ANNA')")
+hold "$PETER" "SELECT app.move_page('$X', '$Y', 'a0', '$PETER')"
+ERR=$(try "$PETER" "SELECT app.move_page('$Y', '$X', 'a0', '$PETER')")
 wait
 [[ "$ERR" == *"unter sich selbst"* ]] || fail "kreuzweises Verschieben nicht abgelehnt: ${ERR:-kein Fehler}"
 ok "1 Kreuzweises Verschieben: die zweite Sitzung wartet und erkennt den Zyklus"
 
 # --- 2. Neue Seite, während die Elternseite verschoben wird: aktueller Pfad -------
-hold "$ANNA" "SELECT app.move_page('$X', NULL, 'a5', '$ANNA')"
-K=$(as "$ANNA" -c "SELECT app.create_page('$SPACE', '$X', 'Kind', '$ANNA')")
+hold "$PETER" "SELECT app.move_page('$X', NULL, 'a5', '$PETER')"
+K=$(as "$PETER" -c "SELECT app.create_page('$SPACE', '$X', 'Kind', '$PETER')")
 wait
 R=$(q -c "SELECT c.path <@ x.path AND nlevel(c.path) = 2 FROM pages c, pages x WHERE c.id = '$K' AND x.id = '$X'")
 [[ "$R" == "t" ]] || fail "neue Seite hat einen veralteten Pfad"
 ok "2 Neue Seite während des Verschiebens bekommt den neuen Pfad"
 
 # --- 3. Neue Seite, während die Elternseite in den Papierkorb wandert -------------
-hold "$ANNA" "SELECT app.trash_page('$X', '$ANNA')"
-ERR=$(try "$ANNA" "SELECT app.create_page('$SPACE', '$K', 'Enkel', '$ANNA')")
+hold "$PETER" "SELECT app.trash_page('$X', '$PETER')"
+ERR=$(try "$PETER" "SELECT app.create_page('$SPACE', '$K', 'Enkel', '$PETER')")
 wait
 [[ "$ERR" == *"Papierkorb"* ]] || fail "Seite unter einer Seite im Papierkorb angelegt: ${ERR:-kein Fehler}"
 ok "3 Keine neue Seite unter einer Seite, die gerade in den Papierkorb wandert"
 
 # --- 4. Zwei Admins entfernen sich gleichzeitig gegenseitig ----------------------
-as "$ANNA" -c "SELECT app.set_grant('$SPACE', NULL, 'user', '$BEN', NULL, 'admin', '$ANNA')" >/dev/null
-hold "$ANNA" "SELECT app.set_grant('$SPACE', NULL, 'user', '$BEN', NULL, NULL, '$ANNA')"
-ERR=$(try "$BEN" "SELECT app.set_grant('$SPACE', NULL, 'user', '$ANNA', NULL, NULL, '$BEN')")
+as "$PETER" -c "SELECT app.set_grant('$SPACE', NULL, 'user', '$BEN', NULL, 'admin', '$PETER')" >/dev/null
+hold "$PETER" "SELECT app.set_grant('$SPACE', NULL, 'user', '$BEN', NULL, NULL, '$PETER')"
+ERR=$(try "$BEN" "SELECT app.set_grant('$SPACE', NULL, 'user', '$PETER', NULL, NULL, '$BEN')")
 wait
 [[ -n "$ERR" ]] || fail "beide Admins entfernt"
 N=$(q -c "SELECT count(*) FROM grants WHERE space_id = '$SPACE' AND role = 'admin'")

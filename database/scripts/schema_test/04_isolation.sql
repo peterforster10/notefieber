@@ -2,7 +2,7 @@
 -- Tests 15–20: Mandantentrennung, Outbox, Audit-Log, RLS auf allen Tabellen, Handeln im Namen anderer
 -- Teil von schema_test.sql: nur über schema_test.sql ausführen. Die Teile bauen
 -- aufeinander auf (gemeinsame Testdaten, eine Transaktion, Reihenfolge fest).
--- Nutzt Testdaten aus früheren Teilen: anna arch entw eva home max t1 t2
+-- Nutzt Testdaten aus früheren Teilen: arch entw eva home max peter t1 t2
 -- =============================================================================
 
 -- 15. Mandantentrennung
@@ -35,7 +35,7 @@ BEGIN
 END $$;
 
 -- 17. Outbox und Audit-Log
-SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('anna'));
+SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('peter'));
 DO $$
 BEGIN
   BEGIN
@@ -89,17 +89,17 @@ SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('max'));
 DO $$
 BEGIN
   BEGIN
-    PERFORM app.create_page(pg_temp.id('entw'), pg_temp.id('home'), 'Gefälscht', pg_temp.id('anna'));
+    PERFORM app.create_page(pg_temp.id('entw'), pg_temp.id('home'), 'Gefälscht', pg_temp.id('peter'));
     RAISE EXCEPTION 'FEHLER: Seite im Namen anderer';
   EXCEPTION WHEN insufficient_privilege THEN NULL;
   END;
   BEGIN
-    PERFORM app.set_grant(pg_temp.id('entw'), NULL, 'user', pg_temp.id('max'), NULL, 'admin', pg_temp.id('anna'));
+    PERFORM app.set_grant(pg_temp.id('entw'), NULL, 'user', pg_temp.id('max'), NULL, 'admin', pg_temp.id('peter'));
     RAISE EXCEPTION 'FEHLER: Recht im Namen anderer';
   EXCEPTION WHEN insufficient_privilege THEN NULL;
   END;
 END $$;
-SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('anna'));
+SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('peter'));
 DO $$
 BEGIN
   UPDATE pages SET path = 'x' WHERE id = pg_temp.id('arch');

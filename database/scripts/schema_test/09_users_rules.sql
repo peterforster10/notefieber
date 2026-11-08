@@ -2,12 +2,12 @@
 -- Tests 38–42: Personen, Gäste, Deaktivierte, kleine Regeln, Rechte an Funktionen
 -- Teil von schema_test.sql: nur über schema_test.sql ausführen. Die Teile bauen
 -- aufeinander auf (gemeinsame Testdaten, eine Transaktion, Reihenfolge fest).
--- Nutzt Testdaten aus früheren Teilen: anna arch dm elena entw eva geh geh27 home lukas max ops t1 t2
+-- Nutzt Testdaten aus früheren Teilen: arch dm elena entw eva geh geh27 home lukas max ops peter t1 t2
 -- Legt Testdaten an: agentur
 -- =============================================================================
 
 -- 38. Dieselbe Person aus Zitadel in mehreren Mandanten, pro Mandant aber nur einmal
-SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('anna'));
+SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('peter'));
 DO $$
 BEGIN
   INSERT INTO users (tenant_id, idp_subject, email, display_name)
@@ -28,14 +28,14 @@ BEGIN
 END $$;
 
 -- 39. Gäste sehen nur, was ihnen ausdrücklich freigegeben ist, den Space nur über diese Seite
-SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('anna'));
+SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('peter'));
 DO $$
 DECLARE g uuid;
 BEGIN
-  g := app.create_page(pg_temp.id('entw'), pg_temp.id('home'), 'Für die Agentur', pg_temp.id('anna'));
+  g := app.create_page(pg_temp.id('entw'), pg_temp.id('home'), 'Für die Agentur', pg_temp.id('peter'));
   INSERT INTO ids VALUES ('agentur', g);
-  PERFORM app.set_page_inheritance(g, false, pg_temp.id('anna'));
-  PERFORM app.set_grant(NULL, g, 'user', pg_temp.id('elena'), NULL, 'commenter', pg_temp.id('anna'));
+  PERFORM app.set_page_inheritance(g, false, pg_temp.id('peter'));
+  PERFORM app.set_grant(NULL, g, 'user', pg_temp.id('elena'), NULL, 'commenter', pg_temp.id('peter'));
 END $$;
 SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('elena'));
 DO $$
@@ -54,8 +54,8 @@ BEGIN
 END $$;
 
 -- 40. Deaktivierte Personen sehen nichts mehr und dürfen nichts, auch mit Rechten
-SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('anna'));
-SELECT app.set_user_active(pg_temp.id('lukas'), false, pg_temp.id('anna'));
+SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('peter'));
+SELECT app.set_user_active(pg_temp.id('lukas'), false, pg_temp.id('peter'));
 SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('lukas'));
 DO $$
 BEGIN
@@ -69,8 +69,8 @@ BEGIN
   END;
   RAISE NOTICE 'OK 40 Deaktivierte Personen sehen nichts und dürfen nichts';
 END $$;
-SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('anna'));
-SELECT app.set_user_active(pg_temp.id('lukas'), true, pg_temp.id('anna'));
+SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('peter'));
+SELECT app.set_user_active(pg_temp.id('lukas'), true, pg_temp.id('peter'));
 
 -- 41. Kleine Regeln: kein Admin für alle im Workspace, kleine Anker, keine Kommentare im
 --     Papierkorb, Wiederherstellen nur aus vorhandenen, älteren Versionen
@@ -78,19 +78,19 @@ DO $$
 DECLARE t uuid;
 BEGIN
   BEGIN
-    PERFORM app.set_grant(pg_temp.id('entw'), NULL, 'workspace', NULL, NULL, 'admin', pg_temp.id('anna'));
+    PERFORM app.set_grant(pg_temp.id('entw'), NULL, 'workspace', NULL, NULL, 'admin', pg_temp.id('peter'));
     RAISE EXCEPTION 'FEHLER: alle im Workspace als Admin';
   EXCEPTION WHEN raise_exception THEN IF SQLERRM NOT LIKE '%können nicht Admin sein%' THEN RAISE; END IF;
   END;
   BEGIN
-    PERFORM app.add_comment(pg_temp.id('arch'), 'Anker', pg_temp.id('anna'), jsonb_build_object('x', repeat('y', 3000)));
+    PERFORM app.add_comment(pg_temp.id('arch'), 'Anker', pg_temp.id('peter'), jsonb_build_object('x', repeat('y', 3000)));
     RAISE EXCEPTION 'FEHLER: riesiger Anker';
   EXCEPTION WHEN check_violation THEN NULL;
   END;
-  t := app.create_page(pg_temp.id('entw'), pg_temp.id('home'), 'Wegwerfen', pg_temp.id('anna'));
-  PERFORM app.trash_page(t, pg_temp.id('anna'));
+  t := app.create_page(pg_temp.id('entw'), pg_temp.id('home'), 'Wegwerfen', pg_temp.id('peter'));
+  PERFORM app.trash_page(t, pg_temp.id('peter'));
   BEGIN
-    PERFORM app.add_comment(t, 'Zu spät', pg_temp.id('anna'));
+    PERFORM app.add_comment(t, 'Zu spät', pg_temp.id('peter'));
     RAISE EXCEPTION 'FEHLER: Kommentar im Papierkorb';
   EXCEPTION WHEN raise_exception THEN IF SQLERRM NOT LIKE '%liegt im Papierkorb%' THEN RAISE; END IF;
   END;
@@ -133,11 +133,11 @@ DECLARE v_sql text;
 BEGIN
   FOREACH v_sql IN ARRAY ARRAY[
     format('SELECT app.page_rank(%L::uuid, %L::uuid)', pg_temp.id('geh'), pg_temp.id('lukas')),
-    format('SELECT app.space_rank(%L::uuid, %L::uuid)', pg_temp.id('entw'), pg_temp.id('anna')),
+    format('SELECT app.space_rank(%L::uuid, %L::uuid)', pg_temp.id('entw'), pg_temp.id('peter')),
     format('SELECT app.has_admin(%L::uuid)', pg_temp.id('entw')),
     format('SELECT app.perm_source(%L::uuid)', pg_temp.id('geh27')),
     format('SELECT app.emit(%L::uuid, %L::uuid, ''x'', ''{}'')', pg_temp.id('t1'), pg_temp.id('entw')),
-    format('SELECT app.audit(%L::uuid, ''x'', ''x'', NULL)', pg_temp.id('anna')),
+    format('SELECT app.audit(%L::uuid, ''x'', ''x'', NULL)', pg_temp.id('peter')),
     format('SELECT app.insert_version(%L::uuid, ''manual'', NULL, NULL)', pg_temp.id('dm')),
     format('SELECT app.lock_tree(%L::uuid, true)', pg_temp.id('entw'))
   ] LOOP

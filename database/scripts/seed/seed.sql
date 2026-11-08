@@ -17,7 +17,7 @@
 --
 -- Inhalt (passend zum Prototyp in prototype/pages und zu den Beispielen in CONCEPTS.md):
 --   Mandant Alpenwerk GmbH (alpenwerk), Workspace „Alpenwerk“
---     Anna Huber      Organisations-Admin, Owner, Gruppe Geschäftsleitung
+--     Peter Forster      Organisations-Admin, Owner, Gruppe Geschäftsleitung
 --     Lukas Gruber    Mitglied, Gruppe Entwicklung
 --     Sophie Bauer    Mitglied, Gruppe Entwicklung
 --     Markus Wagner   Mitglied, Gruppe Entwicklung
@@ -25,10 +25,10 @@
 --     Elena Novak     Gast (Agentur Nord), sieht nur „Kampagne Frühjahr“
 --   Spaces
 --     ENTW Entwicklung   alle lesen, Gruppe Entwicklung bearbeitet; Baum wie im Prototyp,
---                        „Personalplanung 2027“ nur für Anna und Lukas, Kommentare,
+--                        „Personalplanung 2027“ nur für Peter und Lukas, Kommentare,
 --                        zwei Versionen von „Datenmodell“, „Alte Notizen“ im Papierkorb
 --     VERT Vertrieb      von Max angelegt, alle kommentieren; „Kampagne Frühjahr“ mit Elena
---     PERS Personal      privat, nur Anna
+--     PERS Personal      privat, nur Peter
 --     ALT  Altes Intranet archiviert (nur lesbar)
 --   Mandant Nordlicht GmbH (nordlicht) mit Eva Fischer und Space DOKU, zum Prüfen der
 --   Mandantentrennung
@@ -98,11 +98,11 @@ DO $$
 DECLARE t uuid;
 BEGIN
   t := app.create_tenant('alpenwerk', 'Alpenwerk GmbH', 'eu-central',
-                         'anna.huber@alpenwerk.example', 'Anna Huber',
-                         p_admin_idp_subject => 'user-anna-huber', p_idp_org_id => 'org-alpenwerk',
+                         'peter.forster@alpenwerk.example', 'Peter Forster',
+                         p_admin_idp_subject => 'user-peter-forster', p_idp_org_id => 'org-alpenwerk',
                          p_workspace_slug => 'alpenwerk', p_workspace_name => 'Alpenwerk');
   INSERT INTO ids SELECT 't1', t;
-  INSERT INTO ids SELECT 'anna', id FROM users WHERE email = 'anna.huber@alpenwerk.example';
+  INSERT INTO ids SELECT 'peter', id FROM users WHERE email = 'peter.forster@alpenwerk.example';
   INSERT INTO ids SELECT 'ws1', id FROM workspaces WHERE tenant_id = t;
 
   t := app.create_tenant('nordlicht', 'Nordlicht GmbH', 'eu-central',
@@ -115,9 +115,9 @@ BEGIN
 END $$;
 
 -- -----------------------------------------------------------------------------
--- Personen und Gruppen bei Alpenwerk (Anna nimmt sie in den Workspace auf)
+-- Personen und Gruppen bei Alpenwerk (Peter nimmt sie in den Workspace auf)
 -- -----------------------------------------------------------------------------
-DO $$ BEGIN PERFORM pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('anna')); END $$;
+DO $$ BEGIN PERFORM pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('peter')); END $$;
 DO $$
 DECLARE r record; u uuid;
 BEGIN
@@ -134,25 +134,25 @@ BEGIN
     VALUES (u, app.current_tenant(), 'user-' || replace(split_part(r.email, '@', 1), '.', '-'),
             r.email, r.name, r.external);
     INSERT INTO ids VALUES (r.k, u);
-    PERFORM app.add_workspace_member(pg_temp.id('ws1'), u, r.ws_role, pg_temp.id('anna'));
+    PERFORM app.add_workspace_member(pg_temp.id('ws1'), u, r.ws_role, pg_temp.id('peter'));
   END LOOP;
 END $$;
 
--- Gruppen im Wiki (Quelle local), angelegt und befüllt von Anna als Organisations-Admin
+-- Gruppen im Wiki (Quelle local), angelegt und befüllt von Peter als Organisations-Admin
 DO $$
 DECLARE r record; g uuid; m text;
 BEGIN
-  PERFORM pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('anna'));
+  PERFORM pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('peter'));
   FOR r IN SELECT * FROM (VALUES
-      ('grp_gl',   'Geschäftsleitung', ARRAY['anna']),
+      ('grp_gl',   'Geschäftsleitung', ARRAY['peter']),
       ('grp_entw', 'Entwicklung',      ARRAY['lukas', 'sophie', 'markus']),
       ('grp_vert', 'Vertrieb',         ARRAY['max'])
     ) AS v (k, name, members)
   LOOP
-    g := app.create_group(r.name, pg_temp.id('anna'));
+    g := app.create_group(r.name, pg_temp.id('peter'));
     INSERT INTO ids VALUES (r.k, g);
     FOREACH m IN ARRAY r.members LOOP
-      PERFORM app.add_group_member(g, pg_temp.id(m), pg_temp.id('anna'));
+      PERFORM app.add_group_member(g, pg_temp.id(m), pg_temp.id('peter'));
     END LOOP;
   END LOOP;
 END $$;
@@ -163,29 +163,29 @@ END $$;
 DO $$
 DECLARE s uuid; h uuid; a uuid; b uuid; p uuid;
 BEGIN
-  s := app.create_space(pg_temp.id('ws1'), 'ENTW', 'Entwicklung', pg_temp.id('anna'), 'viewer',
+  s := app.create_space(pg_temp.id('ws1'), 'ENTW', 'Entwicklung', pg_temp.id('peter'), 'viewer',
                         'Architektur, Abläufe und Betrieb des Entwicklungsteams');
   SELECT home_page_id INTO h FROM spaces WHERE id = s;
   INSERT INTO ids VALUES ('entw', s), ('entw_home', h);
-  PERFORM app.set_grant(s, NULL, 'group', NULL, pg_temp.id('grp_entw'), 'editor', pg_temp.id('anna'));
+  PERFORM app.set_grant(s, NULL, 'group', NULL, pg_temp.id('grp_entw'), 'editor', pg_temp.id('peter'));
 
-  a := app.create_page(s, h, 'Architektur', pg_temp.id('anna'));
+  a := app.create_page(s, h, 'Architektur', pg_temp.id('peter'));
   INSERT INTO ids VALUES ('arch', a),
-    ('dm',     app.create_page(s, a, 'Datenmodell', pg_temp.id('anna'))),
-    ('rechte', app.create_page(s, a, 'Rechte-Konzept', pg_temp.id('anna'))),
-    ('release', app.create_page(s, h, 'Release-Prozess', pg_temp.id('anna')));
-  b := app.create_page(s, h, 'Betrieb', pg_temp.id('anna'));
+    ('dm',     app.create_page(s, a, 'Datenmodell', pg_temp.id('peter'))),
+    ('rechte', app.create_page(s, a, 'Rechte-Konzept', pg_temp.id('peter'))),
+    ('release', app.create_page(s, h, 'Release-Prozess', pg_temp.id('peter')));
+  b := app.create_page(s, h, 'Betrieb', pg_temp.id('peter'));
   INSERT INTO ids VALUES ('betrieb', b),
-    ('backup', app.create_page(s, b, 'Backups und Wiederherstellung', pg_temp.id('anna')));
-  p := app.create_page(s, b, 'Personalplanung 2027', pg_temp.id('anna'));
+    ('backup', app.create_page(s, b, 'Backups und Wiederherstellung', pg_temp.id('peter')));
+  p := app.create_page(s, b, 'Personalplanung 2027', pg_temp.id('peter'));
   INSERT INTO ids VALUES ('personal', p),
-    ('notizen', app.create_page(s, h, 'Alte Notizen', pg_temp.id('anna')));
+    ('notizen', app.create_page(s, h, 'Alte Notizen', pg_temp.id('peter')));
 
-  -- Personalplanung: eigene Rechte, nur Anna (Admin) und Lukas (Bereitschaftsplan)
-  PERFORM app.set_page_inheritance(p, false, pg_temp.id('anna'));
-  PERFORM app.set_grant(NULL, p, 'workspace', NULL, NULL, NULL, pg_temp.id('anna'));
-  PERFORM app.set_grant(NULL, p, 'group', NULL, pg_temp.id('grp_entw'), NULL, pg_temp.id('anna'));
-  PERFORM app.set_grant(NULL, p, 'user', pg_temp.id('lukas'), NULL, 'editor', pg_temp.id('anna'));
+  -- Personalplanung: eigene Rechte, nur Peter (Admin) und Lukas (Bereitschaftsplan)
+  PERFORM app.set_page_inheritance(p, false, pg_temp.id('peter'));
+  PERFORM app.set_grant(NULL, p, 'workspace', NULL, NULL, NULL, pg_temp.id('peter'));
+  PERFORM app.set_grant(NULL, p, 'group', NULL, pg_temp.id('grp_entw'), NULL, pg_temp.id('peter'));
+  PERFORM app.set_grant(NULL, p, 'user', pg_temp.id('lukas'), NULL, 'editor', pg_temp.id('peter'));
 END $$;
 
 -- Kommentare (Textstellen-Anker brauchen eine Yjs-Position, daher Seitenkommentare)
@@ -205,8 +205,8 @@ DO $$
 DECLARE c uuid;
 BEGIN
   c := app.add_comment(pg_temp.id('release'), 'Brauchen wir für pilot zwei Freigaben im Review?', pg_temp.id('markus'));
-  PERFORM pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('anna'));
-  PERFORM app.add_comment(pg_temp.id('release'), 'Nein, eine Freigabe reicht.', pg_temp.id('anna'), NULL, c);
+  PERFORM pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('peter'));
+  PERFORM app.add_comment(pg_temp.id('release'), 'Nein, eine Freigabe reicht.', pg_temp.id('peter'), NULL, c);
   PERFORM pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('markus'));
   PERFORM app.set_comment_resolved(c, pg_temp.id('markus'), true);
 END $$;
@@ -236,23 +236,23 @@ DO $$ BEGIN PERFORM pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('elena')); END $$;
 DO $$ BEGIN PERFORM app.add_comment(pg_temp.id('kampagne'), 'Die Entwürfe für die Plakate kommen bis Freitag.', pg_temp.id('elena')); END $$;
 
 -- -----------------------------------------------------------------------------
--- Space PERS (privat, nur Anna) und ALT (archiviert)
+-- Space PERS (privat, nur Peter) und ALT (archiviert)
 -- -----------------------------------------------------------------------------
-DO $$ BEGIN PERFORM pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('anna')); END $$;
+DO $$ BEGIN PERFORM pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('peter')); END $$;
 DO $$
 DECLARE s uuid; h uuid;
 BEGIN
-  s := app.create_space(pg_temp.id('ws1'), 'PERS', 'Personal', pg_temp.id('anna'), NULL, 'Nur für die Geschäftsleitung');
+  s := app.create_space(pg_temp.id('ws1'), 'PERS', 'Personal', pg_temp.id('peter'), NULL, 'Nur für die Geschäftsleitung');
   SELECT home_page_id INTO h FROM spaces WHERE id = s;
   INSERT INTO ids VALUES ('pers', s), ('pers_home', h),
-    ('urlaub',   app.create_page(s, h, 'Urlaubsregelung', pg_temp.id('anna'))),
-    ('gehalt',   app.create_page(s, h, 'Gehaltsbänder 2027', pg_temp.id('anna')));
+    ('urlaub',   app.create_page(s, h, 'Urlaubsregelung', pg_temp.id('peter'))),
+    ('gehalt',   app.create_page(s, h, 'Gehaltsbänder 2027', pg_temp.id('peter')));
 
-  s := app.create_space(pg_temp.id('ws1'), 'ALT', 'Altes Intranet', pg_temp.id('anna'), 'viewer', 'Archiv, nur noch lesbar');
+  s := app.create_space(pg_temp.id('ws1'), 'ALT', 'Altes Intranet', pg_temp.id('peter'), 'viewer', 'Archiv, nur noch lesbar');
   SELECT home_page_id INTO h FROM spaces WHERE id = s;
   INSERT INTO ids VALUES ('alt', s), ('alt_home', h),
-    ('telefon', app.create_page(s, h, 'Telefonliste (veraltet)', pg_temp.id('anna')));
-  PERFORM app.archive_space(s, true, pg_temp.id('anna'));
+    ('telefon', app.create_page(s, h, 'Telefonliste (veraltet)', pg_temp.id('peter')));
+  PERFORM app.archive_space(s, true, pg_temp.id('peter'));
 END $$;
 
 -- -----------------------------------------------------------------------------
@@ -277,7 +277,7 @@ DO $$ BEGIN PERFORM pg_temp.ctx(pg_temp.id('t1'), NULL); END $$;
 DO $$
 BEGIN
   -- ENTW (Texte aus dem Prototyp)
-  PERFORM pg_temp.fill(pg_temp.id('entw_home'), pg_temp.id('anna'), ARRAY[
+  PERFORM pg_temp.fill(pg_temp.id('entw_home'), pg_temp.id('peter'), ARRAY[
     'Hier dokumentiert das Entwicklungsteam von Alpenwerk Architektur, Abläufe und Betrieb.',
     'Neue Seiten bitte unter dem passenden Bereich anlegen. Seiten mit eigenen Rechten sind mit einem Schloss markiert.']);
   PERFORM pg_temp.fill(pg_temp.id('arch'), pg_temp.id('lukas'), ARRAY[
@@ -297,7 +297,7 @@ BEGIN
     'IDs sind UUIDv7 und werden mit uuidv7() erzeugt.',
     '## Seitenbaum',
     'parent_id, path (ltree) und position (Fractional Index) bilden den Baum.']);
-  PERFORM pg_temp.fill(pg_temp.id('rechte'), pg_temp.id('anna'), ARRAY[
+  PERFORM pg_temp.fill(pg_temp.id('rechte'), pg_temp.id('peter'), ARRAY[
     'Rechte werden am Space vergeben und an Seiten vererbt. Eine Seite kann die Vererbung kappen und eigene Rechte bekommen.']);
   PERFORM pg_temp.fill(pg_temp.id('release'), pg_temp.id('markus'), ARRAY[
     'Jeder Merge rollt automatisch nach staging aus. Für pilot braucht es eine Freigabe im Review.']);
@@ -305,7 +305,7 @@ BEGIN
     'Alles zum Cluster auf dem VPS: Backups, Überwachung und Bereitschaft.']);
   PERFORM pg_temp.fill(pg_temp.id('backup'), pg_temp.id('lukas'), ARRAY[
     'CloudNativePG sichert laufend in einen S3-Speicher bei einem anderen Anbieter. Die Wiederherstellung wird einmal pro Quartal geprobt.']);
-  PERFORM pg_temp.fill(pg_temp.id('personal'), pg_temp.id('anna'), ARRAY[
+  PERFORM pg_temp.fill(pg_temp.id('personal'), pg_temp.id('peter'), ARRAY[
     'Bereitschaftsplan und Personalplanung für 2027. Diese Seite sehen nur ausgewählte Personen.']);
   PERFORM pg_temp.fill(pg_temp.id('notizen'), pg_temp.id('lukas'), ARRAY[
     'Notizen aus dem Kick-off, inzwischen in die richtigen Seiten übertragen.']);
@@ -320,15 +320,15 @@ BEGIN
     'Zielgruppen, Termine und Freigaben für die Frühjahrskampagne. Elena Novak von der Agentur Nord kann hier kommentieren.']);
 
   -- PERS und ALT
-  PERFORM pg_temp.fill(pg_temp.id('pers_home'), pg_temp.id('anna'), ARRAY[
+  PERFORM pg_temp.fill(pg_temp.id('pers_home'), pg_temp.id('peter'), ARRAY[
     'Personalthemen der Geschäftsleitung. Dieser Space ist privat.']);
-  PERFORM pg_temp.fill(pg_temp.id('urlaub'), pg_temp.id('anna'), ARRAY[
+  PERFORM pg_temp.fill(pg_temp.id('urlaub'), pg_temp.id('peter'), ARRAY[
     'Urlaub bitte spätestens vier Wochen vorher im Team abstimmen.']);
-  PERFORM pg_temp.fill(pg_temp.id('gehalt'), pg_temp.id('anna'), ARRAY[
+  PERFORM pg_temp.fill(pg_temp.id('gehalt'), pg_temp.id('peter'), ARRAY[
     'Gehaltsbänder 2027 je Stufe, vertraulich.']);
-  PERFORM pg_temp.fill(pg_temp.id('alt_home'), pg_temp.id('anna'), ARRAY[
+  PERFORM pg_temp.fill(pg_temp.id('alt_home'), pg_temp.id('peter'), ARRAY[
     'Das alte Intranet ist archiviert und nur noch lesbar.']);
-  PERFORM pg_temp.fill(pg_temp.id('telefon'), pg_temp.id('anna'), ARRAY[
+  PERFORM pg_temp.fill(pg_temp.id('telefon'), pg_temp.id('peter'), ARRAY[
     'Diese Liste wird nicht mehr gepflegt. Aktuelle Durchwahlen stehen im Login-Dienst.']);
 END $$;
 

@@ -2,12 +2,12 @@
 -- Tests 21–24: Verwaltung: Mitglieder entfernen, letzter Owner, Organisations-Admin, Archiv
 -- Teil von schema_test.sql: nur über schema_test.sql ausführen. Die Teile bauen
 -- aufeinander auf (gemeinsame Testdaten, eine Transaktion, Reihenfolge fest).
--- Nutzt Testdaten aus früheren Teilen: anna lukas sophie t1 ws1
+-- Nutzt Testdaten aus früheren Teilen: lukas peter sophie t1 ws1
 -- Legt Testdaten an: priv
 -- =============================================================================
 
 -- 21. Aus dem Workspace entfernt: persönliche Rechte weg, nichts mehr sichtbar
-SELECT app.remove_workspace_member(pg_temp.id('ws1'), pg_temp.id('sophie'), pg_temp.id('anna'));
+SELECT app.remove_workspace_member(pg_temp.id('ws1'), pg_temp.id('sophie'), pg_temp.id('peter'));
 DO $$
 BEGIN
   ASSERT (SELECT count(*) FROM grants WHERE user_id = pg_temp.id('sophie')) = 0, 'Rechte bleiben';
@@ -20,16 +20,16 @@ BEGIN
 END $$;
 
 -- 22. Letzter Owner und letzter Organisations-Admin bleiben
-SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('anna'));
+SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('peter'));
 DO $$
 BEGIN
   BEGIN
-    PERFORM app.remove_workspace_member(pg_temp.id('ws1'), pg_temp.id('anna'), pg_temp.id('anna'));
+    PERFORM app.remove_workspace_member(pg_temp.id('ws1'), pg_temp.id('peter'), pg_temp.id('peter'));
     RAISE EXCEPTION 'FEHLER: letzter Owner entfernt';
   EXCEPTION WHEN restrict_violation THEN NULL;
   END;
   BEGIN
-    PERFORM app.set_user_role(pg_temp.id('anna'), 'member', pg_temp.id('anna'));
+    PERFORM app.set_user_role(pg_temp.id('peter'), 'member', pg_temp.id('peter'));
     RAISE EXCEPTION 'FEHLER: letzter Organisations-Admin herabgestuft';
   EXCEPTION WHEN restrict_violation THEN NULL;
   END;
@@ -44,11 +44,11 @@ BEGIN
   s := app.create_space(pg_temp.id('ws1'), 'PRIV', 'Privat', pg_temp.id('lukas'), NULL);
   INSERT INTO ids VALUES ('priv', s);
 END $$;
-SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('anna'));
+SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('peter'));
 DO $$
 BEGIN
   ASSERT (SELECT count(*) FROM spaces WHERE id = pg_temp.id('priv')) = 0, 'Org-Admin sieht privaten Space';
-  PERFORM app.set_grant(pg_temp.id('priv'), NULL, 'user', pg_temp.id('anna'), NULL, 'admin', pg_temp.id('anna'));
+  PERFORM app.set_grant(pg_temp.id('priv'), NULL, 'user', pg_temp.id('peter'), NULL, 'admin', pg_temp.id('peter'));
   ASSERT (SELECT count(*) FROM spaces WHERE id = pg_temp.id('priv')) = 1, 'Wiederherstellung wirkt nicht';
   ASSERT (SELECT count(*) FROM audit_log WHERE action = 'grant.changed' AND target_id = pg_temp.id('priv')) = 1,
     'Wiederherstellung nicht im Audit-Log';
@@ -56,7 +56,7 @@ BEGIN
 END $$;
 
 -- 24. Archivierte Spaces sind nur noch lesbar
-SELECT app.archive_space(pg_temp.id('priv'), true, pg_temp.id('anna'));
+SELECT app.archive_space(pg_temp.id('priv'), true, pg_temp.id('peter'));
 SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('lukas'));
 DO $$
 BEGIN

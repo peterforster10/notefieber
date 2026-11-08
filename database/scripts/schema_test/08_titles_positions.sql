@@ -2,7 +2,7 @@
 -- Tests 36–37: Titel aus Yjs und Positionen im Seitenbaum
 -- Teil von schema_test.sql: nur über schema_test.sql ausführen. Die Teile bauen
 -- aufeinander auf (gemeinsame Testdaten, eine Transaktion, Reihenfolge fest).
--- Nutzt Testdaten aus früheren Teilen: anna dm entw grp_dev home lukas t1
+-- Nutzt Testdaten aus früheren Teilen: dm entw grp_dev home lukas peter t1
 -- Legt Testdaten an: viele
 -- =============================================================================
 
@@ -14,12 +14,12 @@ SELECT pg_temp.ctx(pg_temp.id('t1'), NULL);
 DO $$
 DECLARE dm uuid := pg_temp.id('dm');
 BEGIN
-  PERFORM app.store_content(dm, '\x0c'::bytea, '[]'::jsonb, repeat('x', 2000001), repeat('T', 300), ARRAY[pg_temp.id('anna')]);
+  PERFORM app.store_content(dm, '\x0c'::bytea, '[]'::jsonb, repeat('x', 2000001), repeat('T', 300), ARRAY[pg_temp.id('peter')]);
   ASSERT (SELECT length(title) FROM pages WHERE id = dm) = 255, 'zu langer Titel nicht gekürzt';
   ASSERT (SELECT length(plain_text) FROM page_contents WHERE page_id = dm) = 2000000, 'zu langer Text nicht gekürzt';
-  PERFORM app.store_content(dm, '\x0d'::bytea, '[]'::jsonb, 'Text', NULL, ARRAY[pg_temp.id('anna')]);
+  PERFORM app.store_content(dm, '\x0d'::bytea, '[]'::jsonb, 'Text', NULL, ARRAY[pg_temp.id('peter')]);
   ASSERT (SELECT length(title) FROM pages WHERE id = dm) = 255, 'Titel ohne Angabe verändert';
-  PERFORM app.store_content(dm, '\x0e'::bytea, '[]'::jsonb, 'Text', '  Datenmodell  ', ARRAY[pg_temp.id('anna')]);
+  PERFORM app.store_content(dm, '\x0e'::bytea, '[]'::jsonb, 'Text', '  Datenmodell  ', ARRAY[pg_temp.id('peter')]);
   ASSERT (SELECT title FROM pages WHERE id = dm) = 'Datenmodell', 'Titel nicht übernommen';
   RAISE NOTICE 'OK 36 Titel nur über Yjs, zu lange Titel und Texte werden gekürzt';
 END $$;
@@ -40,25 +40,25 @@ BEGIN
   ASSERT app.next_position('Zz') = 'a0', 'Zz';
   ASSERT app.next_position('Yzz') = 'Z0', 'Yzz';
 END $$;
-SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('anna'));
+SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('peter'));
 DO $$
 DECLARE p uuid; h uuid;
 BEGIN
-  p := app.create_page(pg_temp.id('entw'), pg_temp.id('home'), 'Viele Kinder', pg_temp.id('anna'));
+  p := app.create_page(pg_temp.id('entw'), pg_temp.id('home'), 'Viele Kinder', pg_temp.id('peter'));
   INSERT INTO ids VALUES ('viele', p);
   FOR i IN 1..70 LOOP
-    PERFORM app.create_page(pg_temp.id('entw'), p, 'Kind ' || i, pg_temp.id('anna'));
+    PERFORM app.create_page(pg_temp.id('entw'), p, 'Kind ' || i, pg_temp.id('peter'));
   END LOOP;
   ASSERT (SELECT max(length(position)) FROM pages WHERE parent_id = p) = 3, 'Positionen wachsen';
   ASSERT (SELECT array_agg(title ORDER BY position, id) FROM pages WHERE parent_id = p)
        = (SELECT array_agg('Kind ' || i ORDER BY i) FROM generate_series(1, 70) AS i), 'Reihenfolge falsch';
   -- Ein eingeschränktes Geschwister weit hinten, für Lukas unsichtbar
-  h := app.create_page(pg_temp.id('entw'), p, 'Geheim', pg_temp.id('anna'), 'c000');
-  PERFORM app.set_page_inheritance(h, false, pg_temp.id('anna'));
-  PERFORM app.set_grant(NULL, h, 'workspace', NULL, NULL, NULL, pg_temp.id('anna'));
-  PERFORM app.set_grant(NULL, h, 'group', NULL, pg_temp.id('grp_dev'), NULL, pg_temp.id('anna'));
+  h := app.create_page(pg_temp.id('entw'), p, 'Geheim', pg_temp.id('peter'), 'c000');
+  PERFORM app.set_page_inheritance(h, false, pg_temp.id('peter'));
+  PERFORM app.set_grant(NULL, h, 'workspace', NULL, NULL, NULL, pg_temp.id('peter'));
+  PERFORM app.set_grant(NULL, h, 'group', NULL, pg_temp.id('grp_dev'), NULL, pg_temp.id('peter'));
   BEGIN
-    PERFORM app.create_page(pg_temp.id('entw'), p, 'Falsch', pg_temp.id('anna'), 'z0');
+    PERFORM app.create_page(pg_temp.id('entw'), p, 'Falsch', pg_temp.id('peter'), 'z0');
     RAISE EXCEPTION 'FEHLER: Position mit zu kurzem ganzzahligem Teil';
   EXCEPTION WHEN check_violation THEN NULL;
   END;

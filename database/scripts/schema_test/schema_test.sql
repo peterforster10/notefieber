@@ -26,7 +26,7 @@
 --   11_content_json.sql       Test  44     BlockNote-JSON neben dem Yjs-Zustand
 --   12_groups.sql             Tests 45–46  Gruppen im Wiki, letzter Admin über Gruppe, Quellen
 --
--- Testdaten: Die erfundene Firma Alpenwerk (Mandant t1) mit Anna (Organisations-Admin),
+-- Testdaten: Die erfundene Firma Alpenwerk (Mandant t1) mit Peter (Organisations-Admin),
 -- Lukas, Max, Sophie und dem Gast Elena, dazu Eva im zweiten Mandanten (t2). IDs liegen
 -- in der Tabelle ids und werden mit pg_temp.id('name') nachgeschlagen; pg_temp.ctx setzt
 -- Mandant und Person. Jeder Teil beginnt und endet als wiki_app.
