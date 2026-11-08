@@ -119,7 +119,7 @@ PostgreSQL 18 läuft im Container `nf-pg18` (offizielles Image `postgres:18`). D
 Beim ersten Start passiert das automatisch. Das Init-Skript [`10-notefieber.sh`](../docker/postgres/initdb/10-notefieber.sh) führt nacheinander aus:
 
 1. **Rollen und Datenbank** als Superuser `postgres`: `roles_database.sql` legt die Rollen `wiki_owner`, `wiki_app` und `wiki_worker` an und die Datenbank `wiki` mit der Locale `C.UTF-8`.
-2. **Schema** als Eigentümer `wiki_owner`, **nie** als `postgres`, sonst liefen alle `SECURITY DEFINER`-Funktionen als Superuser: `schema/schema.sql`.
+2. **Schema** als Eigentümer `wiki_owner`, **nie** als `postgres`, sonst liefen alle `SECURITY DEFINER`-Funktionen als Superuser: [`migrate.sh`](../database/scripts/migrate.sh) spielt alle Migrationen aus `database/scripts/migrations/` ein ([Das Schema ändern](#das-schema-ändern)).
 3. **Testdaten** als `wiki_owner`, wenn `NF_SEED=true` ([unten](#testdaten)).
 
 Was dabei passiert ist, zeigt das Log:
@@ -128,7 +128,7 @@ Was dabei passiert ist, zeigt das Log:
 docker logs nf-pg18 2>&1 | grep NoteFieber
 ```
 
-Erwartet: `NoteFieber: Rollen und Datenbank …`, `NoteFieber: Schema …`, `NoteFieber: Testdaten …`. Bricht ein Schritt ab, steht der Fehler direkt darunter; der Container läuft dann nicht weiter. Den Fehler beheben und mit `docker compose down -v` und `docker compose up -d --wait` neu anfangen.
+Erwartet: `NoteFieber: Rollen und Datenbank …`, `NoteFieber: Schema …` mit `Migration 0001_initial_schema eingespielt`, `NoteFieber: Testdaten …`. Bricht ein Schritt ab, steht der Fehler direkt darunter; der Container läuft dann nicht weiter. Den Fehler beheben und mit `docker compose down -v` und `docker compose up -d --wait` neu anfangen.
 
 **Von Hand** braucht man die Schritte nur nach dem [Zurücksetzen der Datenbank](#datenbank-zurücksetzen) oder mit einem PostgreSQL außerhalb von Docker:
 
@@ -137,7 +137,7 @@ docker exec nf-pg18 psql -U postgres -v ON_ERROR_STOP=1 -f /scripts/roles_databa
 ```
 
 ```bash
-docker exec nf-pg18 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -q -f /scripts/schema/schema.sql
+docker exec nf-pg18 bash /scripts/migrate.sh
 ```
 
 Die Rollen und Rechte erklärt [SCHEMA.md, Abschnitt 9](SCHEMA.md#9-datenbank-rollen-und-schemas). Kurz: `wiki_owner` führt nur Migrationen aus und umgeht RLS; die Apps verbinden sich später mit eigenen Login-Rollen in `wiki_app` (API) bzw. `wiki_worker` (Collab-Server, Jobs).
@@ -254,25 +254,49 @@ PSQL="docker exec -i nf-pg18 psql -U wiki_owner -d wiki" bash database/scripts/s
 
 Erwartet: `OK 1` bis `OK 4`, dann `Alle Nebenläufigkeitstests bestanden`. Dieser Test muss committen und legt deshalb einen eigenen Mandanten `nebenlaeufig-<zeitstempel>` an. Am Ende löscht er ihn wieder, auch wenn ein Test fehlschlägt. Bleibt doch einer stehen (etwa nach einem Abbruch mit Strg+C), stört er nicht; wer ihn loswerden will, [setzt die Datenbank zurück](#datenbank-zurücksetzen).
 
+**Migrationstest** (`schema/` und die Migrationen ergeben dasselbe Schema, etwa 15 Sekunden):
+
+```bash
+ADMIN="docker exec -i nf-pg18 psql -U postgres" OWNER="docker exec -i nf-pg18 psql -U wiki_owner" DUMP="docker exec -i nf-pg18 pg_dump -U postgres" bash database/scripts/schema_test/schema_migrations_test.sh
+```
+
+Erwartet: `OK 1` und `OK 2`, dann `Alle Migrationstests bestanden`. Der Test spielt beide Wege in je eine eigene, frische Datenbank (`nf_check_schema`, `nf_check_migrations`) ein, vergleicht sie mit `pg_dump` und löscht sie danach wieder. Die Datenbank `wiki` berührt er nicht. Schlägt er fehl, zeigt er die Unterschiede: Zeilen mit `<` stehen nur in `schema/`, Zeilen mit `>` nur in den Migrationen.
+
 ### Das Schema ändern
 
-Solange es keine Produktivdaten gibt, ist das Schema in `database/scripts/schema/` vollständig und es gibt noch keine Migrationen. `schema.sql` ist der Einstieg und bindet die Teile (`00_setup.sql` … `90_privileges.sql`) mit `\ir` in einer Transaktion ein. Welche Datei was enthält, zeigt die Tabelle am Anfang von [SCHEMA.md](SCHEMA.md). Ein Änderungszyklus sieht so aus:
+Das Schema steht an zwei Stellen, und jede Änderung kommt in beide:
 
-1. **Test zuerst:** Alles, was Rechte oder Sichtbarkeit berührt, bekommt zuerst einen Test (Regel aus der `CLAUDE.md`). Die Tests liegen in `database/scripts/schema_test/`: `schema_test.sql` ist der Einstieg, die Tests stehen in den Teilen `01_basics.sql` … `11_content_json.sql`. Neue Tests hinten an den passenden Teil oder als neuer Teil am Ende (mit `\ir`-Zeile in `schema_test.sql`). Die Teile bauen aufeinander auf; welche Testdaten ein Teil nutzt und anlegt, steht in seinem Kopf. Die Tests laufen als `wiki_app` bzw. `wiki_worker`.
-2. Den passenden Teil ändern, z. B. eine neue Seitenfunktion in `60_functions_pages.sql`, ihre Freigabe in `90_privileges.sql`, eine neue Leseregel in `80_rls.sql`. Die Regeln für neue Funktionen stehen in der `CLAUDE.md` (Abschnitt 13) und in [SCHEMA.md, Abschnitt 9](SCHEMA.md#9-datenbank-rollen-und-schemas): Mandant in jeder Abfrage prüfen, `require_actor` zuerst, neue Funktionen ausdrücklich freigeben. Ein **neuer Teil** braucht eine `\ir`-Zeile in `schema.sql` an der richtigen Stelle der Reihenfolge.
-3. [Datenbank zurücksetzen](#datenbank-zurücksetzen) und neu einspielen, dabei auch die Testdaten. Scheitert `seed.sql`, nutzt es eine geänderte Funktion; dann das Skript mitziehen.
-4. Beide [Tests ausführen](#tests-ausführen).
-5. [SCHEMA.md](SCHEMA.md) und bei Bedarf `CLAUDE.md` nachziehen.
+- **`database/scripts/schema/`** ist der vollständige, lesbare Stand: `schema.sql` bindet die Teile (`00_setup.sql` … `90_privileges.sql`) mit `\ir` ein. Welche Datei was enthält, zeigt die Tabelle am Anfang von [SCHEMA.md](SCHEMA.md). Hier liest man nach, wie etwas aussieht.
+- **`database/scripts/migrations/`** sind die Schritte, mit denen jede Datenbank dorthin kommt, auch eine mit Daten. `0001_initial_schema.sql` ist der Stand vom 8. November 2026, erzeugt mit [`schema/bundle.sh`](../database/scripts/schema/bundle.sh). Jede spätere Änderung ist eine neue Datei. [`migrate.sh`](../database/scripts/migrate.sh) spielt ein, was fehlt, und führt darüber Buch in der Tabelle `migrations.applied`.
+
+Dass beide Stellen dasselbe Schema ergeben, prüft der [Migrationstest](#tests-ausführen). Ein Änderungszyklus:
+
+1. **Test zuerst:** Alles, was Rechte oder Sichtbarkeit berührt, bekommt zuerst einen Test (Regel aus der `CLAUDE.md`). Die Tests liegen in `database/scripts/schema_test/`: `schema_test.sql` ist der Einstieg, die Tests stehen in den Teilen `01_basics.sql` … `12_groups.sql`. Neue Tests hinten an den passenden Teil oder als neuer Teil am Ende (mit `\ir`-Zeile in `schema_test.sql`). Die Teile bauen aufeinander auf; welche Testdaten ein Teil nutzt und anlegt, steht in seinem Kopf. Die Tests laufen als `wiki_app` bzw. `wiki_worker`.
+2. **`schema/` ändern:** den passenden Teil, z. B. eine neue Seitenfunktion in `60_functions_pages.sql`, ihre Freigabe in `90_privileges.sql`, eine neue Leseregel in `80_rls.sql`. Die Regeln für neue Funktionen stehen in der `CLAUDE.md` (Abschnitt 13) und in [SCHEMA.md, Abschnitt 9](SCHEMA.md#9-datenbank-rollen-und-schemas): Mandant in jeder Abfrage prüfen, `require_actor` zuerst, neue Funktionen ausdrücklich freigeben. Ein **neuer Teil** braucht eine `\ir`-Zeile in `schema.sql` an der richtigen Stelle der Reihenfolge.
+3. **Migration schreiben:** `database/scripts/migrations/NNNN_beschreibung.sql` mit der nächsten freien Nummer, z. B. `0002_space_icon.sql`. Sie enthält dieselbe Änderung als Schritt: `ALTER TABLE …`, `CREATE OR REPLACE FUNCTION …` mit **genau** dem Text aus `schema/`, `GRANT`/`REVOKE` für neue Funktionen (sie sind sonst für niemanden ausführbar), neue Policies. Regeln:
+   - reines SQL, kein `BEGIN`/`COMMIT` (`migrate.sh` legt eine Transaktion darum) und keine psql-Befehle wie `\ir`,
+   - eingespielte Migrationen **nie ändern**; `migrate.sh` merkt sich eine Prüfsumme und bricht sonst ab,
+   - nur vorwärts, und **eine Version rückwärtskompatibel**: Die bisherige App muss mit dem neuen Schema noch laufen (Spalte erst hinzufügen, später entfernen),
+   - neue Spalten in `schema/` **ans Ende** der Tabelle schreiben, weil `ALTER TABLE … ADD COLUMN` sie hinten anhängt; sonst meldet der Migrationstest einen Unterschied.
+4. **Einspielen**, ohne die Datenbank zurückzusetzen; die Daten bleiben:
+
+   ```bash
+   docker exec nf-pg18 bash /scripts/migrate.sh
+   ```
+
+   Erwartet: `Migration 0002_… eingespielt`, dann `Migrationen aktuell, 2 eingespielt.` Schlägt eine Migration fehl, ist nichts davon eingespielt (eine Transaktion pro Migration). Vom Rechner aus geht es auch mit `PSQL="psql -h localhost -U wiki_owner -d wiki" bash database/scripts/migrate.sh` (mit dem [Passwort von `wiki_owner`](#passwort-für-wiki_owner)).
+5. Alle drei [Tests ausführen](#tests-ausführen), auch den Migrationstest. Scheitert `seed.sql` auf einer frischen Datenbank, nutzt es eine geänderte Funktion; dann das Skript mitziehen.
+6. [SCHEMA.md](SCHEMA.md) und bei Bedarf `CLAUDE.md` nachziehen.
 
 ### Datenbank zurücksetzen
 
-Nur die Datenbank `wiki`, z. B. nach einer Schemaänderung. Schneller als [alles neu](#7-alltag-starten-stoppen-neu-anfangen), Garage bleibt unberührt, und das Passwort von `wiki_owner` bleibt erhalten (es hängt an der Rolle, nicht an der Datenbank). Die Hinweise `role "wiki_owner" has already been granted membership …` sind harmlos:
+Nur die Datenbank `wiki`, z. B. um mit frischen Testdaten anzufangen. Für Schemaänderungen ist das nicht nötig ([Migration einspielen](#das-schema-ändern)). Schneller als [alles neu](#7-alltag-starten-stoppen-neu-anfangen), Garage bleibt unberührt, und das Passwort von `wiki_owner` bleibt erhalten (es hängt an der Rolle, nicht an der Datenbank). Die Hinweise `role "wiki_owner" has already been granted membership …` sind harmlos:
 
 ```bash
 export MSYS_NO_PATHCONV=1
 docker exec nf-pg18 psql -U postgres -c "DROP DATABASE IF EXISTS wiki WITH (FORCE)"
 docker exec nf-pg18 psql -U postgres -v ON_ERROR_STOP=1 -q -f /scripts/roles_database.sql
-docker exec nf-pg18 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -q -f /scripts/schema/schema.sql
+docker exec nf-pg18 bash /scripts/migrate.sh
 ```
 
 Testdaten wieder einspielen (optional):
@@ -595,10 +619,13 @@ Ohne `-v` bleiben die Volumes (`notefieber-pgdata` mit den Datenbanken `wiki` un
 | `role "wiki_owner" does not exist` | `roles_database.sql` fehlt ([Ersteinrichtung](#ersteinrichtung-rollen-datenbank-schema)). |
 | `Rollen wiki_app und wiki_worker fehlen: zuerst roles_database.sql ausführen` | Ebenso: erst `roles_database.sql`, dann das Schema. |
 | `database "wiki" already exists` | `roles_database.sql` wurde schon einmal ausgeführt. Zum Neuaufsetzen zuerst die [Datenbank zurücksetzen](#datenbank-zurücksetzen). |
-| `relation "…" already exists` beim Schema | Das Schema ist schon eingespielt. `schema.sql` ist kein Migrationsskript und lässt sich nicht zweimal einspielen; Datenbank zurücksetzen. Es wird dabei nichts geändert (eine Transaktion). |
+| `relation "…" already exists` beim Schema | `schema.sql` wurde von Hand auf eine Datenbank gespielt, die das Schema schon hat. Das Schema kommt über `migrate.sh`, das nur Fehlendes einspielt. Geändert wurde nichts (eine Transaktion). |
+| `migrate.sh: Das Schema wurde ohne Migrationen eingespielt` | Die Datenbank stammt aus der Zeit vor den Migrationen (vor dem 8. November 2026, mit `schema.sql` eingespielt) und hat keine Buchführung. Einmal die [Datenbank zurücksetzen](#datenbank-zurücksetzen); das Passwort von `wiki_owner` bleibt. |
+| `migrate.sh: … wurde nach dem Einspielen geändert` | Eine schon eingespielte Migration wurde bearbeitet. Die Änderung rückgängig machen und als neue Migration schreiben. Nur lokal und nur mit Testdaten: alternativ die Datenbank zurücksetzen. |
+| `migrate.sh: nicht als Superuser einspielen` | `migrate.sh` lief als `postgres`. Immer als `wiki_owner` (Standard im Container). |
 | Fehlermeldungen beginnen mit `psql:/scripts/schema/60_functions_pages.sql:42:` | So soll es sein: Die Meldung nennt den Teil und die Zeile, in der der Fehler steckt. |
 | `syntax error at or near "\"` oder `\ir` wird nicht erkannt | `schema.sql` wurde nicht mit `psql` ausgeführt, z. B. über „Run“ in der IDE. `\ir` ist ein Befehl von `psql`; das Schema immer mit `psql` einspielen. |
-| `Testdaten sind schon eingespielt (Mandant alpenwerk vorhanden)` | `seed.sql` lief schon. Zum Neuaufsetzen die [Datenbank zurücksetzen](#datenbank-zurücksetzen) und Schema und Testdaten neu einspielen. |
+| `Testdaten sind schon eingespielt (Mandant alpenwerk vorhanden)` | `seed.sql` lief schon. Zum Neuaufsetzen die [Datenbank zurücksetzen](#datenbank-zurücksetzen) und Migrationen und Testdaten neu einspielen. |
 | `function app.… does not exist` beim Einspielen der Testdaten | Die Datenbank hat einen älteren Stand des Schemas, oder `seed.sql` wurde nach einer Schemaänderung nicht mitgezogen. |
 | `password authentication failed for user "wiki_owner"` in der IDE | Passwort noch nicht gesetzt oder falsch (nach `docker compose down -v` neu nötig), siehe [Passwort für `wiki_owner`](#passwort-für-wiki_owner). |
 | In der IDE fehlen die Funktionen | Das Schema `app` ist in der Verbindung nicht ausgewählt, siehe [Mit der IDE verbinden](#mit-der-ide-verbinden). |

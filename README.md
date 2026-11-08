@@ -17,7 +17,7 @@ Eine europäische Alternative zu Confluence, entwickelt und gehostet in der EU. 
 | [docs/SCHEMA.md](docs/SCHEMA.md) | Referenz zum Datenmodell: jede Tabelle, Regel und Funktion |
 | [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md) | Lokale Entwicklung: Voraussetzungen, PostgreSQL 18 mit Schema, Tests und Testdaten, Garage (Dateien), Zitadel (Login) |
 | `docs/models/` | ER-Diagramm (Mermaid, exportiert als SVG) und Architekturdiagramme (Startsetup, Zielarchitektur) |
-| `database/scripts/` | Rollen, Schema (`schema/`), Tests (`schema_test/`), Testdaten (`seed/`) und Abfragen zum Nachsehen (`queries/`) |
+| `database/scripts/` | Rollen, Schema (`schema/`), Migrationen (`migrations/`, eingespielt mit `migrate.sh`), Tests (`schema_test/`), Testdaten (`seed/`) und Abfragen zum Nachsehen (`queries/`) |
 | `compose.yaml`, `docker/` | Lokale Umgebung: PostgreSQL, Garage und Zitadel, richten sich beim ersten Start selbst ein |
 | `prototype/` | Klickbarer UI-Prototyp: Seitenansicht mit Rechte-Dialog, Confluence-Import |
 
@@ -38,7 +38,7 @@ Für ein vorhandenes PostgreSQL 18 ohne Docker:
 
 ```bash
 psql -U postgres -f database/scripts/roles_database.sql
-psql -U wiki_owner -d wiki -f database/scripts/schema/schema.sql
+PSQL="psql -U wiki_owner -d wiki" bash database/scripts/migrate.sh
 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f database/scripts/schema_test/schema_test.sql
 # Erwartet: OK 1 … OK 46, dann "Alle Tests bestanden (zurückgerollt …)."
 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f database/scripts/seed/seed.sql
@@ -58,7 +58,7 @@ apps/
 packages/
   shared/     Typen, Zod-Schemas, Rechte-Konstanten
 database/
-  scripts/    Rollen, Schema (schema/), Tests (schema_test/)
+  scripts/    Rollen, Schema (schema/), Migrationen (migrations/), Tests (schema_test/)
 deploy/
   k8s/        Manifeste bzw. Kustomize, später Helm-Chart
 docs/

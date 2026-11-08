@@ -19,7 +19,7 @@ Dieses Dokument beschreibt jede Tabelle der Datenbank `wiki` und ihre wichtigen 
 | [`80_rls.sql`](../database/scripts/schema/80_rls.sql) | Row Level Security | Abschnitt 10 |
 | [`90_privileges.sql`](../database/scripts/schema/90_privileges.sql) | Rechte an Schemas, Funktionen und Tabellen | Abschnitte 9 und 11 |
 
-Die Rollen und die Datenbank legt [`roles_database.sql`](../database/scripts/roles_database.sql) an. Die Tests liegen in [`database/scripts/schema_test/`](../database/scripts/schema_test/).
+Die Rollen und die Datenbank legt [`roles_database.sql`](../database/scripts/roles_database.sql) an. In eine Datenbank kommt das Schema über die Migrationen in [`database/scripts/migrations/`](../database/scripts/migrations/) und [`migrate.sh`](../database/scripts/migrate.sh); `schema/` und die Migrationen ergeben dasselbe Schema (geprüft von `schema_migrations_test.sh`). Ihre Buchführung steht in `migrations.applied` (eigenes Schema, ohne Rechte für die App). Die Tests liegen in [`database/scripts/schema_test/`](../database/scripts/schema_test/).
 
 ## Inhalt
 

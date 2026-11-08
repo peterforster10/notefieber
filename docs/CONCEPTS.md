@@ -791,8 +791,7 @@ apps/
 packages/
   shared/     Typen, Zod-Schemas, Rollen, Ereignisse
 database/
-  scripts/    Rollen, Schema (schema/), Tests (schema_test/)
-  migrations/ fortlaufende Migrationen (ab M0)
+  scripts/    Rollen, Schema (schema/), Migrationen (migrations/), Tests (schema_test/)
 deploy/
   k8s/        Manifeste (Kustomize), später Helm-Chart
 docs/
@@ -807,16 +806,17 @@ prototype/    UI-Prototyp (Referenz, kein Produktcode)
 Die vollständige Anleitung steht in [LOCAL_SETUP.md](LOCAL_SETUP.md). Kurz:
 
 1. PostgreSQL 18 im Docker-Container starten, später zusammen mit Zitadel und Garage per Docker Compose.
-2. `roles_database.sql` einmal als `postgres`, danach das Schema (später alle Migrationen) als `wiki_owner`.
-3. `schema_test.sql` und `schema_concurrency_test.sh` laufen lassen: alle Tests müssen bestehen.
+2. `roles_database.sql` einmal als `postgres`, danach alle Migrationen (`migrate.sh`) als `wiki_owner`.
+3. `schema_test.sql`, `schema_concurrency_test.sh` und `schema_migrations_test.sh` laufen lassen: alle Tests müssen bestehen.
 4. Die Apps später direkt mit Node starten (schnelles Neuladen). k3d nur, um Manifeste vor dem Ausrollen zu prüfen.
 
 ### Migrationen
 
-- Die erste Migration ist das heutige Schema. Weil `schema.sql` seine Teile mit dem `psql`-Befehl `\ir` einbindet, Migrationswerkzeuge wie dbmate aber reines SQL ausführen, kommen die Teile dafür in ihrer Reihenfolge gebündelt in eine Datei. Danach bekommt **jede Änderung eine neue Migrationsdatei**. Eingespielte Migrationen werden nie mehr geändert.
+- **Zwei Stellen:** `database/scripts/schema/` ist der vollständige, lesbare Stand. `database/scripts/migrations/` sind die Schritte dorthin: `0001_initial_schema.sql` ist das Schema vom 8. November 2026, gebündelt mit `schema/bundle.sh`. Danach bekommt **jede Änderung eine neue Migrationsdatei** und dieselbe Änderung in `schema/`. `schema_migrations_test.sh` spielt beide Wege in frische Datenbanken ein und vergleicht sie mit `pg_dump`.
+- **Einspielen** mit `database/scripts/migrate.sh`: fehlende Migrationen in der Reihenfolge der Nummern, jede in einer Transaktion, Buchführung in `migrations.applied`. Eine Prüfsumme pro Datei verhindert, dass eine eingespielte Migration nachträglich geändert wird; zwei gleichzeitige Läufe warten aufeinander.
 - Migrationen laufen immer als `wiki_owner`, auf dem Server in einem eigenen Kubernetes-Job vor dem Ausrollen, nie beim Start der App. Die App kennt die Zugangsdaten des Eigentümers nicht.
 - Jede Migration ist **eine Version rückwärtskompatibel**: Die alte App-Version muss mit dem neuen Schema noch laufen. Das ermöglicht Updates ohne Ausfall und ist für On-Prem-Kunden Pflicht, die Updates spät einspielen.
-- *Empfehlung:* Migrationen als reines SQL (z. B. mit dbmate), weil das Schema viel Logik in Funktionen, Triggern und Policies enthält, die ein ORM nicht abbildet. Drizzle nur für Abfragen in der App.
+- **Reines SQL**, weil das Schema viel Logik in Funktionen, Triggern und Policies enthält, die ein ORM nicht abbildet. Drizzle nur für Abfragen in der App. Ein eigenes kleines Skript statt eines Werkzeugs wie dbmate: Es nutzt psql wie Tests und Testdaten, `wiki_owner` braucht im Container kein Passwort, und Rückwärts-Migrationen sind nicht vorgesehen. Auf dem Server läuft dasselbe Skript im Image `postgres:18` als Job.
 
 ### Tests
 

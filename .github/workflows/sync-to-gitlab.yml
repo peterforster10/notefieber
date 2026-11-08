@@ -1,0 +1,26 @@
+name: Sync to GitLab
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out GitHub repo
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Add remote for GitLab
+        run: |
+          git remote remove gitlab || true
+          git remote add gitlab https://oauth2:${{ secrets.GITLAB_TOKEN }}@gitlab.com/peterforster101/notefieber.git
+
+      - name: Push to GitLab
+        run: |
+          git push --all --force gitlab
+          git push --tags --force gitlab

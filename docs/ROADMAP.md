@@ -42,7 +42,8 @@ Infrastruktur: eigener Rechner. Node direkt, PostgreSQL 18, Zitadel und Garage p
 Epics: E01 (lokal), E02, E03 (einfach)
 - [ ] Repository mit Lizenz, `CLAUDE.md`, `docs/EPICS.md`, `docs/ROADMAP.md`
 - [x] Lokale Umgebung mit PostgreSQL 18, Zitadel, Garage (alle per `compose.yaml`, siehe [LOCAL_SETUP](LOCAL_SETUP.md))
-- [ ] Migrationswerkzeug wählen, `roles_database.sql` und das Schema als erste Migration (die Teile aus `database/scripts/schema/` gebündelt, falls das Werkzeug kein `psql` nutzt), `schema_test.sql` in der CI (eingespielt als `wiki_owner`, nie als `postgres`)
+- [x] Migrationen: eigenes Skript `migrate.sh` (psql) statt eines Werkzeugs, das Schema als erste Migration (`0001_initial_schema.sql`, gebündelt mit `schema/bundle.sh`), Gleichheit von `schema/` und Migrationen geprüft (`schema_migrations_test.sh`)
+- [ ] Tests der Datenbank in der CI: `schema_test.sql`, `schema_concurrency_test.sh`, `schema_migrations_test.sh` (eingespielt als `wiki_owner`, nie als `postgres`)
 - [ ] CI: Build, Tests, Prüfung der Abhängigkeiten und Lizenzen (keine BlockNote-XL-Pakete)
 - [ ] Login per OIDC über Zitadel (Mandant und Person aus dem Token), Gruppen im Wiki pflegen
 - [ ] Space anlegen, Seitenbaum per API
