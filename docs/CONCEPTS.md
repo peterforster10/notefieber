@@ -820,7 +820,7 @@ Die vollständige Anleitung steht in [LOCAL_SETUP.md](LOCAL_SETUP.md). Kurz:
 
 ### Tests
 
-- `schema_test.sql` und `schema_concurrency_test.sh` laufen in der CI bei jedem Push.
+- `schema_test.sql`, `schema_concurrency_test.sh` und `schema_migrations_test.sh` laufen bei jedem Push auf `main` in der CI (`ci.sh`). Die CI läuft auf **GitLab**: Das Repository liegt auf GitHub, und eine GitHub Action (`sync-to-gitlab.yml`) spiegelt `main` nach GitLab, wo `.gitlab-ci.yml` die Tests startet (Einzelheiten in [LOCAL_SETUP.md](LOCAL_SETUP.md), „CI (GitLab)“).
 - API-Tests laufen gegen eine **echte PostgreSQL**, nicht gegen Mocks. Die Rechte stecken in der Datenbank, ein Mock würde genau das nicht testen.
 - Später Ende-zu-Ende-Tests mit Playwright, z. B. zwei Browser, die dieselbe Seite bearbeiten.
 - Alles, was Rechte, Mandantentrennung oder Sichtbarkeit berührt, bekommt **zuerst** einen Test.

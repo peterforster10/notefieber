@@ -61,6 +61,7 @@
 | Produktname | **NoteFieber** bleibt vorerst (Arbeitstitel, Abschnitt 4) |
 | Lizenz | **Proprietär**, vorerst |
 | Betrieb zuerst | **SaaS** vorrangig, On-Prem (Helm-Chart, E23) später |
+| Repository und CI | **GitHub** als Repository (`peterforster10/notefieber`), **CI auf GitLab** (`peterforster101/notefieber`, `.gitlab-ci.yml`). Die GitHub Action `sync-to-gitlab.yml` spiegelt jeden Push auf `main` ohne `--force` nach GitLab; dort nie direkt committen. Keine CI in GitHub Actions |
 | Dateien | **Garage** (S3-kompatibel) im Cluster, eigener Bucket pro Produkt |
 | Suche | Volltext in PostgreSQL (`tsvector`, `pg_trgm`), Index vom Worker gepflegt |
 | Mandanten | **Mandantenfähig von Anfang an:** `tenant_id` auf jeder Tabelle, Row Level Security, gleiches Modell wie TalkFieber (Mandant → Workspaces). Dieselbe `tenant_id` in beiden Produkten |

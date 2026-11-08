@@ -53,7 +53,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Hostinger-VPS mit K3s und Namespaces `staging` und `pilot` (erst in Stufe 2)
 - CloudNativePG mit Datenbanken `wiki`, `zitadel` und später `chat`; Zitadel; Garage mit Bucket pro Produkt; cert-manager
 - Deployments: `web` (Next.js), `api`, `collab` (eine Replik, Recreate), `worker`
-- CI/CD: Build, Tests, Lizenzprüfung, Ausrollen nach `staging`, Freigabe für `pilot`
+- CI/CD auf GitLab (Repository auf GitHub, `main` per GitHub Action nach GitLab gespiegelt): Build, Tests, Lizenzprüfung, Ausrollen nach `staging`, Freigabe für `pilot`
 - Secrets mit SOPS oder Sealed Secrets, Firewall nur 80, 443 und SSH
 - Laufende Backups zu einem S3-Speicher bei einem anderen Anbieter
 - Monitoring: Logs, Metriken, Alarm bei Ausfall, vollem Speicher, fehlgeschlagenem Backup, Yjs-Dokumenten über 10 MB

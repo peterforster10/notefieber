@@ -48,6 +48,16 @@ psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f database/scripts/seed/seed.sql
 
 Die App verbindet sich nie als `wiki_owner`, sondern mit Login-Rollen in `wiki_app` (API) bzw. `wiki_worker` (Collab-Server, Worker). Das Datenmodell beschreibt [docs/SCHEMA.md](docs/SCHEMA.md), die Entscheidungen stehen in `CLAUDE.md`.
 
+## Repository und CI
+
+Gearbeitet wird im Repository auf **GitHub** (`github.com/peterforster10/notefieber`). Bei jedem Push auf `main` spiegelt die GitHub Action [`.github/workflows/sync-to-gitlab.yml`](.github/workflows/sync-to-gitlab.yml) den Stand nach **GitLab** (`gitlab.com/peterforster101/notefieber`). Dort läuft die **CI** ([`.gitlab-ci.yml`](.gitlab-ci.yml)), derzeit alle Datenbanktests ([`ci.sh`](database/scripts/schema_test/ci.sh)).
+
+- GitLab ist nur ein Spiegel: dort nichts direkt committen, sonst bricht der nächste Sync ab (er pusht ohne `--force`).
+- Gespiegelt wird nur `main`, Pipelines gibt es also nur für `main`.
+- Der Sync braucht in GitHub das Secret `GITLAB_TOKEN` (Project Access Token mit `write_repository`).
+
+Einzelheiten, Fehlerbilder und wie man `ci.sh` lokal laufen lässt: [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md), Abschnitt „CI (GitLab)“.
+
 ## Projektstruktur (geplant)
 
 ```
