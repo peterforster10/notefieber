@@ -44,7 +44,7 @@ Epics: E01 (lokal), E02, E03 (einfach)
 - [x] Lokale Umgebung mit PostgreSQL 18, Zitadel, Garage (alle per `compose.yaml`, siehe [LOCAL_SETUP](LOCAL_SETUP.md))
 - [x] Migrationen: eigenes Skript `migrate.sh` (psql) statt eines Werkzeugs, das Schema als erste Migration (`0001_initial_schema.sql`, gebündelt mit `schema/bundle.sh`), Gleichheit von `schema/` und Migrationen geprüft (`schema_migrations_test.sh`)
 - [x] Sync GitHub → GitLab: `.github/workflows/sync-to-gitlab.yml` spiegelt jeden Push auf `main`
-- [ ] Tests der Datenbank in der CI auf GitLab: `.gitlab-ci.yml` mit `ci.sh` (`schema_test.sql`, `schema_concurrency_test.sh`, `schema_migrations_test.sh`, eingespielt als `wiki_owner`, nie als `postgres`). Eingerichtet; abhaken, sobald die erste Pipeline grün war
+- [x] Tests der Datenbank in der CI auf GitLab: `.gitlab-ci.yml` mit `ci.sh` (`schema_test.sql`, `schema_concurrency_test.sh`, `schema_migrations_test.sh`, eingespielt als `wiki_owner`, nie als `postgres`). Erste Pipeline am 8. November 2026 grün
 - [ ] CI auf GitLab für die Apps: Build, Tests, Prüfung der Abhängigkeiten und Lizenzen (keine BlockNote-XL-Pakete)
 - [ ] Login per OIDC über Zitadel (Mandant und Person aus dem Token), Gruppen im Wiki pflegen
 - [ ] Space anlegen, Seitenbaum per API
