@@ -79,7 +79,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Mandant mit erstem Workspace und Organisations-Admin in einer Transaktion (`app.create_tenant`), optional mit der ID aus TalkFieber
 - Einladung per Link, Rollen owner, admin, member, guest pro Workspace
 - Profil mit Name, Bild, Sprache, Zeitzone
-- Gruppen im Wiki anlegen und pflegen, nur Organisations-Admins (`app.create_group`, `app.add_group_member` …). Zitadel hat keine Gruppen; SCIM (E17) und ein Gruppen-Claim im Token (E03) kommen später als Quellen dazu
+- Gruppen im Wiki anlegen und pflegen, nur Organisations-Admins (`app.create_group`, `app.add_group_member` …). Datenbank fertig; API und Oberfläche kommen mit E09 in M3, zusammen mit dem Rechte-Dialog. Zitadel hat keine Gruppen; SCIM (E17) und ein Gruppen-Claim im Token (E03) kommen später als Quellen dazu
 - Personen deaktivieren, aus Workspaces entfernen (persönliche Rechte fallen weg)
 
 **Nicht enthalten:** SCIM (E17), Login über mehrere Mandanten.

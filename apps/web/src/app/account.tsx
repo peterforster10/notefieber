@@ -13,6 +13,10 @@ const LOGIN_ERRORS: Record<string, string> = {
   deactivated: 'Dieses Konto ist deaktiviert.',
   expired: 'Die Anmeldung hat zu lange gedauert. Bitte noch einmal versuchen.',
   unavailable: 'Der Login-Dienst ist gerade nicht erreichbar.',
+  invite_invalid: 'Diese Einladung ist ungültig, abgelaufen oder wurde schon benutzt.',
+  invite_email_mismatch:
+    'Die Einladung gilt für eine andere E-Mail-Adresse. Bitte mit dem Konto für die eingeladene Adresse anmelden.',
+  invite_other_login: 'Zu dieser E-Mail-Adresse gibt es hier schon ein Konto mit einem anderen Login.',
 };
 
 const defaultTenant = process.env.NEXT_PUBLIC_DEFAULT_TENANT ?? '';

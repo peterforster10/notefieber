@@ -1,7 +1,10 @@
 // Prüft den Login von Ende zu Ende gegen die lokale Umgebung (docs/LOCAL_SETUP.md, Abschnitt 7):
 // Frontend (Proxy /api) → API → Zitadel → Rücksprung zur API → Sitzung → /me → Abmelden,
 // dazu Fehlerfälle (fremde Organisation, unbekannter Mandant, kein Login-Cookie, fremdes
-// returnTo, Logout von fremder Adresse). Ändert nichts außer Sitzungen der Testpersonen.
+// returnTo, Logout von fremder Adresse) und die erste Anmeldung über eine Einladung.
+// Ändert in der Datenbank: Sitzungen der Testpersonen; beim ersten Lauf lädt Peter Nina Neu
+// (nur in Zitadel, nicht in seed.sql) in den Workspace Alpenwerk ein, Nina nimmt an und ist
+// danach Mitglied. Spätere Läufe prüfen dann nur noch Ninas normalen Login.
 //
 // Voraussetzung: docker compose läuft, pnpm dev:api und pnpm dev:web laufen.
 //   node scripts/check-login.mjs "$(docker compose exec -T zitadel-init cat /zitadel/bootstrap/login-client.pat)"
@@ -48,11 +51,15 @@ async function zitadel(method, body) {
   return json;
 }
 
-async function login(email, tenant, returnTo = '/spaces') {
+async function login(email, tenant, returnTo = '/spaces', invite = undefined) {
   jar.clear();
-  let r = await get(`${WEB}/api/v1/auth/login?tenant=${tenant}&returnTo=${encodeURIComponent(returnTo)}`);
+  const start = invite ? `invite=${invite}` : `tenant=${tenant}`;
+  let r = await get(`${WEB}/api/v1/auth/login?${start}&returnTo=${encodeURIComponent(returnTo)}`);
   const authorize = r.headers.get('location');
-  if (r.status !== 302 || !authorize?.startsWith(ZITADEL)) return { error: `Login-Start: ${r.status} ${authorize}` };
+  // Lehnt die API schon beim Start ab (z. B. benutzte Einladung), leitet sie direkt zurück
+  if (r.status !== 302 || !authorize?.startsWith(ZITADEL)) {
+    return { error: `Login-Start: ${r.status} ${authorize}`, status: r.status, location: authorize };
+  }
   const scope = new URL(authorize).searchParams.get('scope');
   r = await fetch(authorize, { redirect: 'manual' });
   const loginPage = new URL(r.headers.get('location'), ZITADEL);
@@ -148,5 +155,34 @@ check(
 // 7. returnTo auf eine fremde Seite führt auf /
 const q = await login('peter.forster@alpenwerk.example', 'alpenwerk', 'https://boese.example/x');
 check(q.location === `${WEB}/`, `fremdes returnTo: ${q.location}`);
+// 8. Erste Anmeldung über eine Einladung: Peter lädt Nina ein (sie gibt es nur in Zitadel)
+await login('peter.forster@alpenwerk.example', 'alpenwerk');
+const peterCookie = cookieHeader();
+const workspaces = await (await fetch(`${WEB}/api/v1/workspaces`, { headers: { cookie: peterCookie } })).json();
+const wsId = workspaces.find((w) => w.slug === 'alpenwerk')?.id;
+const inv = await fetch(`${WEB}/api/v1/workspaces/${wsId}/invites`, {
+  method: 'POST',
+  headers: { cookie: peterCookie, origin: WEB, 'content-type': 'application/json' },
+  body: JSON.stringify({ email: 'nina.neu@alpenwerk.example' }),
+});
+if (inv.status === 409) {
+  // Nina ist seit einem früheren Lauf Mitglied: normaler Login ohne Einladung
+  const n = await login('nina.neu@alpenwerk.example', 'alpenwerk');
+  check(n.location === `${WEB}/spaces`, `Nina (seit früherem Lauf Mitglied) meldet sich an: ${n.location}`);
+} else {
+  check(inv.status === 201, `Peter lädt Nina ein: ${inv.status}`);
+  const token = new URL((await inv.json()).link).pathname.split('/').pop();
+  const before = await login('nina.neu@alpenwerk.example', 'alpenwerk');
+  check(before.location === `${WEB}/?loginError=no_account`, `Nina ohne Einladung: ${before.location}`);
+  const lukas = await login('lukas.gruber@alpenwerk.example', null, '/', token);
+  check(lukas.location === `${WEB}/?loginError=invite_email_mismatch`, `Lukas mit Ninas Einladung: ${lukas.location}`);
+  const nina = await login('nina.neu@alpenwerk.example', null, '/spaces', token);
+  check(nina.location === `${WEB}/spaces`, `Nina mit Einladung: ${nina.status} ${nina.location}`);
+  const me = await (await get(`${WEB}/api/v1/auth/me`)).json();
+  check(me.email === 'nina.neu@alpenwerk.example', `/me danach: ${me.displayName}`);
+  const again = await login('nina.neu@alpenwerk.example', null, '/', token);
+  check(again.location === `${WEB}/?loginError=invite_invalid`, `Einladung nur einmal: ${again.location}`);
+}
+
 console.log(failed ? `\n${failed} FEHLER` : '\nAlle Prüfungen bestanden.');
 process.exit(failed ? 1 : 0);

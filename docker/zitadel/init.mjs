@@ -17,7 +17,8 @@
 // kommen aus seed.sql. Zitadel liefert nur Person und Mandant (siehe LOCAL_SETUP.md).
 //
 // Die Testdaten hier und in database/scripts/seed/seed.sql gehören zusammen: IDs und
-// E-Mails bei Änderungen in beiden Dateien nachziehen.
+// E-Mails bei Änderungen in beiden Dateien nachziehen. Ausnahme: Nina Neu gibt es nur hier,
+// damit sich die erste Anmeldung über eine Einladung ausprobieren lässt.
 //
 // Spricht die Connect-Schnittstelle (v2) von Zitadel mit dem Token des Dienstkontos nf-setup,
 // das Zitadel beim ersten Start ins Volume schreibt. Nur Node.js, keine Pakete.
@@ -45,6 +46,9 @@ const USERS = [
   { id: "user-max-mustermann", org: "org-alpenwerk", email: "max.mustermann@alpenwerk.example", given: "Max", family: "Mustermann" },
   { id: "user-elena-novak", org: "org-alpenwerk", email: "elena.novak@agentur-nord.example", given: "Elena", family: "Novak" },
   { id: "user-eva-fischer", org: "org-nordlicht", email: "eva.fischer@nordlicht.example", given: "Eva", family: "Fischer" },
+  // Nur in Zitadel, bewusst nicht in seed.sql: zum Ausprobieren von Einladungen (die erste
+  // Anmeldung braucht eine Einladung, docs/LOCAL_SETUP.md, Abschnitt 7)
+  { id: "user-nina-neu", org: "org-alpenwerk", email: "nina.neu@alpenwerk.example", given: "Nina", family: "Neu" },
 ];
 
 const log = (msg) => console.log(`Zitadel: ${msg}`);

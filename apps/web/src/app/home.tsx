@@ -6,7 +6,9 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { spacePath } from '@notefieber/shared';
+import { useQuery } from '@tanstack/react-query';
 import { api, useMe, useSpaces, type Space } from '@/lib/api';
+import { WorkspaceInvites, type Workspace } from '@/components/invites';
 import { LoginForm, SignedIn } from './account';
 
 export function Home() {
@@ -34,6 +36,7 @@ export function Home() {
         ))}
       </ul>
       <NewSpace />
+      <Invites orgAdmin={me.data.orgRole === 'org_admin'} />
     </>
   );
 }
@@ -88,5 +91,18 @@ function NewSpace() {
         Anlegen
       </button>
     </form>
+  );
+}
+
+/** Einladungen für jeden Workspace, den die Person verwaltet (Owner, Admin, Organisations-Admin) */
+function Invites({ orgAdmin }: { orgAdmin: boolean }) {
+  const workspaces = useQuery({ queryKey: ['workspaces'], queryFn: () => api<Workspace[]>('/workspaces') });
+  const managed = (workspaces.data ?? []).filter((w) => orgAdmin || w.role === 'owner' || w.role === 'admin');
+  return (
+    <>
+      {managed.map((w) => (
+        <WorkspaceInvites key={w.id} workspace={w} />
+      ))}
+    </>
   );
 }

@@ -300,3 +300,42 @@ a {
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+/* Einladungen */
+.nf-inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.nf-inline-form .nf-input {
+  margin-right: 0;
+}
+.nf-invite-link {
+  margin: 12px 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--nf-done-bg);
+  color: var(--nf-done-fg);
+  word-break: break-all;
+}
+.nf-invite-link p {
+  margin: 0 0 8px;
+}
+.nf-table {
+  margin-top: 16px;
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 14px;
+}
+.nf-table th,
+.nf-table td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--nf-border);
+}
+.nf-button-link {
+  display: inline-block;
+  text-decoration: none;
+  margin-top: 8px;
+}

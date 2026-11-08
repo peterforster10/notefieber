@@ -10,6 +10,7 @@ import type { ApiConfig } from './config.ts';
 import { toHttpError } from './http/errors.ts';
 import { sameOriginOnly } from './http/origin.ts';
 import { PositionError } from './positions.ts';
+import { invitesRouter } from './routes/invites.ts';
 import { spacesRouter } from './routes/spaces.ts';
 
 export function createApp(config: ApiConfig, db: pg.Pool, idp: Oidc) {
@@ -43,6 +44,7 @@ export function createApp(config: ApiConfig, db: pg.Pool, idp: Oidc) {
   });
 
   v1.use('/auth', authRouter(config, db, idp));
+  v1.use(invitesRouter(config, db));
   v1.use(spacesRouter(db));
 
   app.use('/api/v1', v1);

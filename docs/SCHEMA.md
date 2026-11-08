@@ -653,7 +653,7 @@ DEFINER, App. Findet den Mandanten zum Kurznamen aus der URL, damit die API die 
 DEFINER, App. Liefert die Angaben zu einer **gültigen** Einladung (nicht angenommen, nicht zurückgezogen, nicht abgelaufen) für die Seite „Einladung annehmen“. Die API übergibt den Hash des Tokens aus dem Link, nie das Token selbst.
 
 #### `accept_invite(token_hash, anzeigename, idp_subject = NULL) → uuid`
-DEFINER, App, mit gesetztem Mandanten. Nimmt eine gültige Einladung an: findet die Person über die E-Mail (ohne Beachtung der Groß- und Kleinschreibung) oder legt sie an (bei Gast-Einladungen mit `is_external`), fügt sie mit der Rolle aus der Einladung in den Workspace ein (bestehende Mitgliedschaft bleibt) und markiert die Einladung als angenommen. Lehnt ab, wenn die Person deaktiviert ist. Gibt die Personen-ID zurück. **Die API prüft vorher, dass die angemeldete E-Mail zur Einladung passt.**
+DEFINER, App, mit gesetztem Mandanten. Nimmt eine gültige Einladung an: findet die Person über die E-Mail (ohne Beachtung der Groß- und Kleinschreibung) oder legt sie an (bei Gast-Einladungen mit `is_external`), fügt sie mit der Rolle aus der Einladung in den Workspace ein (bestehende Mitgliedschaft bleibt) und markiert die Einladung als angenommen. Gibt es die Person schon, aber ohne Login (`idp_subject` leer), wird `idp_subject` gesetzt (seit Migration 0003); gehört die E-Mail zu einem anderen Login, lehnt sie ab (`insufficient_privilege`). Lehnt ab, wenn die Person deaktiviert ist. Gibt die Personen-ID zurück. **Die API prüft vorher, dass die angemeldete E-Mail zur Einladung passt.**
 Audit: `invite.accepted`.
 
 ### 12.6 Mandanten, Personen, Workspaces, Gruppen

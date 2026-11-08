@@ -1,6 +1,7 @@
 // Login, Rücksprung, Abmelden, angemeldete Person (docs/CONCEPTS.md, Abschnitt 5).
 //
 //   GET  /api/v1/auth/login?tenant=<kurzname>&returnTo=/…   Weiterleitung zum Login-Dienst
+//   GET  /api/v1/auth/login?invite=<token>                  dasselbe mit Einladung (Mandant aus ihr)
 //   GET  /api/v1/auth/callback                              Rücksprung, legt die Sitzung an
 //   POST /api/v1/auth/logout                                Sitzung beenden, liefert logoutUrl
 //   GET  /api/v1/auth/me                                    angemeldete Person
@@ -15,6 +16,7 @@ import type { ApiConfig } from '../config.ts';
 import { withContext } from '../db.ts';
 import { clearCookie, parseCookies, serializeCookie, sign, verify } from '../http/cookies.ts';
 import { safeReturnTo } from '../http/origin.ts';
+import { findInvite, resolveAccount, type AccountError } from './accounts.ts';
 import { ClaimError, identityFromClaims } from './claims.ts';
 import { type Oidc, oidc, scopesFor } from './oidc.ts';
 import { SESSION_COOKIE, getAuth, hashToken, newSessionToken, requireAuth, sessionToken } from './session.ts';
@@ -30,11 +32,15 @@ const loginState = z.object({
   tenantId: z.uuid(),
   orgId: z.string(),
   returnTo: z.string(),
+  /** Token der Einladung, falls der Login über einen Einladungslink begann */
+  invite: z.string().optional(),
   exp: z.number(),
 });
 
 export type LoginError =
-  'unknown_tenant' | 'login_failed' | 'wrong_organization' | 'no_account' | 'deactivated' | 'expired' | 'unavailable';
+  AccountError | 'unknown_tenant' | 'login_failed' | 'wrong_organization' | 'expired' | 'unavailable';
+
+const inviteToken = z.string().regex(/^[A-Za-z0-9_-]{32,64}$/);
 
 export function authRouter(c: ApiConfig, db: pg.Pool, idp: Oidc) {
   const router = express.Router();
@@ -45,13 +51,30 @@ export function authRouter(c: ApiConfig, db: pg.Pool, idp: Oidc) {
   };
 
   router.get('/login', async (req: Request, res: Response) => {
-    const slug = slugSchema.safeParse(req.query.tenant);
-    if (!slug.success) return res.redirect(home('unknown_tenant'));
-    const { rows } = await db.query<{ tenant_id: string; idp_org_id: string | null }>(
-      'SELECT tenant_id, idp_org_id FROM app.resolve_tenant($1)',
-      [slug.data],
-    );
-    const tenant = rows[0];
+    let tenant: { tenant_id: string; idp_org_id: string | null } | undefined;
+    let invite: string | undefined;
+    if (req.query.invite !== undefined) {
+      // Mit Einladung: Der Mandant kommt aus der Einladung, nicht aus einer Eingabe
+      const token = inviteToken.safeParse(req.query.invite);
+      const found = token.success ? await findInvite(db, token.data) : undefined;
+      if (!found) return res.redirect(home('invite_invalid'));
+      invite = token.data;
+      tenant = await withContext(db, { tenantId: found.tenant_id }, async (tx) => {
+        const r = await tx.query<{ tenant_id: string; idp_org_id: string | null }>(
+          'SELECT id AS tenant_id, idp_org_id FROM tenants WHERE id = $1',
+          [found.tenant_id],
+        );
+        return r.rows[0];
+      });
+    } else {
+      const slug = slugSchema.safeParse(req.query.tenant);
+      if (!slug.success) return res.redirect(home('unknown_tenant'));
+      const { rows } = await db.query<{ tenant_id: string; idp_org_id: string | null }>(
+        'SELECT tenant_id, idp_org_id FROM app.resolve_tenant($1)',
+        [slug.data],
+      );
+      tenant = rows[0];
+    }
     if (!tenant?.idp_org_id) return res.redirect(home('unknown_tenant'));
 
     let config: oidc.Configuration;
@@ -79,6 +102,7 @@ export function authRouter(c: ApiConfig, db: pg.Pool, idp: Oidc) {
       tenantId: tenant.tenant_id,
       orgId: tenant.idp_org_id,
       returnTo: safeReturnTo(req.query.returnTo),
+      ...(invite ? { invite } : {}),
       exp: Date.now() + LOGIN_MAX_AGE * 1000,
     } satisfies z.infer<typeof loginState>);
     res.setHeader(
@@ -143,23 +167,13 @@ export function authRouter(c: ApiConfig, db: pg.Pool, idp: Oidc) {
       return res.redirect(home('wrong_organization'));
     }
 
-    const user = await withContext(db, { tenantId: login.tenantId }, async (tx) => {
-      const { rows } = await tx.query<{ id: string; deactivated_at: Date | null }>(
-        'SELECT id, deactivated_at FROM users WHERE tenant_id = $1 AND idp_subject = $2',
-        [login.tenantId, identity.subject],
-      );
-      return rows[0];
-    });
-    // Erste Anmeldung kommt später über eine Einladung (app.accept_invite, E02); bis dahin
-    // nur Personen, die es im Mandanten schon gibt.
-    if (!user) {
+    // Person im Wiki finden; neue Personen kommen nur über eine Einladung (auth/accounts.ts)
+    const account = await resolveAccount(db, { tenantId: login.tenantId, identity, inviteToken: login.invite });
+    if ('error' in account) {
       res.setHeader('Set-Cookie', clearLogin);
-      return res.redirect(home('no_account'));
+      return res.redirect(home(account.error));
     }
-    if (user.deactivated_at) {
-      res.setHeader('Set-Cookie', clearLogin);
-      return res.redirect(home('deactivated'));
-    }
+    const user = { id: account.userId };
 
     const token = newSessionToken();
     const expires = new Date(Date.now() + c.SESSION_HOURS * 3600 * 1000);

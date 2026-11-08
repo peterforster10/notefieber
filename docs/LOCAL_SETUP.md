@@ -184,6 +184,7 @@ Das Skript läuft in einer Transaktion: Entweder ist danach alles da oder nichts
 | Max Mustermann | `max.mustermann@alpenwerk.example` | Gruppe Vertrieb, Admin von VERT | ENTW (7, nur lesen), VERT, ALT |
 | Elena Novak | `elena.novak@agentur-nord.example` | Gast (Agentur Nord) | nur „Kampagne Frühjahr“ in VERT |
 | Eva Fischer | `eva.fischer@nordlicht.example` | anderer Mandant (Nordlicht) | nur DOKU (2), nichts von Alpenwerk |
+| Nina Neu | `nina.neu@alpenwerk.example` | **nur in Zitadel**, nicht im Wiki | nichts, bis sie eine Einladung annimmt ([Abschnitt 7](#einladungen)) |
 
 **Spaces bei Alpenwerk:**
 
@@ -240,13 +241,13 @@ Mit `SET LOCAL ROLE wiki_worker` und ohne `app.user_id` sieht man, was Collab-Se
 
 ### Tests ausführen
 
-**Funktionstest** (48 Tests für Rechte, Sichtbarkeit und Regeln):
+**Funktionstest** (49 Tests für Rechte, Sichtbarkeit und Regeln):
 
 ```bash
 docker exec nf-pg18 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f /scripts/schema_test/schema_test.sql
 ```
 
-Erwartet: `NOTICE: OK 1 …` bis `NOTICE: OK 48 …`, dann `Alle Tests bestanden (zurückgerollt, die Datenbank ist unverändert).` Der Test läuft in einer Transaktion und rollt am Ende zurück. Man kann ihn also beliebig oft wiederholen, auch auf einer Datenbank mit Testdaten (die Tests nutzen eigene Mandanten). Bricht ein Test ab, zeigt `ERROR:` den Grund, und die Datenbank ist ebenfalls unverändert.
+Erwartet: `NOTICE: OK 1 …` bis `NOTICE: OK 49 …`, dann `Alle Tests bestanden (zurückgerollt, die Datenbank ist unverändert).` Der Test läuft in einer Transaktion und rollt am Ende zurück. Man kann ihn also beliebig oft wiederholen, auch auf einer Datenbank mit Testdaten (die Tests nutzen eigene Mandanten). Bricht ein Test ab, zeigt `ERROR:` den Grund, und die Datenbank ist ebenfalls unverändert.
 
 **Nebenläufigkeitstest** (Sperren im Seitenbaum mit zwei gleichzeitigen Sitzungen, dauert etwa 10 Sekunden):
 
@@ -464,7 +465,7 @@ Der Dienst `zitadel-init` spricht mit dem Token von `nf-setup` mit der Verwaltun
 1. das **Projekt `notefieber`** in der Organisation NoteFieber,
 2. den OIDC-Client **`notefieber-login`**, mit dem die API Personen anmeldet, und den API-Client **`notefieber-api`**,
 3. die Organisationen **Alpenwerk GmbH** (`org-alpenwerk`) und **Nordlicht GmbH** (`org-nordlicht`), denen das Projekt freigegeben wird,
-4. die **sieben Testpersonen** aus den [Testdaten](#testdaten) mit bestätigter E-Mail und dem Testpasswort,
+4. die **Testpersonen** aus den [Testdaten](#testdaten) mit bestätigter E-Mail und dem Testpasswort: die sieben aus `seed.sql` und Nina Neu, die es nur in Zitadel gibt (zum Ausprobieren von Einladungen),
 5. die Datei **`.local/zitadel.env`** mit den Werten für die Apps (und `.local/zitadel-admin.pat`).
 
 Jeder Schritt prüft, ob er schon erledigt ist; bei jedem weiteren Start ändert sich nichts. Danach bleibt `zitadel-init` wartend stehen und meldet „healthy“ (wie `garage-init`). Was passiert ist:
@@ -667,12 +668,12 @@ Die API meldet über Zitadel an und hält die Sitzung selbst ([CONCEPTS.md, Absc
 
 Regeln, die die API dabei durchsetzt:
 
-- **Nur bekannte Personen.** Die erste Anmeldung kommt später über eine Einladung (`app.accept_invite`, E02). Bis dahin endet die Anmeldung einer Person, die es im Mandanten nicht gibt, mit „noch kein Zugang“ (`?loginError=no_account`), statt ein Konto ohne Workspace anzulegen.
+- **Neue Personen nur über eine Einladung** ([unten](#einladungen)). Ohne Einladung endet die Anmeldung einer Person, die es im Mandanten nicht gibt, mit „noch kein Zugang“ (`?loginError=no_account`), statt ein Konto ohne Workspace anzulegen.
 - **Sitzung in der Datenbank** (Tabelle `sessions`, nur der SHA-256-Hash des Tokens): Abmelden und Deaktivieren (`app.set_user_active`) löschen sie, beides wirkt sofort. Gültig `SESSION_HOURS` Stunden (Standard 12).
 - **Kein Cross-Site-Missbrauch:** Ändernde Anfragen (`POST`, `PUT`, `PATCH`, `DELETE`) nimmt die API nur an, wenn `Origin` (sonst `Referer`) zu `PUBLIC_URL` passt.
 - **Rücksprung nur auf die eigene Adresse:** `returnTo` muss ein Pfad sein (`/…`), sonst geht es auf `/`.
 
-Fehler beim Login führen auf die Startseite mit `?loginError=…` zurück: `unknown_tenant`, `login_failed`, `wrong_organization`, `no_account`, `deactivated`, `expired` (länger als zehn Minuten oder Cookie fehlt) und `unavailable` (Zitadel nicht erreichbar).
+Fehler beim Login führen auf die Startseite mit `?loginError=…` zurück: `unknown_tenant`, `login_failed`, `wrong_organization`, `no_account`, `deactivated`, `expired` (länger als zehn Minuten oder Cookie fehlt), `unavailable` (Zitadel nicht erreichbar), dazu für Einladungen `invite_invalid`, `invite_email_mismatch` und `invite_other_login`.
 
 **Von Hand prüfen:** [`scripts/check-login.mjs`](../scripts/check-login.mjs) spielt den ganzen Ablauf mit Peter durch, dazu die Fehlerfälle. API und Frontend müssen laufen:
 
@@ -680,7 +681,7 @@ Fehler beim Login führen auf die Startseite mit `?loginError=…` zurück: `unk
 node scripts/check-login.mjs "$(docker compose exec -T zitadel-init cat /zitadel/bootstrap/login-client.pat)"
 ```
 
-Erwartet: 15 Zeilen mit `OK`, dann `Alle Prüfungen bestanden.` Das Skript meldet sich bei Zitadel über die Session-API an (wie die Anmeldeseiten selbst), deshalb braucht es das Token von `login-client`.
+Erwartet: nur Zeilen mit `OK`, dann `Alle Prüfungen bestanden.` Beim ersten Lauf lädt das Skript Nina ein und meldet sie damit an; danach ist sie Mitglied von Alpenwerk, und spätere Läufe prüfen nur noch ihren normalen Login. Das Skript meldet sich bei Zitadel über die Session-API an (wie die Anmeldeseiten selbst), deshalb braucht es das Token von `login-client`.
 
 ### Spaces und Seitenbaum
 
@@ -704,6 +705,25 @@ Die API dazu (alle nur mit Sitzung):
 
 Rechte prüft die Datenbank: Seiten, die die Person nicht sehen darf, fehlen im Baum, und was sie nicht ändern darf, lehnen die Funktionen ab (`403`; fachliche Regeln wie „nicht unter die eigene Unterseite“ oder „Startseite nicht löschen“ mit `409` und Meldung). Positionen rechnet die API mit dem Paket `fractional-indexing` aus den sichtbaren Nachbarn ([`positions.ts`](../apps/api/src/positions.ts)); dieselben Schlüssel erzeugt `app.next_position` in der Datenbank.
 
+### Einladungen
+
+Neue Personen kommen über einen Einladungslink in einen Workspace (E02). E-Mails verschickt NoteFieber noch nicht; den Link gibt die einladende Person selbst weiter.
+
+1. **Einladen:** Owner und Admins eines Workspaces (und Organisations-Admins) sehen auf der Startseite den Bereich „Einladungen“: E-Mail-Adresse, Rolle (Mitglied, Admin, Gast), „Einladen“. Der Link (`/invite/<token>`, sieben Tage gültig) erscheint **nur dieses eine Mal**; in der Datenbank steht nur der Hash des Tokens. Darunter die Liste mit Status (offen, angenommen, zurückgenommen, abgelaufen) und „Zurücknehmen“.
+2. **Annehmen:** Der Link zeigt, wer in welchen Workspace einlädt und für welche Adresse. „Annehmen und anmelden“ führt über `/api/v1/auth/login?invite=<token>` zu Zitadel; den Mandanten nimmt die API aus der Einladung.
+3. **Beim Rücksprung** nimmt die API die Einladung an (`app.accept_invite`), aber nur, wenn die **bestätigte E-Mail aus dem Login** zur Einladung passt. Die Person wird angelegt und Mitglied; gab es sie schon ohne Login, wird das Login verknüpft. Die Einladung gilt danach nicht mehr.
+
+Wichtig: **Das Konto in Zitadel muss es schon geben**, in der Organisation des Mandanten. NoteFieber spricht mit Zitadel nur über OIDC und legt dort keine Konten an; beim Kunden entstehen sie über das Firmen-Login (SSO, z. B. Entra ID) oder eine Admin legt sie in Zitadel an. Lokal gibt es dafür **Nina Neu** (`nina.neu@alpenwerk.example`, `NoteFieber-lokal-1`): in Zitadel, aber nicht im Wiki. Zum Ausprobieren als Peter Nina einladen, abmelden, den Link öffnen und als Nina anmelden.
+
+| Anfrage | Was | Wer |
+|---|---|---|
+| `GET /api/v1/workspaces/:id/invites` | Einladungen des Workspaces mit Status | Workspace-Admins |
+| `POST /api/v1/workspaces/:id/invites` | einladen: `email`, `role` (`member`, `admin`, `guest`), optional `days` (1–30); liefert den Link einmal | Workspace-Admins |
+| `DELETE /api/v1/invites/:id` | zurücknehmen, solange nicht angenommen | Workspace-Admins |
+| `GET /api/v1/invites/:token` | Angaben zum Link (Mandant, Workspace, E-Mail, Rolle, wer einlädt) | alle mit dem Link, ohne Anmeldung |
+
+Wer schon Mitglied ist, wird nicht noch einmal eingeladen (`409`). Die Rechte prüft die Datenbank (Regel auf `invites`); jede Einladung und Rücknahme steht im Audit-Log (`invite.created`, `invite.revoked`, `invite.accepted`).
+
 ### API-Tests gegen die Datenbank
 
 [`*.dbtest.ts`](../apps/api/src/routes/spaces.dbtest.ts) starten die API und prüfen gegen eine echte Datenbank mit den Testdaten, was Personen sehen und tun dürfen (Peter, Lukas, Max, Gast Elena). Angemeldet wird direkt über `app.create_session`, ohne Zitadel. Die Tests legen Spaces an, die sich nicht löschen lassen; sie laufen deshalb nie gegen `nf-pg18`, sondern gegen einen Wegwerf-Container, der sich mit denselben Init-Skripten einrichtet:
@@ -719,7 +739,7 @@ Nach etwa 20 Sekunden (`docker logs nf-pg18-apitest` zeigt `Testdaten eingespiel
 API_TEST_DATABASE_URL=postgres://wiki_api:api-lokal@localhost:55433/wiki pnpm test:db
 ```
 
-Erwartet: `pass 6`, `fail 0`. Danach `docker rm -f nf-pg18-apitest`. Ohne `API_TEST_DATABASE_URL` überspringt `pnpm test:db` die Tests mit einem Hinweis. (`$(pwd -W)` ist der Pfad in Git Bash; unter macOS und Linux `$(pwd)`.)
+Erwartet: `pass 12`, `fail 0` (Spaces und Seitenbaum, Einladungen, Annehmen beim Login mit erfundenen Identitäten statt Zitadel). Danach `docker rm -f nf-pg18-apitest`. Ohne `API_TEST_DATABASE_URL` überspringt `pnpm test:db` die Tests mit einem Hinweis. (`$(pwd -W)` ist der Pfad in Git Bash; unter macOS und Linux `$(pwd)`.)
 
 ### Prüfen wie in der CI
 

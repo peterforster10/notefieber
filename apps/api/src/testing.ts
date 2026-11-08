@@ -16,6 +16,12 @@ import { withContext } from './db.ts';
 export const PUBLIC_URL = 'http://localhost:3000';
 
 export interface TestApp {
+  /** Verbindung als wiki_api, z. B. für Bausteine wie resolveAccount */
+  db: pg.Pool;
+  /** Adresse der API im Test, z. B. http://127.0.0.1:51234/api/v1 */
+  base: string;
+  /** ID eines Mandanten aus seed.sql */
+  tenantId(slug?: string): Promise<string>;
   /** Cookie-Header für eine Testperson aus seed.sql, z. B. peter.forster@alpenwerk.example */
   sessionFor(email: string, tenant?: string): Promise<string>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- JSON der API, in Tests bewusst lose getypt
@@ -42,18 +48,25 @@ export async function startTestApp(): Promise<TestApp | undefined> {
   await once(server, 'listening');
   const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api/v1`;
 
+  const tenantId = async (slug = 'alpenwerk') => {
+    const { rows } = await db.query<{ tenant_id: string }>('SELECT tenant_id FROM app.resolve_tenant($1)', [slug]);
+    if (!rows[0]) throw new Error(`Mandant ${slug} fehlt (seed.sql eingespielt?)`);
+    return rows[0].tenant_id;
+  };
+
   return {
+    db,
+    base,
+    tenantId,
     async sessionFor(email, tenant = 'alpenwerk') {
-      const { rows } = await db.query<{ tenant_id: string }>('SELECT tenant_id FROM app.resolve_tenant($1)', [tenant]);
-      const tenantId = rows[0]?.tenant_id;
-      if (!tenantId) throw new Error(`Mandant ${tenant} fehlt (seed.sql eingespielt?)`);
-      const userId = await withContext(db, { tenantId }, async (tx) => {
+      const tid = await tenantId(tenant);
+      const userId = await withContext(db, { tenantId: tid }, async (tx) => {
         const r = await tx.query<{ id: string }>('SELECT id FROM users WHERE lower(email) = lower($1)', [email]);
         return r.rows[0]?.id;
       });
       if (!userId) throw new Error(`Testperson ${email} fehlt`);
       const token = newSessionToken();
-      await withContext(db, { tenantId, userId }, (tx) =>
+      await withContext(db, { tenantId: tid, userId }, (tx) =>
         tx.query("SELECT app.create_session($1, $2, now() + interval '1 hour', 'api-test')", [
           userId,
           hashToken(token),

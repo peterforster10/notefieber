@@ -48,8 +48,7 @@ Epics: E01 (lokal), E02, E03 (einfach)
 - [x] Tests der Datenbank in der CI auf GitLab: `.gitlab-ci.yml` mit `ci.sh` (`schema_test.sql`, `schema_concurrency_test.sh`, `schema_migrations_test.sh`, eingespielt als `wiki_owner`, nie als `postgres`). Erste Pipeline am 8. November 2026 grün
 - [x] CI auf GitLab für die Apps: Job `apps` mit `pnpm check` (Lint, Formatierung, Typen, Lizenzen ohne BlockNote-XL-Pakete, Build). Eingerichtet; abhaken, sobald die erste Pipeline grün war. Tests der Apps kommen mit dem ersten Code, der welche braucht
 - [x] Login per OIDC über Zitadel (Mandant und Person aus dem Token): Sitzung in der API (`sessions`, Cookie `nf_session`), Claims an einer Stelle, Prüfskript `scripts/check-login.mjs`
-- [ ] Gruppen im Wiki pflegen (API und Oberfläche; die Datenbank kann es schon)
-- [ ] Einladungen: erste Anmeldung über `app.accept_invite` (bis dahin nur Personen, die es im Mandanten schon gibt)
+- [x] Einladungen: Link in einen Workspace (anlegen, auflisten, zurücknehmen), erste Anmeldung über `app.accept_invite` nur mit passender, bestätigter E-Mail; Konto in Zitadel muss es geben (lokal: Nina Neu)
 - [x] Space anlegen, Seitenbaum per API (anlegen, verschieben, Papierkorb) und Seitenleiste im Frontend; API-Tests gegen die Datenbank (`pnpm test:db`, CI-Job `api`)
 
 **Gate:** Login über Zitadel, Seite anlegen, im Baum verschieben. Lokal erreicht am 8. November 2026.
@@ -76,6 +75,7 @@ Epics: E05, E06, E07, E08, E15
 ### M3 – Rechte, Suche, Kommentare (MVP ohne Import)
 Epics: E09, E10, E11, E12, E14
 - [ ] Rollen und Vererbung, Vererbung kappen, Gruppen, „Alle im Workspace“
+- [ ] Gruppen im Wiki pflegen: API und Oberfläche für Organisations-Admins (anlegen, umbenennen, Mitglieder). Aus M0 hierher verschoben; die Datenbank kann es schon, Rechte über Gruppen wirken bereits (Testdaten)
 - [ ] „Ansehen als …“ für Space-Admins (Prüfwerkzeug für den Import)
 - [ ] Kommentare an Textstellen und Seiten
 - [ ] Dateien mit Virenscan und Vorschau
