@@ -25,6 +25,7 @@
 --   10_view_as.sql            Test  43     „Ansehen als …“
 --   11_content_json.sql       Test  44     BlockNote-JSON neben dem Yjs-Zustand
 --   12_groups.sql             Tests 45–46  Gruppen im Wiki, letzter Admin über Gruppe, Quellen
+--   13_sessions.sql           Tests 47–48  Sitzungen der API, Abmelden, Deaktivieren, Ablauf
 --
 -- Testdaten: Die erfundene Firma Alpenwerk (Mandant t1) mit Peter (Organisations-Admin),
 -- Lukas, Max, Sophie und dem Gast Elena, dazu Eva im zweiten Mandanten (t2). IDs liegen
@@ -63,6 +64,7 @@ CREATE FUNCTION pg_temp.id(p text) RETURNS uuid LANGUAGE sql AS $$ SELECT v FROM
 \ir 10_view_as.sql
 \ir 11_content_json.sql
 \ir 12_groups.sql
+\ir 13_sessions.sql
 
 RESET ROLE;
 ROLLBACK;

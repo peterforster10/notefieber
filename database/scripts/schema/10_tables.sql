@@ -379,3 +379,20 @@ CREATE TABLE audit_log (
   created_at  timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX audit_log_by_tenant ON audit_log (tenant_id, created_at DESC);
+
+-- Sitzungen der API (Login über OIDC, docs/CONCEPTS.md Abschnitt 5). Das Cookie im Browser
+-- enthält ein zufälliges Token; hier steht nur sein SHA-256-Hash. Abmelden und Deaktivieren
+-- löschen die Zeile und wirken damit sofort. Schreiben nur über app.create_session,
+-- app.end_session und app.set_user_active.
+CREATE TABLE sessions (
+  id          uuid PRIMARY KEY DEFAULT uuidv7(),
+  tenant_id   uuid NOT NULL,
+  user_id     uuid NOT NULL,
+  token_hash  text NOT NULL UNIQUE CHECK (token_hash ~ '^[0-9a-f]{64}$'),
+  user_agent  text CHECK (length(user_agent) <= 500),
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  expires_at  timestamptz NOT NULL,
+  CHECK (expires_at > created_at),
+  FOREIGN KEY (user_id, tenant_id) REFERENCES users (id, tenant_id) ON DELETE CASCADE
+);
+CREATE INDEX sessions_by_user ON sessions (user_id);

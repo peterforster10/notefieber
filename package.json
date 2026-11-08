@@ -18,7 +18,8 @@
     "format": "prettier --write apps packages scripts",
     "format:check": "prettier --check apps packages scripts",
     "licenses:check": "node scripts/check-licenses.mjs",
-    "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm licenses:check && pnpm build"
+    "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm licenses:check && pnpm build",
+    "test": "pnpm -r --if-present test"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",

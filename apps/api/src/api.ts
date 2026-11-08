@@ -1,19 +1,26 @@
-// REST-API (Express 5) unter /api/v1. Grundgerüst: Gesundheit und die Abfrage vor dem
-// Login (Mandant zum Kurznamen). Login über OIDC, Spaces und Seiten folgen (ROADMAP M0).
+// REST-API (Express 5) unter /api/v1. Bisher: Gesundheit, Mandant vor dem Login und der
+// Login über OIDC mit Sitzung (auth/). Spaces und Seiten folgen (ROADMAP M0).
 import express, { type ErrorRequestHandler } from 'express';
 import { z } from 'zod';
 import { slugSchema } from '@notefieber/shared';
+import { authRouter } from './auth/routes.ts';
+import { createOidc } from './auth/oidc.ts';
+import { loadSession } from './auth/session.ts';
 import { apiConfig } from './config.ts';
 import { connect } from './db.ts';
+import { sameOriginOnly } from './http/origin.ts';
 
 const config = apiConfig();
 const db = await connect(config.API_DATABASE_URL, 'wiki_app', 'notefieber-api');
+const idp = createOidc(config);
 
 const app = express();
 app.disable('x-powered-by');
 app.use(express.json({ limit: '1mb' }));
 
 const v1 = express.Router();
+v1.use(sameOriginOnly(config.PUBLIC_URL));
+v1.use(loadSession(db));
 
 v1.get('/health', async (_req, res) => {
   const { rows } = await db.query<{ login: string }>('SELECT current_user AS login');
@@ -36,6 +43,8 @@ v1.get('/tenants/:slug', async (req, res) => {
   res.json({ tenantId: t.tenant_id, name: t.name, idpOrgId: t.idp_org_id });
 });
 
+v1.use('/auth', authRouter(config, db, idp));
+
 app.use('/api/v1', v1);
 
 app.use((_req, res) => {
@@ -54,7 +63,7 @@ const onError: ErrorRequestHandler = (err, _req, res, _next) => {
 app.use(onError);
 
 const server = app.listen(config.API_PORT, () => {
-  console.log(`API: http://localhost:${config.API_PORT}/api/v1/health`);
+  console.log(`API: http://localhost:${config.API_PORT}/api/v1/health (öffentlich: ${config.PUBLIC_URL})`);
 });
 
 function shutdown(signal: string) {

@@ -251,13 +251,13 @@ NoteFieber baut kein eigenes Login. Angemeldet wird über **Zitadel**, den Login
 1. **Mandant finden.** Aus der Adresse oder einer Eingabe kennt die App den Kurznamen des Mandanten (`alpenwerk`). `app.resolve_tenant` liefert dazu die Mandanten-ID und die Organisation in Zitadel. Diese Funktion funktioniert schon vor dem Login.
 2. **Weiterleitung zu Zitadel.** Die Person meldet sich dort an, mit Passwort, Passkey oder über das Firmen-Login. Technisch ist das der OIDC *Authorization Code Flow* mit PKCE.
 3. **Zurück zur API.** Zitadel leitet mit einem einmaligen Code zurück. Die API tauscht ihn gegen Tokens und prüft, dass die Organisation im Token zur `idp_org_id` des Mandanten passt.
-4. **Person zuordnen.** Über Mandant und `users.idp_subject` findet die API die Person. `idp_subject` ist pro Mandant eindeutig, nicht global: Dieselbe Person aus Zitadel, etwa ein Dienstleister, kann in mehreren Mandanten je ein eigenes Konto haben. Bei der ersten Anmeldung kommt sie über eine Einladung: `app.find_invite` prüft den Link, `app.accept_invite` legt die Person an und macht sie zum Mitglied des Workspaces.
+4. **Person zuordnen.** Über Mandant und `users.idp_subject` findet die API die Person. `idp_subject` ist pro Mandant eindeutig, nicht global: Dieselbe Person aus Zitadel, etwa ein Dienstleister, kann in mehreren Mandanten je ein eigenes Konto haben. Bei der ersten Anmeldung kommt sie über eine Einladung: `app.find_invite` prüft den Link, `app.accept_invite` legt die Person an und macht sie zum Mitglied des Workspaces. *Stand:* Einladungen gibt es noch nicht (E02); bis dahin lehnt die API Personen ab, die es im Mandanten nicht gibt, statt Konten ohne Workspace anzulegen.
 5. **Gruppen.** Gruppen kommen nicht aus dem Token, sie stehen im Wiki ([Personen und Gruppen](#personen-und-gruppen)). Erst wenn ein Login-Dienst einen Gruppen-Claim liefert, gleicht `app.sync_user_groups` die Gruppen mit Quelle `idp` ab.
-6. **Sitzung.** *Empfehlung:* Die API setzt ein Sitzungs-Cookie (`HttpOnly`, `Secure`, `SameSite=Lax`). Die Tokens von Zitadel bleiben auf dem Server und kommen nie in den Browser. Weil Oberfläche und API unter derselben Adresse laufen (`/` und `/api`), funktioniert das ohne Umwege.
+6. **Sitzung.** Die API setzt das Sitzungs-Cookie `nf_session` (`HttpOnly`, `Secure`, `SameSite=Lax`) mit einem zufälligen Token; in der Tabelle `sessions` steht nur sein SHA-256-Hash (`app.create_session`). Die Tokens von Zitadel bleiben auf dem Server, werden nach der Prüfung verworfen und kommen nie in den Browser. Weil Oberfläche und API unter derselben Adresse laufen (`/` und `/api`; lokal leitet das Frontend `/api` weiter), funktioniert das ohne CORS. Ändernde Anfragen nimmt die API nur von der eigenen Adresse an (`Origin`). Umgesetzt in `apps/api/src/auth/`, Ablauf und Fehlerfälle in [LOCAL_SETUP.md, Abschnitt 7](LOCAL_SETUP.md#anmelden).
 
 ### Bei jeder Anfrage
 
-Die API liest aus der Sitzung Mandant und Person und setzt beides zu Beginn jeder Datenbank-Transaktion (`app.tenant_id`, `app.user_id`). Ab da arbeiten alle Rechteprüfungen in der Datenbank für genau diese Person.
+Die API findet die Sitzung über den Hash des Cookies (`app.resolve_session`, gilt nur für aktive Personen in nicht gekündigten Mandanten), liest daraus Mandant und Person und setzt beides zu Beginn jeder Datenbank-Transaktion (`app.tenant_id`, `app.user_id`). Ab da arbeiten alle Rechteprüfungen in der Datenbank für genau diese Person.
 
 ### Für den Collab-Server
 
@@ -265,8 +265,8 @@ Die WebSocket-Verbindung zum Collab-Server bekommt kein Sitzungs-Cookie, sondern
 
 ### Abmelden, deaktivieren, entfernen
 
-- **Logout** löscht die Sitzung, meldet bei Zitadel ab und trennt offene Verbindungen zum Collab-Server.
-- **Deaktivierte Personen** haben sofort keinen Zugriff mehr, auch wenn ihre Sitzung noch existiert: Die Rechte-Berechnung prüft `deactivated_at` bei jeder Anfrage.
+- **Logout** löscht die Sitzung (`app.end_session`), meldet bei Zitadel ab und trennt offene Verbindungen zum Collab-Server (sobald es ihn gibt, E04).
+- **Deaktivierte Personen** haben sofort keinen Zugriff mehr: `app.set_user_active` löscht ihre Sitzungen, und die Rechte-Berechnung prüft `deactivated_at` ohnehin bei jeder Anfrage.
 - **Aus dem Workspace entfernte Personen** verlieren Zugriff und persönliche Rechte (siehe [Rechte](#4-rechte)).
 
 ---
@@ -544,7 +544,7 @@ Interne Bausteine (Ereignisse schreiben, Audit-Einträge, Rechte anderer Persone
 
 ### Die Tests
 
-`schema_test.sql` prüft das alles in 46 Tests als `wiki_app` und `wiki_worker` (gleichzeitige Sitzungen prüft `schema_concurrency_test.sh`), z. B.: Ein Leser kann weder direkt noch über Funktionen schreiben, eingeschränkte Seiten sind samt Inhalt, Versionen, Suchtreffern, Kommentaren, Dateien und Links unsichtbar, fremde Mandanten sind unsichtbar, jede Tabelle hat RLS. **Jede Änderung am Schema bekommt zuerst einen Test.**
+`schema_test.sql` prüft das alles in 48 Tests als `wiki_app` und `wiki_worker` (gleichzeitige Sitzungen prüft `schema_concurrency_test.sh`), z. B.: Ein Leser kann weder direkt noch über Funktionen schreiben, eingeschränkte Seiten sind samt Inhalt, Versionen, Suchtreffern, Kommentaren, Dateien und Links unsichtbar, fremde Mandanten sind unsichtbar, jede Tabelle hat RLS. **Jede Änderung am Schema bekommt zuerst einen Test.**
 
 ---
 

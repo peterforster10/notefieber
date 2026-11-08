@@ -12,6 +12,7 @@ erDiagram
   WORKSPACES ||--o{ INVITES : "lädt ein in"
   GROUPS ||--o{ GROUP_MEMBERS : "hat"
   USERS ||--o{ GROUP_MEMBERS : "ist"
+  USERS ||--o{ SESSIONS : "angemeldet"
   WORKSPACES ||--o{ SPACES : "enthält"
   SPACES ||--|{ PAGES : "hat mind. 1 (Startseite)"
   PAGES |o--o{ PAGES : "Elternseite"
@@ -75,6 +76,15 @@ erDiagram
     text name
     text source "local, import, idp, scim"
     text external_id "ID in der Quelle, eindeutig pro Mandant und Quelle"
+  }
+  SESSIONS {
+    uuid id PK
+    uuid tenant_id FK
+    uuid user_id FK
+    text token_hash "SHA-256, eindeutig"
+    text user_agent
+    timestamptz created_at
+    timestamptz expires_at "höchstens 30 Tage"
   }
   GROUP_MEMBERS {
     uuid group_id PK,FK

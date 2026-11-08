@@ -240,13 +240,13 @@ Mit `SET LOCAL ROLE wiki_worker` und ohne `app.user_id` sieht man, was Collab-Se
 
 ### Tests ausführen
 
-**Funktionstest** (46 Tests für Rechte, Sichtbarkeit und Regeln):
+**Funktionstest** (48 Tests für Rechte, Sichtbarkeit und Regeln):
 
 ```bash
 docker exec nf-pg18 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f /scripts/schema_test/schema_test.sql
 ```
 
-Erwartet: `NOTICE: OK 1 …` bis `NOTICE: OK 46 …`, dann `Alle Tests bestanden (zurückgerollt, die Datenbank ist unverändert).` Der Test läuft in einer Transaktion und rollt am Ende zurück. Man kann ihn also beliebig oft wiederholen, auch auf einer Datenbank mit Testdaten (die Tests nutzen eigene Mandanten). Bricht ein Test ab, zeigt `ERROR:` den Grund, und die Datenbank ist ebenfalls unverändert.
+Erwartet: `NOTICE: OK 1 …` bis `NOTICE: OK 48 …`, dann `Alle Tests bestanden (zurückgerollt, die Datenbank ist unverändert).` Der Test läuft in einer Transaktion und rollt am Ende zurück. Man kann ihn also beliebig oft wiederholen, auch auf einer Datenbank mit Testdaten (die Tests nutzen eigene Mandanten). Bricht ein Test ab, zeigt `ERROR:` den Grund, und die Datenbank ist ebenfalls unverändert.
 
 **Nebenläufigkeitstest** (Sperren im Seitenbaum mit zwei gleichzeitigen Sitzungen, dauert etwa 10 Sekunden):
 
@@ -460,7 +460,7 @@ Das dauert etwa 20 Sekunden. Alles danach erledigt `zitadel-init`.
 Der Dienst `zitadel-init` spricht mit dem Token von `nf-setup` mit der Verwaltungs-API (v2) und legt an, was fehlt:
 
 1. das **Projekt `notefieber`** in der Organisation NoteFieber,
-2. den OIDC-Client **`notefieber-web`** (Frontend) und den API-Client **`notefieber-api`**,
+2. den OIDC-Client **`notefieber-login`**, mit dem die API Personen anmeldet, und den API-Client **`notefieber-api`**,
 3. die Organisationen **Alpenwerk GmbH** (`org-alpenwerk`) und **Nordlicht GmbH** (`org-nordlicht`), denen das Projekt freigegeben wird,
 4. die **sieben Testpersonen** aus den [Testdaten](#testdaten) mit bestätigter E-Mail und dem Testpasswort,
 5. die Datei **`.local/zitadel.env`** mit den Werten für die Apps (und `.local/zitadel-admin.pat`).
@@ -487,10 +487,12 @@ Erwartet beim ersten Start „angelegt“ für Projekt, Clients, Organisationen 
 
 ### Anmelden als Testperson
 
-Anmeldename ist die **E-Mail-Adresse** aus der Tabelle in den [Testdaten](#testdaten), das Passwort für alle **`NoteFieber-lokal-1`** (`NF_TEST_PASSWORD`). Solange es keine Apps gibt, lässt sich das in der Console ausprobieren:
+Anmeldename ist die **E-Mail-Adresse** aus der Tabelle in den [Testdaten](#testdaten), das Passwort für alle **`NoteFieber-lokal-1`** (`NF_TEST_PASSWORD`).
 
-- **Console** (Verwaltung von Zitadel): `http://localhost:8080/ui/console`, Anmeldename `zitadel-admin@notefieber.localhost`, Passwort `NoteFieber-lokal-1` (`NF_ZITADEL_ADMIN_PASSWORD`). Dort sieht man die Organisationen Alpenwerk und Nordlicht mit ihren Personen und im Projekt NoteFieber die Rollen (Gruppen) und wer sie hat.
-- **Als Testperson:** Die Testpersonen haben in der Console keine Rechte. Sie melden sich später über das Frontend an; die Anmeldeseiten selbst gehen schon jetzt (`http://localhost:8080/ui/v2/login`).
+- **In NoteFieber:** API und Frontend starten ([Abschnitt 7](#anmelden)), dann `http://localhost:3000` öffnen, Mandant `alpenwerk` (oder `nordlicht` für Eva) und „Anmelden“.
+
+- **Console** (Verwaltung von Zitadel): `http://localhost:8080/ui/console`, Anmeldename `zitadel-admin@notefieber.localhost`, Passwort `NoteFieber-lokal-1` (`NF_ZITADEL_ADMIN_PASSWORD`). Dort sieht man die Organisationen Alpenwerk und Nordlicht mit ihren Personen und im Projekt NoteFieber die Clients.
+- Die Testpersonen haben in der Console keine Rechte; sie melden sich nur über NoteFieber an.
 
 Die Anmeldeseiten erscheinen in der Sprache des Browsers. Es werden keine E-Mails verschickt (kein SMTP); Passwort vergessen und ähnliche Abläufe gehen deshalb lokal nicht.
 
@@ -499,22 +501,27 @@ Die Anmeldeseiten erscheinen in der Sprache des Browsers. Es werden keine E-Mail
 `zitadel-init` schreibt sie bei jedem Start nach **`.local/zitadel.env`** (in `.gitignore`), weil Zitadel die Client-IDs selbst vergibt:
 
 ```
-ZITADEL_ISSUER=http://localhost:8080
+OIDC_ISSUER=http://localhost:8080
+OIDC_CLIENT_ID=3987298…
+OIDC_CLIENT_SECRET=…
+OIDC_REDIRECT_URI=http://localhost:3000/api/v1/auth/callback
 ZITADEL_PROJECT_ID=notefieber
-ZITADEL_WEB_CLIENT_ID=3985858…
-ZITADEL_WEB_REDIRECT_URI=http://localhost:3000/auth/callback
-ZITADEL_API_CLIENT_ID=3985858…
+ZITADEL_API_CLIENT_ID=3987295…
 ZITADEL_API_CLIENT_SECRET=…
 ```
 
+Die API liest die Datei beim Start selbst (`pnpm dev:api`); kopieren muss man nichts.
+
 | Client | Art | Einstellungen |
 |---|---|---|
-| `notefieber-web` | OIDC, öffentlich (ohne Geheimnis), **Authorization Code mit PKCE** und Refresh-Token | Redirect `http://localhost:3000/auth/callback`, nach dem Abmelden `http://localhost:3000/` (aus `NF_WEB_URL`). Entwicklungsmodus (erlaubt `http`). Access-Token als **JWT**. |
-| `notefieber-api` | API, Client-ID und Geheimnis (Basic Auth) | Für die **Token-Introspection** (`/oauth/v2/introspect`), falls die API Tokens nicht selbst prüft. |
+| `notefieber-login` | OIDC, **vertraulich**: Geheimnis (Basic Auth) und zusätzlich PKCE, **Authorization Code**, keine Refresh-Tokens | Die API meldet damit an ([Abschnitt 7](#anmelden)). Redirect `http://localhost:3000/api/v1/auth/callback` (über das Frontend zur API), nach dem Abmelden `http://localhost:3000/` (beides aus `NF_WEB_URL`). Entwicklungsmodus (erlaubt `http`). Name und E-Mail im ID-Token. |
+| `notefieber-api` | API, Client-ID und Geheimnis (Basic Auth) | Für die **Token-Introspection** (`/oauth/v2/introspect`), derzeit ungenutzt. |
 
-Die API kann die JWT-Access-Tokens auch selbst prüfen: Schlüssel unter `http://localhost:8080/oauth/v2/keys`, Issuer `http://localhost:8080`, die Audience enthält die Projekt-ID `notefieber`. Discovery: `http://localhost:8080/.well-known/openid-configuration`.
+Bis zum 8. November 2026 gab es statt `notefieber-login` den öffentlichen Client `notefieber-web` (PKCE im Browser). In älteren Instanzen bleibt er stehen, die App nutzt ihn nicht mehr; ein [Zurücksetzen](#zitadel-zurücksetzen) räumt ihn weg.
 
-**Scopes:** `openid profile email offline_access urn:zitadel:iam:user:resourceowner`. Was im Token von Lukas steht (gekürzt, mit Zitadel v4.20.1 geprüft):
+Discovery: `http://localhost:8080/.well-known/openid-configuration`, Schlüssel unter `http://localhost:8080/oauth/v2/keys`, Issuer `http://localhost:8080`.
+
+**Scopes**, die die API anfragt: `openid profile email urn:zitadel:iam:user:resourceowner` und `urn:zitadel:iam:org:id:<organisation>`. Der letzte beschränkt die Anmeldung auf die Organisation des Mandanten: Eva aus Nordlicht kommt bei Alpenwerk gar nicht erst durch. Was im ID-Token von Lukas steht (gekürzt, mit Zitadel v4.20.1 geprüft):
 
 ```json
 {
@@ -527,7 +534,7 @@ Die API kann die JWT-Access-Tokens auch selbst prüfen: Schlüssel unter `http:/
 }
 ```
 
-Für den Login in der API heißt das (Epic E03, noch nicht gebaut): Mandant über `urn:zitadel:iam:user:resourceowner:id` = `tenants.idp_org_id` (`app.resolve_tenant`), Person über `(tenant_id, sub)` = `users.idp_subject`. Gruppen kommen nicht aus dem Token, sie stehen im Wiki. Die Claim-Namen liest die API an einer Stelle aus der Konfiguration, damit später auch ein anderer Login-Dienst passt.
+Die API ordnet so zu: Mandant über `urn:zitadel:iam:user:resourceowner:id` = `tenants.idp_org_id`, Person über `(tenant_id, sub)` = `users.idp_subject`. Gruppen kommen nicht aus dem Token, sie stehen im Wiki. Die Claim-Namen stehen an einer Stelle ([`auth/claims.ts`](../apps/api/src/auth/claims.ts), einstellbar über `OIDC_CLAIM_*`), damit später auch ein anderer Login-Dienst passt.
 
 Wer Zitadel schon vor dem 8. November 2026 eingerichtet hat, hat im Projekt noch die Rollen `entwicklung`, `vertrieb` und `geschaeftsleitung`, und sie stehen auch im Token (`urn:zitadel:iam:org:project:roles`). Die App wertet sie nicht aus; wer sie loswerden will, [setzt Zitadel zurück](#zitadel-zurücksetzen).
 
@@ -588,7 +595,7 @@ Die Apps liegen in einem **pnpm-Monorepo** (ein Repository, mehrere Node-Projekt
 | `@notefieber/collab` | `apps/collab` | Collab-Server (Hocuspocus) | `wiki_collab` (in `wiki_worker`) | `pnpm dev:collab` | `ws://127.0.0.1:1234` |
 | `@notefieber/shared` | `packages/shared` | gemeinsame Typen und Zod-Schemas: Rollen, Ereignisse, Kurznamen, Prüfung der Datenbankrolle | – | – | – |
 
-Stand: **Grundgerüst.** Die API beantwortet `GET /api/v1/health` und `GET /api/v1/tenants/<kurzname>` (`app.resolve_tenant`, vor dem Login), der Worker meldet sich regelmäßig, der Collab-Server startet und lehnt bis E04 jede Verbindung ab, das Frontend zeigt eine Startseite.
+Stand: Die API beantwortet `GET /api/v1/health` und `GET /api/v1/tenants/<kurzname>` und **meldet über Zitadel an** ([unten](#anmelden)). Der Worker meldet sich regelmäßig, der Collab-Server startet und lehnt bis E04 jede Verbindung ab, das Frontend zeigt Anmelden und Abmelden.
 
 ### Einrichten
 
@@ -608,7 +615,7 @@ pnpm install
 cp .env.example .env
 ```
 
-Die [`.env.example`](../.env.example) passt ohne Änderung zur lokalen Umgebung. Die `.env` liest auch `docker compose` (für seine eigenen Variablen); sie kommt nie ins Repository.
+Die [`.env.example`](../.env.example) passt ohne Änderung zur lokalen Umgebung. Die `.env` liest auch `docker compose` (für seine eigenen Variablen); sie kommt nie ins Repository. Kommen in der `.env.example` neue Einstellungen dazu (zuletzt am 8. November 2026 für den Login), die `.env` neu kopieren oder die neuen Zeilen übernehmen. Die Werte für den Login (`OIDC_*`) liest die API zusätzlich aus `.local/zitadel.env`.
 
 **Login-Rollen der Apps:** Jede App verbindet sich mit einer eigenen Login-Rolle, nie als `wiki_owner` oder `postgres`; sie prüft das beim Start und bricht sonst mit `Datenbank: Datenbankrolle … ist Superuser oder Eigentümer` bzw. `… muss Mitglied von … sein` ab. Die Rollen `wiki_api`, `wiki_collab` und `wiki_jobs` legt [`local_login_roles.sql`](../database/scripts/local_login_roles.sql) beim ersten Start mit an, mit den lokalen Passwörtern aus der `.env.example`. Für eine Datenbank aus der Zeit davor einmal von Hand (ein zweiter Lauf schadet nicht):
 
@@ -646,13 +653,40 @@ Erwartet: `{"status":"ok","database":{"login":"wiki_api"}}`. `curl -s localhost:
 
 **Wie die Apps laufen:** Node 24 führt TypeScript direkt aus und streicht dabei nur die Typen weg; für API, Worker und Collab-Server gibt es deshalb keinen Build-Schritt. Erlaubt ist nur Syntax, die sich so wegstreichen lässt (keine `enum`, `namespace` oder Parameter-Properties, `erasableSyntaxOnly` in [`tsconfig.base.json`](../tsconfig.base.json)), und relative Importe mit Endung `.ts`. `tsc` prüft nur. Das Frontend baut Next.js selbst.
 
+### Anmelden
+
+Die API meldet über Zitadel an und hält die Sitzung selbst ([CONCEPTS.md, Abschnitt 5](CONCEPTS.md#5-login-und-sitzung)). Das Frontend leitet `/api` an die API weiter (`rewrites` in [`next.config.ts`](../apps/web/next.config.ts)), so wie später der Ingress: Für den Browser liegen beide unter `http://localhost:3000`, das Sitzungs-Cookie gilt für beide, und es braucht kein CORS.
+
+1. `pnpm dev:api` und `pnpm dev:web` starten, `http://localhost:3000` öffnen.
+2. Mandant eingeben (`alpenwerk`), „Anmelden“: Das Formular geht an `GET /api/v1/auth/login?tenant=alpenwerk`. Die API leitet zu Zitadel weiter (Code-Flow mit PKCE, Scope auf die Organisation des Mandanten beschränkt) und merkt sich State, Nonce und PKCE-Verifier zehn Minuten lang im signierten Cookie `nf_login`.
+3. Bei Zitadel anmelden, z. B. als `peter.forster@alpenwerk.example` mit `NoteFieber-lokal-1`.
+4. Zitadel springt zu `/api/v1/auth/callback` zurück. Die API tauscht den Code (mit Client-Geheimnis), prüft das ID-Token und dass die Organisation zum Mandanten passt, sucht die Person über `idp_subject` und legt mit `app.create_session` eine Sitzung an. Der Browser bekommt nur das Cookie **`nf_session`** (`HttpOnly`, `SameSite=Lax`, auf dem Server zusätzlich `Secure`); die Tokens von Zitadel bleiben auf dem Server und werden nicht gespeichert.
+5. `GET /api/v1/auth/me` liefert die angemeldete Person; „Abmelden“ ruft `POST /api/v1/auth/logout` (löscht die Sitzung) und leitet zur Abmeldung bei Zitadel weiter.
+
+Regeln, die die API dabei durchsetzt:
+
+- **Nur bekannte Personen.** Die erste Anmeldung kommt später über eine Einladung (`app.accept_invite`, E02). Bis dahin endet die Anmeldung einer Person, die es im Mandanten nicht gibt, mit „noch kein Zugang“ (`?loginError=no_account`), statt ein Konto ohne Workspace anzulegen.
+- **Sitzung in der Datenbank** (Tabelle `sessions`, nur der SHA-256-Hash des Tokens): Abmelden und Deaktivieren (`app.set_user_active`) löschen sie, beides wirkt sofort. Gültig `SESSION_HOURS` Stunden (Standard 12).
+- **Kein Cross-Site-Missbrauch:** Ändernde Anfragen (`POST`, `PUT`, `PATCH`, `DELETE`) nimmt die API nur an, wenn `Origin` (sonst `Referer`) zu `PUBLIC_URL` passt.
+- **Rücksprung nur auf die eigene Adresse:** `returnTo` muss ein Pfad sein (`/…`), sonst geht es auf `/`.
+
+Fehler beim Login führen auf die Startseite mit `?loginError=…` zurück: `unknown_tenant`, `login_failed`, `wrong_organization`, `no_account`, `deactivated`, `expired` (länger als zehn Minuten oder Cookie fehlt) und `unavailable` (Zitadel nicht erreichbar).
+
+**Von Hand prüfen:** [`scripts/check-login.mjs`](../scripts/check-login.mjs) spielt den ganzen Ablauf mit Peter durch, dazu die Fehlerfälle. API und Frontend müssen laufen:
+
+```bash
+node scripts/check-login.mjs "$(docker compose exec -T zitadel-init cat /zitadel/bootstrap/login-client.pat)"
+```
+
+Erwartet: 15 Zeilen mit `OK`, dann `Alle Prüfungen bestanden.` Das Skript meldet sich bei Zitadel über die Session-API an (wie die Anmeldeseiten selbst), deshalb braucht es das Token von `login-client`.
+
 ### Prüfen wie in der CI
 
 ```bash
 pnpm check
 ```
 
-Das sind nacheinander: `pnpm lint` (ESLint, eine Konfiguration für alles in [`eslint.config.mjs`](../eslint.config.mjs), die Next.js-Regeln nur für `apps/web`), `pnpm format:check` (Prettier; `pnpm format` formatiert), `pnpm typecheck` (alle Pakete), `pnpm licenses:check` und `pnpm build`. Der CI-Job `apps` in [`.gitlab-ci.yml`](../.gitlab-ci.yml) führt genau das aus, im Image `node:24`.
+Das sind nacheinander: `pnpm lint` (ESLint, eine Konfiguration für alles in [`eslint.config.mjs`](../eslint.config.mjs), die Next.js-Regeln nur für `apps/web`), `pnpm format:check` (Prettier; `pnpm format` formatiert), `pnpm typecheck` (alle Pakete), `pnpm test` (Unit-Tests mit dem Test-Runner von Node, Dateien `*.test.ts`, ohne Datenbank), `pnpm licenses:check` und `pnpm build`. Der CI-Job `apps` in [`.gitlab-ci.yml`](../.gitlab-ci.yml) führt genau das aus, im Image `node:24`.
 
 **Lizenzprüfung** ([`scripts/check-licenses.mjs`](../scripts/check-licenses.mjs)): Der eigene Code ist proprietär ([`LICENSE`](../LICENSE)). Abgelehnt werden starke Copyleft-Lizenzen (GPL, AGPL, SSPL, EUPL), alle `@blocknote/xl-*`-Pakete und unbekannte Lizenzen; LGPL nur für geprüfte Pakete, derzeit `@img/sharp-*` (libvips, von Next.js für Bilder). Eine neue Ausnahme kommt mit Begründung in das Skript.
 
@@ -759,8 +793,7 @@ Ohne `-v` bleiben die Volumes (`notefieber-pgdata` mit den Datenbanken `wiki` un
 | Im Log von `nf-zitadel` Fehler zum Masterkey oder `cipher` | Der Masterkey wurde nach dem ersten Start geändert. Alten Wert zurück oder [Zitadel zurücksetzen](#zitadel-zurücksetzen). |
 | `zitadel-init` „unhealthy“ oder `exited (1)` | `docker compose logs zitadel-init` zeigt den Schritt und die Antwort von Zitadel. Häufig nach einem halben Zurücksetzen (Datenbank weg, Volume noch da oder umgekehrt): [vollständig zurücksetzen](#zitadel-zurücksetzen). |
 | Browser zeigt `Instance not found` oder `unable to set instance using origin` | Über `127.0.0.1` statt `localhost` aufgerufen. Zitadel erkennt die Instanz am Hostnamen: immer `http://localhost:8080`. |
-| Anmeldung endet mit `redirect_uri is missing in the client configuration` | Die App nutzt eine andere Redirect-URL als `http://localhost:3000/auth/callback`. In der Console im Projekt NoteFieber beim Client `notefieber-web` ergänzen, oder `NF_WEB_URL` setzen und [Zitadel zurücksetzen](#zitadel-zurücksetzen). |
-| Token-Tausch meldet `invalid_grant` mit `invalid code_verifier` | Code-Challenge und Verifier passen nicht zusammen. Unter Windows verfälscht `openssl dgst -binary` in einer Pipe von Git Bash die Bytes; die Challenge mit Node berechnen (`crypto.createHash('sha256').update(v).digest('base64url')`). |
+| Anmeldung endet mit `redirect_uri is missing in the client configuration` | Die API nutzt eine andere Redirect-URL als `http://localhost:3000/api/v1/auth/callback` (etwa mit anderem `PUBLIC_URL`). In der Console im Projekt NoteFieber beim Client `notefieber-login` ergänzen, oder `NF_WEB_URL` setzen und [Zitadel zurücksetzen](#zitadel-zurücksetzen). |
 | Anmeldung als Testperson scheitert mit falschem Passwort | Die Person wurde mit einem anderen `NF_TEST_PASSWORD` angelegt (gilt nur beim Anlegen). In der Console das Passwort setzen oder [Zitadel zurücksetzen](#zitadel-zurücksetzen). |
 
 ### Apps
@@ -769,6 +802,11 @@ Ohne `-v` bleiben die Volumes (`notefieber-pgdata` mit den Datenbanken `wiki` un
 |---|---|
 | `pnpm: command not found` bzw. „pnpm is not recognized“ | corepack ist noch nicht eingeschaltet: `corepack enable` ([Abschnitt 7](#einrichten)). Ohne Administrator unter Windows: `corepack enable --install-directory <ordner im PATH>`. |
 | `API_DATABASE_URL fehlt …` (ZodError beim Start) | Keine `.env`: `cp .env.example .env`. |
+| `OIDC_ISSUER fehlt …` oder `AUTH_COOKIE_SECRET fehlt …` | `.local/zitadel.env` fehlt (Zitadel läuft nicht oder `zitadel-init` ist noch nicht durch) bzw. die `.env` ist älter als die Vorlage: neu kopieren. |
+| Nach „Anmelden“ `?loginError=unavailable` | Zitadel ist nicht erreichbar (`docker compose up -d --wait`). Die API versucht es beim nächsten Login erneut. |
+| `?loginError=no_account` | Die Person gibt es in Zitadel, im Mandanten aber nicht (noch keine Einladungen). Mit einer Testperson aus `seed.sql` anmelden. |
+| `?loginError=expired` gleich nach der Anmeldung | Das Cookie `nf_login` kam nicht zurück: Frontend über eine andere Adresse aufgerufen als `PUBLIC_URL` (z. B. `127.0.0.1` statt `localhost`). |
+| `{"error":"cross_origin"}` bei `POST` | Die Anfrage kam nicht von `PUBLIC_URL` (fehlender oder fremder `Origin`). Aus dem Frontend heraus aufrufen, mit `curl` den Header `-H "Origin: http://localhost:3000"` setzen. |
 | `password authentication failed for user "wiki_api"` oder `role "wiki_api" does not exist` | Die Login-Rollen fehlen (Datenbank aus der Zeit davor): `local_login_roles.sql` von Hand ausführen ([Abschnitt 7](#einrichten)). |
 | `Datenbank: Datenbankrolle … ist Superuser oder Eigentümer` | Eine Datenbank-URL in der `.env` nutzt `postgres` oder `wiki_owner`. Die Werte aus der `.env.example` nehmen. |
 | `EADDRINUSE` | Der Port ist belegt, meist läuft die App schon in einem anderen Terminal. Anderen Port in der `.env` setzen (`API_PORT`, `COLLAB_PORT`) oder die andere Instanz beenden. |

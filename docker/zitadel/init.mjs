@@ -4,7 +4,9 @@
 // Container wartend stehen und meldet „healthy“ (wie garage-init).
 //
 //   1. Projekt „NoteFieber“ in der Organisation NoteFieber (Betreiber)
-//   2. OIDC-Client „web“ (Frontend, PKCE ohne Geheimnis) und API-Client „api“ (prüft Tokens)
+//   2. OIDC-Client „notefieber-login“ (die API meldet damit Personen an: Code-Flow mit
+//      Geheimnis und PKCE, Rücksprung über das Frontend auf /api/v1/auth/callback) und
+//      API-Client „notefieber-api“ (Token-Introspection, derzeit ungenutzt)
 //   3. Organisationen Alpenwerk und Nordlicht mit festen IDs (= tenants.idp_org_id in seed.sql),
 //      jede bekommt das Projekt freigegeben
 //   4. die Testpersonen mit festen IDs (= users.idp_subject in seed.sql), bestätigter E-Mail
@@ -161,21 +163,32 @@ async function app(applicationId, name, config) {
   return { clientId: c.clientId, clientSecret: c.clientSecret || null };
 }
 
-const web = await app("notefieber-web", "NoteFieber Web (Frontend)", {
+// Login über die API (docs/CONCEPTS.md, Abschnitt 5): Die Tokens bleiben auf dem Server,
+// der Browser bekommt nur ein Sitzungs-Cookie. Frontend und API liegen unter derselben
+// Adresse (/ und /api), deshalb führt der Rücksprung über WEB_URL. Früher gab es hier
+// den öffentlichen Client „notefieber-web“ (PKCE im Browser); er wird nicht mehr angelegt.
+const LOGIN_REDIRECT = `${WEB_URL}/api/v1/auth/callback`;
+const login = await app("notefieber-login", "NoteFieber Login (API)", {
   oidcConfiguration: {
     applicationType: "OIDC_APP_TYPE_WEB",
-    authMethodType: "OIDC_AUTH_METHOD_TYPE_NONE", // öffentlicher Client mit PKCE
+    authMethodType: "OIDC_AUTH_METHOD_TYPE_BASIC", // vertraulich: Geheimnis, dazu PKCE
     responseTypes: ["OIDC_RESPONSE_TYPE_CODE"],
-    grantTypes: ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE", "OIDC_GRANT_TYPE_REFRESH_TOKEN"],
-    redirectUris: [`${WEB_URL}/auth/callback`],
+    grantTypes: ["OIDC_GRANT_TYPE_AUTHORIZATION_CODE"], // eigene Sitzungen, keine Refresh-Tokens
+    redirectUris: [LOGIN_REDIRECT],
     postLogoutRedirectUris: [`${WEB_URL}/`],
     developmentMode: true,          // erlaubt http://localhost
-    accessTokenType: "OIDC_TOKEN_TYPE_JWT", // die API prüft das Token selbst über JWKS
-    accessTokenRoleAssertion: true,
-    idTokenRoleAssertion: true,
     idTokenUserinfoAssertion: true, // Name und E-Mail direkt im ID-Token
   },
 });
+let loginSecret = login.clientSecret ?? prev("OIDC_CLIENT_SECRET");
+if (!loginSecret) {
+  // Das Geheimnis gibt Zitadel nur beim Anlegen heraus. Fehlt die Datei, ein neues erzeugen.
+  const r = await must("zitadel.application.v2.ApplicationService/GenerateClientSecret", {
+    projectId: PROJECT_ID, applicationId: "notefieber-login",
+  });
+  loginSecret = r.clientSecret;
+  log("Client notefieber-login: neues Geheimnis erzeugt");
+}
 
 const api = await app("notefieber-api", "NoteFieber API", {
   apiConfiguration: { authMethodType: "API_AUTH_METHOD_TYPE_BASIC" }, // für Token-Introspection
@@ -231,17 +244,20 @@ fs.writeFileSync(
   [
     "# Von zitadel-init erzeugt (docker/zitadel/init.mjs), siehe docs/LOCAL_SETUP.md.",
     "# Nur für die lokale Entwicklung. Wird bei jedem Start neu geschrieben.",
-    `ZITADEL_ISSUER=${ISSUER}`,
+    "# Login der API (apps/api liest diese Datei beim Start, siehe .env.example)",
+    `OIDC_ISSUER=${ISSUER}`,
+    `OIDC_CLIENT_ID=${login.clientId}`,
+    `OIDC_CLIENT_SECRET=${loginSecret}`,
+    `OIDC_REDIRECT_URI=${LOGIN_REDIRECT}`,
+    "# Weitere Werte",
     `ZITADEL_PROJECT_ID=${PROJECT_ID}`,
-    `ZITADEL_WEB_CLIENT_ID=${web.clientId}`,
-    `ZITADEL_WEB_REDIRECT_URI=${WEB_URL}/auth/callback`,
     `ZITADEL_API_CLIENT_ID=${api.clientId}`,
     `ZITADEL_API_CLIENT_SECRET=${apiSecret}`,
     "",
   ].join("\n"),
 );
 fs.writeFileSync(`${OUT_DIR}/zitadel-admin.pat`, token + "\n");
-log(`bereit: ${ISSUER}, Client web ${web.clientId}, Werte in .local/zitadel.env`);
+log(`bereit: ${ISSUER}, Client notefieber-login ${login.clientId}, Werte in .local/zitadel.env`);
 
 // Für den Healthcheck markieren und warten, bis Compose den Container stoppt
 fs.writeFileSync("/tmp/zitadel-ready", "");

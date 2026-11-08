@@ -15,7 +15,7 @@ BEGIN
   FOREACH t IN ARRAY ARRAY[
     'users', 'workspaces', 'workspace_members', 'groups', 'group_members', 'invites',
     'spaces', 'pages', 'page_contents', 'page_versions', 'page_search', 'page_links',
-    'grants', 'comments', 'files', 'imports', 'import_items', 'outbox', 'audit_log']
+    'grants', 'comments', 'files', 'imports', 'import_items', 'outbox', 'audit_log', 'sessions']
   LOOP
     EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', t);
     EXECUTE format(
@@ -71,6 +71,10 @@ USING (
 --    Audit-Log: nur Organisations-Admins
 CREATE POLICY read_access ON audit_log AS RESTRICTIVE FOR SELECT TO wiki_app
 USING (app.is_org_admin(app.current_user_id()));
+
+--    Sitzungen: nur die eigenen (z. B. für eine Liste „Angemeldete Geräte“)
+CREATE POLICY read_access ON sessions AS RESTRICTIVE FOR SELECT TO wiki_app
+USING (user_id = app.current_user_id());
 
 --    Importe: eigene oder als Space-Admin
 CREATE POLICY read_access ON imports AS RESTRICTIVE FOR SELECT TO wiki_app

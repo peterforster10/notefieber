@@ -44,7 +44,7 @@ FROM wiki_app;
 GRANT SELECT ON
   tenants, users, workspaces, workspace_members, groups, group_members, invites,
   spaces, pages, page_contents, page_versions, page_search, page_links, grants, comments,
-  files, imports, import_items, audit_log
+  files, imports, import_items, audit_log, sessions
 TO wiki_app;
 
 -- wiki_app: direkt schreiben nur hier, jeweils durch die Regeln oben abgesichert.
@@ -68,3 +68,4 @@ GRANT UPDATE (title, position, inherit_perms, updated_at, updated_by) ON pages T
 GRANT DELETE ON pages TO wiki_worker;                       -- endgültiges Löschen aus dem Papierkorb
 GRANT SELECT, INSERT, UPDATE ON outbox TO wiki_worker;      -- Worker veröffentlicht Events
 GRANT SELECT, INSERT ON audit_log TO wiki_worker;           -- nur Anfügen
+GRANT SELECT, DELETE ON sessions TO wiki_worker;            -- abgelaufene Sitzungen aufräumen

@@ -25,7 +25,7 @@ Die Rollen und die Datenbank legt [`roles_database.sql`](../database/scripts/rol
 
 1. [Überblick](#1-überblick)
 2. [Konventionen für alle Tabellen](#2-konventionen-für-alle-tabellen)
-3. [Mandanten und Personen](#3-mandanten-und-personen): `tenants`, `users`, `workspaces`, `workspace_members`, `groups`, `group_members`, `invites`
+3. [Mandanten und Personen](#3-mandanten-und-personen): `tenants`, `users`, `workspaces`, `workspace_members`, `groups`, `group_members`, `invites`, `sessions`
 4. [Spaces und Seiten](#4-spaces-und-seiten): `spaces`, `pages`, `page_contents`, `page_versions`, `page_search`, `page_links`
 5. [Rechte](#5-rechte): `grants`
 6. [Zusammenarbeit](#6-zusammenarbeit): `comments`, `files`
@@ -49,6 +49,7 @@ Die Rollen und die Datenbank legt [`roles_database.sql`](../database/scripts/rol
 | `workspace_members` | Wer gehört mit welcher Rolle zu einem Workspace | Funktionen | alle im Mandanten |
 | `groups`, `group_members` | Gruppen des Wikis (im Wiki angelegt, aus dem Import, später aus dem Login-Dienst oder per SCIM) | Gruppen-Funktionen (Organisations-Admins), `sync_user_groups` | alle im Mandanten |
 | `invites` | Einladungen per Link | Workspace-Admins | Workspace-Admins |
+| `sessions` | Sitzungen der API nach dem Login | `create_session`, `end_session`, `set_user_active` | nur die eigenen |
 | `spaces` | Confluence-Bereich, Einheit für Rechte und Import | Funktionen | mit Rolle im Space oder einer lesbaren Seite darin |
 | `pages` | Seitenbaum | Funktionen | mit Leserecht auf der Seite |
 | `page_contents` | Aktueller Inhalt (Yjs) | Collab-Server | mit der Seite |
@@ -71,6 +72,7 @@ erDiagram
   users ||--o{ workspace_members : ""
   groups ||--o{ group_members : ""
   users ||--o{ group_members : ""
+  users ||--o{ sessions : ""
   workspaces ||--o{ invites : ""
   workspaces ||--o{ spaces : ""
   spaces ||--o{ pages : ""
@@ -208,6 +210,21 @@ Einladungen per Link in einen Workspace.
 
 - **Schreiben:** direkt durch Organisations-Admins sowie Owner und Admins des Workspaces. Annehmen über `app.accept_invite` (legt die Person bei Bedarf an).
 - **Lesen:** nur wer den Workspace verwaltet. Vor dem Login liefert `app.find_invite(token_hash)` die nötigen Angaben.
+
+### `sessions`
+
+Sitzungen der API nach dem Login über OIDC (docs/CONCEPTS.md, Abschnitt 5). Der Browser hält ein zufälliges Token im Cookie `nf_session`; hier steht nur sein Hash. Seit Migration `0002_sessions.sql`.
+
+| Spalte | Typ | Bedeutung |
+|---|---|---|
+| `user_id` | uuid | Angemeldete Person (Fremdschlüssel mit `tenant_id`, beim Löschen der Person mitgelöscht). |
+| `token_hash` | text | SHA-256 des Tokens als 64 Hex-Zeichen (`CHECK`), global eindeutig. Das Token selbst steht nirgends in der Datenbank. |
+| `user_agent` | text | Browser beim Login, höchstens 500 Zeichen (für eine spätere Liste der angemeldeten Geräte). |
+| `expires_at` | timestamptz | Ablauf, nach `created_at` (`CHECK`) und höchstens 30 Tage nach dem Anlegen (`create_session`). |
+
+- **Schreiben:** nur über `app.create_session` (für die angemeldete Person selbst, nur wenn sie aktiv ist), `app.end_session` (Abmelden) und `app.set_user_active` (Deaktivieren löscht alle Sitzungen der Person). Der Worker darf abgelaufene löschen.
+- **Lesen:** jede Person nur die eigenen. Vor dem Mandanten-Kontext findet `app.resolve_session(token_hash)` eine gültige Sitzung.
+- **Gültig** ist eine Sitzung, solange `expires_at` nicht erreicht ist, die Person aktiv und der Mandant nicht gekündigt ist.
 
 ---
 
@@ -524,6 +541,7 @@ Restriktive Regeln werden mit `UND` an die permissiven gehängt; eine Zeile muss
 | `imports` | `read_access` | selbst gestartet oder Space-Admin |
 | `import_items` | `read_access` | der Import ist lesbar |
 | `audit_log` | `read_access` | Organisations-Admin |
+| `sessions` | `read_access` | eigene Sitzung (`user_id = app.current_user_id()`) |
 | `users` | `write_insert` | `role = 'member'`, aktiv, ohne Profilbild |
 | `users` | `write_update` | eigene Zeile oder Organisations-Admin; Profilbild nur eigene Datei ohne Seite |
 | `workspaces` | `write_insert` | Organisations-Admin |
@@ -545,6 +563,7 @@ Die Tabelle zeigt die Tabellenrechte. Dazu kommen immer die Regeln aus Abschnitt
 | `workspace_members` | ja | – | alles |
 | `groups`, `group_members` | ja | – | alles |
 | `invites` | ja (nur Admins) | `INSERT`, `UPDATE`, `DELETE` (nur Admins) | alles |
+| `sessions` | ja (nur eigene) | – | `SELECT`, `DELETE` (abgelaufene aufräumen) |
 | `spaces` | ja | – | alles |
 | `pages` | ja | – | `SELECT`, `INSERT`, `UPDATE (title, position, inherit_perms, updated_*)`, `DELETE` |
 | `page_contents`, `page_versions`, `page_search`, `page_links` | ja | – | alles |
@@ -663,8 +682,19 @@ DEFINER, App. Setzt die Organisations-Rolle (`org_admin` oder `member`). Nur fü
 Audit: `user.role_changed`.
 
 #### `set_user_active(person, aktiv, actor)`
-DEFINER, App. Sperrt eine Person (`aktiv = false`) oder entsperrt sie. Nur für Organisations-Admins; der letzte Organisations-Admin lässt sich nicht sperren (Trigger). Gesperrte Personen haben überall den Rang 0 und zählen nicht als Admin; ihre Grants bleiben für eine spätere Entsperrung erhalten. Ändert sich nichts, passiert nichts.
+DEFINER, App. Sperrt eine Person (`aktiv = false`) oder entsperrt sie. Nur für Organisations-Admins; der letzte Organisations-Admin lässt sich nicht sperren (Trigger). Gesperrte Personen haben überall den Rang 0 und zählen nicht als Admin; ihre Grants bleiben für eine spätere Entsperrung erhalten. Beim Sperren werden alle ihre Sitzungen gelöscht, sie ist also sofort abgemeldet. Ändert sich nichts, passiert nichts.
 Ereignis: beim Sperren `user.deactivated` an jeden Space ihrer Workspaces. Audit: `user.deactivated` bzw. `user.reactivated`.
+
+#### `create_session(person, token_hash, ablauf, user_agent = NULL) → uuid`
+DEFINER, App, nach dem Login (Mandant und Person gesetzt). Legt eine Sitzung an, nur für die angemeldete Person selbst (`require_actor`) und nur, wenn sie im Mandanten aktiv ist (sonst `insufficient_privilege`). Der Ablauf muss in der Zukunft liegen, höchstens 30 Tage. Löscht dabei abgelaufene Sitzungen derselben Person.
+Audit: `session.created` mit der ID der Sitzung.
+
+#### `resolve_session(token_hash) → (session_id, tenant_id, user_id, expires_at)`
+DEFINER, App, vor dem Mandanten-Kontext (bei jeder Anfrage mit Cookie). Liefert die Sitzung nur, wenn sie nicht abgelaufen, die Person aktiv und der Mandant nicht gekündigt ist; sonst nichts.
+
+#### `end_session(token_hash) → boolean`
+DEFINER, App, ohne Kontext (das Token genügt). Löscht die Sitzung und gibt zurück, ob es eine gab.
+Audit: `session.ended` (direkt mit dem Mandanten der Sitzung, weil kein Kontext gesetzt ist).
 
 #### `create_group(name, actor) → uuid`
 DEFINER, App. Legt eine Gruppe mit Quelle `local` an (Name ohne Leerzeichen am Rand). Nur für Organisations-Admins.

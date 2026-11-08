@@ -394,8 +394,70 @@ BEGIN
   IF NOT FOUND THEN RETURN; END IF;
 
   IF NOT p_active THEN
+    DELETE FROM sessions WHERE user_id = p_user_id AND tenant_id = app.current_tenant();   -- sofort abgemeldet
     PERFORM app.emit_user_spaces(p_user_id, NULL, 'user.deactivated', jsonb_build_object('user', p_user_id));
   END IF;
   PERFORM app.audit(p_actor_id, CASE WHEN p_active THEN 'user.reactivated' ELSE 'user.deactivated' END,
                     'user', p_user_id);
+END $$;
+
+-- -----------------------------------------------------------------------------
+-- Sitzungen der API (Tabelle sessions). Das Token selbst kennt nur der Browser (Cookie),
+-- die Datenbank nur seinen SHA-256-Hash (64 Hex-Zeichen).
+-- -----------------------------------------------------------------------------
+
+-- Sitzung anlegen, nach dem Login (die API hat Mandant und Person gesetzt). Nur für die
+-- angemeldete Person selbst und nur, solange sie aktiv ist. Höchstens 30 Tage gültig.
+-- Abgelaufene Sitzungen der Person räumt sie dabei gleich mit weg.
+CREATE FUNCTION app.create_session(p_user_id uuid, p_token_hash text, p_expires_at timestamptz,
+                                   p_user_agent text DEFAULT NULL)
+RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $$
+DECLARE
+  v_tenant  uuid := app.current_tenant();
+  v_session uuid := uuidv7();
+BEGIN
+  PERFORM app.require_actor(p_user_id);
+  IF NOT EXISTS (SELECT 1 FROM users WHERE id = p_user_id AND tenant_id = v_tenant AND deactivated_at IS NULL) THEN
+    RAISE EXCEPTION USING
+      ERRCODE = 'insufficient_privilege',
+      MESSAGE = 'create_session: Person ist deaktiviert oder gehört nicht zum Mandanten';
+  END IF;
+  IF p_expires_at <= now() OR p_expires_at > now() + interval '30 days' THEN
+    RAISE EXCEPTION 'create_session: Ablauf muss in der Zukunft liegen, höchstens 30 Tage';
+  END IF;
+
+  DELETE FROM sessions WHERE user_id = p_user_id AND tenant_id = v_tenant AND expires_at <= now();
+  INSERT INTO sessions (id, tenant_id, user_id, token_hash, user_agent, expires_at)
+  VALUES (v_session, v_tenant, p_user_id, p_token_hash, left(p_user_agent, 500), p_expires_at);
+  PERFORM app.audit(p_user_id, 'session.created', 'user', p_user_id, jsonb_build_object('session_id', v_session));
+  RETURN v_session;
+END $$;
+
+-- Sitzung zum Token (Hash) finden, bei jeder Anfrage und vor dem Mandanten-Kontext (wie
+-- find_invite). Nur gültige Sitzungen aktiver Personen in nicht gekündigten Mandanten.
+CREATE FUNCTION app.resolve_session(p_token_hash text)
+RETURNS TABLE (session_id uuid, tenant_id uuid, user_id uuid, expires_at timestamptz)
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $$
+  SELECT s.id, s.tenant_id, s.user_id, s.expires_at
+  FROM sessions s
+  JOIN users u ON u.id = s.user_id AND u.tenant_id = s.tenant_id
+  JOIN tenants t ON t.id = s.tenant_id
+  WHERE s.token_hash = p_token_hash AND s.expires_at > now()
+    AND u.deactivated_at IS NULL AND t.deleted_at IS NULL
+$$;
+
+-- Abmelden: Sitzung zum Token löschen. Braucht keinen Kontext, das Token genügt. Gibt
+-- zurück, ob es eine Sitzung gab.
+CREATE FUNCTION app.end_session(p_token_hash text)
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $$
+DECLARE
+  v_tenant uuid;
+  v_user   uuid;
+BEGIN
+  DELETE FROM sessions WHERE token_hash = p_token_hash RETURNING tenant_id, user_id INTO v_tenant, v_user;
+  IF NOT FOUND THEN RETURN false; END IF;
+  -- app.audit nimmt den Mandanten aus dem Kontext; hier gibt es keinen, also direkt
+  INSERT INTO audit_log (tenant_id, actor_id, action, target_type, target_id)
+  VALUES (v_tenant, v_user, 'session.ended', 'user', v_user);
+  RETURN true;
 END $$;
