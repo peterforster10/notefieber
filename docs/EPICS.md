@@ -57,6 +57,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Secrets mit SOPS oder Sealed Secrets, Firewall nur 80, 443 und SSH
 - Laufende Backups zu einem S3-Speicher bei einem anderen Anbieter
 - Monitoring: Logs, Metriken, Alarm bei Ausfall, vollem Speicher, fehlgeschlagenem Backup, Yjs-Dokumenten über 10 MB
+- E-Mail-Versand über generisches SMTP: lokal Mailpit, im SaaS ein EU-Anbieter ohne US-Mutter (z. B. Scaleway Transactional Email, Brevo; nicht SendGrid, Postmark oder Amazon SES wegen CLOUD Act), On-Prem das Relay des Kunden. Absenderdomain mit SPF, DKIM und DMARC. Zitadel nutzt denselben Zugang für seine Mails (Passwort vergessen, E-Mail bestätigen)
 
 **Nicht enthalten:** NATS und Valkey (kommen mit TalkFieber), Umzug (E24), Hochverfügbarkeit (E28).
 
@@ -77,7 +78,8 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 
 **Umfang:**
 - Mandant mit erstem Workspace und Organisations-Admin in einer Transaktion (`app.create_tenant`), optional mit der ID aus TalkFieber
-- Einladung per Link, Rollen owner, admin, member, guest pro Workspace
+- Einladung per Link, Rollen owner, admin, member, guest pro Workspace (fertig, M0)
+- Einladung per E-Mail: Die API schickt die Mail beim Anlegen selbst, weil das Token nur in diesem Moment im Klartext vorliegt (in der Datenbank nur sein Hash); schlägt der Versand fehl, bleibt der Link zum Weitergeben. Texte auf Deutsch und Englisch
 - Profil mit Name, Bild, Sprache, Zeitzone
 - Gruppen im Wiki anlegen und pflegen, nur Organisations-Admins (`app.create_group`, `app.add_group_member` …). Datenbank fertig; API und Oberfläche kommen mit E09 in M3, zusammen mit dem Rechte-Dialog. Zitadel hat keine Gruppen; SCIM (E17) und ein Gruppen-Claim im Token (E03) kommen später als Quellen dazu
 - Personen deaktivieren, aus Workspaces entfernen (persönliche Rechte fallen weg)

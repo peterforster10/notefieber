@@ -65,11 +65,12 @@ Epics: E04, Teile von E06 und E07
 **Gate:** Zwei Personen bearbeiten gleichzeitig, nichts geht verloren.
 
 ### M2 – Wiki-Grundfunktionen
-Epics: E05, E06, E07, E08, E15
+Epics: E05, E06, E07, E08, E15, dazu der Mail-Versand aus E01 und E02
 - [ ] Spaces mit Startseite, Seitenbaum mit Drag & Drop
 - [ ] Blöcke: Überschriften, Listen, Tabellen, Code, Bilder, Callouts, Seitenlinks
 - [ ] Versionen anzeigen, vergleichen, wiederherstellen; Papierkorb
 - [ ] Web-Client nach UI-Entwurf
+- [ ] E-Mail-Versand lokal: Mailpit in `compose.yaml` (fängt alle Mails ab, Ansicht unter `http://localhost:8025`), SMTP über eine generische Einstellung (Nodemailer); Einladungsmail direkt aus der API beim Anlegen (das Token liegt nur im Speicher, der Link bleibt als Rückfall); Zitadel nutzt denselben SMTP-Server (Passwort vergessen, E-Mail bestätigen)
 - [ ] **Ab hier selbst nutzen**, z. B. für die eigene Projektdokumentation
 
 ### M3 – Rechte, Suche, Kommentare (MVP ohne Import)
@@ -114,6 +115,7 @@ Epics: E01 (VPS), E22 (einfach)
 - [ ] Datenschutzerklärung und Nutzungsbedingungen für die Pilotphase
 - [ ] 2–3 Pilotkunden, die mit ihrem importierten Space arbeiten, mit regelmäßigem Feedback
 - [ ] Installations- und Admin-Doku
+- [ ] E-Mail über einen EU-Anbieter ohne US-Mutter (z. B. Scaleway Transactional Email, Brevo), eigene Absenderdomain mit SPF, DKIM und DMARC; Zitadel und API über denselben Zugang
 
 **Weiter, wenn** ein Pilot vier Wochen ohne Confluence arbeitet, lieber mit NoteFieber arbeitet als mit Confluence und mindestens einer sagt: „Dafür würden wir zahlen.“
 
