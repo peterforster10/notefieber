@@ -13,6 +13,7 @@
   - `README.md`: Einstieg ins Repository, Überblick über alle Dokumente, Kurzfassung der lokalen Einrichtung
   - `docs/OPEN_QUESTIONS.md`: Themen, die in EPICS und ROADMAP noch fehlen oder zu spät stehen, mit offenen Fragen und Vorschlag. Geklärtes wandert in EPICS, ROADMAP bzw. hierher und wird dort gelöscht
   - `TODOS.md`: offene Punkte aus der letzten Konsistenzprüfung. Erledigtes abhaken und löschen, Entscheidungen wandern hierher
+  - `REVIEW.md`: Review von Code und Dokumentation, **Momentaufnahme vom 12. November 2026**, wird nicht nachgeführt. Befunde mit ID (`R-01` …), Beleg und Vorschlag; die Aufgaben daraus stehen in `TODOS.md`
   - `docs/CONCEPTS.md`: alle Kernkonzepte ausführlich erklärt, für Neulinge zuerst lesen
   - `docs/MVP.md`: Architektur und Umfang des MVP auf einen Blick, **Momentaufnahme vom 5. November 2026**, wird nicht nachgeführt
   - `docs/ROADMAP.md`: Stufen 0–4 und Meilensteine M0–M5
