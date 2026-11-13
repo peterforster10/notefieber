@@ -213,7 +213,7 @@ Wer die Vererbung einer Seite kappt (`app.set_page_inheritance`), dem passiert n
 2. Die handelnde Person wird **Admin der Seite**.
 3. Danach schränkt man die Rechte ein, z. B. „Alle im Workspace“ entfernen (`app.set_grant`).
 
-Jeder Space und jede Seite mit eigenen Rechten muss **mindestens einen wirksamen Admin** behalten: eine aktive Person oder eine Gruppe mit mindestens einem aktiven Mitglied. Den letzten zu entfernen, lehnt die Datenbank ab, ebenso das Entfernen des letzten aktiven Mitglieds aus einer Admin-Gruppe und das Löschen einer solchen Gruppe. Nicht abfangen lässt sich, dass der letzte Admin deaktiviert wird oder der Login-Dienst die letzte Person aus einer Admin-Gruppe nimmt, weil sich dabei keine Grants ändern. Dann setzt ein Organisations-Admin einen neuen Admin.
+Jeder Space und jede Seite mit eigenen Rechten muss **mindestens einen wirksamen Admin** behalten: eine aktive Person oder eine Gruppe mit mindestens einem aktiven Mitglied, jeweils Mitglied im Workspace des Spaces. Gruppen gelten für den ganzen Mandanten; wer nicht im Workspace ist, kommt trotz Gruppe nicht in den Space und zählt deshalb nicht. Den letzten zu entfernen, lehnt die Datenbank ab, ebenso das Entfernen des letzten aktiven Mitglieds aus einer Admin-Gruppe und das Löschen einer solchen Gruppe. Nicht abfangen lässt sich, dass der letzte Admin deaktiviert wird oder der Login-Dienst die letzte Person aus einer Admin-Gruppe nimmt, weil sich dabei keine Grants ändern. Dann setzt ein Organisations-Admin einen neuen Admin.
 
 Wird die Vererbung wieder eingeschaltet, fallen die Grants der Seite weg und sie erbt wieder.
 
@@ -238,7 +238,7 @@ Gäste sind Mitglieder mit Rolle `guest`. „Alle im Workspace“ gilt für sie 
 
 ### Wer aus einem Workspace entfernt wird
 
-Verliert sofort jeden Zugriff (Schritt 1 oben), und seine persönlichen Grants auf Spaces und Seiten dieses Workspaces werden gelöscht (`app.remove_workspace_member`). Wird die Person später wieder eingeladen, beginnt sie ohne alte Rechte. Ist sie irgendwo der letzte wirksame Admin, lehnt die Datenbank das Entfernen ab, bis ein anderer Admin bestimmt ist. Ihre offenen Verbindungen zum Collab-Server werden getrennt.
+Verliert sofort jeden Zugriff (Schritt 1 oben), und seine persönlichen Grants auf Spaces und Seiten dieses Workspaces werden gelöscht (`app.remove_workspace_member`). Wird die Person später wieder eingeladen, beginnt sie ohne alte Rechte. Ist sie irgendwo der letzte wirksame Admin, auch über eine Gruppe, lehnt die Datenbank das Entfernen ab, bis ein anderer Admin bestimmt ist. Ihre offenen Verbindungen zum Collab-Server werden getrennt.
 
 ---
 
@@ -544,7 +544,7 @@ Interne Bausteine (Ereignisse schreiben, Audit-Einträge, Rechte anderer Persone
 
 ### Die Tests
 
-`schema_test.sql` prüft das alles in 49 Tests als `wiki_app` und `wiki_worker` (gleichzeitige Sitzungen prüft `schema_concurrency_test.sh`), z. B.: Ein Leser kann weder direkt noch über Funktionen schreiben, eingeschränkte Seiten sind samt Inhalt, Versionen, Suchtreffern, Kommentaren, Dateien und Links unsichtbar, fremde Mandanten sind unsichtbar, jede Tabelle hat RLS. **Jede Änderung am Schema bekommt zuerst einen Test.**
+`schema_test.sql` prüft das alles in 50 Tests als `wiki_app` und `wiki_worker` (gleichzeitige Sitzungen prüft `schema_concurrency_test.sh`), z. B.: Ein Leser kann weder direkt noch über Funktionen schreiben, eingeschränkte Seiten sind samt Inhalt, Versionen, Suchtreffern, Kommentaren, Dateien und Links unsichtbar, fremde Mandanten sind unsichtbar, jede Tabelle hat RLS. **Jede Änderung am Schema bekommt zuerst einen Test.**
 
 ---
 

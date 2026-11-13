@@ -4,6 +4,7 @@
 # Von zitadel-init erzeugte Werte (Client-IDs, Geheimnisse), siehe docs/LOCAL_SETUP.md
 .local/
 
+.claude/
 .idea/
 
 # Node und Next.js

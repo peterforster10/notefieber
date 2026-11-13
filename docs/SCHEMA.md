@@ -342,7 +342,7 @@ Ein Recht gibt einem Subjekt eine Rolle auf einem Space **oder** einer Seite. Wi
 
 - **Regeln:**
   - Höchstens ein Recht pro Objekt und Subjekt (eindeutiger Index).
-  - Jeder Space und jede Seite mit gekappter Vererbung behält mindestens einen **wirksamen** Admin: eine aktive Person oder eine Gruppe mit aktivem Mitglied (`app.has_admin`). `set_grant` und `remove_workspace_member` prüfen das sofort, der Trigger `admin_remains` beim Commit noch einmal.
+  - Jeder Space und jede Seite mit gekappter Vererbung behält mindestens einen **wirksamen** Admin: eine Person oder eine Gruppe mit einem Mitglied, die aktiv und Mitglied im Workspace des Spaces ist (`app.has_admin`). `set_grant` und `remove_workspace_member` prüfen das sofort, der Trigger `admin_remains` beim Commit noch einmal.
   - Persönliche Rechte nur für aktive Mitglieder des Workspaces.
 - **Schreiben:** `app.create_space`, `app.set_grant` (setzen oder mit Rolle `NULL` entfernen; erlaubt für Admins des Objekts, Space-Admins und Organisations-Admins), `app.set_page_inheritance` (kopiert beim Kappen die bisher geltenden Rechte und macht die handelnde Person zum Admin der Seite), `app.remove_workspace_member`.
 - **Lesen:** wer den Space bzw. die Seite lesen darf.
@@ -612,7 +612,7 @@ Alle Funktionen liegen im Schema `app`. Zu jeder Funktion: wer sie aufruft, was 
 | `grant_rank(space, seite, person, ws_rolle) → integer` | DEFINER, intern | Höchster Rang aus den Grants **eines** Objekts für eine Person. `ws_rolle` ist ihre Workspace-Rolle; bei `guest` zählen Grants für „alle im Workspace“ nicht. |
 | `space_ws_role(space, person) → text` | DEFINER, intern | Rolle der Person im Workspace des Spaces, `NULL` wenn sie kein Mitglied oder deaktiviert ist. Erste Prüfung jeder Rangberechnung. |
 | `perm_source(seite) → uuid` | DEFINER, intern | Woher die Seite ihre Rechte hat: ID der nächsten Seite oberhalb (oder der Seite selbst) mit gekappter Vererbung, `NULL` = vom Space. Nutzt `move_page`. |
-| `has_admin(objekt) → boolean` | DEFINER, intern | Hat ein Space bzw. eine Seite mit gekappter Vererbung noch einen wirksamen Admin? Zählt nur Admin-Grants für aktive Personen oder Gruppen mit mindestens einem aktiven Mitglied. Ohne Mandantenfilter, damit der Trigger `admin_remains` beim Commit unabhängig vom Kontext prüfen kann. |
+| `has_admin(objekt) → boolean` | DEFINER, intern | Hat ein Space bzw. eine Seite mit gekappter Vererbung noch einen wirksamen Admin? Zählt nur Admin-Grants für Personen bzw. Gruppen mit mindestens einem Mitglied, die aktiv und Mitglied im Workspace des Spaces sind (Gruppen gelten für den ganzen Mandanten, Zugriff gibt es nur über den Workspace). Ohne Mandantenfilter, damit der Trigger `admin_remains` beim Commit unabhängig vom Kontext prüfen kann. |
 | `is_org_admin(person) → boolean` | DEFINER, App/Worker | Ist die Person aktiver Organisations-Admin im eigenen Mandanten? |
 | `is_workspace_admin(workspace, person) → boolean` | DEFINER, App/Worker | Organisations-Admin oder aktiver Owner bzw. Admin des Workspaces. Wer das ist, darf Mitglieder und Einladungen verwalten. |
 
@@ -674,7 +674,7 @@ DEFINER, App. Ändert die Rolle im Workspace. Wer einen Owner herabstuft oder je
 Ereignis: `member.changed` an jeden Space des Workspaces. Audit: `member.role_changed` mit alter und neuer Rolle.
 
 #### `remove_workspace_member(workspace, person, actor)`
-DEFINER, App. Entfernt eine Person aus dem Workspace, erlaubt für die Person selbst und für Workspace-Admins. Ihre persönlichen Grants auf Spaces und Seiten des Workspaces fallen weg, auch auf Seiten, die die handelnde Person nicht sieht. Lehnt ab (`restrict_violation`), wenn die Person dadurch irgendwo letzter wirksamer Admin war, oder wenn sie der letzte Owner ist (Trigger). Ist die Person kein Mitglied, passiert nichts.
+DEFINER, App. Entfernt eine Person aus dem Workspace, erlaubt für die Person selbst und für Workspace-Admins. Ihre persönlichen Grants auf Spaces und Seiten des Workspaces fallen weg, auch auf Seiten, die die handelnde Person nicht sieht. Lehnt ab (`restrict_violation`), wenn die Person dadurch irgendwo letzter wirksamer Admin war, persönlich oder über eine Gruppe (ohne Mitgliedschaft im Workspace zählt sie nicht mehr), oder wenn sie der letzte Owner ist (Trigger). Ist die Person kein Mitglied, passiert nichts.
 Ereignis: `member.removed` an jeden Space des Workspaces (der Collab-Server trennt ihre Verbindungen). Audit: `member.removed`.
 
 #### `set_user_role(person, rolle, actor)`

@@ -9,9 +9,6 @@ Migration, mit Test in `schema_test/` und Nachtrag in `docs/SCHEMA.md`.
 
 ## Vor M3 (Rechte-Dialog, Personenauswahl)
 
-- [ ] **R-01 (Hoch):** `app.has_admin` zählt nur aktive Workspace-Mitglieder;
-  `app.remove_workspace_member` prüft auch Objekte, auf denen Gruppen der Person Admin sind.
-  Test für beide Wege in `12_groups.sql`
 - [ ] **R-02 (Mittel):** `EXECUTE` auf `app.sync_user_groups` für `wiki_app` entziehen, bis
   ein Gruppen-Claim angebunden wird (E03); Test in `09_users_rules.sql`
 - [ ] **R-03 (Mittel):** Leseregeln für `users`, `groups`, `group_members`, `workspaces`,

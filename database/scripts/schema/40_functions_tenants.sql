@@ -276,8 +276,9 @@ BEGIN
 END $$;
 
 -- Person aus einem Workspace entfernen: Ihre persönlichen Grants auf dessen Spaces und
--- Seiten fallen weg. Abgelehnt, wenn sie dadurch irgendwo letzter Admin war. Das Event
--- member.removed lässt den Collab-Server ihre offenen Verbindungen trennen.
+-- Seiten fallen weg. Abgelehnt, wenn sie dadurch irgendwo letzter wirksamer Admin war,
+-- persönlich oder über eine Gruppe (ohne Mitgliedschaft zählt sie in app.has_admin nicht
+-- mehr). Das Event member.removed lässt den Collab-Server ihre offenen Verbindungen trennen.
 -- SECURITY DEFINER, weil auch Seiten betroffen sind, die die handelnde Person nicht
 -- sieht. Der Mandant wird deshalb ausdrücklich geprüft.
 CREATE FUNCTION app.remove_workspace_member(p_workspace_id uuid, p_user_id uuid, p_actor_id uuid)
@@ -306,10 +307,19 @@ BEGIN
     RETURNING coalesce(g.space_id, g.page_id) AS object_id, g.role)
   SELECT array_agg(object_id) FILTER (WHERE role = 'admin') INTO v_admin_objects FROM removed;
 
+  -- Dazu die Spaces und Seiten des Workspaces, auf denen eine ihrer Gruppen Admin ist
+  v_admin_objects := coalesce(v_admin_objects, '{}') || ARRAY(
+    SELECT coalesce(g.space_id, g.page_id)
+    FROM grants g
+    JOIN group_members gm ON gm.group_id = g.group_id AND gm.user_id = p_user_id
+    LEFT JOIN pages p ON p.id = g.page_id
+    JOIN spaces s ON s.id = coalesce(g.space_id, p.space_id)
+    WHERE g.tenant_id = v_tenant AND g.role = 'admin' AND s.workspace_id = p_workspace_id);
+
   IF EXISTS (SELECT 1 FROM unnest(v_admin_objects) AS o WHERE NOT app.has_admin(o)) THEN
     RAISE EXCEPTION USING
       ERRCODE = 'restrict_violation',
-      MESSAGE = 'Die Person ist letzter Admin eines Spaces oder einer eingeschränkten Seite, zuerst einen anderen Admin bestimmen';
+      MESSAGE = 'Die Person ist letzter Admin eines Spaces oder einer eingeschränkten Seite (auch über eine Gruppe), zuerst einen anderen Admin bestimmen';
   END IF;
 
   PERFORM app.emit_user_spaces(p_user_id, p_workspace_id, 'member.removed',

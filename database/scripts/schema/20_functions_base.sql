@@ -252,19 +252,27 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, public, pg_te
 $$;
 
 -- Hat ein Space bzw. eine Seite mit gekappter Vererbung (p_object_id) noch einen wirksamen
--- Admin? Zählt: Grant für eine aktive Person oder für eine Gruppe mit mindestens einem
--- aktiven Mitglied ("alle im Workspace" kann nicht Admin sein). Ohne Mandantenfilter, damit
--- der Trigger beim Commit unabhängig vom Kontext prüft (die IDs sind eindeutig).
+-- Admin? Zählt: Grant für eine Person oder für eine Gruppe mit mindestens einem Mitglied,
+-- die aktiv und Mitglied im Workspace des Spaces ist (Gruppen gelten für den ganzen Mandanten,
+-- Zugriff gibt es aber nur über den Workspace, siehe app.space_ws_role). "Alle im Workspace"
+-- kann nicht Admin sein. Ohne Mandantenfilter, damit der Trigger beim Commit unabhängig vom
+-- Kontext prüft (die IDs sind eindeutig).
 CREATE FUNCTION app.has_admin(p_object_id uuid) RETURNS boolean
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $$
+  WITH ws AS (
+    SELECT s.workspace_id FROM spaces s WHERE s.id = p_object_id
+    UNION ALL
+    SELECT s.workspace_id FROM pages p JOIN spaces s ON s.id = p.space_id WHERE p.id = p_object_id)
   SELECT EXISTS (
-    SELECT 1 FROM grants g
+    SELECT 1 FROM grants g CROSS JOIN ws
     WHERE coalesce(g.space_id, g.page_id) = p_object_id AND g.role = 'admin'
-      AND (   (g.subject_type = 'user' AND EXISTS (
-                 SELECT 1 FROM users u WHERE u.id = g.user_id AND u.deactivated_at IS NULL))
-           OR (g.subject_type = 'group' AND EXISTS (
-                 SELECT 1 FROM group_members gm JOIN users u ON u.id = gm.user_id
-                 WHERE gm.group_id = g.group_id AND u.deactivated_at IS NULL))))
+      AND EXISTS (
+        SELECT 1 FROM users u
+        JOIN workspace_members wm ON wm.user_id = u.id AND wm.workspace_id = ws.workspace_id
+        WHERE u.deactivated_at IS NULL
+          AND (   (g.subject_type = 'user' AND u.id = g.user_id)
+               OR (g.subject_type = 'group' AND u.id IN (
+                     SELECT gm.user_id FROM group_members gm WHERE gm.group_id = g.group_id)))))
 $$;
 
 -- Woher hat eine Seite ihre Rechte? Nächste Seite oberhalb (oder die Seite selbst) mit
