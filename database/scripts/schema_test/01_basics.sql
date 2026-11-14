@@ -28,14 +28,11 @@ DO $$
 DECLARE u uuid; n text;
 BEGIN
   FOREACH n IN ARRAY ARRAY['lukas', 'max', 'sophie'] LOOP
-    u := uuidv7();
-    INSERT INTO users (id, tenant_id, email, display_name) VALUES (u, app.current_tenant(), n || '@alpenwerk.example', initcap(n));
+    u := pg_temp.new_user(app.current_tenant(), n || '@alpenwerk.example', initcap(n));
     INSERT INTO ids VALUES (n, u);
     PERFORM app.add_workspace_member(pg_temp.id('ws1'), u, 'member', pg_temp.id('peter'));
   END LOOP;
-  u := uuidv7();
-  INSERT INTO users (id, tenant_id, email, display_name, is_external)
-  VALUES (u, app.current_tenant(), 'elena@agentur-nord.example', 'Elena Novak', true);
+  u := pg_temp.new_user(app.current_tenant(), 'elena@agentur-nord.example', 'Elena Novak', NULL, true);
   INSERT INTO ids VALUES ('elena', u);
   PERFORM app.add_workspace_member(pg_temp.id('ws1'), u, 'guest', pg_temp.id('peter'));
   RAISE NOTICE 'OK  2 Personen und Gast angelegt';

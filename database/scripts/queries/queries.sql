@@ -91,3 +91,5 @@ from group_members gm
     join users u on u.id = gm.user_id
 where t.slug = 'alpenwerk' and g.name = 'Entwicklung'
 order by u.email;
+
+select * from migrations.applied;

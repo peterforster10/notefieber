@@ -12,7 +12,7 @@ SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('peter'));
 DO $$
 BEGIN
   -- Person ohne Login, wie sie create_tenant ohne idp_subject anlegt
-  INSERT INTO users (tenant_id, email, display_name) VALUES (app.current_tenant(), 'ohne.login@alpenwerk.example', 'Ohne Login');
+  PERFORM pg_temp.new_user(app.current_tenant(), 'ohne.login@alpenwerk.example', 'Ohne Login');
   INSERT INTO invites (tenant_id, workspace_id, email, role, token_hash, invited_by, expires_at)
   VALUES (app.current_tenant(), pg_temp.id('ws1'), 'Ohne.Login@alpenwerk.example', 'member', 'inv-verknuepfen', pg_temp.id('peter'), now() + interval '1 day'),
          (app.current_tenant(), pg_temp.id('ws1'), 'ohne.login@alpenwerk.example', 'member', 'inv-fremd', pg_temp.id('peter'), now() + interval '1 day'),

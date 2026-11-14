@@ -101,7 +101,7 @@ Die Gruppen **gehören dem Wiki**, nicht dem Login-Dienst (Zitadel hat keine Gru
 |---|---|---|
 | `local` | in der Oberfläche angelegt (`app.create_group`) | Organisations-Admins (`app.add_group_member`, `app.remove_group_member`) |
 | `import` | vom Confluence-Import angelegt | wie `local` |
-| `idp` | Gruppen-Claim im Token, z. B. aus Entra ID (`app.sync_user_groups` beim Login), **noch nicht genutzt** | der Login-Dienst; der Abgleich beim Login fügt hinzu und entfernt |
+| `idp` | Gruppen-Claim im Token, z. B. aus Entra ID (`app.sync_user_groups`, nur für `wiki_worker` ausführbar), **noch nicht genutzt** | der Login-Dienst; der Abgleich beim Login fügt hinzu und entfernt |
 | `scim` | später per SCIM aus dem Firmen-Verzeichnis (E17) | das Verzeichnis |
 
 Gruppen aus dem Login-Dienst oder per SCIM lassen sich im Wiki nicht ändern, sonst überschriebe der nächste Abgleich die Änderung. Umgekehrt berührt der Abgleich beim Login nur Gruppen mit Quelle `idp`.
@@ -533,7 +533,7 @@ Ist nichts gesetzt, ist **nichts** sichtbar. Ein vergessener Kontext führt also
 
 ### Schreiben nur über Funktionen
 
-`wiki_app` schreibt fast nur über Funktionen im Schema `app`. Direkt erlaubt sind wenige Fälle, jeweils durch eine Regel abgesichert: das eigene Profil, neue Personen als einfaches Mitglied beim ersten Login, Einladungen und Workspaces (nur wer sie verwaltet) und Datei-Uploads. Seiten, Rechte, Mitgliedschaften, Gruppen, Inhalt, Versionen, Kommentare, Import, Outbox und Audit-Log gehen nur über Funktionen wie `create_space`, `archive_space`, `create_page`, `move_page`, `trash_page`, `restore_page`, `set_grant`, `set_page_inheritance`, `add_workspace_member`, `remove_workspace_member`, `set_user_active`, `create_group`, `add_group_member`, `add_comment`, `save_version`, `start_import`. Jede Funktion prüft:
+`wiki_app` schreibt fast nur über Funktionen im Schema `app`. Direkt erlaubt sind wenige Fälle, jeweils durch eine Regel abgesichert: das eigene Profil, Einladungen und Workspaces (nur wer sie verwaltet) und Datei-Uploads. Neue Personen (nur über Einladungen, `accept_invite`), Seiten, Rechte, Mitgliedschaften, Gruppen, Inhalt, Versionen, Kommentare, Import, Outbox und Audit-Log gehen nur über Funktionen wie `create_space`, `archive_space`, `create_page`, `move_page`, `trash_page`, `restore_page`, `set_grant`, `set_page_inheritance`, `add_workspace_member`, `remove_workspace_member`, `set_user_active`, `create_group`, `add_group_member`, `add_comment`, `save_version`, `start_import`. Jede Funktion prüft:
 
 - **Ist die handelnde Person die angemeldete?** Niemand kann im Namen anderer handeln (`app.require_actor`).
 - **Hat sie die nötige Rolle?** (`app.require_page`, `app.require_space`)

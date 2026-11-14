@@ -42,6 +42,20 @@
 BEGIN;
 SET client_min_messages = notice;
 SET plpgsql.check_asserts = on;   -- sonst würden ASSERTs je nach Konfiguration still übersprungen
+
+-- Personen für die Testdaten anlegen. In Wirklichkeit kommen sie nur über Einladungen
+-- (app.accept_invite, Test 49) oder app.create_tenant; wiki_app darf Personen nicht direkt
+-- anlegen (REVIEW.md, R-06). Deshalb als Eigentümer (SECURITY DEFINER, angelegt vor
+-- SET ROLE), freigegeben für wiki_app.
+CREATE FUNCTION pg_temp.new_user(p_tenant uuid, p_email text, p_name text,
+                                 p_subject text DEFAULT NULL, p_external boolean DEFAULT false)
+RETURNS uuid LANGUAGE sql SECURITY DEFINER AS $$
+  INSERT INTO public.users (tenant_id, idp_subject, email, display_name, is_external)
+  VALUES (p_tenant, p_subject, p_email, p_name, p_external)
+  RETURNING id
+$$;
+GRANT EXECUTE ON FUNCTION pg_temp.new_user(uuid, text, text, text, boolean) TO wiki_app;
+
 SET ROLE wiki_app;
 
 CREATE TEMP TABLE ids (k text PRIMARY KEY, v uuid);

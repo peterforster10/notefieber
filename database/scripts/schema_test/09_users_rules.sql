@@ -6,15 +6,21 @@
 -- Legt Testdaten an: agentur
 -- =============================================================================
 
--- 38. Dieselbe Person aus Zitadel in mehreren Mandanten, pro Mandant aber nur einmal
+-- 38. Neue Personen kommen nur über Einladungen, auch nicht direkt durch Organisations-Admins
+--     (REVIEW.md, R-06). Dieselbe Person aus Zitadel kann in mehreren Mandanten ein Konto
+--     haben, pro Mandant aber nur eines
 SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('peter'));
 DO $$
 BEGIN
-  INSERT INTO users (tenant_id, idp_subject, email, display_name)
-  VALUES (app.current_tenant(), 'zitadel-4711', 'berater@extern.example', 'Berater');
   BEGIN
     INSERT INTO users (tenant_id, idp_subject, email, display_name)
-    VALUES (app.current_tenant(), 'zitadel-4711', 'zweit@extern.example', 'Doppelt');
+    VALUES (app.current_tenant(), 'zitadel-direkt', 'direkt@alpenwerk.example', 'Direkt');
+    RAISE EXCEPTION 'FEHLER: App legt Person direkt an (neue Personen nur über Einladungen)';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+  PERFORM pg_temp.new_user(app.current_tenant(), 'berater@extern.example', 'Berater', 'zitadel-4711');
+  BEGIN
+    PERFORM pg_temp.new_user(app.current_tenant(), 'zweit@extern.example', 'Doppelt', 'zitadel-4711');
     RAISE EXCEPTION 'FEHLER: dieselbe Person zweimal im Mandanten';
   EXCEPTION WHEN unique_violation THEN NULL;
   END;
@@ -22,9 +28,8 @@ END $$;
 SELECT pg_temp.ctx(pg_temp.id('t2'), pg_temp.id('eva'));
 DO $$
 BEGIN
-  INSERT INTO users (tenant_id, idp_subject, email, display_name)
-  VALUES (app.current_tenant(), 'zitadel-4711', 'berater@extern.example', 'Berater');
-  RAISE NOTICE 'OK 38 Dieselbe Person aus Zitadel in mehreren Mandanten, pro Mandant einmal';
+  PERFORM pg_temp.new_user(app.current_tenant(), 'berater@extern.example', 'Berater', 'zitadel-4711');
+  RAISE NOTICE 'OK 38 Personen nur über Einladungen; dieselbe Person in mehreren Mandanten, pro Mandant einmal';
 END $$;
 
 -- 39. Gäste sehen nur, was ihnen ausdrücklich freigegeben ist, den Space nur über diese Seite
@@ -139,7 +144,10 @@ BEGIN
     format('SELECT app.emit(%L::uuid, %L::uuid, ''x'', ''{}'')', pg_temp.id('t1'), pg_temp.id('entw')),
     format('SELECT app.audit(%L::uuid, ''x'', ''x'', NULL)', pg_temp.id('peter')),
     format('SELECT app.insert_version(%L::uuid, ''manual'', NULL, NULL)', pg_temp.id('dm')),
-    format('SELECT app.lock_tree(%L::uuid, true)', pg_temp.id('entw'))
+    format('SELECT app.lock_tree(%L::uuid, true)', pg_temp.id('entw')),
+    -- Gruppen aus dem Login-Dienst gleicht nur wiki_worker ab, sonst trüge sich jede Person
+    -- selbst in jede idp-Gruppe ein (REVIEW.md, R-02)
+    format('SELECT app.sync_user_groups(%L::uuid, ARRAY[''grp-dev''], ARRAY[''Entwicklung''])', pg_temp.id('max'))
   ] LOOP
     BEGIN
       EXECUTE v_sql;

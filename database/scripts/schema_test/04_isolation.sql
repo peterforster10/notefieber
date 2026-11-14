@@ -2,7 +2,7 @@
 -- Tests 15–20: Mandantentrennung, Outbox, Audit-Log, RLS auf allen Tabellen, Handeln im Namen anderer
 -- Teil von schema_test.sql: nur über schema_test.sql ausführen. Die Teile bauen
 -- aufeinander auf (gemeinsame Testdaten, eine Transaktion, Reihenfolge fest).
--- Nutzt Testdaten aus früheren Teilen: arch entw eva home max peter t1 t2
+-- Nutzt Testdaten aus früheren Teilen: arch entw eva home max peter t1 t2 ws1
 -- =============================================================================
 
 -- 15. Mandantentrennung
@@ -16,7 +16,8 @@ BEGIN
   SELECT count(*) INTO n FROM tenants; ASSERT n = 1, 'fremde Mandanten sichtbar';
   ASSERT app.page_rank(pg_temp.id('arch')) = 0, 'Rang über Mandantengrenzen';
   BEGIN
-    INSERT INTO users (tenant_id, email, display_name) VALUES (pg_temp.id('t1'), 'x@x.example', 'X');
+    INSERT INTO invites (tenant_id, workspace_id, email, role, token_hash, expires_at)
+    VALUES (pg_temp.id('t1'), pg_temp.id('ws1'), 'x@x.example', 'member', 'fremd', now() + interval '1 day');
     RAISE EXCEPTION 'FEHLER: Schreiben in fremden Mandanten';
   EXCEPTION WHEN insufficient_privilege THEN NULL;
   END;

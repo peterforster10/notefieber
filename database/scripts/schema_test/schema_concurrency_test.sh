@@ -64,7 +64,8 @@ ctx() { echo "SET ROLE wiki_app; SELECT set_config('app.tenant_id', '$T', false)
 as()  { local user=$1; shift; q -c "$(ctx "$user")" "$@" | tail -1; }
 
 BEN=$(q -c "SELECT uuidv7()")
-as "$PETER" -c "INSERT INTO users (id, tenant_id, email, display_name) VALUES ('$BEN', '$T', 'ben@$SLUG.example', 'Ben')" >/dev/null
+# Als Eigentümer: wiki_app legt keine Personen an, neue kommen nur über Einladungen (R-06)
+q -c "INSERT INTO users (id, tenant_id, email, display_name) VALUES ('$BEN', '$T', 'ben@$SLUG.example', 'Ben')" >/dev/null
 as "$PETER" -c "SELECT app.add_workspace_member('$WS', '$BEN', 'member', '$PETER')" >/dev/null
 SPACE=$(as "$PETER" -c "SELECT app.create_space('$WS', 'NEBEN', 'Nebenläufig', '$PETER')")
 X=$(as "$PETER" -c "SELECT app.create_page('$SPACE', NULL, 'X', '$PETER')")

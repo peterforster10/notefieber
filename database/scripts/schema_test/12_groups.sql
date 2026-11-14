@@ -60,11 +60,23 @@ SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('lukas'));
 DO $$
 BEGIN
   ASSERT app.page_rank(pg_temp.id('pers_seite')) = 4, 'Gruppenrecht wirkt nicht';
-  -- Der Abgleich beim Login berührt nur Gruppen aus dem Login-Dienst
-  PERFORM app.sync_user_groups(pg_temp.id('lukas'), '{}', '{}');
-  ASSERT app.page_rank(pg_temp.id('pers_seite')) = 4, 'Login-Abgleich entfernt Wiki-Gruppe';
-  PERFORM app.sync_user_groups(pg_temp.id('lukas'), ARRAY['grp-dev'], ARRAY['Entwicklung']);   -- wie vorher
 END $$;
+-- Der Abgleich mit dem Login-Dienst (nur wiki_worker, siehe Test 7) berührt nur Gruppen
+-- aus dem Login-Dienst
+RESET ROLE;
+SET ROLE wiki_worker;
+SELECT app.sync_user_groups(pg_temp.id('lukas'), '{}', '{}');
+RESET ROLE;
+SET ROLE wiki_app;
+DO $$
+BEGIN
+  ASSERT app.page_rank(pg_temp.id('pers_seite')) = 4, 'Login-Abgleich entfernt Wiki-Gruppe';
+END $$;
+RESET ROLE;
+SET ROLE wiki_worker;
+SELECT app.sync_user_groups(pg_temp.id('lukas'), ARRAY['grp-dev'], ARRAY['Entwicklung']);   -- wie vorher
+RESET ROLE;
+SET ROLE wiki_app;
 
 SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('max'));
 DO $$

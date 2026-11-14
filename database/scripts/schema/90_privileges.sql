@@ -40,6 +40,12 @@ REVOKE EXECUTE ON FUNCTION
   app.perm_source(uuid)
 FROM wiki_app;
 
+-- Gruppen aus dem Login-Dienst (Quelle idp) gleicht nur wiki_worker ab. Die Funktion prüft
+-- nur, dass die Person sich selbst einträgt; für wiki_app hieße das: jede Person in jede
+-- idp-Gruppe samt ihren Rechten (REVIEW.md, R-02). Wer sie beim Login mit dem geprüften
+-- Gruppen-Claim aufruft, wird mit E03 entschieden.
+REVOKE EXECUTE ON FUNCTION app.sync_user_groups(uuid, text[], text[]) FROM wiki_app;
+
 -- wiki_app: Lesen, was die Regeln freigeben. Die Outbox liest nur der Worker.
 GRANT SELECT ON
   tenants, users, workspaces, workspace_members, groups, group_members, invites,
@@ -48,9 +54,9 @@ GRANT SELECT ON
 TO wiki_app;
 
 -- wiki_app: direkt schreiben nur hier, jeweils durch die Regeln oben abgesichert.
--- Rechte, Mitgliedschaften, Gruppen, Spaces, Seitenbaum, Inhalt, Versionen, Kommentare,
--- Import, Suchindex, Verlinkungen, Outbox und Audit-Log nur über Funktionen.
-GRANT INSERT ON users TO wiki_app;
+-- Neue Personen (nur über Einladungen, app.accept_invite), Rechte, Mitgliedschaften, Gruppen,
+-- Spaces, Seitenbaum, Inhalt, Versionen, Kommentare, Import, Suchindex, Verlinkungen, Outbox
+-- und Audit-Log nur über Funktionen.
 GRANT UPDATE (display_name, locale, time_zone, avatar_file_id) ON users TO wiki_app;
 GRANT INSERT, UPDATE (slug, name, archived_at) ON workspaces TO wiki_app;
 GRANT INSERT, UPDATE, DELETE ON invites TO wiki_app;

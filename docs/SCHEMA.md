@@ -150,7 +150,7 @@ Personen eines Mandanten. Dieselbe Person kann in mehreren Mandanten je ein eige
 | `deactivated_at` | timestamptz | Person gesperrt (`app.set_user_active`). Danach hat sie überall den Rang 0 und zählt nicht mehr als Admin. Ihre Grants bleiben bestehen. |
 
 - **Regeln:** Jeder Mandant behält mindestens einen aktiven Organisations-Admin (Trigger `protect_last_org_admin`).
-- **Schreiben:** `wiki_app` darf neue Personen direkt anlegen, aber nur als aktives Mitglied ohne Profilbild (erster Login). Ändern darf jede Person ihr eigenes Profil (`display_name`, `locale`, `time_zone`, `avatar_file_id`), Organisations-Admins auch fremde. Rolle und Sperre nur über `app.set_user_role` und `app.set_user_active`. Löschen nur der Worker.
+- **Schreiben:** `wiki_app` legt keine Personen direkt an: Neue Personen kommen nur über Einladungen (`app.accept_invite`) oder `app.create_tenant`. Ändern darf jede Person ihr eigenes Profil (`display_name`, `locale`, `time_zone`, `avatar_file_id`), Organisations-Admins auch fremde. Rolle und Sperre nur über `app.set_user_role` und `app.set_user_active`. Löschen nur der Worker.
 - **Lesen:** alle Personen des Mandanten.
 
 ### `workspaces`
@@ -191,7 +191,7 @@ Gruppen gehören dem Wiki und gelten für den ganzen Mandanten. Zitadel hat kein
 | `groups.external_id` | text | ID in der Quelle: bei `idp` der Schlüssel im Login-Dienst, bei `scim` die SCIM-ID, bei `import` optional der Gruppenname in Confluence. Bei `local` leer, bei `idp` und `scim` Pflicht (`CHECK`). Eindeutig pro Mandant und Quelle. |
 | `group_members.group_id`, `user_id` | uuid | Mitgliedschaft, Primärschlüssel. |
 
-- **Schreiben:** Gruppen mit Quelle `local` und `import` pflegen Organisations-Admins: `app.create_group`, `app.rename_group`, `app.delete_group`, `app.add_group_member`, `app.remove_group_member`. Gruppen mit Quelle `idp` und `scim` pflegt nur ihre Quelle, die Funktionen lehnen sie ab. `app.sync_user_groups` (Login) berührt nur `idp`-Gruppen.
+- **Schreiben:** Gruppen mit Quelle `local` und `import` pflegen Organisations-Admins: `app.create_group`, `app.rename_group`, `app.delete_group`, `app.add_group_member`, `app.remove_group_member`. Gruppen mit Quelle `idp` und `scim` pflegt nur ihre Quelle, die Funktionen lehnen sie ab. `app.sync_user_groups` (Abgleich mit dem Login-Dienst, nur `wiki_worker`) berührt nur `idp`-Gruppen.
 - **Hinweis:** Entfernen des letzten aktiven Mitglieds einer Admin-Gruppe und Löschen einer Gruppe, die irgendwo letzter Admin ist, lehnt die Datenbank ab. Nimmt dagegen der Login-Dienst die letzte Person aus einer `idp`-Gruppe, die einziger Admin eines Spaces ist, muss ein Organisations-Admin einen neuen Admin setzen.
 - **Lesen:** alle im Mandanten.
 
@@ -518,7 +518,7 @@ Fast alle schreibenden Funktionen laufen als `SECURITY DEFINER`, also mit den Re
 
 ### Rechte an Funktionen
 
-Alle Funktionen in `app` sind für `PUBLIC` gesperrt und für `wiki_app` und `wiki_worker` freigegeben, mit Ausnahme der internen Bausteine (Abschnitt 12), die `wiki_app` nicht aufrufen darf. Die globalen Default Privileges von `wiki_owner` nehmen `PUBLIC` auch das Ausführungsrecht an **künftigen** Funktionen. Eine Migration muss neue Funktionen deshalb ausdrücklich freigeben (`GRANT EXECUTE … TO wiki_app` bzw. `wiki_worker`).
+Alle Funktionen in `app` sind für `PUBLIC` gesperrt und für `wiki_app` und `wiki_worker` freigegeben, mit Ausnahme der internen Bausteine (Abschnitt 12), die `wiki_app` nicht aufrufen darf, und von `sync_user_groups` (nur `wiki_worker`). Die globalen Default Privileges von `wiki_owner` nehmen `PUBLIC` auch das Ausführungsrecht an **künftigen** Funktionen. Eine Migration muss neue Funktionen deshalb ausdrücklich freigeben (`GRANT EXECUTE … TO wiki_app` bzw. `wiki_worker`).
 
 ## 10. Regeln (Row Level Security)
 
@@ -542,7 +542,6 @@ Restriktive Regeln werden mit `UND` an die permissiven gehängt; eine Zeile muss
 | `import_items` | `read_access` | der Import ist lesbar |
 | `audit_log` | `read_access` | Organisations-Admin |
 | `sessions` | `read_access` | eigene Sitzung (`user_id = app.current_user_id()`) |
-| `users` | `write_insert` | `role = 'member'`, aktiv, ohne Profilbild |
 | `users` | `write_update` | eigene Zeile oder Organisations-Admin; Profilbild nur eigene Datei ohne Seite |
 | `workspaces` | `write_insert` | Organisations-Admin |
 | `workspaces` | `write_update` | Workspace-Admin (`is_workspace_admin`) |
@@ -558,7 +557,7 @@ Die Tabelle zeigt die Tabellenrechte. Dazu kommen immer die Regeln aus Abschnitt
 | Tabelle | `wiki_app` lesen | `wiki_app` direkt schreiben | `wiki_worker` |
 |---|---|---|---|
 | `tenants` | ja | – | alles |
-| `users` | ja | `INSERT` (Mitglied, aktiv), `UPDATE` eigenes Profil | alles |
+| `users` | ja | `UPDATE` eigenes Profil | alles |
 | `workspaces` | ja | `INSERT`, `UPDATE (slug, name, archived_at)` | alles |
 | `workspace_members` | ja | – | alles |
 | `groups`, `group_members` | ja | – | alles |
@@ -663,7 +662,7 @@ DEFINER, App (Registrierung). Legt Mandant, ersten Workspace und erste Person an
 Audit: `tenant.created`.
 
 #### `sync_user_groups(person, gruppen_ids, namen)`
-DEFINER, App, beim Login. Für einen künftigen Gruppen-Claim im Token (z. B. aus Entra ID), derzeit ungenutzt, weil Zitadel keine Gruppen liefert. Berührt nur Gruppen mit Quelle `idp`: legt unbekannte an (`external_id` = Schlüssel aus dem Token), aktualisiert Namen, fügt fehlende Mitgliedschaften der Person hinzu und entfernt solche, die nicht mehr im Token stehen. Gruppen mit Quelle `local` oder `import` bleiben unverändert. Nur für die angemeldete Person selbst. Gleichzeitige Logins kollidieren nicht (`ON CONFLICT DO NOTHING`).
+DEFINER, nur Worker (für `wiki_app` gesperrt: Die Funktion prüft nur, dass die Person sich selbst einträgt, jede Person könnte sich sonst in jede `idp`-Gruppe samt ihren Rechten eintragen). Wer sie beim Login mit dem geprüften Gruppen-Claim aufruft, wird mit E03 entschieden. Für einen künftigen Gruppen-Claim im Token (z. B. aus Entra ID), derzeit ungenutzt, weil Zitadel keine Gruppen liefert. Berührt nur Gruppen mit Quelle `idp`: legt unbekannte an (`external_id` = Schlüssel aus dem Token), aktualisiert Namen, fügt fehlende Mitgliedschaften der Person hinzu und entfernt solche, die nicht mehr im Token stehen. Gruppen mit Quelle `local` oder `import` bleiben unverändert. Nur für die angemeldete Person selbst. Gleichzeitige Logins kollidieren nicht (`ON CONFLICT DO NOTHING`).
 
 #### `add_workspace_member(workspace, person, rolle, actor)`
 DEFINER, App. Nimmt eine bestehende Person des Mandanten in einen Workspace auf, ohne Einladung. Erlaubt für Workspace-Admins, `owner` nur durch Owner und Organisations-Admins (`require_member_admin`). Fehler, wenn die Person schon Mitglied ist.

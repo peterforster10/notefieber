@@ -117,7 +117,11 @@ END $$;
 -- -----------------------------------------------------------------------------
 -- Personen und Gruppen bei Alpenwerk (Peter nimmt sie in den Workspace auf)
 -- -----------------------------------------------------------------------------
+-- Die Personen legt der Eigentümer direkt an: wiki_app darf das nicht, neue Personen kommen
+-- in Wirklichkeit nur über Einladungen (app.accept_invite). Die Aufnahme in den Workspace
+-- geht trotzdem über app.add_workspace_member im Namen von Peter.
 DO $$ BEGIN PERFORM pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('peter')); END $$;
+RESET ROLE;
 DO $$
 DECLARE r record; u uuid;
 BEGIN
@@ -137,6 +141,7 @@ BEGIN
     PERFORM app.add_workspace_member(pg_temp.id('ws1'), u, r.ws_role, pg_temp.id('peter'));
   END LOOP;
 END $$;
+SET ROLE wiki_app;
 
 -- Gruppen im Wiki (Quelle local), angelegt und befüllt von Peter als Organisations-Admin
 DO $$

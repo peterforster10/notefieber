@@ -104,7 +104,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 **Umfang:**
 - Zitadel als Login-Dienst, gemeinsam mit TalkFieber (eine Organisation pro Mandant)
 - Die App spricht nur generisches OIDC; Zitadel-Claims (Mandant, Person) liest die API an einer Stelle mit einstellbaren Claim-Namen
-- Später: Gruppen aus einem Gruppen-Claim im Token übernehmen (Quelle `idp`, `app.sync_user_groups`), z. B. bei Entra ID
+- Später: Gruppen aus einem Gruppen-Claim im Token übernehmen (Quelle `idp`, `app.sync_user_groups`), z. B. bei Entra ID. Die Funktion ist derzeit nur für `wiki_worker` ausführbar (REVIEW.md, R-02); dann entscheiden, wer sie mit dem geprüften Claim aufruft (Worker-Auftrag aus dem Login oder eine eigene Datenbankrolle nur für den Login)
 - E-Mail und Passwort, Magic Link, Passkeys, Zwei-Faktor
 - Kurzlebige Tokens für die WebSocket-Verbindung zum Collab-Server
 - SSO über OIDC und SAML, insbesondere Entra ID (Stufe 1 und 2 als Pilotfunktion, Stufe 3 voll)

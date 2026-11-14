@@ -9,17 +9,12 @@ Migration, mit Test in `schema_test/` und Nachtrag in `docs/SCHEMA.md`.
 
 ## Vor M3 (Rechte-Dialog, Personenauswahl)
 
-- [ ] **R-02 (Mittel):** `EXECUTE` auf `app.sync_user_groups` für `wiki_app` entziehen, bis
-  ein Gruppen-Claim angebunden wird (E03); Test in `09_users_rules.sql`
 - [ ] **R-03 (Mittel):** Leseregeln für `users`, `groups`, `group_members`, `workspaces`,
   `workspace_members`: Gäste sehen keine Personenliste (Abnahmekriterium E18). Vorher
   entscheiden, was einfache Mitglieder über andere Workspaces sehen; Tests in `04_isolation.sql`
 - [ ] **R-04 (Mittel):** `app.accept_invite` sucht zuerst nach `(tenant_id, idp_subject)`;
   `resolveAccount` behandelt 23505 als `invite_other_login`. Tests in `14_invites.sql` und
   `invites.dbtest.ts`
-- [ ] **R-06 (Mittel):** `INSERT` auf `users` und Policy `write_insert` für `wiki_app`
-  entfernen; „neue Personen … (erster Login)“ in `CLAUDE.md` (Abschnitt 8),
-  `docs/CONCEPTS.md`, `docs/SCHEMA.md` und `80_rls.sql` korrigieren
 - [ ] **R-07 (Niedrig):** `invites` für `wiki_app` nur `UPDATE (revoked_at)`
 - [ ] **R-09 (Niedrig):** erlaubte Aktionsnamen in `app.audit_event` begrenzen
 

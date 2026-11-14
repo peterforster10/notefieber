@@ -40,9 +40,14 @@ BEGIN
   RAISE NOTICE 'OK  6 Leser: keine Seiten, keine Kommentare, kein direktes Schreiben';
 END $$;
 
--- 7. Gruppen aus dem Login-Dienst geben Rechte
+-- 7. Gruppen aus dem Login-Dienst geben Rechte. Den Abgleich ruft (bis zum Gruppen-Claim,
+--    E03) nur wiki_worker auf, nicht die App (REVIEW.md, R-02; Test 42)
+RESET ROLE;
+SET ROLE wiki_worker;
 SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('lukas'));
 SELECT app.sync_user_groups(pg_temp.id('lukas'), ARRAY['grp-dev'], ARRAY['Entwicklung']);
+RESET ROLE;
+SET ROLE wiki_app;
 SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('peter'));
 DO $$
 BEGIN
@@ -55,13 +60,27 @@ DECLARE p uuid;
 BEGIN
   p := app.create_page(pg_temp.id('entw'), pg_temp.id('home'), 'Von Lukas', pg_temp.id('lukas'));
   INSERT INTO ids VALUES ('lukas_page', p);
-  PERFORM app.sync_user_groups(pg_temp.id('lukas'), '{}', '{}');
+END $$;
+RESET ROLE;
+SET ROLE wiki_worker;
+SELECT app.sync_user_groups(pg_temp.id('lukas'), '{}', '{}');
+RESET ROLE;
+SET ROLE wiki_app;
+DO $$
+BEGIN
   BEGIN
     PERFORM app.create_page(pg_temp.id('entw'), pg_temp.id('home'), 'Noch eine', pg_temp.id('lukas'));
     RAISE EXCEPTION 'FEHLER: Gruppenrecht bleibt nach Austritt';
   EXCEPTION WHEN insufficient_privilege THEN NULL;
   END;
-  PERFORM app.sync_user_groups(pg_temp.id('lukas'), ARRAY['grp-dev'], ARRAY['Entwicklung']);
+END $$;
+RESET ROLE;
+SET ROLE wiki_worker;
+SELECT app.sync_user_groups(pg_temp.id('lukas'), ARRAY['grp-dev'], ARRAY['Entwicklung']);
+RESET ROLE;
+SET ROLE wiki_app;
+DO $$
+BEGIN
   RAISE NOTICE 'OK  7 Gruppenrechte kommen und gehen mit der Gruppe';
 END $$;
 

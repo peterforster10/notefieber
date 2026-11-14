@@ -84,11 +84,10 @@ USING (EXISTS (SELECT 1 FROM imports i WHERE i.id = import_items.import_id));
 
 -- 3. Direkte Schreibzugriffe von wiki_app (siehe Abschnitt Rechte: nur diese Tabellen
 --    und Spalten). Alles andere läuft über die Funktionen oben.
---    Personen: neu nur als einfaches, aktives Mitglied (Anlegen beim ersten Login);
---    ändern nur das eigene Profil oder als Organisations-Admin. Profilbild nur eine eigene
---    Datei ohne Seite. Rolle und Deaktivieren: app.set_user_role, app.set_user_active.
-CREATE POLICY write_insert ON users AS RESTRICTIVE FOR INSERT TO wiki_app
-WITH CHECK (role = 'member' AND deactivated_at IS NULL AND avatar_file_id IS NULL);
+--    Personen: anlegen nie direkt, neue Personen kommen nur über Einladungen
+--    (app.accept_invite) oder app.create_tenant; ändern nur das eigene Profil oder als
+--    Organisations-Admin. Profilbild nur eine eigene Datei ohne Seite. Rolle und
+--    Deaktivieren: app.set_user_role, app.set_user_active.
 CREATE POLICY write_update ON users AS RESTRICTIVE FOR UPDATE TO wiki_app
 USING (id = app.current_user_id() OR app.is_org_admin(app.current_user_id()))
 WITH CHECK (avatar_file_id IS NULL OR EXISTS (
