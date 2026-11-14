@@ -267,7 +267,7 @@ Die WebSocket-Verbindung zum Collab-Server bekommt kein Sitzungs-Cookie, sondern
 
 ### Abmelden, deaktivieren, entfernen
 
-- **Logout** löscht die Sitzung (`app.end_session`), meldet bei Zitadel ab und trennt offene Verbindungen zum Collab-Server (sobald es ihn gibt, E04).
+- **Logout** löscht die Sitzung (`app.end_session`), meldet bei Zitadel ab (mit dem ID-Token aus dem Login als `id_token_hint`, damit Zitadel seine Sitzung ohne Kontenauswahl beendet) und trennt offene Verbindungen zum Collab-Server (sobald es ihn gibt, E04).
 - **Deaktivierte Personen** haben sofort keinen Zugriff mehr: `app.set_user_active` löscht ihre Sitzungen, und die Rechte-Berechnung prüft `deactivated_at` ohnehin bei jeder Anfrage.
 - **Aus dem Workspace entfernte Personen** verlieren Zugriff und persönliche Rechte (siehe [Rechte](#4-rechte)).
 
@@ -546,7 +546,7 @@ Interne Bausteine (Ereignisse schreiben, Audit-Einträge, Rechte anderer Persone
 
 ### Die Tests
 
-`schema_test.sql` prüft das alles in 52 Tests als `wiki_app` und `wiki_worker` (gleichzeitige Sitzungen prüft `schema_concurrency_test.sh`), z. B.: Ein Leser kann weder direkt noch über Funktionen schreiben, eingeschränkte Seiten sind samt Inhalt, Versionen, Suchtreffern, Kommentaren, Dateien und Links unsichtbar, fremde Mandanten sind unsichtbar, jede Tabelle hat RLS. **Jede Änderung am Schema bekommt zuerst einen Test.**
+`schema_test.sql` prüft das alles in 53 Tests als `wiki_app` und `wiki_worker` (gleichzeitige Sitzungen prüft `schema_concurrency_test.sh`), z. B.: Ein Leser kann weder direkt noch über Funktionen schreiben, eingeschränkte Seiten sind samt Inhalt, Versionen, Suchtreffern, Kommentaren, Dateien und Links unsichtbar, fremde Mandanten sind unsichtbar, jede Tabelle hat RLS. **Jede Änderung am Schema bekommt zuerst einen Test.**
 
 ---
 

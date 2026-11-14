@@ -241,7 +241,7 @@ Mit `SET LOCAL ROLE wiki_worker` und ohne `app.user_id` sieht man, was Collab-Se
 
 ### Tests ausführen
 
-**Funktionstest** (52 Tests für Rechte, Sichtbarkeit und Regeln):
+**Funktionstest** (53 Tests für Rechte, Sichtbarkeit und Regeln):
 
 ```bash
 docker exec nf-pg18 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f /scripts/schema_test/schema_test.sql
@@ -664,7 +664,7 @@ Die API meldet über Zitadel an und hält die Sitzung selbst ([CONCEPTS.md, Absc
 2. Mandant eingeben (`alpenwerk`), „Anmelden“: Das Formular geht an `GET /api/v1/auth/login?tenant=alpenwerk`. Die API leitet zu Zitadel weiter (Code-Flow mit PKCE, Scope auf die Organisation des Mandanten beschränkt) und merkt sich State, Nonce und PKCE-Verifier zehn Minuten lang im signierten Cookie `nf_login`.
 3. Bei Zitadel anmelden, z. B. als `peter.forster@alpenwerk.example` mit `NoteFieber-lokal-1`.
 4. Zitadel springt zu `/api/v1/auth/callback` zurück. Die API tauscht den Code (mit Client-Geheimnis), prüft das ID-Token und dass die Organisation zum Mandanten passt, sucht die Person über `idp_subject` und legt mit `app.create_session` eine Sitzung an. Der Browser bekommt nur das Cookie **`nf_session`** (`HttpOnly`, `SameSite=Lax`, auf dem Server zusätzlich `Secure`); die Tokens von Zitadel bleiben auf dem Server und werden nicht gespeichert.
-5. `GET /api/v1/auth/me` liefert die angemeldete Person; „Abmelden“ ruft `POST /api/v1/auth/logout` (löscht die Sitzung) und leitet zur Abmeldung bei Zitadel weiter.
+5. `GET /api/v1/auth/me` liefert die angemeldete Person; „Abmelden“ ruft `POST /api/v1/auth/logout` (löscht die Sitzung) und leitet zur Abmeldung bei Zitadel weiter, mit dem ID-Token aus dem Login als `id_token_hint`.
 
 Regeln, die die API dabei durchsetzt:
 

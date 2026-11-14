@@ -392,6 +392,9 @@ CREATE TABLE sessions (
   user_agent  text CHECK (length(user_agent) <= 500),
   created_at  timestamptz NOT NULL DEFAULT now(),
   expires_at  timestamptz NOT NULL,
+  -- ID-Token aus dem Login, nur als id_token_hint fürs Abmelden beim Login-Dienst (sonst
+  -- beendet Zitadel seine Sitzung erst nach einer Kontenauswahl). Der Browser sieht es nie.
+  id_token    text CHECK (length(id_token) <= 10000),
   CHECK (expires_at > created_at),
   FOREIGN KEY (user_id, tenant_id) REFERENCES users (id, tenant_id) ON DELETE CASCADE
 );

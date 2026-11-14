@@ -448,9 +448,10 @@ END $$;
 
 -- Sitzung anlegen, nach dem Login (die API hat Mandant und Person gesetzt). Nur für die
 -- angemeldete Person selbst und nur, solange sie aktiv ist. Höchstens 30 Tage gültig.
--- Abgelaufene Sitzungen der Person räumt sie dabei gleich mit weg.
+-- Abgelaufene Sitzungen der Person räumt sie dabei gleich mit weg. p_id_token: das ID-Token
+-- aus dem Login, für id_token_hint beim Abmelden (optional).
 CREATE FUNCTION app.create_session(p_user_id uuid, p_token_hash text, p_expires_at timestamptz,
-                                   p_user_agent text DEFAULT NULL)
+                                   p_user_agent text DEFAULT NULL, p_id_token text DEFAULT NULL)
 RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $$
 DECLARE
   v_tenant  uuid := app.current_tenant();
@@ -467,8 +468,8 @@ BEGIN
   END IF;
 
   DELETE FROM sessions WHERE user_id = p_user_id AND tenant_id = v_tenant AND expires_at <= now();
-  INSERT INTO sessions (id, tenant_id, user_id, token_hash, user_agent, expires_at)
-  VALUES (v_session, v_tenant, p_user_id, p_token_hash, left(p_user_agent, 500), p_expires_at);
+  INSERT INTO sessions (id, tenant_id, user_id, token_hash, user_agent, expires_at, id_token)
+  VALUES (v_session, v_tenant, p_user_id, p_token_hash, left(p_user_agent, 500), p_expires_at, p_id_token);
   PERFORM app.audit(p_user_id, 'session.created', 'user', p_user_id, jsonb_build_object('session_id', v_session));
   RETURN v_session;
 END $$;

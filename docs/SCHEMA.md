@@ -221,6 +221,7 @@ Sitzungen der API nach dem Login über OIDC (docs/CONCEPTS.md, Abschnitt 5). Der
 | `token_hash` | text | SHA-256 des Tokens als 64 Hex-Zeichen (`CHECK`), global eindeutig. Das Token selbst steht nirgends in der Datenbank. |
 | `user_agent` | text | Browser beim Login, höchstens 500 Zeichen (für eine spätere Liste der angemeldeten Geräte). |
 | `expires_at` | timestamptz | Ablauf, nach `created_at` (`CHECK`) und höchstens 30 Tage nach dem Anlegen (`create_session`). |
+| `id_token` | text | ID-Token aus dem Login, höchstens 10.000 Zeichen. Nur als `id_token_hint` beim Abmelden: Damit beendet Zitadel seine Sitzung ohne Kontenauswahl. Leer bei Sitzungen von vor Migration 0009. Der Browser bekommt es nie. |
 
 - **Schreiben:** nur über `app.create_session` (für die angemeldete Person selbst, nur wenn sie aktiv ist), `app.end_session` (Abmelden) und `app.set_user_active` (Deaktivieren löscht alle Sitzungen der Person). Der Worker darf abgelaufene löschen.
 - **Lesen:** jede Person nur die eigenen. Vor dem Mandanten-Kontext findet `app.resolve_session(token_hash)` eine gültige Sitzung.
@@ -690,7 +691,7 @@ Audit: `user.role_changed`.
 DEFINER, App. Sperrt eine Person (`aktiv = false`) oder entsperrt sie. Nur für Organisations-Admins; der letzte Organisations-Admin lässt sich nicht sperren (Trigger). Gesperrte Personen haben überall den Rang 0 und zählen nicht als Admin; ihre Grants bleiben für eine spätere Entsperrung erhalten. Beim Sperren werden alle ihre Sitzungen gelöscht, sie ist also sofort abgemeldet. Ändert sich nichts, passiert nichts.
 Ereignis: beim Sperren `user.deactivated` an jeden Space ihrer Workspaces. Audit: `user.deactivated` bzw. `user.reactivated`.
 
-#### `create_session(person, token_hash, ablauf, user_agent = NULL) → uuid`
+#### `create_session(person, token_hash, ablauf, user_agent = NULL, id_token = NULL) → uuid`
 DEFINER, App, nach dem Login (Mandant und Person gesetzt). Legt eine Sitzung an, nur für die angemeldete Person selbst (`require_actor`) und nur, wenn sie im Mandanten aktiv ist (sonst `insufficient_privilege`). Der Ablauf muss in der Zukunft liegen, höchstens 30 Tage. Löscht dabei abgelaufene Sitzungen derselben Person.
 Audit: `session.created` mit der ID der Sitzung.
 

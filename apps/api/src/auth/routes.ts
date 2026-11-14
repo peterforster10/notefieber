@@ -18,7 +18,7 @@ import { clearCookie, parseCookies, serializeCookie, sign, verify } from '../htt
 import { safeReturnTo } from '../http/origin.ts';
 import { findInvite, resolveAccount, type AccountError } from './accounts.ts';
 import { ClaimError, identityFromClaims } from './claims.ts';
-import { type Oidc, oidc, scopesFor } from './oidc.ts';
+import { type Oidc, endSessionUrl, oidc, scopesFor } from './oidc.ts';
 import { SESSION_COOKIE, getAuth, hashToken, newSessionToken, requireAuth, sessionToken } from './session.ts';
 
 const LOGIN_COOKIE = 'nf_login';
@@ -132,6 +132,7 @@ export function authRouter(c: ApiConfig, db: pg.Pool, idp: Oidc) {
     currentUrl.search = new URL(req.originalUrl, 'http://intern').search;
 
     let claims: Record<string, unknown>;
+    let idToken: string | undefined;
     try {
       const tokens = await oidc.authorizationCodeGrant(await idp.configuration(), currentUrl, {
         pkceCodeVerifier: login.verifier,
@@ -140,6 +141,7 @@ export function authRouter(c: ApiConfig, db: pg.Pool, idp: Oidc) {
         idTokenExpected: true,
       });
       claims = tokens.claims() ?? {};
+      idToken = tokens.id_token; // nur für id_token_hint beim Abmelden, bleibt in der Datenbank
     } catch (err) {
       console.warn('Login: Rücksprung abgelehnt', err instanceof Error ? err.message : err);
       res.setHeader('Set-Cookie', clearLogin);
@@ -178,11 +180,12 @@ export function authRouter(c: ApiConfig, db: pg.Pool, idp: Oidc) {
     const token = newSessionToken();
     const expires = new Date(Date.now() + c.SESSION_HOURS * 3600 * 1000);
     await withContext(db, { tenantId: login.tenantId, userId: user.id }, (tx) =>
-      tx.query('SELECT app.create_session($1, $2, $3, $4)', [
+      tx.query('SELECT app.create_session($1, $2, $3, $4, $5)', [
         user.id,
         hashToken(token),
         expires,
         req.get('user-agent') ?? null,
+        idToken ?? null,
       ]),
     );
     res.setHeader('Set-Cookie', [
@@ -197,16 +200,28 @@ export function authRouter(c: ApiConfig, db: pg.Pool, idp: Oidc) {
   });
 
   router.post('/logout', async (req: Request, res: Response) => {
+    // Das ID-Token der Sitzung (nur die eigene ist lesbar) vor dem Löschen holen: Damit
+    // beendet der Login-Dienst seine Sitzung ohne Kontenauswahl
+    const auth = getAuth(res);
+    const idToken = auth
+      ? await withContext(db, { tenantId: auth.tenantId, userId: auth.userId }, async (tx) => {
+          const { rows } = await tx.query<{ id_token: string | null }>('SELECT id_token FROM sessions WHERE id = $1', [
+            auth.sessionId,
+          ]);
+          return rows[0]?.id_token;
+        })
+      : undefined;
     const token = sessionToken(req);
     if (token) await db.query('SELECT app.end_session($1)', [hashToken(token)]);
     res.setHeader('Set-Cookie', clearCookie(SESSION_COOKIE, '/', c.COOKIE_SECURE));
     // Auch beim Login-Dienst abmelden; das Frontend leitet dorthin weiter.
     let logoutUrl = home();
     try {
-      logoutUrl = oidc.buildEndSessionUrl(await idp.configuration(), {
-        client_id: c.OIDC_CLIENT_ID,
-        post_logout_redirect_uri: home(),
-      }).href;
+      logoutUrl = endSessionUrl(await idp.configuration(), {
+        clientId: c.OIDC_CLIENT_ID,
+        postLogoutRedirectUri: home(),
+        idToken,
+      });
     } catch {
       // Login-Dienst nicht erreichbar: lokal abgemeldet ist man trotzdem
     }

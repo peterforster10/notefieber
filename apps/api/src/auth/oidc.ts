@@ -34,4 +34,19 @@ export function scopesFor(c: ApiConfig, orgId: string): string {
   return [c.OIDC_SCOPES, org].filter(Boolean).join(' ');
 }
 
+/**
+ * Abmelde-Adresse beim Login-Dienst. Mit dem ID-Token aus dem Login als id_token_hint weiß
+ * Zitadel, welche Sitzung gemeint ist, und beendet sie ohne Kontenauswahl (REVIEW.md, R-18).
+ */
+export function endSessionUrl(
+  config: oidc.Configuration,
+  o: { clientId: string; postLogoutRedirectUri: string; idToken?: string | null | undefined },
+): string {
+  return oidc.buildEndSessionUrl(config, {
+    client_id: o.clientId,
+    post_logout_redirect_uri: o.postLogoutRedirectUri,
+    ...(o.idToken ? { id_token_hint: o.idToken } : {}),
+  }).href;
+}
+
 export { oidc };
