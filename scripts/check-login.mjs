@@ -121,10 +121,13 @@ check(
   r.status === 200 && out.logoutUrl.startsWith(`${ZITADEL}/oidc/v1/end_session`),
   `Logout: ${out.logoutUrl.slice(0, 70)}…`,
 );
+check(new URL(out.logoutUrl).searchParams.has('id_token_hint'), 'Logout mit id_token_hint (ID-Token aus dem Login)');
 const endSession = await fetch(out.logoutUrl, { redirect: 'manual' });
+// Mit id_token_hint beendet Zitadel seine Sitzung sofort und leitet direkt zurück; ohne
+// käme die Kontenauswahl unter /ui/v2/login/logout (REVIEW.md, R-18)
 check(
-  [302, 303].includes(endSession.status),
-  `Zitadel nimmt die Abmeldung an: ${endSession.status} → ${endSession.headers.get('location')?.slice(0, 60)}`,
+  [302, 303].includes(endSession.status) && endSession.headers.get('location') === `${WEB}/`,
+  `Zitadel meldet ohne Kontenauswahl ab: ${endSession.status} → ${endSession.headers.get('location')?.slice(0, 60)}`,
 );
 check(!jar.has('nf_session'), 'Cookie im Browser gelöscht');
 r = await fetch(`${WEB}/api/v1/auth/me`, { headers: { cookie: `nf_session=${oldToken}` } });

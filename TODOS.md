@@ -22,8 +22,6 @@ Migration, mit Test in `schema_test/` und Nachtrag in `docs/SCHEMA.md`.
 
 ## Klein, jederzeit
 
-- [ ] **R-18 (Mittel):** Abmelden mit `id_token_hint`, damit Zitadel die Sitzung ohne
-  Kontenauswahl beendet; `check-login.mjs` prüft den Rücksprung zur Startseite
 - [ ] **R-05:** Login-Rücksprung: übrige Fehler abfangen und auf `?loginError=login_failed` leiten
 - [ ] **R-08:** `REVOKE CONNECT ON DATABASE wiki FROM PUBLIC` in `roles_database.sql`,
   Kommentar in `local_login_roles.sql` korrigieren; für den Cluster in M5 vormerken

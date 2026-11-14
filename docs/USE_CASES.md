@@ -30,7 +30,7 @@ in `compose.yaml` (`NF_TEST_PASSWORD`).
 |---|---|---|---|
 | UC-01 | Anmelden | alle | Browser, Skript |
 | UC-02 | Hinweis bei fehlgeschlagener Anmeldung | alle | Skript |
-| UC-03 | Abmelden | alle | Browser, Skript |
+| UC-03 | Abmelden | alle | Browser, Skript (14. November 2026, ohne Kontenauswahl) |
 | UC-04 | Eigene Spaces sehen | alle | Browser |
 | UC-05 | Space anlegen | Mitglieder (keine Gäste) | Browser (14. November 2026, mit zwei Workspaces) |
 | UC-06 | Space wechseln | alle | Browser |
@@ -68,8 +68,9 @@ oder fremder Einladung.
 ### UC-03 Abmelden
 
 „Abmelden“ auf der Startseite oder unten in der Seitenleiste. Die Sitzung in NoteFieber endet
-sofort. Zitadel zeigt danach eine Kontenliste; erst der Klick auf das Konto beendet auch die
-Sitzung dort und führt zurück (offener Punkt R-18 in `TODOS.md`).
+sofort, die bei Zitadel ebenfalls, ohne weiteren Klick (das ID-Token aus dem Login geht als
+`id_token_hint` mit). Danach steht wieder das Anmeldeformular da. Beim nächsten Anmelden
+schlägt Zitadel das bekannte Konto vor, verlangt aber das Passwort.
 
 ## Spaces
 
