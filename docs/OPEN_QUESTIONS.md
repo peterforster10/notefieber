@@ -1,11 +1,13 @@
 # Offene Fragen
 
 Themen, die in [EPICS.md](EPICS.md) und [ROADMAP.md](ROADMAP.md) fehlen oder zu spät stehen (Durchsicht vom
-8. November 2026). Jeder Punkt hat einen Vorschlag, wo er hingehört. Ist ein Punkt geklärt, wandert
+8. November 2026, ergänzt am 14. November 2026 um die Fragen 8 bis 11 aus
+[ARCHITECTURE_REVIEW.md](../ARCHITECTURE_REVIEW.md); Frage 8, der Entwurf des Collab-Servers, ist am selben Tag
+entschieden und steht jetzt in der `CLAUDE.md`, Abschnitte 3, 6 und 7). Jeder Punkt hat einen Vorschlag, wo er hingehört. Ist ein Punkt geklärt, wandert
 er in EPICS und ROADMAP (Entscheidungen in die `CLAUDE.md`) und wird hier gelöscht. Offene Produktentscheidungen (Name, Lizenz, Zielgruppe …) stehen dagegen in der `CLAUDE.md`, Abschnitt 4.
 
-Die ersten drei sind dringend: Ohne sie gibt es keinen Pilot (M5), bzw. das gemeinsame Bearbeiten
-(M1) bleibt unvollständig.
+Ohne die Fragen 1 bis 3 gibt es keinen Pilot (M5), bzw. das gemeinsame Bearbeiten (M1) bleibt
+unvollständig.
 
 ---
 
@@ -36,7 +38,7 @@ sagt, wer sie liest und wie die Ereignisse ankommen.
 - **Collab-Server:** Er muss bei `grant.changed`, `member.removed` usw. Verbindungen trennen
   (`CLAUDE.md`, Abschnitt 6). NATS kommt erst mit TalkFieber. Bis dahin `LISTEN/NOTIFY` in
   PostgreSQL, ein Aufruf vom Worker an den Collab-Server, oder liest der Collab-Server die Outbox
-  selbst?
+  selbst? **Entschieden:** `LISTEN/NOTIFY` (`CLAUDE.md`, Abschnitt 6).
 - **Mandantentrennung:** Der Worker (`wiki_worker`) unterliegt RLS und sieht ohne Mandant nichts.
   Zum Lesen der Outbox über alle Mandanten braucht es eine eigene Funktion in der Datenbank (z. B.
   `app.claim_outbox(limit)` als `SECURITY DEFINER`), oder der Worker geht Mandant für Mandant durch.
@@ -118,8 +120,60 @@ Pläne in E20.
   Anzahl Personen, Anzahl Spaces?
 - Wo prüfen: in der Datenbank (Funktionen) oder in der API; Anzeige für Organisations-Admins.
 - Was passiert beim Überschreiten: nur noch lesen, Warnung, Upgrade?
+- Kapazität des VPS: Der Virenscan mit ClamAV braucht etwa 1 bis 1,5 GB RAM und fehlt in der
+  Tabelle in `CLAUDE.md`, Abschnitt 11; Confluence-Exporte mit Anhängen sind oft mehrere GB
+  groß und brauchen beim Entpacken Platz auf der Platte (A-11).
 
 **Vorschlag:** einfache feste Grenzen in M5; Pläne mit unterschiedlichen Grenzen in E20.
+
+## 9. Personen beim Import (vor M4)
+
+**Problem:** Der Import soll die Rechte vorher berechnen. Rechte an Personen setzt
+`app.set_grant` aber nur für aktive Mitglieder, und Personen entstehen nur über eine Einladung
+beim Login. Nach einem Import sind die meisten Personen eines Confluence-Spaces noch nicht im
+Wiki; ihre Rechte, Gruppenmitgliedschaften und Autorenschaften hätten keinen Halt
+([ARCHITECTURE_REVIEW.md](../ARCHITECTURE_REVIEW.md), A-02).
+
+**Offene Fragen:**
+- Darf der Import (und später SCIM) Personen **ohne Login** anlegen, mit E-Mail, Mitgliedschaft
+  und Rechten? `app.accept_invite` verknüpft sie beim ersten Login schon heute über die E-Mail.
+- Sammeleinladung nach dem Import: alle importierten Personen auf einmal, mit Vorschau?
+- Was passiert mit Confluence-Personen, die es beim Kunden nicht mehr gibt (Autor ohne Konto)?
+
+**Vorschlag:** Ja zum Anlegen ohne Login über eine eigene Funktion für den Import; die
+Entscheidung „neue Personen nur über eine Einladung“ in `CLAUDE.md`, Abschnitt 3, wird zu „über
+eine Einladung, den Import oder SCIM“. In E13 und E02.
+
+## 10. Adressen der Mandanten (vor M5)
+
+**Problem:** Beim Anmelden tippt man den Kurznamen des Mandanten ein. Das ist für Endnutzer
+ungewohnt, verrät, welche Kurznamen es gibt, und hängt mit Adressen, Cookies, TLS und Ingress
+zusammen. Nach dem Pilot schwer zu ändern ([ARCHITECTURE_REVIEW.md](../ARCHITECTURE_REVIEW.md),
+A-09).
+
+**Offene Fragen:**
+- Eine Adresse pro Mandant (`alpenwerk.wiki.<domain>`, Wildcard-Zertifikat, Cookie pro
+  Unterdomain)?
+- Oder eine Adresse für alle, Mandant über die E-Mail-Domain bzw. die Organisationssuche von
+  Zitadel?
+- Was gilt On-Prem (dort meist nur ein Mandant)?
+
+**Vorschlag:** in E02; Entscheidung als Punkt in M5, bevor Pilotkunden Links verschicken.
+
+## 11. Effektive Rechte als Tabelle? (vor M4)
+
+**Problem:** Die Leseregel auf `pages` rechnet `page_rank` pro Zeile. Gemessen braucht der
+Seitenbaum eines Spaces mit 10.000 Seiten 2–3 s, direkt nach einem Massenimport ohne
+`ANALYZE` 28–52 s ([ARCHITECTURE_REVIEW.md](../ARCHITECTURE_REVIEW.md), A-01). Für Listen
+ist in M3 eine mengenbasierte Berechnung geplant.
+
+**Offene Fragen:**
+- Reicht die mengenbasierte Berechnung für Listen, oder braucht es die in `CLAUDE.md`,
+  Abschnitt 8, angedachte Tabelle mit effektiven Rechten pro Person und Seite (vom Worker über
+  die Ereignisse gepflegt)?
+- Wenn die Tabelle kommt: Wie lange darf sie nach einer Rechteänderung veraltet sein?
+
+**Vorschlag:** nach der Lastprüfung in M3 entscheiden (Gate: 10.000 Seiten unter einer Sekunde).
 
 ---
 
@@ -128,3 +182,9 @@ Pläne in E20.
 - **Erklärung zur Barrierefreiheit** für Behörden (BITV 2.0, EN 301 549), zusätzlich zu WCAG 2.2 AA
   in E15. Gehört zu E21.
 - **Statusseite** für Ausfälle und Wartung, ab dem Pilot sinnvoll (M5, E22).
+- **Drizzle** steht in `CLAUDE.md` (Abschnitte 3 und 10) und CONCEPTS, wird aber nicht genutzt:
+  Die API schreibt SQL mit `pg` und ruft vor allem Funktionen im Schema `app` auf. Streichen oder
+  nur für typisierte Abfragen einführen, dann die Doku angleichen (A-13).
+- **Statische Oberfläche:** Next.js ist nur Oberfläche, alle Daten holt der Browser. Ein
+  statischer Export spart den Node-Prozess (0,2–0,4 GB); Next.js als Server erst, wenn
+  Server-Rendering gebraucht wird, etwa für Link-Vorschauen (A-14).

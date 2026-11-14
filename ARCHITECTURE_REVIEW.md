@@ -4,6 +4,12 @@
 nachgeführt. Ergänzt das Code-Review in [REVIEW.md](REVIEW.md); dort geht es um Fehler im
 Bestehenden, hier um Entscheidungen und Entwürfe, die erst mit M1 bis M5 zum Tragen kommen.
 
+**Weitergeführt** werden die Befunde in [docs/ROADMAP.md](docs/ROADMAP.md) (Punkte und Gates
+in M1 bis M5, mit der ID) und in [docs/OPEN_QUESTIONS.md](docs/OPEN_QUESTIONS.md), wo eine
+Entscheidung fehlt: Frage 8 (A-04 bis A-08, am 14. November 2026 entschieden, jetzt in
+`CLAUDE.md`), Frage 9 (A-02), Frage 10 (A-09), Frage 11 (A-01),
+Frage 7 (A-11), „Ebenfalls offen“ (A-13, A-14). Hier bleibt der Befund als Beleg stehen.
+
 **Maßstab** sind die Ziele aus `CLAUDE.md`: Ein Team von 10 bis 50 Personen importiert seinen
 Confluence-Space und arbeitet danach ohne Rückfall weiter; regulierte Organisationen, SaaS
 zuerst, On-Prem später, gemeinsame Plattform mit TalkFieber, Betrieb auf einem VPS.

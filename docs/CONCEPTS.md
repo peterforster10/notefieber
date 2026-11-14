@@ -263,7 +263,7 @@ Die API findet die Sitzung über den Hash des Cookies (`app.resolve_session`, gi
 
 ### Für den Collab-Server
 
-Die WebSocket-Verbindung zum Collab-Server bekommt kein Sitzungs-Cookie, sondern ein **kurzlebiges Token**, das der Browser vorher bei der API holt. *Empfehlung:* signiert, etwa eine Minute gültig, mit Mandant, Person und Seite. Der Collab-Server prüft es in `onAuthenticate` und fragt die API nach der Rolle der Person auf dieser Seite.
+Der Collab-Server liegt unter derselben Adresse (`/collab`), der Browser schickt das **Sitzungs-Cookie** beim WebSocket-Handshake also mit. In `onAuthenticate` prüft der Collab-Server den `Origin` (nur die eigene Adresse), findet die Sitzung wie die API über `app.resolve_session` und berechnet die Rolle mit `app.page_rank(seite, person)`. Beides darf er als `wiki_worker`, ohne Rückfrage an die API und ohne eigenes Token. Lokal läuft er auf einem anderen Port; das stört nicht, weil Cookies für den Host gelten, nicht für den Port.
 
 ### Abmelden, deaktivieren, entfernen
 
@@ -293,24 +293,26 @@ NoteFieber nutzt stattdessen **Yjs**, eine Bibliothek für **CRDTs** (Conflict-f
 
 ```
 Browser                          Collab-Server                 API               Datenbank
-   │  1. Token holen  ───────────────────────────────────────►  │
-   │  2. WebSocket öffnen, Dokument page:<id>  ─►│               │
-   │                                             │ 3. Rolle?  ─► │ app.page_role()
-   │                                             │ ◄── editor ── │
-   │                                             │ 4. Inhalt laden ───────────────►  page_contents.ydoc
+   │  1. WebSocket öffnen (mit Cookie),          │
+   │     Dokument page:<id>  ──────────────────► │ 2. Sitzung, Rolle ─────────────► app.resolve_session,
+   │                                             │                                   app.page_rank(seite, person)
+   │                                             │ 3. Inhalt laden ───────────────►  page_contents.ydoc
    │  ◄── aktueller Stand ───────────────────────│
-   │  5. tippt … Updates ──────────────────────► │ ─► an alle anderen Browser
-   │                                             │ 6. alle ~2 s: app.store_content ─► ydoc, JSON, Klartext, Titel
-   │                                             │                                    + Event in outbox
+   │  4. tippt … Updates ──────────────────────► │ ─► an alle anderen Browser
+   │                                             │ 5. alle ~2 s: Yjs speichern ───►  ydoc, Titel
+   │                                             │
+   Worker, wenn die Seite ~30 s ruht: ydoc ─► BlockNote-JSON, Klartext, Suchindex, Links
+                                       + Event page.updated in outbox
 ```
 
 Wichtig dabei:
 
 - **Lesende und Kommentierende** bekommen eine **schreibgeschützte** Verbindung. Sie sehen Änderungen live, können aber nichts ändern.
 - Nur der Collab-Server darf den Inhalt speichern (Datenbankrolle `wiki_worker`). Die API kann es nicht, ein Leser erst recht nicht.
-- **Ändern sich Rechte**, während jemand eine Seite offen hat (Recht geändert, Vererbung gekappt, Seite in einen anderen Rechtebereich verschoben, Person entfernt, herabgestuft oder deaktiviert, Space archiviert), trennt der Collab-Server die betroffenen Verbindungen. Sie melden sich neu an und bekommen die neue Rolle oder keinen Zugang mehr.
+- **Ändern sich Rechte**, während jemand eine Seite offen hat (Recht geändert, Vererbung gekappt, Seite in einen anderen Rechtebereich verschoben, Person entfernt, herabgestuft oder deaktiviert, Space archiviert), trennt der Collab-Server die betroffenen Verbindungen. Er erfährt davon sofort: Ein Trigger auf der Outbox meldet jedes Ereignis per `pg_notify`, der Collab-Server hört mit `LISTEN` zu. Sie melden sich neu an und bekommen die neue Rolle oder keinen Zugang mehr.
 - **Der Titel lebt im Yjs-Dokument** (`Y.Text` „title“) und wird nur im Editor geändert. `pages.title` ist eine Kopie, die `store_content` schreibt. Lädt der Collab-Server eine neue, noch leere Seite, schreibt er deshalb zuerst den Titel aus `pages.title` ins Dokument, sonst würde das erste Speichern ihn leeren. Hat eine solche Seite schon BlockNote-JSON (aus den Testdaten oder später aus dem Import), baut er das Dokument daraus. So müssen Import und Testdaten kein Yjs erzeugen.
-- Beim Speichern schreibt der Collab-Server zusätzlich das **BlockNote-JSON** (dieselben Blöcke als lesbares JSON, für Export, Import und einen späteren Editorwechsel) und **Klartext** für Suche (und später KI). Die Yjs-Daten selbst sind binär, an BlockNote und ProseMirror gebunden und für alles andere unbrauchbar.
+- Der Collab-Server speichert nur den Yjs-Zustand und den Titel, damit der häufige Speichervorgang klein bleibt. Das **BlockNote-JSON** (dieselben Blöcke als lesbares JSON, für Export, Import und einen späteren Editorwechsel) und den **Klartext** für Suche (und später KI) leitet der **Worker** ab, wenn die Seite etwa 30 s ruht. Die Yjs-Daten selbst sind binär, an BlockNote und ProseMirror gebunden und für alles andere unbrauchbar. Das Schema des Editors liegt in einem gemeinsamen Paket (`packages/editor-schema`), damit Browser, Worker und Import dieselben Blöcke kennen.
+- **Änderungen von der Serverseite** (Version wiederherstellen, Seite aus der Seitenleiste umbenennen, Nacharbeiten nach dem Import) schickt die API über einen internen Aufruf an den Collab-Server. Er ändert das Dokument selbst (Hocuspocus `openDirectConnection`), sodass alle offenen Browser es sofort sehen.
 
 ### Kein echter Offline-Modus
 
@@ -393,7 +395,7 @@ Gesucht wird mit der eingebauten Volltextsuche von PostgreSQL. Das ist ein Syste
 
 ### Wie der Index entsteht
 
-Nach jedem gespeicherten Stand (`page.updated`) schreibt der Worker den Suchindex der Seite neu. Er besteht aus einem `tsvector`: einer Liste der Wortstämme mit Gewicht. Titel zählen stärker als der Text.
+Ruht eine Seite nach einer Änderung (etwa 30 s), leitet der Worker Klartext und BlockNote-JSON ab und schreibt den Suchindex der Seite neu (`page.updated`). Neue Inhalte sind deshalb kurz verzögert findbar. Er besteht aus einem `tsvector`: einer Liste der Wortstämme mit Gewicht. Titel zählen stärker als der Text.
 
 ```sql
 -- Worker, als wiki_worker

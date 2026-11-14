@@ -14,7 +14,7 @@
   - `docs/OPEN_QUESTIONS.md`: Themen, die in EPICS und ROADMAP noch fehlen oder zu spät stehen, mit offenen Fragen und Vorschlag. Geklärtes wandert in EPICS, ROADMAP bzw. hierher und wird dort gelöscht
   - `TODOS.md`: offene Punkte aus der letzten Konsistenzprüfung. Erledigtes abhaken und löschen, Entscheidungen wandern hierher
   - `REVIEW.md`: Review von Code und Dokumentation, **Momentaufnahme vom 12. November 2026**, wird nicht nachgeführt. Befunde mit ID (`R-01` …), Beleg und Vorschlag; die Aufgaben daraus stehen in `TODOS.md`
-  - `ARCHITECTURE_REVIEW.md`: Review der Architektur, **Momentaufnahme vom 14. November 2026**, wird nicht nachgeführt. Befunde `A-01` … mit Zeitpunkt (M1 bis M5); wichtigster Punkt: Rechte pro Zeile skalieren nicht (Seitenbaum mit 10.000 Seiten 2–5 s, direkt nach einem Massenimport ohne `ANALYZE` 28–52 s gemessen)
+  - `ARCHITECTURE_REVIEW.md`: Review der Architektur, **Momentaufnahme vom 14. November 2026**, wird nicht nachgeführt. Befunde `A-01` … mit Zeitpunkt (M1 bis M5), weitergeführt in `docs/ROADMAP.md` und `docs/OPEN_QUESTIONS.md` (Fragen 8 bis 11); wichtigster Punkt: Rechte pro Zeile skalieren nicht (Seitenbaum mit 10.000 Seiten 2–5 s, direkt nach einem Massenimport ohne `ANALYZE` 28–52 s gemessen)
   - `docs/CONCEPTS.md`: alle Kernkonzepte ausführlich erklärt, für Neulinge zuerst lesen
   - `docs/USE_CASES.md`: Use Cases, die sich in der Oberfläche schon klicken lassen (UC-01 …), mit Testpersonen und dem, was noch fehlt. Mit jedem neuen Ablauf im Frontend nachführen
   - `docs/MVP.md`: Architektur und Umfang des MVP auf einen Blick, **Momentaufnahme vom 5. November 2026**, wird nicht nachgeführt
@@ -59,7 +59,8 @@
 | API | **Node.js mit Express 5**, Zod für Validierung, Drizzle ORM |
 | Editor | **BlockNote** (MPL-2.0, auf Tiptap/ProseMirror). Die XL-Pakete (GPL-3.0) vorerst nicht verwenden |
 | Echtzeit | **Yjs + Hocuspocus** (MIT). Ein Yjs-Dokument pro Seite, Name `page:<id>` |
-| Inhalt speichern | **Yjs-Zustand maßgeblich, BlockNote-JSON daneben** (`content_json` in `page_contents` und `page_versions`), damit Export, Import und ein späterer Editorwechsel nicht an Yjs hängen |
+| Inhalt speichern | **Yjs-Zustand maßgeblich, BlockNote-JSON daneben** (`content_json` in `page_contents` und `page_versions`), damit Export, Import und ein späterer Editorwechsel nicht an Yjs hängen. Der Collab-Server speichert nur Yjs-Zustand und Titel; BlockNote-JSON und Klartext leitet der Worker ab, wenn die Seite ruht |
+| Collab-Server | **Schlank** (entschieden 14. November 2026, `ARCHITECTURE_REVIEW.md` A-04 bis A-08): Anmeldung über das Sitzungs-Cookie beim WebSocket-Handshake (`Origin` prüfen, `app.resolve_session`, Rolle mit `app.page_rank(seite, person)`), Rechteänderungen per `LISTEN/NOTIFY` aus einem Trigger auf der Outbox, Änderungen von der Serverseite über einen internen Aufruf (nur im Cluster, geteiltes Geheimnis, Hocuspocus `openDirectConnection`). Die Umwandlung Yjs ↔ BlockNote-JSON (`@blocknote/server-util`, MPL-2.0) läuft im Worker; das Editor-Schema liegt in `packages/editor-schema` für Browser, Worker und Import |
 | Rechte prüfen | **„Ansehen als …“** über `app.view_as`: nur für Admins, nur Struktur und Rolle, im Audit-Log |
 | Datenbank | **PostgreSQL 18** über **CloudNativePG**, eigene Datenbank `wiki` im selben Cluster wie TalkFieber (`chat`) und Zitadel |
 | Login | **Zitadel**, selbst gehostet, gemeinsam mit TalkFieber. Die App spricht nur generisches OIDC und liest Zitadel-Claims nur an einer Stelle der API (`auth/claims.ts`, einstellbare Claim-Namen), damit später ein anderer Login-Dienst passt. **Die API meldet an** (Code-Flow mit PKCE und Client-Geheimnis, Client `notefieber-login`) und hält die **Sitzung in PostgreSQL** (`sessions`); der Browser bekommt nur ein HttpOnly-Cookie, keine Tokens. Neue Personen kommen nur über eine Einladung hinein (Link in einen Workspace, angenommen beim Login, nur mit passender bestätigter E-Mail); das Konto beim Login-Dienst legt die App nie an |
@@ -88,7 +89,7 @@
 6. **Eindeutige Seitentitel pro Space?** Confluence verlangt sie, wir verlinken über IDs. Vorerst nicht erzwingen, der Import löst Titel-Links über `import_items` auf.
 7. **Ab wann eigene Zellen** (komplett getrennte Instanz des ganzen Stacks für große Kunden oder Behörden), wie bei TalkFieber geplant.
 8. **Zielgruppe:** breit für KMU oder vertikal (Verwaltung, Finanz, KRITIS, Industrie). Die Confluence-Frist spricht für regulierte Organisationen.
-9. ~~**BlockNote-JSON zusätzlich speichern?**~~ **Erledigt:** `page_contents.content_json` und `page_versions.content_json` (siehe Abschnitt 8). Der Collab-Server schreibt das JSON mit jedem `store_content`; der Export liefert Markdown plus BlockNote-JSON plus Anhänge.
+9. ~~**BlockNote-JSON zusätzlich speichern?**~~ **Erledigt:** `page_contents.content_json` und `page_versions.content_json` (siehe Abschnitt 8). Der Worker leitet das JSON aus dem Yjs-Zustand ab, sobald die Seite ruht; der Export liefert Markdown plus BlockNote-JSON plus Anhänge.
 10. ~~**„Ansehen als …“**~~ **Erledigt in der Datenbank:** `app.view_as(space, person, actor)` (siehe Abschnitt 8). API und Oberfläche fehlen noch (E09).
 11. ~~**Wem gehören die Gruppen?**~~ **Entschieden:** dem Wiki (Abschnitte 3 und 8). Zitadel hat keine Gruppen; die vorläufigen Projektrollen sind entfernt. Offen bleibt, wie SCIM und ein Gruppen-Claim später angebunden werden (E17, E03).
 
@@ -130,29 +131,32 @@ Startsetup: `docs/models/architecture/architecture.svg`, Zielarchitektur: `docs/
 Browser (Next.js-Frontend, BlockNote im Client)
    │ HTTPS · REST                     │ WebSocket (Yjs)
    ▼                                  ▼
-API (Express)  ◄── Rechte prüfen ──  Collab-Server (Hocuspocus)
-Seiten, Rechte, Suche,                Yjs-Sync, Cursor, Anwesenheit
-Kommentare, Import starten            │
-   │                                  │ speichert gebündelt (wiki_worker)
+API (Express)  ── interner Aufruf ─►  Collab-Server (Hocuspocus)
+Seiten, Rechte, Suche,                Yjs-Sync, Cursor, Anwesenheit,
+Kommentare, Import starten            Rechte beim Verbinden (Sitzung, page_rank)
+   │                                  │ speichert Yjs gebündelt (wiki_worker), LISTEN
+   │                                  │ auf Ereignisse aus der Outbox
    └──────────────► PostgreSQL ◄──────┘
                     (Struktur, Rechte, Yjs-Zustand, Versionen, Suche, Outbox)
-Worker: Suchindex, Versionen, Links, Import, Export, Outbox → NATS (mit TalkFieber)
+Worker: BlockNote-JSON und Klartext aus Yjs, Suchindex, Versionen, Links, Import, Export,
+        Outbox → NATS (mit TalkFieber)
 Garage (S3): Anhänge, Bilder, Export- und Import-Archive
 Zitadel: Login (OIDC), Person und Mandant
 ```
 
 **Der Weg einer Änderung:**
-1. Der Browser holt per REST ein kurzlebiges Token und öffnet eine WebSocket-Verbindung zum Collab-Server, Dokument `page:<id>`.
-2. `onAuthenticate` fragt die API nach der Rolle. Viewer und Commenter bekommen eine schreibgeschützte Verbindung, Editoren eine schreibende.
-3. `onLoadDocument` lädt `page_contents.ydoc`. Ist es noch der leere Anfangszustand (`\x0000`), schreibt der Collab-Server zuerst `pages.title` in `Y.Text` „title“, sonst überschreibt das erste Speichern den Titel mit einem leeren. Ist außerdem `content_json` gefüllt (Testdaten aus `seed.sql`, später der Confluence-Import), baut er das Dokument aus diesem BlockNote-JSON. Wer Inhalt ohne Collab-Server schreibt, muss also nur `content_json` und `plain_text` liefern, kein Yjs.
+1. Der Browser öffnet eine WebSocket-Verbindung zum Collab-Server (`/collab`, gleiche Adresse), Dokument `page:<id>`. Das Sitzungs-Cookie geht beim Handshake mit (lokal auch auf einem anderen Port: Cookies gelten für den Host, nicht den Port).
+2. `onAuthenticate` prüft `Origin`, findet die Sitzung über `app.resolve_session` und die Rolle über `app.page_rank(seite, person)`, beides als `wiki_worker`, ohne Rückfrage an die API. Viewer und Commenter bekommen eine schreibgeschützte Verbindung, Editoren eine schreibende.
+3. `onLoadDocument` lädt `page_contents.ydoc`. Ist es noch der leere Anfangszustand (`\x0000`), schreibt der Collab-Server zuerst `pages.title` in `Y.Text` „title“, sonst überschreibt das erste Speichern den Titel mit einem leeren. Ist außerdem `content_json` gefüllt (Testdaten aus `seed.sql`, später der Confluence-Import), baut er das Dokument aus diesem BlockNote-JSON (die einzige Umwandlung im Collab-Server, selten; mit dem Schema aus `packages/editor-schema`). Wer Inhalt ohne Collab-Server schreibt, muss also nur `content_json` und `plain_text` liefern, kein Yjs.
 4. Änderungen laufen als Yjs-Updates zwischen allen Clients. Cursor und Anwesenheit über Yjs Awareness, nie gespeichert.
-5. `onStoreDocument` (entprellt, ca. alle 2 s) ruft `app.store_content` auf: Yjs-Zustand, BlockNote-JSON (`editor.document`), Klartext, Titel, Bearbeitende. Das Event `page.updated` landet in der Outbox.
-6. Der Worker aktualisiert Suchindex und Verlinkungen und legt nach 10 Minuten Ruhe eine Version an.
+5. `onStoreDocument` (entprellt, ca. alle 2 s, spätestens nach 10 s) speichert nur Yjs-Zustand, Titel und Bearbeitende. Das ist der heiße Pfad; er bleibt klein (wenig WAL, keine Umwandlung).
+6. Ruht die Seite (ca. 30 s), leitet der Worker BlockNote-JSON und Klartext aus dem Yjs-Zustand ab, aktualisiert Suchindex und Verlinkungen; `page.updated` entsteht einmal pro Ruhephase, nicht bei jedem Speichern. Nach 10 Minuten Ruhe legt er eine Version an. Suche und Export können deshalb bis etwa 30 s hinter dem Editor liegen.
 
 **Weitere Punkte:**
 - **Rechte:** Suche, Seitenbaum, Link-Vorschau, Benachrichtigungen, Export und Import gehen alle durch dieselben Funktionen (`app.page_rank`). Die meisten Datenlecks in Wikis entstehen über Nebenwege.
-- **Rechteänderung während einer Sitzung:** Bei `grant.changed`, `page.permissions_changed` (auch nach Verschieben), `member.removed`, `member.changed`, `user.deactivated` und `space.archived` trennt der Collab-Server betroffene Verbindungen, sie authentifizieren sich neu. `store_content` prüft selbst keine Rechte.
-- **Wiederherstellen einer Version** prüft zuerst die API (editor auf der Seite, `app.page_role`), dann rechnet der Collab-Server in Yjs: alten Stand laden, als neues Update anwenden, speichern, dann `app.create_version(…, 'restore', …, restored_from)`. Die Historie bleibt linear.
+- **Rechteänderung während einer Sitzung:** Bei `grant.changed`, `page.permissions_changed` (auch nach Verschieben), `member.removed`, `member.changed`, `user.deactivated` und `space.archived` trennt der Collab-Server betroffene Verbindungen, sie authentifizieren sich neu. Er erfährt davon über `LISTEN`: Ein Trigger auf `outbox` ruft `pg_notify` mit Mandant, Space und Art des Ereignisses auf; dafür kennt er zu jedem offenen Dokument den Space. Später ersetzt NATS nur den Transport. `store_content` prüft selbst keine Rechte.
+- **Änderungen von der Serverseite** (Version wiederherstellen, Umbenennen aus der Seitenleiste, Nacharbeiten nach dem Import, später Vorlagen) laufen über einen internen Aufruf an den Collab-Server, nur im Cluster erreichbar und mit geteiltem Geheimnis. Er ändert über Hocuspocus `openDirectConnection`, offene Browser sehen die Änderung sofort.
+- **Wiederherstellen einer Version** prüft zuerst die API (editor auf der Seite, `app.page_role`), dann rechnet der Collab-Server in Yjs (interner Aufruf): alten Stand laden, als neues Update anwenden, speichern, dann `app.create_version(…, 'restore', …, restored_from)`. Die Historie bleibt linear.
 - **Skalierung:** Im MVP eine Hocuspocus-Instanz (Recreate-Strategie, nie zwei Instanzen pro Dokument). Später mehrere über die Redis-Erweiterung mit Valkey oder Routing nach Dokument-ID.
 - **Mandantentrennung:** gemeinsame Datenbank mit `tenant_id` und Row Level Security, später Zellen.
 
@@ -160,8 +164,8 @@ Zitadel: Login (OIDC), Person und Mandant
 
 - **Adressen im Frontend:** `/spaces/<schlüssel klein>` und `/spaces/<schlüssel klein>/pages/<titel>-<kurze id>`, z. B. `/spaces/entw/pages/architektur-034uANlqQWodlcQ4FIOXYJ`. Space-Schlüssel bleiben in Datenbank und Anzeige groß (`ENTW`, wie Confluence), nur die Adresse schreibt sie klein. Die kurze ID ist die UUID in Base62 (22 Zeichen); nur sie zählt, der Titel ist Schmuck und wird nach dem Umbenennen nachgezogen (`packages/shared/src/urls.ts`).
 - **REST (API):** JSON, versioniert unter `/api/v1`. Schreibende Abläufe rufen die Funktionen im Schema `app` auf.
-- **Yjs über WebSocket (Collab-Server):** Hocuspocus-Protokoll unter `/collab`. Dokumentname `page:<uuid>`. Struktur im Yjs-Dokument: `Y.XmlFragment` für den BlockNote-Inhalt, `Y.Text` „title“ für den Titel. Der Titel ändert sich **nur über Yjs** (umbenennen im Editor), `pages.title` ist die Kopie, die `store_content` schreibt (auf 255 Zeichen gekürzt). Die API ändert Titel nie direkt.
-- **Inhalt außerhalb von Yjs:** Der Collab-Server schreibt beim Speichern das BlockNote-JSON (`page_contents.content_json`) und Klartext für Suche und KI. Export und Import arbeiten mit BlockNote-JSON bzw. Markdown, nie direkt mit Yjs-Binärdaten. Nur wenn `content_json` fehlt (`NULL`: über 20 MB oder ungültig), wandelt der Worker den Yjs-Zustand um.
+- **Yjs über WebSocket (Collab-Server):** Hocuspocus-Protokoll unter `/collab`. Dokumentname `page:<uuid>`. Struktur im Yjs-Dokument: `Y.XmlFragment` für den BlockNote-Inhalt, `Y.Text` „title“ für den Titel. Der Titel ändert sich **nur über Yjs** (im Editor oder aus der Seitenleiste über den internen Aufruf an den Collab-Server), `pages.title` ist die Kopie, die `store_content` schreibt (auf 255 Zeichen gekürzt). Die API ändert Titel nie direkt.
+- **Inhalt außerhalb von Yjs:** Der Worker leitet aus dem Yjs-Zustand das BlockNote-JSON (`page_contents.content_json`) und Klartext für Suche und KI ab, sobald die Seite ruht (`@blocknote/server-util` mit dem Schema aus `packages/editor-schema`). Export und Import arbeiten mit BlockNote-JSON bzw. Markdown, nie direkt mit Yjs-Binärdaten. Nur wenn `content_json` fehlt (`NULL`: über 20 MB oder ungültig), wandelt der Worker den Yjs-Zustand um.
 - **Events in der Outbox** (Subject `t.{tenant}.wiki.s.{space}`, später von TalkFieber abonniert):
   - Spaces: `space.created`, `space.updated`, `space.archived`
   - Seiten: `page.created`, `page.updated`, `page.moved`, `page.trashed`, `page.restored`, `page.permissions_changed`

@@ -56,17 +56,23 @@ Epics: E01 (lokal), E02 (ohne Gruppenpflege, die kommt mit M3), E03 (einfach), v
 ### M1 – Durchstich Editor und Echtzeit
 Epics: E04, Teile von E06 und E07
 - [ ] Next.js-Grundgerüst, BlockNote als Client-Komponente
-- [ ] Hocuspocus mit `onAuthenticate` (Rolle über die API), `onLoadDocument`, `onStoreDocument` (`app.store_content`)
+- [ ] Hocuspocus nach dem Entwurf in `CLAUDE.md`, Abschnitt 6 (entschieden am 14. November 2026): `onAuthenticate` über das Sitzungs-Cookie (`Origin`, `app.resolve_session`, `app.page_rank(seite, person)`), `onLoadDocument`, `onStoreDocument` nur mit Yjs-Zustand und Titel
+- [ ] Datenbank dafür: `store_content` aufteilen in Yjs und Titel (Collab-Server) und abgeleiteten Inhalt (Worker), dazu ein Merkmal „abgeleiteter Inhalt veraltet“. Manuelle Versionen und Export nehmen BlockNote-JSON nur, wenn es aktuell ist, sonst leitet der Worker zuerst ab
+- [ ] Paket `packages/editor-schema` (Browser, Worker, Import); Worker leitet BlockNote-JSON und Klartext ab, wenn eine Seite ~30 s ruht, und fasst `page.updated` zusammen. Seiten mit `content_json`, aber leerem Yjs (Testdaten, Import) wandelt möglichst der Worker vorher um, damit der Collab-Server ohne `jsdom` und React auskommt; nur als Rückfall im Collab-Server
+- [ ] Trigger auf `outbox` mit `pg_notify`, Collab-Server mit `LISTEN`; nach einem Abriss der Datenbankverbindung prüft er alle offenen Verbindungen neu (verpasste Meldungen)
+- [ ] Abmelden und abgelaufene Sitzungen erreichen auch offene Editoren: `app.end_session` meldet ein Ereignis, der Collab-Server prüft die Sitzungen offener Verbindungen zusätzlich regelmäßig (z. B. alle 5 Minuten)
+- [ ] Interner Aufruf an den Collab-Server (nur im Cluster, geteiltes Geheimnis) mit `openDirectConnection`; als Erstes für das Umbenennen aus der Seitenleiste
 - [ ] Zwei Browser bearbeiten dieselbe Seite, Cursor und Anwesenheit sichtbar
 - [ ] Verbindung trennen und wieder verbinden: nichts geht verloren
-- [ ] Erster Lasttest (z. B. 50 gleichzeitige Bearbeitende auf einer Seite)
+- [x] **Vor dem Bau:** Entwurf des Collab-Servers entschieden (14. November 2026, `CLAUDE.md` Abschnitte 3, 6 und 7; [ARCHITECTURE_REVIEW](../ARCHITECTURE_REVIEW.md), A-04 bis A-08)
+- [ ] Erster Lasttest (z. B. 50 gleichzeitige Bearbeitende auf einer Seite); dabei die WAL-Menge pro Minute und die Dauer des Speicherns messen (A-04)
 - [ ] Einen echten Confluence-Export grob einlesen, nur um die Datenlage zu verstehen
 
 **Gate:** Zwei Personen bearbeiten gleichzeitig, nichts geht verloren.
 
 ### M2 – Wiki-Grundfunktionen
 Epics: E05, E06, E07, E08, E15, dazu der Mail-Versand aus E01 und E02
-- [ ] Spaces mit Startseite, Seitenbaum mit Drag & Drop
+- [ ] Spaces mit Startseite, Seitenbaum mit Drag & Drop; der Baum lädt ebenenweise statt aller Seiten auf einmal (A-01)
 - [ ] Blöcke: Überschriften, Listen, Tabellen, Code, Bilder, Callouts, Seitenlinks
 - [ ] Versionen anzeigen, vergleichen, wiederherstellen; Papierkorb
 - [ ] Web-Client nach UI-Entwurf
@@ -80,11 +86,12 @@ Epics: E09, E10, E11, E12, E14, dazu aus E02 die Gruppenpflege (aus M0 verschobe
 - [ ] „Ansehen als …“ für Space-Admins (Prüfwerkzeug für den Import)
 - [ ] Kommentare an Textstellen und Seiten
 - [ ] Dateien mit Virenscan und Vorschau
-- [ ] Volltextsuche, Rechte in jedem Lesepfad
+- [ ] Sichtbarkeit für Listen mengenbasiert (Seitenbaum, Suche, „Ansehen als …“, Rückverweise): Ränge pro Space und Person einmal berechnen statt `page_rank` pro Zeile, durch einen Test gegen `page_rank` abgesichert (A-01)
+- [ ] Volltextsuche, Rechte in jedem Lesepfad; Deutsch und Englisch (zwei Sprachkonfigurationen oder `simple` mit Trigrammen, A-10)
 - [ ] Export als Markdown + Anhänge (ZIP)
 - [ ] Audit-Log
 
-**Gate:** Kein Lesepfad (Baum, Suche, Links, Kommentare, Export, Dateien) zeigt Seiten ohne Leserecht. Durch Tests abgesichert.
+**Gate:** Kein Lesepfad (Baum, Suche, Links, Kommentare, Export, Dateien) zeigt Seiten ohne Leserecht. Durch Tests abgesichert. Ein Space mit 10.000 Seiten lädt seinen Seitenbaum in unter einer Sekunde (Lastprüfung, A-01).
 
 ### M4 – Confluence-Import
 Epic: E13
@@ -94,6 +101,10 @@ Epic: E13
 - [ ] Die häufigsten Makros abbilden (aus den echten Exporten gezählt), Rest als sichtbarer Platzhalter mit Originalinhalt
 - [ ] Probelauf mit Bericht, echter Import, Import rückgängig machen
 - [ ] Interne Links umschreiben
+- [ ] Personen aus dem Export ohne Login anlegen, mit Mitgliedschaften und Rechten, danach Sammeleinladung ([OPEN_QUESTIONS](OPEN_QUESTIONS.md), Frage 9; A-02)
+- [ ] Importierte Versionen nur als BlockNote-JSON speichern (`page_versions.ydoc` für `import` leer, Wiederherstellen über `content_json`; A-03)
+- [ ] Nach dem Einspielen `ANALYZE` auf `pages`, `grants` und `page_contents`, sonst bricht die Leistung bis zum nächsten Autovacuum ein (A-01)
+- [ ] Speicher für Import-Archive und Virenscan in der Kapazität des VPS einplanen, Größengrenzen festlegen ([OPEN_QUESTIONS](OPEN_QUESTIONS.md), Frage 7; A-11)
 
 **Bewusst noch nicht:** SAML und SCIM, Mobile-Apps, Abrechnung, Gastzugänge, öffentliche Seiten, Integrationen außer einem Webhook, On-Prem-Paket.
 
@@ -110,7 +121,8 @@ Epics: E01 (VPS), E22 (einfach)
 - [ ] VPS mieten, K3s mit denselben Manifesten wie lokal, Namespaces `staging` und `pilot`
 - [ ] Firewall: nur 80, 443 und SSH mit Schlüssel. Kubernetes-API nicht öffentlich.
 - [ ] CloudNativePG mit laufenden Backups zu einem S3-Speicher bei einem anderen Anbieter, Garage-Buckets ebenfalls. **Wiederherstellung getestet.**
-- [ ] Überwachung mit Alarm bei Ausfall, vollem Speicher, fehlgeschlagenem Backup und zu großen Yjs-Dokumenten
+- [ ] Überwachung mit Alarm bei Ausfall, vollem Speicher, fehlgeschlagenem Backup und zu großen Yjs-Dokumenten; dazu JSON-Logs mit Anfrage-ID und ein Metrik-Endpunkt pro Prozess, nur im Cluster erreichbar (A-12)
+- [ ] Adressen der Mandanten festlegen, bevor Pilotkunden Links verschicken ([OPEN_QUESTIONS](OPEN_QUESTIONS.md), Frage 10; A-09)
 - [ ] Produktnamen festlegen, **EU-Marke anmelden** (Klassen 9, 38, 42), bevor du öffentlich auftrittst
 - [ ] Datenschutzerklärung und Nutzungsbedingungen für die Pilotphase
 - [ ] 2–3 Pilotkunden, die mit ihrem importierten Space arbeiten, mit regelmäßigem Feedback
