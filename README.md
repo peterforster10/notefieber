@@ -14,6 +14,7 @@ Eine europäische Alternative zu Confluence, entwickelt und gehostet in der EU. 
 | [CLAUDE.md](CLAUDE.md) | Entscheidungen und aktueller Stand, Übergabe für Claude Code |
 | [TODOS.md](TODOS.md) | Offene Punkte aus der letzten Konsistenzprüfung |
 | [REVIEW.md](REVIEW.md) | Review von Code und Dokumentation (Momentaufnahme vom 12. November 2026), Befunde mit Beleg |
+| [ARCHITECTURE_REVIEW.md](ARCHITECTURE_REVIEW.md) | Review der Architektur (Momentaufnahme vom 14. November 2026): Risiken für M1 bis M5, mit Messung des Rechtemodells |
 | [docs/OPEN_QUESTIONS.md](docs/OPEN_QUESTIONS.md) | Offene Fragen: Themen, die in EPICS und ROADMAP noch fehlen |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Stufen 0–4, Meilensteine M0–M5, Kriterien für den nächsten Schritt |
 | [docs/EPICS.md](docs/EPICS.md) | Epics E01–E31 als Grundlage für User Stories |

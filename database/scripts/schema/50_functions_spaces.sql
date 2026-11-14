@@ -268,10 +268,7 @@ BEGIN
   SELECT p.id, p.parent_id, p.path, p.position, p.title, p.inherit_perms,
          app.rank_role(app.page_rank(p.id, p_user_id))
   FROM pages p
-  LEFT JOIN LATERAL (
-    SELECT s.id AS source FROM pages s
-    WHERE s.space_id = p.space_id AND s.path @> p.path AND NOT s.inherit_perms
-    ORDER BY nlevel(s.path) DESC LIMIT 1) src ON true
+  CROSS JOIN LATERAL (SELECT app.perm_source(p.id) AS source) src
   WHERE p.space_id = p_space_id AND p.tenant_id = v_tenant AND p.deleted_at IS NULL
     AND (src.source IS NULL
          OR (v_ws_role IS NOT NULL AND app.grant_rank(NULL, src.source, p_actor_id, v_ws_role) = 4))

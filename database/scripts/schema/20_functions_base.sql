@@ -157,9 +157,14 @@ BEGIN
   v_ws_role := app.space_ws_role(v_page.space_id, p_user_id);
   IF v_ws_role IS NULL THEN RETURN 0; END IF;
 
-  SELECT id INTO v_source FROM pages
-  WHERE space_id = v_page.space_id AND path @> v_page.path AND NOT inherit_perms
-  ORDER BY nlevel(path) DESC LIMIT 1;
+  -- Die Vorfahren stehen mit ihren IDs im Pfad: über den Primärschlüssel nachschlagen statt
+  -- im Baum zu suchen (path @>). Gleiche Ergebnisse, unabhängig von Größe und Statistik des
+  -- Baums; der Seitenbaum mit 10.000 Seiten etwa doppelt so schnell (ARCHITECTURE_REVIEW.md, A-01).
+  SELECT s.id INTO v_source
+  FROM unnest(string_to_array(ltree2text(v_page.path), '.')) WITH ORDINALITY AS a (label, n)
+  JOIN pages s ON s.id = a.label::uuid
+  WHERE NOT s.inherit_perms
+  ORDER BY a.n DESC LIMIT 1;
 
   IF v_source IS NULL THEN
     v_rank := app.grant_rank(v_page.space_id, NULL, p_user_id, v_ws_role);
@@ -299,14 +304,15 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, public, pg_te
 $$;
 
 -- Woher hat eine Seite ihre Rechte? Nächste Seite oberhalb (oder die Seite selbst) mit
--- gekappter Vererbung, NULL = vom Space.
+-- gekappter Vererbung, NULL = vom Space. Vorfahren über die IDs im Pfad (wie page_rank).
 CREATE FUNCTION app.perm_source(p_page_id uuid) RETURNS uuid
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $$
   SELECT s.id
   FROM pages p
-  JOIN pages s ON s.space_id = p.space_id AND s.path @> p.path AND NOT s.inherit_perms
+  CROSS JOIN LATERAL unnest(string_to_array(ltree2text(p.path), '.')) WITH ORDINALITY AS a (label, n)
+  JOIN pages s ON s.id = a.label::uuid AND NOT s.inherit_perms
   WHERE p.id = p_page_id AND p.tenant_id = app.current_tenant()
-  ORDER BY nlevel(s.path) DESC
+  ORDER BY a.n DESC
   LIMIT 1
 $$;
 

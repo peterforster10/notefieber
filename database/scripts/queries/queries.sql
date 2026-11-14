@@ -92,4 +92,6 @@ from group_members gm
 where t.slug = 'alpenwerk' and g.name = 'Entwicklung'
 order by u.email;
 
-select * from migrations.applied;
+select *
+from invites i
+    join
