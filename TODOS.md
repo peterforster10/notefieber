@@ -8,6 +8,11 @@ dort unter der jeweiligen ID; Punkte mit `UC-…` stammen aus [docs/USE_CASES.md
 Änderungen am Schema wie immer in `schema/` **und** als neue Migration, mit Test in
 `schema_test/` und Nachtrag in `docs/SCHEMA.md`.
 
+**Nicht hier:** Die Befunde aus [ARCHITECTURE_REVIEW.md](ARCHITECTURE_REVIEW.md) (`A-01` …) stehen
+mit ihrem Meilenstein in [docs/ROADMAP.md](docs/ROADMAP.md) und, wo noch eine Entscheidung fehlt,
+in [docs/OPEN_QUESTIONS.md](docs/OPEN_QUESTIONS.md). Diese Liste enthält nur kleine Korrekturen am
+Bestehenden.
+
 ## Mit M1 (Editor und Echtzeit, E04)
 
 - [ ] **R-15 (Niedrig):** Adresse des Collab-Servers einstellbar machen (`COLLAB_HOST`)
