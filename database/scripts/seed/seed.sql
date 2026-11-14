@@ -101,8 +101,11 @@ BEGIN
                          'peter.forster@alpenwerk.example', 'Peter Forster',
                          p_admin_idp_subject => 'user-peter-forster', p_idp_org_id => 'org-alpenwerk',
                          p_workspace_slug => 'alpenwerk', p_workspace_name => 'Alpenwerk');
+  -- Ohne Person im Kontext sieht wiki_app keine Personen und Workspaces: die neue Person über
+  -- ihr Login finden (wie die API beim Anmelden), danach als sie den Workspace
   INSERT INTO ids SELECT 't1', t;
-  INSERT INTO ids SELECT 'peter', id FROM users WHERE email = 'peter.forster@alpenwerk.example';
+  INSERT INTO ids SELECT 'peter', user_id FROM app.resolve_login('user-peter-forster');
+  PERFORM set_config('app.user_id', pg_temp.id('peter')::text, true);
   INSERT INTO ids SELECT 'ws1', id FROM workspaces WHERE tenant_id = t;
 
   t := app.create_tenant('nordlicht', 'Nordlicht GmbH', 'eu-central',
@@ -110,7 +113,8 @@ BEGIN
                          p_admin_idp_subject => 'user-eva-fischer', p_idp_org_id => 'org-nordlicht',
                          p_workspace_slug => 'nordlicht', p_workspace_name => 'Nordlicht');
   INSERT INTO ids SELECT 't2', t;
-  INSERT INTO ids SELECT 'eva', id FROM users WHERE email = 'eva.fischer@nordlicht.example';
+  INSERT INTO ids SELECT 'eva', user_id FROM app.resolve_login('user-eva-fischer');
+  PERFORM set_config('app.user_id', pg_temp.id('eva')::text, true);
   INSERT INTO ids SELECT 'ws2', id FROM workspaces WHERE tenant_id = t;
 END $$;
 

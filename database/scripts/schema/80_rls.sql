@@ -68,6 +68,30 @@ USING (
   OR (page_id IS NULL AND EXISTS (SELECT 1 FROM users u WHERE u.avatar_file_id = files.id))
 );
 
+--    Personen, Workspaces, Mitgliedschaften: nur aus Workspaces, in denen man selbst Mitglied
+--    ist (nicht nur Gast), dazu immer man selbst; Organisations-Admins sehen alle. Gäste sehen
+--    damit keine Personenliste (E18). Gruppen nur, wer irgendwo Mitglied ist. Ohne Person im
+--    Kontext (vor dem Login) niemand: dafür app.resolve_login.
+CREATE POLICY read_access ON users AS RESTRICTIVE FOR SELECT TO wiki_app
+USING (id = app.current_user_id()
+       OR (SELECT app.is_org_admin(app.current_user_id()))
+       OR EXISTS (SELECT 1 FROM workspace_members wm
+                  WHERE wm.user_id = users.id AND wm.workspace_id IN (SELECT unnest(app.member_workspaces()))));
+CREATE POLICY read_access ON workspaces AS RESTRICTIVE FOR SELECT TO wiki_app
+USING ((SELECT app.is_org_admin(app.current_user_id()))
+       OR EXISTS (SELECT 1 FROM workspace_members wm
+                  WHERE wm.workspace_id = workspaces.id AND wm.user_id = app.current_user_id()));
+CREATE POLICY read_access ON workspace_members AS RESTRICTIVE FOR SELECT TO wiki_app
+USING (user_id = app.current_user_id()
+       OR (SELECT app.is_org_admin(app.current_user_id()))
+       OR workspace_id IN (SELECT unnest(app.member_workspaces())));
+CREATE POLICY read_access ON groups AS RESTRICTIVE FOR SELECT TO wiki_app
+USING ((SELECT app.is_org_admin(app.current_user_id()))
+       OR cardinality((SELECT app.member_workspaces())) > 0);
+CREATE POLICY read_access ON group_members AS RESTRICTIVE FOR SELECT TO wiki_app
+USING ((SELECT app.is_org_admin(app.current_user_id()))
+       OR cardinality((SELECT app.member_workspaces())) > 0);
+
 --    Audit-Log: nur Organisations-Admins
 CREATE POLICY read_access ON audit_log AS RESTRICTIVE FOR SELECT TO wiki_app
 USING (app.is_org_admin(app.current_user_id()));
@@ -90,8 +114,7 @@ USING (EXISTS (SELECT 1 FROM imports i WHERE i.id = import_items.import_id));
 --    Deaktivieren: app.set_user_role, app.set_user_active.
 CREATE POLICY write_update ON users AS RESTRICTIVE FOR UPDATE TO wiki_app
 USING (id = app.current_user_id() OR app.is_org_admin(app.current_user_id()))
-WITH CHECK (avatar_file_id IS NULL OR EXISTS (
-  SELECT 1 FROM files f WHERE f.id = users.avatar_file_id AND f.page_id IS NULL AND f.uploaded_by = users.id));
+WITH CHECK (avatar_file_id IS NULL OR app.is_own_avatar(avatar_file_id, id));
 
 --    Workspaces: anlegen nur Organisations-Admins, ändern auch Owner und Admins
 CREATE POLICY write_insert ON workspaces AS RESTRICTIVE FOR INSERT TO wiki_app

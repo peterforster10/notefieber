@@ -44,10 +44,10 @@ Die Rollen und die Datenbank legt [`roles_database.sql`](../database/scripts/rol
 | Tabelle | Zweck | Schreibt | Lesbar für Personen (`wiki_app`) |
 |---|---|---|---|
 | `tenants` | Mandant (Kunde), eine Zitadel-Organisation | `create_tenant` | nur der eigene |
-| `users` | Personen eines Mandanten | Login, eigenes Profil, Funktionen | alle im Mandanten |
-| `workspaces` | Bereich innerhalb eines Mandanten | Organisations- und Workspace-Admins | alle im Mandanten |
-| `workspace_members` | Wer gehört mit welcher Rolle zu einem Workspace | Funktionen | alle im Mandanten |
-| `groups`, `group_members` | Gruppen des Wikis (im Wiki angelegt, aus dem Import, später aus dem Login-Dienst oder per SCIM) | Gruppen-Funktionen (Organisations-Admins), `sync_user_groups` | alle im Mandanten |
+| `users` | Personen eines Mandanten | Einladungen, eigenes Profil, Funktionen | Personen aus gemeinsamen Workspaces (selbst Mitglied, nicht nur Gast), sich selbst; Organisations-Admins alle |
+| `workspaces` | Bereich innerhalb eines Mandanten | Organisations- und Workspace-Admins | eigene Workspaces; Organisations-Admins alle |
+| `workspace_members` | Wer gehört mit welcher Rolle zu einem Workspace | Funktionen | eigene, dazu alle aus Workspaces, in denen man Mitglied ist; Organisations-Admins alle |
+| `groups`, `group_members` | Gruppen des Wikis (im Wiki angelegt, aus dem Import, später aus dem Login-Dienst oder per SCIM) | Gruppen-Funktionen (Organisations-Admins), `sync_user_groups` | wer irgendwo Mitglied ist (nicht nur Gast); Organisations-Admins |
 | `invites` | Einladungen per Link | Workspace-Admins | Workspace-Admins |
 | `sessions` | Sitzungen der API nach dem Login | `create_session`, `end_session`, `set_user_active` | nur die eigenen |
 | `spaces` | Confluence-Bereich, Einheit für Rechte und Import | Funktionen | mit Rolle im Space oder einer lesbaren Seite darin |
@@ -151,7 +151,7 @@ Personen eines Mandanten. Dieselbe Person kann in mehreren Mandanten je ein eige
 
 - **Regeln:** Jeder Mandant behält mindestens einen aktiven Organisations-Admin (Trigger `protect_last_org_admin`).
 - **Schreiben:** `wiki_app` legt keine Personen direkt an: Neue Personen kommen nur über Einladungen (`app.accept_invite`) oder `app.create_tenant`. Ändern darf jede Person ihr eigenes Profil (`display_name`, `locale`, `time_zone`, `avatar_file_id`), Organisations-Admins auch fremde. Rolle und Sperre nur über `app.set_user_role` und `app.set_user_active`. Löschen nur der Worker.
-- **Lesen:** alle Personen des Mandanten.
+- **Lesen:** die eigene Person, Personen aus Workspaces, in denen man selbst Mitglied ist (nicht nur Gast), Organisations-Admins alle. Gäste sehen damit keine Personenliste (E18). Ohne Person im Kontext (vor dem Login) niemand; die API findet die Person dann über `app.resolve_login`.
 
 ### `workspaces`
 
@@ -164,7 +164,7 @@ Ein Workspace gliedert einen Mandanten, z. B. nach Firma oder Bereich. Spaces ge
 | `archived_at` | timestamptz | Workspace archiviert. Wirkt sich noch nicht auf Rechte aus. |
 
 - **Schreiben:** anlegen nur Organisations-Admins, ändern (`slug`, `name`, `archived_at`) auch Owner und Admins des Workspaces. Nicht löschbar für die App.
-- **Lesen:** alle im Mandanten.
+- **Lesen:** eigene Workspaces (Mitgliedschaft, auch als Gast); Organisations-Admins alle.
 
 ### `workspace_members`
 
@@ -178,7 +178,7 @@ Wer zu einem Workspace gehört. Mitgliedschaft ist Voraussetzung für jedes Rech
 
 - **Regeln:** Jeder Workspace behält mindestens einen aktiven Owner (Trigger `protect_last_owner`).
 - **Schreiben:** nur über `app.add_workspace_member`, `app.set_workspace_member_role`, `app.remove_workspace_member`, `app.accept_invite` und `app.create_tenant`. Beim Entfernen fallen die persönlichen Grants auf Spaces und Seiten des Workspaces weg; abgelehnt, wenn die Person dadurch irgendwo letzter Admin wäre.
-- **Lesen:** alle im Mandanten.
+- **Lesen:** die eigenen Mitgliedschaften und alle aus Workspaces, in denen man selbst Mitglied ist (nicht nur Gast); Organisations-Admins alle.
 
 ### `groups` und `group_members`
 
@@ -193,7 +193,7 @@ Gruppen gehören dem Wiki und gelten für den ganzen Mandanten. Zitadel hat kein
 
 - **Schreiben:** Gruppen mit Quelle `local` und `import` pflegen Organisations-Admins: `app.create_group`, `app.rename_group`, `app.delete_group`, `app.add_group_member`, `app.remove_group_member`. Gruppen mit Quelle `idp` und `scim` pflegt nur ihre Quelle, die Funktionen lehnen sie ab. `app.sync_user_groups` (Abgleich mit dem Login-Dienst, nur `wiki_worker`) berührt nur `idp`-Gruppen.
 - **Hinweis:** Entfernen des letzten aktiven Mitglieds einer Admin-Gruppe und Löschen einer Gruppe, die irgendwo letzter Admin ist, lehnt die Datenbank ab. Nimmt dagegen der Login-Dienst die letzte Person aus einer `idp`-Gruppe, die einziger Admin eines Spaces ist, muss ein Organisations-Admin einen neuen Admin setzen.
-- **Lesen:** alle im Mandanten.
+- **Lesen:** wer in mindestens einem Workspace Mitglied ist (nicht nur Gast), und Organisations-Admins. Gäste sehen keine Gruppen.
 
 ### `invites`
 
@@ -542,7 +542,11 @@ Restriktive Regeln werden mit `UND` an die permissiven gehängt; eine Zeile muss
 | `import_items` | `read_access` | der Import ist lesbar |
 | `audit_log` | `read_access` | Organisations-Admin |
 | `sessions` | `read_access` | eigene Sitzung (`user_id = app.current_user_id()`) |
-| `users` | `write_update` | eigene Zeile oder Organisations-Admin; Profilbild nur eigene Datei ohne Seite |
+| `users` | `read_access` | eigene Zeile, Organisations-Admin, oder die Person ist in einem der Workspaces aus `app.member_workspaces()` |
+| `workspaces` | `read_access` | eigene Mitgliedschaft oder Organisations-Admin |
+| `workspace_members` | `read_access` | eigene Zeile, Organisations-Admin, oder der Workspace ist in `app.member_workspaces()` |
+| `groups`, `group_members` | `read_access` | Organisations-Admin oder `app.member_workspaces()` nicht leer |
+| `users` | `write_update` | eigene Zeile oder Organisations-Admin; Profilbild nur eigene Datei ohne Seite (`app.is_own_avatar`) |
 | `workspaces` | `write_insert` | Organisations-Admin |
 | `workspaces` | `write_update` | Workspace-Admin (`is_workspace_admin`) |
 | `invites` | `write_access` (alle Befehle, auch Lesen) | Workspace-Admin |
@@ -614,6 +618,8 @@ Alle Funktionen liegen im Schema `app`. Zu jeder Funktion: wer sie aufruft, was 
 | `has_admin(objekt) → boolean` | DEFINER, intern | Hat ein Space bzw. eine Seite mit gekappter Vererbung noch einen wirksamen Admin? Zählt nur Admin-Grants für Personen bzw. Gruppen mit mindestens einem Mitglied, die aktiv und Mitglied im Workspace des Spaces sind (Gruppen gelten für den ganzen Mandanten, Zugriff gibt es nur über den Workspace). Ohne Mandantenfilter, damit der Trigger `admin_remains` beim Commit unabhängig vom Kontext prüfen kann. |
 | `is_org_admin(person) → boolean` | DEFINER, App/Worker | Ist die Person aktiver Organisations-Admin im eigenen Mandanten? |
 | `is_workspace_admin(workspace, person) → boolean` | DEFINER, App/Worker | Organisations-Admin oder aktiver Owner bzw. Admin des Workspaces. Wer das ist, darf Mitglieder und Einladungen verwalten. |
+| `member_workspaces() → uuid[]` | DEFINER, App/Worker | Workspaces, in denen die angemeldete Person aktiv und Mitglied ist, aber kein Gast. Grundlage der Leseregeln auf Personen, Workspaces, Mitgliedschaften und Gruppen; dort immer in einer Unterabfrage, damit es pro Abfrage nur einmal läuft. |
+| `is_own_avatar(datei, person) → boolean` | DEFINER, App/Worker | Ist die Datei eine eigene Datei der Person ohne Seite? Für die Regel `write_update` auf `users`; als Funktion, weil eine Unterabfrage auf `files` mit der Leseregel auf `users` einen Kreis ergäbe. |
 
 ### 12.3 Prüfungen
 
@@ -687,6 +693,9 @@ Ereignis: beim Sperren `user.deactivated` an jeden Space ihrer Workspaces. Audit
 #### `create_session(person, token_hash, ablauf, user_agent = NULL) → uuid`
 DEFINER, App, nach dem Login (Mandant und Person gesetzt). Legt eine Sitzung an, nur für die angemeldete Person selbst (`require_actor`) und nur, wenn sie im Mandanten aktiv ist (sonst `insufficient_privilege`). Der Ablauf muss in der Zukunft liegen, höchstens 30 Tage. Löscht dabei abgelaufene Sitzungen derselben Person.
 Audit: `session.created` mit der ID der Sitzung.
+
+#### `resolve_login(idp_subject) → (user_id, deactivated_at)`
+DEFINER, App, mit gesetztem Mandanten, vor dem Login. Findet die Person zum Login im Mandanten. Nötig, weil `wiki_app` ohne Person im Kontext keine Personen sieht. Gibt nur ID und Deaktivierung heraus.
 
 #### `resolve_session(token_hash) → (session_id, tenant_id, user_id, expires_at)`
 DEFINER, App, vor dem Mandanten-Kontext (bei jeder Anfrage mit Cookie). Liefert die Sitzung nur, wenn sie nicht abgelaufen, die Person aktiv und der Mandant nicht gekündigt ist; sonst nichts.

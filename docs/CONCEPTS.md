@@ -106,6 +106,8 @@ Die Gruppen **gehören dem Wiki**, nicht dem Login-Dienst (Zitadel hat keine Gru
 
 Gruppen aus dem Login-Dienst oder per SCIM lassen sich im Wiki nicht ändern, sonst überschriebe der nächste Abgleich die Änderung. Umgekehrt berührt der Abgleich beim Login nur Gruppen mit Quelle `idp`.
 
+**Wer sieht wen?** Personen, Workspaces und Mitgliedschaften sieht man nur aus den Workspaces, in denen man selbst Mitglied ist (nicht nur Gast), dazu immer sich selbst; Gruppen sieht, wer irgendwo Mitglied ist. Organisations-Admins sehen alle. Gäste sehen damit nur sich selbst und ihren Workspace, keine Personenliste und keine Gruppen. Für die Personenauswahl im Rechte-Dialog reicht das, weil Rechte ohnehin nur an Mitglieder des Workspaces gehen.
+
 ### Space
 
 Ein Space ist ein **Bereich** für ein Team, ein Projekt oder ein Thema, genau wie in Confluence. Er hat:
@@ -544,7 +546,7 @@ Interne Bausteine (Ereignisse schreiben, Audit-Einträge, Rechte anderer Persone
 
 ### Die Tests
 
-`schema_test.sql` prüft das alles in 51 Tests als `wiki_app` und `wiki_worker` (gleichzeitige Sitzungen prüft `schema_concurrency_test.sh`), z. B.: Ein Leser kann weder direkt noch über Funktionen schreiben, eingeschränkte Seiten sind samt Inhalt, Versionen, Suchtreffern, Kommentaren, Dateien und Links unsichtbar, fremde Mandanten sind unsichtbar, jede Tabelle hat RLS. **Jede Änderung am Schema bekommt zuerst einen Test.**
+`schema_test.sql` prüft das alles in 52 Tests als `wiki_app` und `wiki_worker` (gleichzeitige Sitzungen prüft `schema_concurrency_test.sh`), z. B.: Ein Leser kann weder direkt noch über Funktionen schreiben, eingeschränkte Seiten sind samt Inhalt, Versionen, Suchtreffern, Kommentaren, Dateien und Links unsichtbar, fremde Mandanten sind unsichtbar, jede Tabelle hat RLS. **Jede Änderung am Schema bekommt zuerst einen Test.**
 
 ---
 

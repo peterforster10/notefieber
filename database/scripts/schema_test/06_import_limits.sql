@@ -106,6 +106,7 @@ BEGIN
   ASSERT r.invited_by_name = 'Peter Forster', 'Einladung unvollständig';
   PERFORM pg_temp.ctx(r.tenant_id, NULL);
   u := app.accept_invite('hash-gueltig', 'Neue Person');
+  PERFORM pg_temp.ctx(r.tenant_id, u);   -- danach angemeldet; vorher sieht wiki_app keine Personen
   ASSERT (SELECT role FROM workspace_members WHERE workspace_id = pg_temp.id('ws1') AND user_id = u) = 'member',
     'keine Mitgliedschaft';
   ASSERT NOT EXISTS (SELECT 1 FROM app.find_invite('hash-gueltig')), 'benutzte Einladung gefunden';

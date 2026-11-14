@@ -9,15 +9,21 @@
 DO $$
 DECLARE t1 uuid; t2 uuid; shared uuid := '0193a000-0000-7000-8000-000000000002';
 BEGIN
-  t1 := app.create_tenant('test-alpenwerk', 'Alpenwerk', 'eu-central', 'peter@alpenwerk.example', 'Peter Forster');
+  -- Ohne Person im Kontext sieht wiki_app keine Personen und Workspaces (Test 52): die neue
+  -- Person über ihr Login finden, danach als sie den Workspace
+  t1 := app.create_tenant('test-alpenwerk', 'Alpenwerk', 'eu-central', 'peter@alpenwerk.example', 'Peter Forster',
+                          p_admin_idp_subject => 'sub-peter');
   INSERT INTO ids SELECT 't1', t1;
-  INSERT INTO ids SELECT 'peter', id FROM users WHERE email = 'peter@alpenwerk.example';
+  INSERT INTO ids SELECT 'peter', user_id FROM app.resolve_login('sub-peter');
+  PERFORM pg_temp.ctx(t1, pg_temp.id('peter'));
   INSERT INTO ids SELECT 'ws1', id FROM workspaces WHERE tenant_id = t1;
   t2 := app.create_tenant('test-andere-firma', 'Andere Firma', 'eu-central', 'eva@andere.example', 'Eva Fremd',
-                          p_tenant_id => shared);
+                          p_admin_idp_subject => 'sub-eva', p_tenant_id => shared);
   ASSERT t2 = shared, 'vorgegebene Mandanten-ID nicht übernommen';
   INSERT INTO ids SELECT 't2', t2;
-  INSERT INTO ids SELECT 'eva', id FROM users WHERE email = 'eva@andere.example';
+  PERFORM pg_temp.ctx(t2, NULL);
+  INSERT INTO ids SELECT 'eva', user_id FROM app.resolve_login('sub-eva');
+  PERFORM pg_temp.ctx(t2, pg_temp.id('eva'));
   INSERT INTO ids SELECT 'ws2', id FROM workspaces WHERE tenant_id = t2;
   RAISE NOTICE 'OK  1 Mandanten angelegt, gemeinsame ID mit TalkFieber möglich';
 END $$;

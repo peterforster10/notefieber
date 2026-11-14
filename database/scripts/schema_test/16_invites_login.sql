@@ -25,23 +25,20 @@ BEGIN
          (app.current_tenant(), pg_temp.id('ws_aussen'), 'olaf.neu@alpenwerk.example', 'member', 'inv-olaf', pg_temp.id('peter'), now() + interval '1 day');
 END $$;
 
+-- Annehmen vor der Anmeldung (keine Person im Kontext); was daraus wurde, prüft danach Peter
+-- (ohne Person sieht wiki_app keine Personen, Test 52)
+SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('peter'));
+CREATE TEMP TABLE personen_vorher AS SELECT count(*) AS n FROM users;
 SELECT pg_temp.ctx(pg_temp.id('t1'), NULL);
 DO $$
-DECLARE u uuid; n int;
+DECLARE u uuid;
 BEGIN
-  SELECT count(*) INTO n FROM users;
-
   -- Einladung an eine neue Adresse: Mia selbst wird Mitglied, keine zweite Person
   u := app.accept_invite('inv-mia-neu', 'Mia', 'sub-mia');
   ASSERT u = pg_temp.id('mia'), 'Login nicht der bestehenden Person zugeordnet';
-  ASSERT EXISTS (SELECT 1 FROM workspace_members WHERE workspace_id = pg_temp.id('ws_aussen') AND user_id = u),
-    'keine Mitgliedschaft';
-
   -- Die Adresse gehört einer Person ohne Login: Das Login gewinnt, die andere bleibt unberührt
   u := app.accept_invite('inv-mia-zweit', 'Mia', 'sub-mia');
   ASSERT u = pg_temp.id('mia'), 'Person ohne Login statt der mit dem Login genommen';
-  ASSERT (SELECT idp_subject FROM users WHERE id = pg_temp.id('ohne')) IS NULL, 'fremde Person mit dem Login verknüpft';
-  ASSERT (SELECT count(*) FROM users) = n, 'zusätzliche Person angelegt';
 
   BEGIN
     PERFORM app.accept_invite('inv-olaf', 'Olaf', 'sub-olaf');
@@ -50,5 +47,15 @@ BEGIN
     IF SQLERRM LIKE 'FEHLER%' THEN RAISE; END IF;
   END;
   ASSERT EXISTS (SELECT 1 FROM app.find_invite('inv-olaf')), 'abgelehnte Einladung verbraucht';
+END $$;
+
+SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('peter'));
+DO $$
+BEGIN
+  ASSERT EXISTS (SELECT 1 FROM workspace_members WHERE workspace_id = pg_temp.id('ws_aussen') AND user_id = pg_temp.id('mia')),
+    'keine Mitgliedschaft';
+  ASSERT (SELECT idp_subject FROM users WHERE id = pg_temp.id('ohne')) IS NULL, 'fremde Person mit dem Login verknüpft';
+  ASSERT EXISTS (SELECT 1 FROM users WHERE id = pg_temp.id('ohne')), 'Person ohne Login nicht sichtbar';
+  ASSERT (SELECT count(*) FROM users) = (SELECT n FROM personen_vorher), 'zusätzliche Person angelegt';
   RAISE NOTICE 'OK 51 Einladung annehmen: Login vor E-Mail, keine zweite Person, Deaktivierte bleiben draußen';
 END $$;

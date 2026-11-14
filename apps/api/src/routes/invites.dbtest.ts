@@ -115,7 +115,7 @@ test('Login mit Einladung: nur mit derselben, bestätigten E-Mail', { skip }, as
   });
 
   // Nina ist jetzt Mitglied und sieht die Spaces, die alle im Workspace lesen
-  const cookie = await a().sessionFor(email);
+  const cookie = await a().sessionFor(email, 'alpenwerk', nina.subject);
   const spaces = (await a().call(cookie, 'GET', '/spaces')).body.map((s: { key: string }) => s.key);
   assert.ok(spaces.includes('ENTW') && !spaces.includes('PERS'), spaces.join(','));
 });

@@ -28,6 +28,16 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, public, pg_te
     AND i.accepted_at IS NULL AND i.revoked_at IS NULL AND i.expires_at > now()
 $$;
 
+-- Person zum Login finden (Mandant gesetzt, noch keine Person im Kontext). Ohne Person sieht
+-- wiki_app keine Personen (Leseregel auf users), deshalb diese Funktion. Gibt nur ID und
+-- Deaktivierung heraus.
+CREATE FUNCTION app.resolve_login(p_idp_subject text)
+RETURNS TABLE (user_id uuid, deactivated_at timestamptz)
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $$
+  SELECT u.id, u.deactivated_at FROM users u
+  WHERE u.tenant_id = app.current_tenant() AND u.idp_subject = p_idp_subject
+$$;
+
 -- =============================================================================
 -- Abläufe: Mandanten und Personen
 -- =============================================================================

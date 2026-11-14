@@ -33,10 +33,12 @@ export async function resolveAccount(
   input: { tenantId: string; identity: Identity; inviteToken?: string | undefined },
 ): Promise<AccountResult> {
   const { tenantId, identity, inviteToken } = input;
+  // Vor der Anmeldung sieht wiki_app keine Personen (Leseregel auf users); app.resolve_login
+  // findet die Person zum Login im Mandanten aus dem Kontext
   const existing = await withContext(db, { tenantId }, async (tx) => {
     const { rows } = await tx.query<{ id: string; deactivated_at: Date | null }>(
-      'SELECT id, deactivated_at FROM users WHERE tenant_id = $1 AND idp_subject = $2',
-      [tenantId, identity.subject],
+      'SELECT user_id AS id, deactivated_at FROM app.resolve_login($1)',
+      [identity.subject],
     );
     return rows[0];
   });

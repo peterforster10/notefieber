@@ -29,6 +29,7 @@
 --   14_invites.sql            Test  49     Einladung annehmen: Login verknüpfen, fremdes Login
 --   15_admin_workspace.sql    Test  50     Wirksamer Admin nur mit Mitgliedschaft im Workspace
 --   16_invites_login.sql      Test  51     Einladung annehmen: Login vor E-Mail
+--   17_visibility_people.sql  Test  52     Wer sieht welche Personen, Workspaces und Gruppen
 --
 -- Testdaten: Die erfundene Firma Alpenwerk (Mandant t1) mit Peter (Organisations-Admin),
 -- Lukas, Max, Sophie und dem Gast Elena, dazu Eva im zweiten Mandanten (t2). IDs liegen
@@ -85,6 +86,7 @@ CREATE FUNCTION pg_temp.id(p text) RETURNS uuid LANGUAGE sql AS $$ SELECT v FROM
 \ir 14_invites.sql
 \ir 15_admin_workspace.sql
 \ir 16_invites_login.sql
+\ir 17_visibility_people.sql
 
 RESET ROLE;
 ROLLBACK;

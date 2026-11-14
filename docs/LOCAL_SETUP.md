@@ -241,7 +241,7 @@ Mit `SET LOCAL ROLE wiki_worker` und ohne `app.user_id` sieht man, was Collab-Se
 
 ### Tests ausführen
 
-**Funktionstest** (51 Tests für Rechte, Sichtbarkeit und Regeln):
+**Funktionstest** (52 Tests für Rechte, Sichtbarkeit und Regeln):
 
 ```bash
 docker exec nf-pg18 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f /scripts/schema_test/schema_test.sql

@@ -251,6 +251,29 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, public, pg_te
       AND wm.tenant_id = app.current_tenant() AND wm.role IN ('owner', 'admin'))
 $$;
 
+-- Workspaces, in denen die angemeldete Person aktiv und Mitglied ist, aber kein Gast. Für
+-- die Leseregeln auf Personen, Workspaces und Gruppen (80_rls.sql): Man sieht, wen man aus
+-- diesen Workspaces kennt. In den Regeln immer in einer Unterabfrage (IN (SELECT unnest(…))
+-- bzw. (SELECT …)), damit es pro Abfrage nur einmal ausgewertet wird.
+CREATE FUNCTION app.member_workspaces() RETURNS uuid[]
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $$
+  SELECT coalesce(array_agg(wm.workspace_id), '{}')
+  FROM workspace_members wm
+  JOIN users u ON u.id = wm.user_id AND u.deactivated_at IS NULL
+  WHERE wm.user_id = app.current_user_id() AND wm.tenant_id = app.current_tenant() AND wm.role <> 'guest'
+$$;
+
+-- Darf diese Datei das Profilbild der Person sein? Nur eine eigene Datei ohne Seite. Für die
+-- Regel auf users (80_rls.sql) als Funktion: Die Leseregel auf files liest ihrerseits users
+-- (Profilbilder), und eine Unterabfrage hier ergäbe einen Kreis, den PostgreSQL als
+-- Endlosschleife ablehnt.
+CREATE FUNCTION app.is_own_avatar(p_file_id uuid, p_user_id uuid) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $$
+  SELECT EXISTS (SELECT 1 FROM files f
+                 WHERE f.id = p_file_id AND f.tenant_id = app.current_tenant()
+                   AND f.page_id IS NULL AND f.uploaded_by = p_user_id)
+$$;
+
 -- Hat ein Space bzw. eine Seite mit gekappter Vererbung (p_object_id) noch einen wirksamen
 -- Admin? Zählt: Grant für eine Person oder für eine Gruppe mit mindestens einem Mitglied,
 -- die aktiv und Mitglied im Workspace des Spaces ist (Gruppen gelten für den ganzen Mandanten,

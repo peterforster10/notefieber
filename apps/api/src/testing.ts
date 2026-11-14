@@ -22,8 +22,11 @@ export interface TestApp {
   base: string;
   /** ID eines Mandanten aus seed.sql */
   tenantId(slug?: string): Promise<string>;
-  /** Cookie-Header für eine Testperson aus seed.sql, z. B. peter.forster@alpenwerk.example */
-  sessionFor(email: string, tenant?: string): Promise<string>;
+  /**
+   * Cookie-Header für eine Person, gefunden über ihr Login (app.resolve_login). Ohne
+   * `subject` gilt die Regel aus seed.sql: peter.forster@… hat das Login user-peter-forster.
+   */
+  sessionFor(email: string, tenant?: string, subject?: string): Promise<string>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- JSON der API, in Tests bewusst lose getypt
   call(cookie: string | null, method: string, path: string, body?: unknown): Promise<{ status: number; body: any }>;
   close(): Promise<void>;
@@ -58,10 +61,11 @@ export async function startTestApp(): Promise<TestApp | undefined> {
     db,
     base,
     tenantId,
-    async sessionFor(email, tenant = 'alpenwerk') {
+    async sessionFor(email, tenant = 'alpenwerk', subject = `user-${email.split('@')[0]!.replaceAll('.', '-')}`) {
       const tid = await tenantId(tenant);
+      // Ohne Person im Kontext sieht wiki_app keine Personen, deshalb über das Login
       const userId = await withContext(db, { tenantId: tid }, async (tx) => {
-        const r = await tx.query<{ id: string }>('SELECT id FROM users WHERE lower(email) = lower($1)', [email]);
+        const r = await tx.query<{ id: string }>('SELECT user_id AS id FROM app.resolve_login($1)', [subject]);
         return r.rows[0]?.id;
       });
       if (!userId) throw new Error(`Testperson ${email} fehlt`);
