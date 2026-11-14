@@ -100,8 +100,12 @@ export function PageTree({ space, pages, selectedId }: { space: Space; pages: Tr
     onError,
   });
 
+  // Geschwister mit derselben Elternseite. Oben im Baum stehen auch Seiten verschiedener
+  // unsichtbarer Elternseiten; die sind untereinander keine Geschwister.
   function siblingsOf(p: TreePage): TreePage[] {
-    return p.parentId && byId.has(p.parentId) ? (children.get(p.parentId) ?? []) : roots;
+    return p.parentId && byId.has(p.parentId)
+      ? (children.get(p.parentId) ?? [])
+      : roots.filter((r) => r.parentId === p.parentId);
   }
 
   function renderItem(p: TreePage) {
@@ -116,6 +120,9 @@ export function PageTree({ space, pages, selectedId }: { space: Space; pages: Tr
     const editable = canEdit(p.role) && !space.archived;
     const isHome = p.id === space.homePageId;
     const busy = move.isPending || trash.isPending;
+    // Elternseite unsichtbar: Umsortieren darunter verlangt editor auf ihr, das scheitert immer
+    // (REVIEW.md, R-11). Einrücken unter eine sichtbare Seite und Papierkorb gehen weiter.
+    const orphan = !!p.parentId && !byId.has(p.parentId);
 
     return (
       <li key={p.id} role="treeitem" aria-expanded={kids.length ? open : undefined} aria-selected={p.id === selectedId}>
@@ -146,14 +153,14 @@ export function PageTree({ space, pages, selectedId }: { space: Space; pages: Tr
                 <>
                   <IconButton
                     label="Nach oben"
-                    disabled={!prev || busy}
+                    disabled={!prev || busy || orphan}
                     onClick={() => prev && move.mutate({ id: p.id, body: { parentId: p.parentId, beforeId: prev.id } })}
                   >
                     ↑
                   </IconButton>
                   <IconButton
                     label="Nach unten"
-                    disabled={!next || busy}
+                    disabled={!next || busy || orphan}
                     onClick={() => next && move.mutate({ id: p.id, body: { parentId: p.parentId, afterId: next.id } })}
                   >
                     ↓

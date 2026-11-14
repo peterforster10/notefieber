@@ -208,7 +208,7 @@ Einladungen per Link in einen Workspace.
 | `expires_at` | timestamptz | Ablauf. |
 | `accepted_at`, `revoked_at` | timestamptz | Angenommen bzw. zurückgezogen. Gültig ist eine Einladung, solange beides leer und `expires_at` nicht erreicht ist. |
 
-- **Schreiben:** direkt durch Organisations-Admins sowie Owner und Admins des Workspaces. Annehmen über `app.accept_invite` (legt die Person bei Bedarf an).
+- **Schreiben:** anlegen und zurücknehmen (nur `revoked_at`) direkt durch Organisations-Admins sowie Owner und Admins des Workspaces; Einladende, Annahme, Token und Rolle ändert die App nie, löschen auch nicht. Annehmen über `app.accept_invite` (legt die Person bei Bedarf an).
 - **Lesen:** nur wer den Workspace verwaltet. Vor dem Login liefert `app.find_invite(token_hash)` die nötigen Angaben.
 
 ### `sessions`
@@ -566,7 +566,7 @@ Die Tabelle zeigt die Tabellenrechte. Dazu kommen immer die Regeln aus Abschnitt
 | `workspaces` | ja | `INSERT`, `UPDATE (slug, name, archived_at)` | alles |
 | `workspace_members` | ja | – | alles |
 | `groups`, `group_members` | ja | – | alles |
-| `invites` | ja (nur Admins) | `INSERT`, `UPDATE`, `DELETE` (nur Admins) | alles |
+| `invites` | ja (nur Admins) | `INSERT`, `UPDATE (revoked_at)` (nur Admins) | alles |
 | `sessions` | ja (nur eigene) | – | `SELECT`, `DELETE` (abgelaufene aufräumen) |
 | `spaces` | ja | – | alles |
 | `pages` | ja | – | `SELECT`, `INSERT`, `UPDATE (title, position, inherit_perms, updated_*)`, `DELETE` |
@@ -645,7 +645,7 @@ Bausteine am Anfang anderer Funktionen. Sie werfen einen Fehler oder tun nichts.
 | `emit_user_spaces(person, workspace, typ, daten)` | INVOKER, intern/Worker | Dasselbe Ereignis an jeden Space eines Workspaces bzw. (bei `workspace = NULL`) aller Workspaces, in denen die Person Mitglied ist. Für Ereignisse, nach denen der Collab-Server die Verbindungen einer Person trennen muss. |
 | `emit_group_spaces(gruppe, typ, daten)` | INVOKER, intern/Worker | Dasselbe Ereignis an jeden Space, in dem die Gruppe Rechte hat (auf dem Space oder einer seiner Seiten). Für Änderungen an Gruppen, nach denen der Collab-Server Verbindungen neu prüfen muss. |
 | `audit(person, aktion, objektart, objekt, details = '{}')` | INVOKER, intern/Worker | Schreibt einen Eintrag ins Audit-Log. Für `wiki_app` gesperrt. |
-| `audit_event(person, aktion, objektart, objekt, details = '{}')` | DEFINER, App | Audit-Eintrag aus der API, z. B. `export.created`. `person` muss die angemeldete sein, Einträge im Namen anderer sind so unmöglich. |
+| `audit_event(person, aktion, objektart, objekt, details = '{}')` | DEFINER, App | Audit-Eintrag aus der API, z. B. `invite.created` oder später `export.created`. Nur Aktionen der Bereiche `invite` und `export`; was die Funktionen der Datenbank schreiben (`grant.changed` …), lehnt sie ab (`insufficient_privilege`). Neue Bereiche der API dort ergänzen. `person` muss die angemeldete sein, Einträge im Namen anderer sind so unmöglich. |
 | `lock_tree(space, exklusiv)` | DEFINER, intern | Sperrt den Seitenbaum eines Spaces über dessen Zeile in `spaces`: exklusiv (`FOR NO KEY UPDATE`) für Verschieben, Papierkorb und Vererbung, geteilt (`FOR SHARE`) für neue Seiten. Änderungen am Baum laufen so pro Space nacheinander; Zyklen, veraltete Pfade und neue Seiten unter gerade gelöschten Seiten sind ausgeschlossen. |
 
 ### 12.5 Vor dem Login

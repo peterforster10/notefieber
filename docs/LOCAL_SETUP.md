@@ -97,12 +97,12 @@ Starten, anhalten und neu anfangen für alle Bausteine zusammen: [Abschnitt 8](#
 
 ## 4. Datenbank (PostgreSQL)
 
-PostgreSQL 18 läuft im Container `nf-pg18` (offizielles Image `postgres:18`). Die Befehle in dieser Anleitung und in der `CLAUDE.md` verwenden diesen Namen (`docker exec nf-pg18 …`).
+PostgreSQL 18 läuft im Container `nf-pg18` (offizielles Image `postgres:18.6`). Die Befehle in dieser Anleitung und in der `CLAUDE.md` verwenden diesen Namen (`docker exec nf-pg18 …`).
 
 | In `compose.yaml` | Bedeutung |
 |---|---|
 | Port `127.0.0.1:5432` | Für IDE und später die Apps. |
-| Volume `notefieber-pgdata` → `/var/lib/postgresql` | Die Daten. Sie überstehen `stop`, `down` und Neustarts; weg sind sie erst mit `docker compose down -v`. Beim Image `postgres:18` ist das der richtige Pfad (nicht mehr `…/data`). |
+| Volume `notefieber-pgdata` → `/var/lib/postgresql` | Die Daten. Sie überstehen `stop`, `down` und Neustarts; weg sind sie erst mit `docker compose down -v`. Beim Image `postgres:18.6` ist das der richtige Pfad (nicht mehr `…/data`). |
 | `./database/scripts` → `/scripts` (nur lesend) | Rollen, Schema, Tests und Testdaten. Änderungen am Rechner sind sofort im Container sichtbar. |
 | `./docker/postgres/initdb` → `/docker-entrypoint-initdb.d` | Das Skript für die Ersteinrichtung ([`10-notefieber.sh`](../docker/postgres/initdb/10-notefieber.sh)). |
 | Healthcheck | „healthy“ erst, wenn die Ersteinrichtung durch ist. |
@@ -241,7 +241,7 @@ Mit `SET LOCAL ROLE wiki_worker` und ohne `app.user_id` sieht man, was Collab-Se
 
 ### Tests ausführen
 
-**Funktionstest** (53 Tests für Rechte, Sichtbarkeit und Regeln):
+**Funktionstest** (54 Tests für Rechte, Sichtbarkeit und Regeln):
 
 ```bash
 docker exec nf-pg18 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f /scripts/schema_test/schema_test.sql
@@ -270,8 +270,8 @@ Erwartet: `OK 1` und `OK 2`, dann `Alle Migrationstests bestanden`. Der Test spi
 ```bash
 export MSYS_NO_PATHCONV=1
 docker network create nf-ci
-docker run -d --name nf-ci-service --network nf-ci --network-alias postgres -e POSTGRES_PASSWORD=ci -e POSTGRES_HOST_AUTH_METHOD=trust postgres:18
-docker run --rm --network nf-ci --entrypoint "" -e PGHOST=postgres -v "$(pwd -W):/builds/notefieber:ro" -w /builds/notefieber postgres:18 bash database/scripts/schema_test/ci.sh
+docker run -d --name nf-ci-service --network nf-ci --network-alias postgres -e POSTGRES_PASSWORD=ci -e POSTGRES_HOST_AUTH_METHOD=trust postgres:18.6
+docker run --rm --network nf-ci --entrypoint "" -e PGHOST=postgres -v "$(pwd -W):/builds/notefieber:ro" -w /builds/notefieber postgres:18.6 bash database/scripts/schema_test/ci.sh
 docker rm -f nf-ci-service && docker network rm nf-ci
 ```
 
@@ -283,9 +283,9 @@ Das Repository liegt auf GitHub, die CI läuft auf GitLab:
 
 - [`.github/workflows/sync-to-gitlab.yml`](../.github/workflows/sync-to-gitlab.yml) spiegelt bei jedem Push auf `main` das Repository nach `gitlab.com/peterforster101/notefieber`. Dafür braucht das GitHub-Repository das Secret `GITLAB_TOKEN`: ein Project Access Token in GitLab mit Scope `write_repository` und einer Rolle, die auf `main` pushen darf (standardmäßig Maintainer). Der Workflow pusht `main` und die Tags **ohne `--force`**, nacheinander (nie zwei Läufe gleichzeitig) und liest vom GitHub-Token nur. Weicht `main` auf GitLab ab (etwa weil dort jemand direkt committet oder auf GitHub der Verlauf umgeschrieben wurde), schlägt der Lauf mit `rejected … (fetch first)` bzw. `(non-fast-forward)` fehl. Dann auf GitLab nichts direkt ändern und den Unterschied bewusst auflösen, notfalls einmal von Hand mit `--force` pushen.
 - [`.gitlab-ci.yml`](../.gitlab-ci.yml) startet dort bei jedem Push drei Jobs, die parallel laufen:
-  - `database`: Image `postgres:18` (psql und pg_dump in derselben Version wie der Server) mit einem Service `postgres:18`, der ohne Passwort anmeldet (nur im Job). Er führt `ci.sh` aus, also genau die Schritte oben.
-  - `apps`: Image `node:24`, führt `pnpm check` aus ([Abschnitt 7](#prüfen-wie-in-der-ci)).
-  - `api`: Image `node:24` mit Service `postgres:18`. Richtet die Datenbank mit [`setup_test_db.sh`](../database/scripts/setup_test_db.sh) ein (Rollen, Migrationen, Login-Rollen, Testdaten; `psql` aus Debian) und führt die [API-Tests gegen die Datenbank](#api-tests-gegen-die-datenbank) aus.
+  - `database`: Image `postgres:18.6` (psql und pg_dump in derselben Version wie der Server) mit einem Service `postgres:18.6`, der ohne Passwort anmeldet (nur im Job). Er führt `ci.sh` aus, also genau die Schritte oben.
+  - `apps`: Image `node:24.18.1`, führt `pnpm check` aus ([Abschnitt 7](#prüfen-wie-in-der-ci)).
+  - `api`: Image `node:24.18.1` mit Service `postgres:18.6`. Richtet die Datenbank mit [`setup_test_db.sh`](../database/scripts/setup_test_db.sh) ein (Rollen, Migrationen, Login-Rollen, Testdaten; `psql` aus Debian) und führt die [API-Tests gegen die Datenbank](#api-tests-gegen-die-datenbank) aus.
 - Andere Branches als `main` spiegelt der Workflow nicht; Pipelines gibt es also nur für `main`.
 - Auf gitlab.com laufen Jobs auf den gemeinsamen Runnern. Neue Konten müssen dafür einmal ihre Identität bestätigen (Telefon oder Kreditkarte), sonst bleibt die Pipeline hängen.
 
@@ -301,7 +301,7 @@ Dass beide Stellen dasselbe Schema ergeben, prüft der [Migrationstest](#tests-a
 
 1. **Test zuerst:** Alles, was Rechte oder Sichtbarkeit berührt, bekommt zuerst einen Test (Regel aus der `CLAUDE.md`). Die Tests liegen in `database/scripts/schema_test/`: `schema_test.sql` ist der Einstieg, die Tests stehen in den Teilen `01_basics.sql` … `12_groups.sql`. Neue Tests hinten an den passenden Teil oder als neuer Teil am Ende (mit `\ir`-Zeile in `schema_test.sql`). Die Teile bauen aufeinander auf; welche Testdaten ein Teil nutzt und anlegt, steht in seinem Kopf. Die Tests laufen als `wiki_app` bzw. `wiki_worker`.
 2. **`schema/` ändern:** den passenden Teil, z. B. eine neue Seitenfunktion in `60_functions_pages.sql`, ihre Freigabe in `90_privileges.sql`, eine neue Leseregel in `80_rls.sql`. Die Regeln für neue Funktionen stehen in der `CLAUDE.md` (Abschnitt 13) und in [SCHEMA.md, Abschnitt 9](SCHEMA.md#9-datenbank-rollen-und-schemas): Mandant in jeder Abfrage prüfen, `require_actor` zuerst, neue Funktionen ausdrücklich freigeben. Ein **neuer Teil** braucht eine `\ir`-Zeile in `schema.sql` an der richtigen Stelle der Reihenfolge.
-3. **Migration schreiben:** `database/scripts/migrations/NNNN_beschreibung.sql` mit der nächsten freien Nummer, z. B. `0002_space_icon.sql`. Sie enthält dieselbe Änderung als Schritt: `ALTER TABLE …`, `CREATE OR REPLACE FUNCTION …` mit **genau** dem Text aus `schema/`, `GRANT`/`REVOKE` für neue Funktionen (sie sind sonst für niemanden ausführbar), neue Policies. Regeln:
+3. **Migration schreiben:** `database/scripts/migrations/NNNN_beschreibung.sql` mit der nächsten freien Nummer (siehe `ls database/scripts/migrations`), z. B. `0011_space_icon.sql`. Sie enthält dieselbe Änderung als Schritt: `ALTER TABLE …`, `CREATE OR REPLACE FUNCTION …` mit **genau** dem Text aus `schema/`, `GRANT`/`REVOKE` für neue Funktionen (sie sind sonst für niemanden ausführbar), neue Policies. Regeln:
    - reines SQL, kein `BEGIN`/`COMMIT` (`migrate.sh` legt eine Transaktion darum) und keine psql-Befehle wie `\ir`,
    - eingespielte Migrationen **nie ändern**; `migrate.sh` merkt sich eine Prüfsumme und bricht sonst ab,
    - nur vorwärts, und **eine Version rückwärtskompatibel**: Die bisherige App muss mit dem neuen Schema noch laufen (Spalte erst hinzufügen, später entfernen),
@@ -730,7 +730,7 @@ Wer schon Mitglied ist, wird nicht noch einmal eingeladen (`409`). Die Rechte pr
 
 ```bash
 export MSYS_NO_PATHCONV=1
-docker run -d --name nf-pg18-apitest -p 127.0.0.1:55433:5432 -e POSTGRES_PASSWORD=probe -v "$(pwd -W)/database/scripts:/scripts:ro" -v "$(pwd -W)/docker/postgres/initdb:/docker-entrypoint-initdb.d:ro" postgres:18
+docker run -d --name nf-pg18-apitest -p 127.0.0.1:55433:5432 -e POSTGRES_PASSWORD=probe -v "$(pwd -W)/database/scripts:/scripts:ro" -v "$(pwd -W)/docker/postgres/initdb:/docker-entrypoint-initdb.d:ro" postgres:18.6
 ```
 
 Nach etwa 20 Sekunden (`docker logs nf-pg18-apitest` zeigt `Testdaten eingespielt`):
@@ -747,7 +747,7 @@ Erwartet: `pass 12`, `fail 0` (Spaces und Seitenbaum, Einladungen, Annehmen beim
 pnpm check
 ```
 
-Das sind nacheinander: `pnpm lint` (ESLint, eine Konfiguration für alles in [`eslint.config.mjs`](../eslint.config.mjs), die Next.js-Regeln nur für `apps/web`), `pnpm format:check` (Prettier; `pnpm format` formatiert), `pnpm typecheck` (alle Pakete), `pnpm test` (Unit-Tests mit dem Test-Runner von Node, Dateien `*.test.ts`, ohne Datenbank), `pnpm licenses:check` und `pnpm build`. Der CI-Job `apps` in [`.gitlab-ci.yml`](../.gitlab-ci.yml) führt genau das aus, im Image `node:24`.
+Das sind nacheinander: `pnpm lint` (ESLint, eine Konfiguration für alles in [`eslint.config.mjs`](../eslint.config.mjs), die Next.js-Regeln nur für `apps/web`), `pnpm format:check` (Prettier; `pnpm format` formatiert), `pnpm typecheck` (alle Pakete), `pnpm test` (Unit-Tests mit dem Test-Runner von Node, Dateien `*.test.ts`, ohne Datenbank), `pnpm licenses:check` und `pnpm build`. Der CI-Job `apps` in [`.gitlab-ci.yml`](../.gitlab-ci.yml) führt genau das aus, im Image `node:24.18.1`.
 
 **Lizenzprüfung** ([`scripts/check-licenses.mjs`](../scripts/check-licenses.mjs)): Der eigene Code ist proprietär ([`LICENSE`](../LICENSE)). Abgelehnt werden starke Copyleft-Lizenzen (GPL, AGPL, SSPL, EUPL), alle `@blocknote/xl-*`-Pakete und unbekannte Lizenzen; LGPL nur für geprüfte Pakete, derzeit `@img/sharp-*` (libvips, von Next.js für Bilder). Eine neue Ausnahme kommt mit Begründung in das Skript.
 

@@ -34,5 +34,7 @@ SELECT format('ALTER ROLE %I PASSWORD %L', r.login, r.pw)
 FROM (VALUES ('wiki_api', :'api_password'), ('wiki_collab', :'collab_password'), ('wiki_jobs', :'jobs_password')) AS r (login, pw)
 \gexec
 
--- Verbinden dürfen sie nur mit der Datenbank wiki (CONNECT hat PUBLIC standardmäßig)
+-- Verbinden dürfen sie mit der Datenbank wiki, ausdrücklich: CONNECT hat PUBLIC dort nicht
+-- (90_privileges.sql). Andere Datenbanken im selben Server (postgres, zitadel) erlauben es
+-- PUBLIC weiterhin; im Cluster (CloudNativePG, M5) dort ebenfalls entziehen.
 GRANT CONNECT ON DATABASE wiki TO wiki_api, wiki_collab, wiki_jobs;

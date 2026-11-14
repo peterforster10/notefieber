@@ -20,7 +20,14 @@ export async function api<T>(path: string, init?: { method?: string; body?: unkn
     body: init?.body !== undefined ? JSON.stringify(init.body) : undefined,
   });
   const text = await res.text();
-  const data = text ? JSON.parse(text) : undefined;
+  // Fehlerantworten müssen kein JSON sein (z. B. 502 vom Proxy, wenn die API nicht läuft)
+  let data;
+  try {
+    data = text ? JSON.parse(text) : undefined;
+  } catch {
+    if (res.ok) throw new ApiError(res.status, 'Unerwartete Antwort der API');
+    data = undefined;
+  }
   if (!res.ok) {
     const message = data?.message ?? (res.status === 403 ? 'Dafür fehlen die Rechte.' : `Fehler ${res.status}`);
     throw new ApiError(res.status, message);

@@ -22,9 +22,11 @@ export function createApp(config: ApiConfig, db: pg.Pool, idp: Oidc) {
   v1.use(sameOriginOnly(config.PUBLIC_URL));
   v1.use(loadSession(db));
 
+  // Ohne Anmeldung erreichbar: nur, ob die Datenbank antwortet, nicht mit welcher Rolle
+  // (die prüft die App beim Start selbst; REVIEW.md, R-13)
   v1.get('/health', async (_req, res) => {
-    const { rows } = await db.query<{ login: string }>('SELECT current_user AS login');
-    res.json({ status: 'ok', database: { login: rows[0]?.login } });
+    await db.query('SELECT 1');
+    res.json({ status: 'ok' });
   });
 
   // Vor dem Login: Mandant und Zitadel-Organisation zum Kurznamen aus der Adresse

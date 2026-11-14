@@ -368,11 +368,19 @@ RETURNS void LANGUAGE sql AS $$
 $$;
 
 -- Audit-Eintrag aus der API (z. B. export.created). Handelnde Person ist immer die angemeldete.
+-- Nur für Aktionen, die die API selbst ausführt (Bereiche invite und export); was die
+-- Funktionen der Datenbank schreiben (grant.changed, space.viewed_as …), ließe sich sonst mit
+-- echten Einträgen verwechseln (REVIEW.md, R-09). Neue Bereiche der API hier ergänzen.
 CREATE FUNCTION app.audit_event(p_actor_id uuid, p_action text, p_target_type text, p_target_id uuid,
                                 p_details jsonb DEFAULT '{}'::jsonb)
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $$
 BEGIN
   PERFORM app.require_actor(p_actor_id);
+  IF p_action IS NULL OR p_action !~ '^(invite|export)\.[a-z_]{1,50}$' THEN
+    RAISE EXCEPTION USING
+      ERRCODE = 'insufficient_privilege',
+      MESSAGE = format('audit_event: Aktion %s ist der Datenbank vorbehalten oder unbekannt', p_action);
+  END IF;
   PERFORM app.audit(p_actor_id, p_action, p_target_type, p_target_id, p_details);
 END $$;
 

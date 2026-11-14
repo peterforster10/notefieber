@@ -55,6 +55,7 @@ erDiagram
     text time_zone
     uuid avatar_file_id FK
     timestamptz deactivated_at
+    timestamptz created_at
   }
   WORKSPACES {
     uuid id PK
@@ -62,6 +63,7 @@ erDiagram
     text slug "eindeutig pro Mandant"
     text name
     timestamptz archived_at
+    timestamptz created_at
   }
   WORKSPACE_MEMBERS {
     uuid workspace_id PK,FK
@@ -76,6 +78,7 @@ erDiagram
     text name
     text source "local, import, idp, scim"
     text external_id "ID in der Quelle, eindeutig pro Mandant und Quelle"
+    timestamptz created_at
   }
   SESSIONS {
     uuid id PK
@@ -85,6 +88,7 @@ erDiagram
     text user_agent
     timestamptz created_at
     timestamptz expires_at "höchstens 30 Tage"
+    text id_token "nur als id_token_hint beim Abmelden"
   }
   GROUP_MEMBERS {
     uuid group_id PK,FK
@@ -101,6 +105,8 @@ erDiagram
     timestamptz expires_at
     timestamptz accepted_at
     timestamptz revoked_at
+    uuid invited_by FK
+    timestamptz created_at
   }
   SPACES {
     uuid id PK
@@ -112,6 +118,7 @@ erDiagram
     uuid home_page_id FK "Startseite"
     uuid created_by FK
     timestamptz archived_at "archiviert = nur lesbar"
+    timestamptz created_at
   }
   PAGES {
     uuid id PK
@@ -127,6 +134,8 @@ erDiagram
     timestamptz updated_at
     timestamptz deleted_at "Papierkorb"
     uuid trash_root_id "gemeinsam gelöscht mit"
+    timestamptz created_at
+    uuid deleted_by FK
   }
   PAGE_CONTENTS {
     uuid page_id PK,FK
@@ -157,6 +166,7 @@ erDiagram
     uuid tenant_id FK
     uuid space_id
     tsvector tsv
+    timestamptz updated_at
   }
   PAGE_LINKS {
     uuid from_page_id PK,FK
@@ -172,6 +182,8 @@ erDiagram
     uuid user_id FK
     uuid group_id FK
     text role "viewer, commenter, editor, admin (workspace nie admin)"
+    uuid created_by FK
+    timestamptz created_at
   }
   COMMENTS {
     uuid id PK
@@ -184,6 +196,8 @@ erDiagram
     timestamptz resolved_at
     uuid resolved_by FK
     timestamptz deleted_at
+    timestamptz created_at
+    timestamptz edited_at
   }
   FILES {
     uuid id PK
@@ -195,6 +209,8 @@ erDiagram
     text mime
     bigint size_bytes
     text scan_status "pending, clean, infected, error"
+    timestamptz created_at
+    timestamptz deleted_at
   }
   IMPORTS {
     uuid id PK
@@ -206,6 +222,9 @@ erDiagram
     boolean dry_run
     jsonb report
     uuid created_by FK
+    timestamptz created_at
+    timestamptz started_at
+    timestamptz finished_at
   }
   IMPORT_ITEMS {
     uuid import_id PK,FK
@@ -213,6 +232,7 @@ erDiagram
     uuid tenant_id FK
     uuid page_id FK
     text status "done, skipped, placeholder, failed"
+    text note
   }
   OUTBOX {
     uuid id PK
@@ -221,6 +241,7 @@ erDiagram
     text event_type
     jsonb payload
     timestamptz published_at
+    timestamptz created_at
   }
   AUDIT_LOG {
     uuid id PK

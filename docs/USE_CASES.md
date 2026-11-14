@@ -133,8 +133,8 @@ Knöpfe an der Seite (beim Darüberfahren oder per Tastatur):
 Verschieben nimmt die Unterseiten mit. Aus einem Bereich mit eigenen Rechten heraus geht es nur
 als Admin dieses Bereichs; sonst erscheint eine Meldung. Drag & Drop kommt mit M2.
 
-**Einschränkung:** An Seiten, deren Elternseite die Person nicht sieht, schlagen ↑ und ↓ immer
-fehl (R-11 in `TODOS.md`).
+An Seiten, deren Elternseite die Person nicht sieht (sie stehen oben im Baum), gibt es ↑ und ↓
+nicht: Umsortieren dort verlangt Rechte auf der unsichtbaren Elternseite.
 
 ### UC-11 Seite in den Papierkorb legen
 

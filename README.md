@@ -2,7 +2,7 @@
 
 Eine europäische Alternative zu Confluence, entwickelt und gehostet in der EU. Zielgruppe sind vor allem Organisationen auf Confluence Data Center, das am 28. März 2029 schreibgeschützt wird. Schwesterprojekt von **TalkFieber** (Team-Chat); beide teilen Login, Mandantenmodell und Cluster.
 
-**Stand:** Datenbankschema mit Migrationen und Tests fertig, lokale Umgebung und CI laufen, Grundgerüst der Apps (pnpm-Monorepo) steht, noch ohne Fachlogik. UI-Prototyp vorhanden.
+**Stand:** Meilenstein M0 abgeschlossen: Datenbankschema mit Migrationen und Tests, lokale Umgebung und CI, Login über Zitadel, Spaces und Seitenbaum, Einladungen. Der Editor folgt mit M1. Was sich schon klicken lässt, steht in [docs/USE_CASES.md](docs/USE_CASES.md). UI-Prototyp vorhanden.
 
 ## Dokumente
 
@@ -22,7 +22,7 @@ Eine europäische Alternative zu Confluence, entwickelt und gehostet in der EU. 
 | `docs/models/` | ER-Diagramm (Mermaid, exportiert als SVG) und Architekturdiagramme (Startsetup, Zielarchitektur) |
 | `database/scripts/` | Rollen, Schema (`schema/`), Migrationen (`migrations/`, eingespielt mit `migrate.sh`), Tests (`schema_test/`), Testdaten (`seed/`) und Abfragen zum Nachsehen (`queries/`) |
 | `compose.yaml`, `docker/` | Lokale Umgebung: PostgreSQL, Garage und Zitadel, richten sich beim ersten Start selbst ein |
-| `.gitlab-ci.yml`, `.github/workflows/` | CI auf GitLab (Datenbanktests mit `ci.sh`); GitHub spiegelt `main` dorthin |
+| `.gitlab-ci.yml`, `.github/workflows/` | CI auf GitLab mit drei Jobs: `database` (`ci.sh`), `apps` (`pnpm check`), `api` (API-Tests gegen eine Wegwerf-Datenbank); GitHub spiegelt `main` dorthin |
 | `apps/`, `packages/` | Die Apps im pnpm-Monorepo: Frontend, API mit Worker, Collab-Server, gemeinsames Paket ([LOCAL_SETUP, Abschnitt 7](docs/LOCAL_SETUP.md#7-apps-nodejs)) |
 | `prototype/` | Klickbarer UI-Prototyp: Seitenansicht mit Rechte-Dialog, Confluence-Import |
 | [LICENSE](LICENSE) | Proprietär, alle Rechte vorbehalten |

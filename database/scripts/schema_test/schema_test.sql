@@ -31,6 +31,7 @@
 --   16_invites_login.sql      Test  51     Einladung annehmen: Login vor E-Mail
 --   17_visibility_people.sql  Test  52     Wer sieht welche Personen, Workspaces und Gruppen
 --   18_session_id_token.sql   Test  53     ID-Token an der Sitzung fürs Abmelden beim Login-Dienst
+--   19_small_rules.sql        Test  54     Einladungen nur zurücknehmen, Audit-Aktionen, CONNECT
 --
 -- Testdaten: Die erfundene Firma Alpenwerk (Mandant t1) mit Peter (Organisations-Admin),
 -- Lukas, Max, Sophie und dem Gast Elena, dazu Eva im zweiten Mandanten (t2). IDs liegen
@@ -89,6 +90,7 @@ CREATE FUNCTION pg_temp.id(p text) RETURNS uuid LANGUAGE sql AS $$ SELECT v FROM
 \ir 16_invites_login.sql
 \ir 17_visibility_people.sql
 \ir 18_session_id_token.sql
+\ir 19_small_rules.sql
 
 RESET ROLE;
 ROLLBACK;

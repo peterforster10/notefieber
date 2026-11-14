@@ -1,7 +1,8 @@
 -- =============================================================================
 -- NoteFieber (Wiki, Confluence-Alternative): Datenbankschema
 -- PostgreSQL 18 (nutzt das eingebaute uuidv7()), Extensions ltree und pg_trgm
--- Stand: 05.11.2026, passend zu CLAUDE.md Abschnitt 8 und docs/SCHEMA.md
+-- Passend zu CLAUDE.md Abschnitt 8 und docs/SCHEMA.md. Änderungen kommen zusätzlich als
+-- Migration in ../migrations/ (Stand dort, siehe migrations.applied).
 --
 -- Einstieg: Diese Datei bindet die Teile in fester Reihenfolge in EINER Transaktion ein
 -- (psql \ir, relativ zu dieser Datei). Einspielen immer mit psql und als wiki_owner:

@@ -46,7 +46,7 @@ Epics: E01 (lokal), E02 (ohne Gruppenpflege, die kommt mit M3), E03 (einfach), v
 - [x] Migrationen: eigenes Skript `migrate.sh` (psql) statt eines Werkzeugs, das Schema als erste Migration (`0001_initial_schema.sql`, gebündelt mit `schema/bundle.sh`), Gleichheit von `schema/` und Migrationen geprüft (`schema_migrations_test.sh`)
 - [x] Sync GitHub → GitLab: `.github/workflows/sync-to-gitlab.yml` spiegelt jeden Push auf `main`
 - [x] Tests der Datenbank in der CI auf GitLab: `.gitlab-ci.yml` mit `ci.sh` (`schema_test.sql`, `schema_concurrency_test.sh`, `schema_migrations_test.sh`, eingespielt als `wiki_owner`, nie als `postgres`). Erste Pipeline am 8. November 2026 grün
-- [x] CI auf GitLab für die Apps: Job `apps` mit `pnpm check` (Lint, Formatierung, Typen, Lizenzen ohne BlockNote-XL-Pakete, Build). Eingerichtet; abhaken, sobald die erste Pipeline grün war. Tests der Apps kommen mit dem ersten Code, der welche braucht
+- [x] CI auf GitLab für die Apps: Job `apps` mit `pnpm check` (Lint, Formatierung, Typen, Lizenzen ohne BlockNote-XL-Pakete, Build)., dazu Job `api` mit den API-Tests gegen eine Wegwerf-Datenbank (`pnpm test:db`)
 - [x] Login per OIDC über Zitadel (Mandant und Person aus dem Token): Sitzung in der API (`sessions`, Cookie `nf_session`), Claims an einer Stelle, Prüfskript `scripts/check-login.mjs`
 - [x] Einladungen: Link in einen Workspace (anlegen, auflisten, zurücknehmen), erste Anmeldung über `app.accept_invite` nur mit passender, bestätigter E-Mail; Konto in Zitadel muss es geben (lokal: Nina Neu)
 - [x] Space anlegen, Seitenbaum per API (anlegen, verschieben, Papierkorb) und Seitenleiste im Frontend; API-Tests gegen die Datenbank (`pnpm test:db`, CI-Job `api`)

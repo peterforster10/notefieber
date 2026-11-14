@@ -459,7 +459,7 @@ Der Import ist das Feature, das Kaufentscheidungen trifft. Wenn die erste Migrat
 
 ## 11. Das Datenmodell
 
-Alle Daten liegen in **PostgreSQL**. Das ER-Diagramm steht in `docs/data_model.mmd` bzw. `docs/data_model.svg`.
+Alle Daten liegen in **PostgreSQL**. Das ER-Diagramm steht in `docs/models/data_model/data_model.mmd` bzw. `data_model.svg`.
 
 ### Die Tabellen im Überblick
 
@@ -546,7 +546,7 @@ Interne Bausteine (Ereignisse schreiben, Audit-Einträge, Rechte anderer Persone
 
 ### Die Tests
 
-`schema_test.sql` prüft das alles in 53 Tests als `wiki_app` und `wiki_worker` (gleichzeitige Sitzungen prüft `schema_concurrency_test.sh`), z. B.: Ein Leser kann weder direkt noch über Funktionen schreiben, eingeschränkte Seiten sind samt Inhalt, Versionen, Suchtreffern, Kommentaren, Dateien und Links unsichtbar, fremde Mandanten sind unsichtbar, jede Tabelle hat RLS. **Jede Änderung am Schema bekommt zuerst einen Test.**
+`schema_test.sql` prüft das alles in 54 Tests als `wiki_app` und `wiki_worker` (gleichzeitige Sitzungen prüft `schema_concurrency_test.sh`), z. B.: Ein Leser kann weder direkt noch über Funktionen schreiben, eingeschränkte Seiten sind samt Inhalt, Versionen, Suchtreffern, Kommentaren, Dateien und Links unsichtbar, fremde Mandanten sind unsichtbar, jede Tabelle hat RLS. **Jede Änderung am Schema bekommt zuerst einen Test.**
 
 ---
 

@@ -11,7 +11,7 @@
 #
 # Verbindung über die üblichen Variablen von libpq (PGHOST, PGPORT, PGPASSWORD …). Der
 # Server muss postgres und wiki_owner ohne Passwort (trust) oder mit PGPASSWORD hineinlassen.
-# psql und pg_dump müssen dieselbe Hauptversion haben wie der Server (Image postgres:18).
+# psql und pg_dump müssen dieselbe Hauptversion haben wie der Server (Image postgres:18.6).
 #
 #   PGHOST=postgres bash database/scripts/schema_test/ci.sh
 #

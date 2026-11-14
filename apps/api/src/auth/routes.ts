@@ -81,7 +81,12 @@ export function authRouter(c: ApiConfig, db: pg.Pool, idp: Oidc) {
     try {
       config = await idp.configuration();
     } catch (err) {
-      console.error('Login: Login-Dienst nicht erreichbar', err);
+      // Eine Zeile mit Grund statt des ganzen Stacktrace (auch in den API-Tests erwartet, R-16)
+      const message = err instanceof Error ? err.message : String(err);
+      const cause = err instanceof Error && err.cause instanceof Error && err.cause.message !== message;
+      console.error(
+        `Login: Login-Dienst nicht erreichbar: ${message}${cause ? ` (${(err.cause as Error).message})` : ''}`,
+      );
       return res.redirect(home('unavailable'));
     }
     const verifier = oidc.randomPKCECodeVerifier();
@@ -169,25 +174,35 @@ export function authRouter(c: ApiConfig, db: pg.Pool, idp: Oidc) {
       return res.redirect(home('wrong_organization'));
     }
 
-    // Person im Wiki finden; neue Personen kommen nur über eine Einladung (auth/accounts.ts)
-    const account = await resolveAccount(db, { tenantId: login.tenantId, identity, inviteToken: login.invite });
+    // Person im Wiki finden (neue Personen kommen nur über eine Einladung, auth/accounts.ts)
+    // und Sitzung anlegen. Unerwartete Fehler führen zur Startseite mit Meldung statt zu
+    // JSON, weil der Browser hier navigiert (REVIEW.md, R-05).
+    const token = newSessionToken();
+    const expires = new Date(Date.now() + c.SESSION_HOURS * 3600 * 1000);
+    let account: Awaited<ReturnType<typeof resolveAccount>>;
+    try {
+      account = await resolveAccount(db, { tenantId: login.tenantId, identity, inviteToken: login.invite });
+      if (!('error' in account)) {
+        const userId = account.userId;
+        await withContext(db, { tenantId: login.tenantId, userId }, (tx) =>
+          tx.query('SELECT app.create_session($1, $2, $3, $4, $5)', [
+            userId,
+            hashToken(token),
+            expires,
+            req.get('user-agent') ?? null,
+            idToken ?? null,
+          ]),
+        );
+      }
+    } catch (err) {
+      console.error('Login: Person oder Sitzung nicht angelegt:', err instanceof Error ? err.message : err);
+      res.setHeader('Set-Cookie', clearLogin);
+      return res.redirect(home('login_failed'));
+    }
     if ('error' in account) {
       res.setHeader('Set-Cookie', clearLogin);
       return res.redirect(home(account.error));
     }
-    const user = { id: account.userId };
-
-    const token = newSessionToken();
-    const expires = new Date(Date.now() + c.SESSION_HOURS * 3600 * 1000);
-    await withContext(db, { tenantId: login.tenantId, userId: user.id }, (tx) =>
-      tx.query('SELECT app.create_session($1, $2, $3, $4, $5)', [
-        user.id,
-        hashToken(token),
-        expires,
-        req.get('user-agent') ?? null,
-        idToken ?? null,
-      ]),
-    );
     res.setHeader('Set-Cookie', [
       clearLogin,
       serializeCookie(SESSION_COOKIE, token, {

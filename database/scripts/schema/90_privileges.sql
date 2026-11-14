@@ -6,6 +6,10 @@
 
 -- Rechte
 -- =============================================================================
+-- Verbinden nur, wer es ausdrücklich darf (Login-Rollen der Apps, local_login_roles.sql bzw.
+-- der Betrieb); sonst dürfte sich jede Rolle im Cluster mit dieser Datenbank verbinden
+-- (REVIEW.md, R-08). Über den Namen der aktuellen Datenbank, weil er nicht überall wiki ist.
+DO $$ BEGIN EXECUTE format('REVOKE CONNECT ON DATABASE %I FROM PUBLIC', current_database()); END $$;
 REVOKE ALL ON SCHEMA app FROM PUBLIC;
 REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA app FROM PUBLIC;
 -- Auch künftige Funktionen (Migrationen von wiki_owner) sind nicht von selbst ausführbar,
@@ -59,7 +63,9 @@ TO wiki_app;
 -- und Audit-Log nur über Funktionen.
 GRANT UPDATE (display_name, locale, time_zone, avatar_file_id) ON users TO wiki_app;
 GRANT INSERT, UPDATE (slug, name, archived_at) ON workspaces TO wiki_app;
-GRANT INSERT, UPDATE, DELETE ON invites TO wiki_app;
+-- Einladungen: anlegen und zurücknehmen; Einladende, Annahme, Token und Rolle ändert die App
+-- nie direkt (REVIEW.md, R-07)
+GRANT INSERT, UPDATE (revoked_at) ON invites TO wiki_app;
 GRANT INSERT, UPDATE (deleted_at) ON files TO wiki_app;
 
 -- wiki_worker: Collab-Server, Suchindex, Import, Outbox. Unterliegt nur der Mandantentrennung.
