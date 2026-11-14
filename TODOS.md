@@ -4,7 +4,7 @@ Offene Punkte aus der letzten Konsistenzprüfung. Erledigte Punkte abhaken und d
 Entscheidungen wandern in die `CLAUDE.md`.
 
 Quelle: [REVIEW.md](REVIEW.md) vom 12. November 2026. Befund, Beleg und Fundstellen stehen
-dort unter der jeweiligen ID. Änderungen am Schema wie immer in `schema/` **und** als neue
+dort unter der jeweiligen ID; Punkte mit `UC-…` stammen aus [docs/USE_CASES.md](docs/USE_CASES.md). Änderungen am Schema wie immer in `schema/` **und** als neue
 Migration, mit Test in `schema_test/` und Nachtrag in `docs/SCHEMA.md`.
 
 ## Vor M3 (Rechte-Dialog, Personenauswahl)

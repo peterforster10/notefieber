@@ -15,6 +15,7 @@
   - `TODOS.md`: offene Punkte aus der letzten Konsistenzprüfung. Erledigtes abhaken und löschen, Entscheidungen wandern hierher
   - `REVIEW.md`: Review von Code und Dokumentation, **Momentaufnahme vom 12. November 2026**, wird nicht nachgeführt. Befunde mit ID (`R-01` …), Beleg und Vorschlag; die Aufgaben daraus stehen in `TODOS.md`
   - `docs/CONCEPTS.md`: alle Kernkonzepte ausführlich erklärt, für Neulinge zuerst lesen
+  - `docs/USE_CASES.md`: Use Cases, die sich in der Oberfläche schon klicken lassen (UC-01 …), mit Testpersonen und dem, was noch fehlt. Mit jedem neuen Ablauf im Frontend nachführen
   - `docs/MVP.md`: Architektur und Umfang des MVP auf einen Blick, **Momentaufnahme vom 5. November 2026**, wird nicht nachgeführt
   - `docs/ROADMAP.md`: Stufen 0–4 und Meilensteine M0–M5
   - `docs/EPICS.md`: Epics als Basis für User Stories, nach Roadmap-Stufen geordnet

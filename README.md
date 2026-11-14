@@ -9,6 +9,7 @@ Eine europäische Alternative zu Confluence, entwickelt und gehostet in der EU. 
 | Datei | Inhalt |
 |---|---|
 | [docs/CONCEPTS.md](docs/CONCEPTS.md) | **Für Neulinge zuerst lesen:** alle Kernkonzepte ausführlich erklärt |
+| [docs/USE_CASES.md](docs/USE_CASES.md) | Was sich in der Oberfläche schon durchklicken lässt, mit Testpersonen zum Ausprobieren |
 | [docs/MVP.md](docs/MVP.md) | Architektur und Umfang des MVP auf einen Blick (Momentaufnahme vom 5. November 2026) |
 | [CLAUDE.md](CLAUDE.md) | Entscheidungen und aktueller Stand, Übergabe für Claude Code |
 | [TODOS.md](TODOS.md) | Offene Punkte aus der letzten Konsistenzprüfung |
