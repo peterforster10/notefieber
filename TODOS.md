@@ -12,9 +12,6 @@ Migration, mit Test in `schema_test/` und Nachtrag in `docs/SCHEMA.md`.
 - [ ] **R-03 (Mittel):** Leseregeln für `users`, `groups`, `group_members`, `workspaces`,
   `workspace_members`: Gäste sehen keine Personenliste (Abnahmekriterium E18). Vorher
   entscheiden, was einfache Mitglieder über andere Workspaces sehen; Tests in `04_isolation.sql`
-- [ ] **R-04 (Mittel):** `app.accept_invite` sucht zuerst nach `(tenant_id, idp_subject)`;
-  `resolveAccount` behandelt 23505 als `invite_other_login`. Tests in `14_invites.sql` und
-  `invites.dbtest.ts`
 - [ ] **R-07 (Niedrig):** `invites` für `wiki_app` nur `UPDATE (revoked_at)`
 - [ ] **R-09 (Niedrig):** erlaubte Aktionsnamen in `app.audit_event` begrenzen
 

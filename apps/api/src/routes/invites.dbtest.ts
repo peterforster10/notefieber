@@ -120,6 +120,20 @@ test('Login mit Einladung: nur mit derselben, bestätigten E-Mail', { skip }, as
   assert.ok(spaces.includes('ENTW') && !spaces.includes('PERS'), spaces.join(','));
 });
 
+test('Einladung an eine andere Adresse einer Person, die es schon gibt (REVIEW.md, R-04)', { skip }, async () => {
+  // Lukas hat ein Login (seed.sql); die Einladung geht an eine zweite, bestätigte Adresse,
+  // z. B. nach einer Änderung im Login-Dienst. Er bleibt dieselbe Person, statt dass der
+  // Login an der Eindeutigkeit des Logins scheitert.
+  const lukas = identity({ subject: 'user-lukas-gruber', displayName: 'Lukas Gruber' });
+  const known = await resolveAccount(a().db, { tenantId, identity: lukas });
+  assert.ok('userId' in known, JSON.stringify(known));
+
+  const email = `l.gruber-${run}@alpenwerk.example`;
+  const { token } = await invite(email);
+  const res = await resolveAccount(a().db, { tenantId, identity: { ...lukas, email }, inviteToken: token });
+  assert.deepEqual(res, { userId: known.userId, acceptedInvite: true });
+});
+
 test('Login mit gültigem Einladungslink findet den Mandanten aus der Einladung', { skip }, async () => {
   const { token } = await invite(`link-${run}@alpenwerk.example`);
   const res = await fetch(`${a().base}/auth/login?invite=${token}`, { redirect: 'manual' });

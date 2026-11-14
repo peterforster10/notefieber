@@ -141,7 +141,7 @@ Personen eines Mandanten. Dieselbe Person kann in mehreren Mandanten je ein eige
 |---|---|---|
 | `id` | uuid | Personen-ID innerhalb des Mandanten. |
 | `idp_subject` | text | `sub` aus dem Zitadel-Token. **Pro Mandant** eindeutig (`tenant_id, idp_subject`), damit Gäste und Dienstleister in mehreren Mandanten vorkommen können. Die API sucht beim Login nach Mandant und `idp_subject`. Kann fehlen, solange sich die Person noch nie angemeldet hat. |
-| `email` | text | 3–320 Zeichen, pro Mandant eindeutig ohne Beachtung der Groß- und Kleinschreibung. Darüber findet `accept_invite` bestehende Personen. |
+| `email` | text | 3–320 Zeichen, pro Mandant eindeutig ohne Beachtung der Groß- und Kleinschreibung. Darüber findet `accept_invite` bestehende Personen, wenn das Login noch keiner gehört. |
 | `display_name` | text | Anzeigename, 1–100 Zeichen. |
 | `role` | text | `org_admin` oder `member`. Organisations-Admins verwalten Personen und Workspaces, lesen das Audit-Log und können auf jedem Space und jeder eingeschränkten Seite Rechte setzen (Wiederherstellung, im Audit-Log vermerkt). **Inhalte sehen sie nicht automatisch.** |
 | `is_external` | boolean | Person von außerhalb der Organisation. `accept_invite` setzt es bei Einladungen als Gast. Nur zur Anzeige; ob jemand Gast ist, entscheidet `workspace_members.role`. |
@@ -652,7 +652,7 @@ DEFINER, App. Findet den Mandanten zum Kurznamen aus der URL, damit die API die 
 DEFINER, App. Liefert die Angaben zu einer **gültigen** Einladung (nicht angenommen, nicht zurückgezogen, nicht abgelaufen) für die Seite „Einladung annehmen“. Die API übergibt den Hash des Tokens aus dem Link, nie das Token selbst.
 
 #### `accept_invite(token_hash, anzeigename, idp_subject = NULL) → uuid`
-DEFINER, App, mit gesetztem Mandanten. Nimmt eine gültige Einladung an: findet die Person über die E-Mail (ohne Beachtung der Groß- und Kleinschreibung) oder legt sie an (bei Gast-Einladungen mit `is_external`), fügt sie mit der Rolle aus der Einladung in den Workspace ein (bestehende Mitgliedschaft bleibt) und markiert die Einladung als angenommen. Gibt es die Person schon, aber ohne Login (`idp_subject` leer), wird `idp_subject` gesetzt (seit Migration 0003); gehört die E-Mail zu einem anderen Login, lehnt sie ab (`insufficient_privilege`). Lehnt ab, wenn die Person deaktiviert ist. Gibt die Personen-ID zurück. **Die API prüft vorher, dass die angemeldete E-Mail zur Einladung passt.**
+DEFINER, App, mit gesetztem Mandanten. Nimmt eine gültige Einladung an: findet die Person zuerst über das Login (`idp_subject`, seit Migration 0007; dann wird genau diese Person Mitglied, auch wenn die Einladung an eine andere Adresse ging), sonst über die E-Mail (ohne Beachtung der Groß- und Kleinschreibung), oder legt sie an (bei Gast-Einladungen mit `is_external`), fügt sie mit der Rolle aus der Einladung in den Workspace ein (bestehende Mitgliedschaft bleibt) und markiert die Einladung als angenommen. Gibt es die Person schon, aber ohne Login (`idp_subject` leer), wird `idp_subject` gesetzt (seit Migration 0003); gehört die E-Mail zu einem anderen Login, lehnt sie ab (`insufficient_privilege`). Lehnt ab, wenn die Person deaktiviert ist. Gibt die Personen-ID zurück. **Die API prüft vorher, dass die angemeldete E-Mail zur Einladung passt.**
 Audit: `invite.accepted`.
 
 ### 12.6 Mandanten, Personen, Workspaces, Gruppen

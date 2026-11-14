@@ -61,7 +61,9 @@ export async function resolveAccount(
       return { userId, acceptedInvite: true };
     } catch (err) {
       const code = (err as { code?: string }).code;
-      if (code === '42501') return { error: 'invite_other_login' };
+      // 42501: E-Mail gehört zu einem anderen Login; 23505: Login oder E-Mail inzwischen
+      // vergeben (gleichzeitige Anmeldung). Beides heißt: nicht mit diesem Konto.
+      if (code === '42501' || code === '23505') return { error: 'invite_other_login' };
       if (code === 'P0001') return { error: 'invite_invalid' }; // inzwischen benutzt, abgelaufen, deaktiviert
       throw err;
     }

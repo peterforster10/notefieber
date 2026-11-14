@@ -61,9 +61,11 @@ BEGIN
 END $$;
 
 -- Einladung annehmen, beim Login (Mandant gesetzt, noch keine Person). Die API prüft vorher,
--- dass die bestätigte E-Mail aus dem Login zur Einladung passt. Gibt es die Person schon,
--- wird sie nur Mitglied; hatte sie noch kein Login (idp_subject leer), wird es verknüpft;
--- gehört die E-Mail zu einem anderen Login, wird abgelehnt.
+-- dass die bestätigte E-Mail aus dem Login zur Einladung passt. Gehört das Login schon einer
+-- Person, wird genau diese Mitglied, auch wenn die Einladung an eine andere Adresse ging (z. B.
+-- nach einer Änderung im Login-Dienst). Sonst über die E-Mail: Gibt es die Person, wird sie
+-- nur Mitglied; hatte sie noch kein Login (idp_subject leer), wird es verknüpft; gehört die
+-- E-Mail zu einem anderen Login, wird abgelehnt. Deaktivierte Personen kommen nicht hinein.
 -- SECURITY DEFINER, weil wiki_app Mitgliedschaften nicht direkt schreiben darf.
 CREATE FUNCTION app.accept_invite(p_token_hash text, p_display_name text, p_idp_subject text DEFAULT NULL)
 RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $$
@@ -82,8 +84,13 @@ BEGIN
     RAISE EXCEPTION 'accept_invite: Einladung ungültig oder abgelaufen';
   END IF;
 
+  -- Zuerst über das Login, dann über die E-Mail der Einladung
   SELECT id, deactivated_at, idp_subject INTO v_user, v_deact, v_subject FROM users
-  WHERE tenant_id = v_tenant AND lower(email) = lower(v_inv.email);
+  WHERE tenant_id = v_tenant AND idp_subject = p_idp_subject;
+  IF NOT FOUND THEN
+    SELECT id, deactivated_at, idp_subject INTO v_user, v_deact, v_subject FROM users
+    WHERE tenant_id = v_tenant AND lower(email) = lower(v_inv.email);
+  END IF;
   IF v_deact IS NOT NULL THEN
     RAISE EXCEPTION 'accept_invite: Person ist deaktiviert';
   END IF;
