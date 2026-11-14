@@ -106,7 +106,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Die App spricht nur generisches OIDC; Zitadel-Claims (Mandant, Person) liest die API an einer Stelle mit einstellbaren Claim-Namen
 - Später: Gruppen aus einem Gruppen-Claim im Token übernehmen (Quelle `idp`, `app.sync_user_groups`), z. B. bei Entra ID. Die Funktion ist derzeit nur für `wiki_worker` ausführbar (REVIEW.md, R-02); dann entscheiden, wer sie mit dem geprüften Claim aufruft (Worker-Auftrag aus dem Login oder eine eigene Datenbankrolle nur für den Login)
 - E-Mail und Passwort, Magic Link, Passkeys, Zwei-Faktor
-- Kurzlebige Tokens für die WebSocket-Verbindung zum Collab-Server
+- Anmeldung am Collab-Server über das Sitzungs-Cookie beim WebSocket-Handshake, ohne eigenes Token (siehe E04)
 - SSO über OIDC und SAML, insbesondere Entra ID (Stufe 1 und 2 als Pilotfunktion, Stufe 3 voll)
 
 **Nicht enthalten:** SCIM (E17).
@@ -127,24 +127,67 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 
 **Ziel:** Mehrere Personen bearbeiten dieselbe Seite gleichzeitig, und nichts geht verloren, auch nach einem Funkloch.
 
-**Umfang:**
-- Hocuspocus mit `onAuthenticate` (Rolle über die API), `onLoadDocument`, `onStoreDocument`
+**Umfang** (Entwurf entschieden am 14. November 2026, `CLAUDE.md` Abschnitte 3, 6 und 7):
+- Hocuspocus mit `onAuthenticate` über das Sitzungs-Cookie (`Origin` prüfen, `app.resolve_session`, Rolle mit `app.page_rank(seite, person)`), `onLoadDocument`, `onStoreDocument`
 - Lesende Verbindung für viewer und commenter, schreibende für editor
-- Entprelltes Speichern über `app.store_content` als `wiki_worker`, mit BlockNote-JSON (`editor.document`), Klartext und Bearbeitenden
+- Entprellt speichern (etwa 2 s, spätestens 10 s): nur Yjs-Zustand, Titel und Bearbeitende. BlockNote-JSON und Klartext leitet der Worker ab, wenn die Seite etwa 30 s ruht (`@blocknote/server-util` mit dem Schema aus `packages/editor-schema`)
 - Cursor und Anwesenheit über Yjs Awareness
-- Verbindungen trennen, wenn sich Rechte ändern (`grant.changed`, `page.permissions_changed`, `member.removed`, `member.changed`, `user.deactivated`, `space.archived`)
-- Bei einer neuen, leeren Seite zuerst den Titel aus `pages.title` ins Yjs-Dokument schreiben; ist `content_json` gefüllt (Testdaten, Import), das Dokument daraus bauen
+- Verbindungen trennen oder schreibgeschützt machen, wenn sich Rechte ändern (`grant.changed`, `page.permissions_changed`, `member.removed`, `member.changed`, `user.deactivated`, `space.archived`), beim Abmelden und wenn die Seite in den Papierkorb geht. Meldung per `LISTEN/NOTIFY` aus der Outbox; nach einem Abriss der Datenbankverbindung alle offenen Verbindungen neu prüfen, Sitzungen zusätzlich regelmäßig
+- Bei einer neuen, leeren Seite zuerst den Titel aus `pages.title` ins Yjs-Dokument schreiben. Seiten mit `content_json`, aber leerem Yjs (Testdaten, Import) wandelt der Worker vorher um, der Collab-Server nur als Rückfall
+- Änderungen von der Serverseite über einen internen Aufruf an den Collab-Server (`openDirectConnection`), zuerst für das Umbenennen aus der Seitenleiste
 - Kurze Verbindungsabbrüche lokal puffern (IndexedDB)
 
-**Nicht enthalten:** echter Offline-Modus (E30), mehrere Collab-Instanzen (E28).
+**Nicht enthalten:** echter Offline-Modus (E30), mehrere Collab-Instanzen (E28), Versionen wiederherstellen (E08, nutzt aber denselben internen Aufruf).
 
 **Abnahmekriterien:**
-- 20 Personen bearbeiten eine Seite gleichzeitig ohne Datenverlust (Lasttest).
+- 50 Personen bearbeiten eine Seite gleichzeitig ohne Datenverlust (Lasttest in M1, mit WAL-Menge pro Minute und Dauer des Speicherns).
 - Wer das Leserecht verliert, verliert die Verbindung innerhalb von 5 Sekunden.
+- Alle User Stories unten sind erfüllt.
 
 **Abhängigkeiten:** E01, E03.
 
-**Story-Kandidaten:** Seite gemeinsam bearbeiten · Cursor anderer sehen · Nach Reconnect weiterarbeiten · Rechteentzug wirkt sofort
+**User Stories:**
+
+**E04-01 Seite gemeinsam bearbeiten.** Als Bearbeitende möchte ich eine Seite gleichzeitig mit anderen bearbeiten, damit wir nicht aufeinander warten müssen.
+- Gegeben zwei Bearbeitende auf derselben Seite, wenn beide an verschiedenen Stellen tippen, dann sieht jede den Text der anderen innerhalb einer Sekunde.
+- Gegeben beide tippen an derselben Stelle, dann geht kein Zeichen verloren, und beide sehen dieselbe Reihenfolge.
+- Gegeben alle schließen die Seite, wenn jemand sie neu öffnet, dann ist der letzte Stand da (gespeichert spätestens 10 s nach der letzten Änderung).
+
+**E04-02 Sehen, wer da ist.** Als Bearbeitende möchte ich sehen, wer die Seite gerade offen hat und wo die anderen schreiben, damit wir uns nicht in die Quere kommen.
+- Gegeben mehrere Personen haben die Seite offen, dann zeigt der Kopfbereich ihre Avatare, auch die der Lesenden.
+- Gegeben eine andere Person schreibt, dann sehe ich ihren Cursor und ihre Markierung mit Namen und Farbe.
+- Gegeben eine Person schließt die Seite, wenn einige Sekunden vergangen sind, dann verschwinden Avatar und Cursor. Anwesenheit wird nie gespeichert.
+
+**E04-03 Live lesen, ohne zu schreiben.** Als Leser oder Kommentierende möchte ich Änderungen anderer live sehen, ohne versehentlich etwas zu ändern.
+- Gegeben die Rolle viewer oder commenter, wenn ich die Seite öffne, dann ist der Editor schreibgeschützt und zeigt Änderungen anderer live.
+- Gegeben eine schreibgeschützte Verbindung schickt trotzdem ein Yjs-Update (manipulierter Browser), dann lehnt der Collab-Server es ab, und nichts davon wird gespeichert.
+
+**E04-04 Weiterschreiben nach einem Funkloch.** Als Bearbeitende möchte ich nach einem kurzen Verbindungsabbruch einfach weiterschreiben können.
+- Gegeben die Verbindung ist bis zu einer Minute weg, wenn ich weitertippe, dann zeigt der Editor „Offline, wird übertragen, sobald die Verbindung zurück ist“, und nach dem Wiederverbinden kommen meine Änderungen bei allen an, nichts doppelt.
+- Gegeben ich lade die Seite neu, während die Verbindung weg ist, dann sind meine noch nicht übertragenen Änderungen nicht verloren (IndexedDB).
+- Gegeben der Collab-Server startet neu (Ausrollen, Strategie Recreate), dann verbindet sich der Browser von selbst wieder, ohne Datenverlust.
+
+**E04-05 Rechteentzug wirkt sofort.** Als Space-Admin möchte ich, dass ein entzogenes Recht auch für offene Seiten sofort gilt.
+- Gegeben Lukas hat eine Seite offen, wenn ein Admin ihm das Recht entzieht (Grant, Vererbung kappen, Verschieben in einen eingeschränkten Bereich, Entfernen aus dem Workspace, Deaktivieren), dann ist seine Verbindung innerhalb von 5 s getrennt.
+- Gegeben er darf danach nur noch lesen (auch: Space archiviert), dann wird sein Editor schreibgeschützt statt geschlossen.
+- Gegeben er darf die Seite gar nicht mehr sehen, dann zeigt der Editor „Kein Zugriff mehr auf diese Seite“, und der Inhalt verschwindet aus dem Fenster.
+- Änderungen, die nach dem Entzug ankommen, werden nicht gespeichert.
+
+**E04-06 Abmelden schließt alle Editoren.** Als Person möchte ich, dass Abmelden auch offene Editoren in anderen Tabs schließt, damit am geteilten Rechner niemand weiterschreibt.
+- Gegeben ich habe eine Seite in Tab B offen, wenn ich mich in Tab A abmelde, dann schließt sich der Editor in Tab B innerhalb von 5 s mit dem Hinweis „Abgemeldet“.
+- Gegeben meine Sitzung läuft ab, während der Editor offen ist, dann schließt er sich spätestens nach 5 Minuten.
+
+**E04-07 Seite im Papierkorb, während jemand schreibt** (REVIEW.md, R-10; entschieden am 14. November 2026). Als Bearbeitende möchte ich merken, wenn die Seite, an der ich schreibe, in den Papierkorb gelegt wurde, damit ich nicht ins Leere tippe.
+- Gegeben ich habe die Seite offen, wenn jemand sie in den Papierkorb legt, dann wird mein Editor innerhalb von 5 s schreibgeschützt mit dem Hinweis „Diese Seite liegt im Papierkorb“.
+- Gegeben ich darf sie bearbeiten, dann bietet der Hinweis „Wiederherstellen“ an; danach kann ich weiterschreiben.
+- Was bis zum Löschen gespeichert war, bleibt erhalten.
+- Das gilt für jede Seite im gelöschten Teilbaum, nicht nur für die, die jemand in den Papierkorb gelegt hat.
+
+**E04-08 Seite umbenennen.** Als Bearbeitende möchte ich eine Seite im Editor oder in der Seitenleiste umbenennen können, damit der Titel überall stimmt.
+- Gegeben ich ändere den Titel im Editor, dann zeigen Seitenbaum, Brotkrume und Adresse (`/spaces/…/pages/<titel>-<id>`) spätestens nach 10 s den neuen Titel.
+- Gegeben ich benenne in der Seitenleiste um, dann sehen alle, die die Seite offen haben, den neuen Titel sofort (interner Aufruf an den Collab-Server).
+- Gegeben ich darf nur lesen, dann kann ich weder im Editor noch in der Seitenleiste umbenennen.
+- Titel über 255 Zeichen werden gekürzt, nicht abgelehnt.
 
 ---
 

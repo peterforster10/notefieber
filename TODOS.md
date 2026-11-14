@@ -10,9 +10,6 @@ dort unter der jeweiligen ID; Punkte mit `UC-…` stammen aus [docs/USE_CASES.md
 
 ## Mit M1 (Editor und Echtzeit, E04)
 
-- [ ] **R-10 (Mittel):** Verhalten bei `page.trashed` während der Bearbeitung festlegen
-  (Verbindung trennen oder schreibgeschützt); `RECONNECT_EVENTS` und `CLAUDE.md`,
-  Abschnitt 6, ergänzen
 - [ ] **R-15 (Niedrig):** Adresse des Collab-Servers einstellbar machen (`COLLAB_HOST`)
 - [ ] **R-12 (Niedrig):** mit dem Outbox-Publisher den Index `outbox_unpublished` auf `id` umstellen
 

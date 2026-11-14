@@ -55,20 +55,23 @@ Epics: E01 (lokal), E02 (ohne Gruppenpflege, die kommt mit M3), E03 (einfach), v
 
 ### M1 – Durchstich Editor und Echtzeit
 Epics: E04, Teile von E06 und E07
-- [ ] Next.js-Grundgerüst, BlockNote als Client-Komponente
-- [ ] Hocuspocus nach dem Entwurf in `CLAUDE.md`, Abschnitt 6 (entschieden am 14. November 2026): `onAuthenticate` über das Sitzungs-Cookie (`Origin`, `app.resolve_session`, `app.page_rank(seite, person)`), `onLoadDocument`, `onStoreDocument` nur mit Yjs-Zustand und Titel
-- [ ] Datenbank dafür: `store_content` aufteilen in Yjs und Titel (Collab-Server) und abgeleiteten Inhalt (Worker), dazu ein Merkmal „abgeleiteter Inhalt veraltet“. Manuelle Versionen und Export nehmen BlockNote-JSON nur, wenn es aktuell ist, sonst leitet der Worker zuerst ab
-- [ ] Paket `packages/editor-schema` (Browser, Worker, Import); Worker leitet BlockNote-JSON und Klartext ab, wenn eine Seite ~30 s ruht, und fasst `page.updated` zusammen. Seiten mit `content_json`, aber leerem Yjs (Testdaten, Import) wandelt möglichst der Worker vorher um, damit der Collab-Server ohne `jsdom` und React auskommt; nur als Rückfall im Collab-Server
-- [ ] Trigger auf `outbox` mit `pg_notify`, Collab-Server mit `LISTEN`; nach einem Abriss der Datenbankverbindung prüft er alle offenen Verbindungen neu (verpasste Meldungen)
-- [ ] Abmelden und abgelaufene Sitzungen erreichen auch offene Editoren: `app.end_session` meldet ein Ereignis, der Collab-Server prüft die Sitzungen offener Verbindungen zusätzlich regelmäßig (z. B. alle 5 Minuten)
-- [ ] Interner Aufruf an den Collab-Server (nur im Cluster, geteiltes Geheimnis) mit `openDirectConnection`; als Erstes für das Umbenennen aus der Seitenleiste
-- [ ] Zwei Browser bearbeiten dieselbe Seite, Cursor und Anwesenheit sichtbar
-- [ ] Verbindung trennen und wieder verbinden: nichts geht verloren
+
+Was fertig heißt, sagen die User Stories E04-01 bis E04-08 in [EPICS](EPICS.md) mit ihren Abnahmekriterien. Die Punkte hier sind die technischen Schritte dahin, jeweils mit den Stories, denen sie dienen.
+
 - [x] **Vor dem Bau:** Entwurf des Collab-Servers entschieden (14. November 2026, `CLAUDE.md` Abschnitte 3, 6 und 7; [ARCHITECTURE_REVIEW](../ARCHITECTURE_REVIEW.md), A-04 bis A-08)
+- [ ] Next.js-Grundgerüst, BlockNote als Client-Komponente (E04-01, E04-03)
+- [ ] Hocuspocus nach dem Entwurf in `CLAUDE.md`, Abschnitt 6 (entschieden am 14. November 2026): `onAuthenticate` über das Sitzungs-Cookie (`Origin`, `app.resolve_session`, `app.page_rank(seite, person)`), `onLoadDocument`, `onStoreDocument` nur mit Yjs-Zustand und Titel (E04-01, E04-03)
+- [ ] Datenbank dafür: `store_content` aufteilen in Yjs und Titel (Collab-Server) und abgeleiteten Inhalt (Worker), dazu ein Merkmal „abgeleiteter Inhalt veraltet“. Manuelle Versionen und Export nehmen BlockNote-JSON nur, wenn es aktuell ist, sonst leitet der Worker zuerst ab (E04-01)
+- [ ] Paket `packages/editor-schema` (Browser, Worker, Import); Worker leitet BlockNote-JSON und Klartext ab, wenn eine Seite ~30 s ruht, und fasst `page.updated` zusammen. Seiten mit `content_json`, aber leerem Yjs (Testdaten, Import) wandelt möglichst der Worker vorher um, damit der Collab-Server ohne `jsdom` und React auskommt; nur als Rückfall im Collab-Server (E04-01)
+- [ ] Trigger auf `outbox` mit `pg_notify`, Collab-Server mit `LISTEN`; nach einem Abriss der Datenbankverbindung prüft er alle offenen Verbindungen neu (verpasste Meldungen) (E04-05, E04-07)
+- [ ] Abmelden und abgelaufene Sitzungen erreichen auch offene Editoren: `app.end_session` meldet ein Ereignis, der Collab-Server prüft die Sitzungen offener Verbindungen zusätzlich regelmäßig (z. B. alle 5 Minuten) (E04-06)
+- [ ] Interner Aufruf an den Collab-Server (nur im Cluster, geteiltes Geheimnis) mit `openDirectConnection`; als Erstes für das Umbenennen aus der Seitenleiste (E04-08)
+- [ ] Zwei Browser bearbeiten dieselbe Seite, Cursor und Anwesenheit sichtbar (E04-01, E04-02)
+- [ ] Verbindung trennen und wieder verbinden: nichts geht verloren (E04-04)
 - [ ] Erster Lasttest (z. B. 50 gleichzeitige Bearbeitende auf einer Seite); dabei die WAL-Menge pro Minute und die Dauer des Speicherns messen (A-04)
 - [ ] Einen echten Confluence-Export grob einlesen, nur um die Datenlage zu verstehen
 
-**Gate:** Zwei Personen bearbeiten gleichzeitig, nichts geht verloren.
+**Gate:** Zwei Personen bearbeiten gleichzeitig, nichts geht verloren; die Abnahmekriterien von E04-01 bis E04-08 sind durch Tests oder eine Prüfung im Browser belegt (danach in `docs/USE_CASES.md`).
 
 ### M2 – Wiki-Grundfunktionen
 Epics: E05, E06, E07, E08, E15, dazu der Mail-Versand aus E01 und E02
