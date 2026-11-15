@@ -599,7 +599,7 @@ Die Apps liegen in einem **pnpm-Monorepo** (ein Repository, mehrere Node-Projekt
 | `@notefieber/shared` | `packages/shared` | gemeinsame Typen und Zod-Schemas: Rollen, Ereignisse, Kurznamen, Prüfung der Datenbankrolle | – | – | – |
 | `@notefieber/editor-schema` | `packages/editor-schema` | BlockNote-Schema für Browser, Worker, Collab-Server und Import; Aufbau des Yjs-Dokuments (`page:<uuid>`, Fragment `content`, Text `title`), Klartext; `/server`: Yjs ↔ BlockNote-JSON ohne DOM | – | – | – |
 
-Stand: Die API **meldet über Zitadel an** ([unten](#anmelden)) und kennt **Spaces und Seitenbaum** ([unten](#spaces-und-seitenbaum)). Der Worker meldet sich regelmäßig, der Collab-Server startet und lehnt bis E04 jede Verbindung ab. Das Frontend zeigt Anmelden, die eigenen Spaces und pro Space die Seitenleiste mit dem Baum; Seiten haben noch keinen Inhalt (Editor mit M1).
+Stand: Die API **meldet über Zitadel an** ([unten](#anmelden)) und kennt **Spaces und Seitenbaum** ([unten](#spaces-und-seitenbaum)). Der Worker meldet sich regelmäßig. Der **Collab-Server** lässt Verbindungen mit dem Sitzungs-Cookie herein (`Origin` muss `PUBLIC_URL` sein, Rolle über `app.page_rank`: viewer und commenter lesend, editor schreibend, Seiten im Papierkorb lesend), lädt und speichert den Yjs-Zustand (`app.store_ydoc`, entprellt `COLLAB_DEBOUNCE_MS`, spätestens `COLLAB_MAX_DEBOUNCE_MS`); noch ohne Trennen bei Rechteänderungen (M1, Stück 2). Das Frontend zeigt Anmelden, die eigenen Spaces und pro Space die Seitenleiste mit dem Baum; Seiten haben noch keinen Inhalt (Editor mit M1).
 
 ### Einrichten
 
@@ -737,10 +737,10 @@ docker run -d --name nf-pg18-apitest -p 127.0.0.1:55433:5432 -e POSTGRES_PASSWOR
 Nach etwa 20 Sekunden (`docker logs nf-pg18-apitest` zeigt `Testdaten eingespielt`):
 
 ```bash
-API_TEST_DATABASE_URL=postgres://wiki_api:api-lokal@localhost:55433/wiki pnpm test:db
+API_TEST_DATABASE_URL=postgres://wiki_api:api-lokal@localhost:55433/wiki COLLAB_TEST_DATABASE_URL=postgres://wiki_collab:collab-lokal@localhost:55433/wiki pnpm test:db
 ```
 
-Erwartet: `pass 12`, `fail 0` (Spaces und Seitenbaum, Einladungen, Annehmen beim Login mit erfundenen Identitäten statt Zitadel). Danach `docker rm -f nf-pg18-apitest`. Ohne `API_TEST_DATABASE_URL` überspringt `pnpm test:db` die Tests mit einem Hinweis. (`$(pwd -W)` ist der Pfad in Git Bash; unter macOS und Linux `$(pwd)`.)
+Erwartet: API `pass 13`, Collab-Server `pass 4`, jeweils `fail 0` (Spaces und Seitenbaum, Einladungen, Annehmen beim Login mit erfundenen Identitäten statt Zitadel; beim Collab-Server Ablehnungen, gemeinsames Bearbeiten mit lesender und schreibender Verbindung, Seiten aus BlockNote-JSON, Papierkorb). Die Collab-Tests starten einen eigenen Server auf einem freien Port und brauchen beide Verbindungen: `COLLAB_TEST_DATABASE_URL` für den Server, `API_TEST_DATABASE_URL` für Sitzungen und Seiten. Danach `docker rm -f nf-pg18-apitest`. Ohne `API_TEST_DATABASE_URL` überspringt `pnpm test:db` die Tests mit einem Hinweis. (`$(pwd -W)` ist der Pfad in Git Bash; unter macOS und Linux `$(pwd)`.)
 
 ### Prüfen wie in der CI
 

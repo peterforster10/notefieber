@@ -4,7 +4,7 @@
 # Drei Jobs, die parallel laufen (docs/LOCAL_SETUP.md, „CI (GitLab)“):
 #   database  Migrationen und alle Datenbanktests (database/scripts/schema_test/ci.sh)
 #   apps      Lint, Formatierung, Typprüfung, Unit-Tests, Lizenzprüfung und Build (pnpm check)
-#   api       API-Tests gegen eine echte Datenbank mit Testdaten (pnpm test:db)
+#   api       API- und Collab-Tests gegen eine echte Datenbank mit Testdaten (pnpm test:db)
 
 stages:
   - test
@@ -47,6 +47,8 @@ api:
     PGCONNECT_TIMEOUT: "5"
     # Login-Rolle der API aus local_login_roles.sql (Passwort nur für diese Wegwerf-Datenbank)
     API_TEST_DATABASE_URL: postgres://wiki_api:api-lokal@postgres:5432/wiki
+    # Login-Rolle des Collab-Servers (in wiki_worker), für apps/collab/src/*.dbtest.ts
+    COLLAB_TEST_DATABASE_URL: postgres://wiki_collab:collab-lokal@postgres:5432/wiki
     GIT_DEPTH: "1"
   cache:
     key:

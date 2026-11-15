@@ -1,12 +1,12 @@
 // Sitzungen: zufälliges Token im Cookie nf_session, in der Datenbank nur sein SHA-256-Hash
 // (Tabelle sessions, app.create_session / resolve_session / end_session). Jede Anfrage mit
 // Cookie schlägt die Sitzung nach; Abmelden und Deaktivieren wirken damit sofort.
-import { createHash, randomBytes } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
 import type { NextFunction, Request, Response } from 'express';
 import type pg from 'pg';
-import { parseCookies } from '../http/cookies.ts';
+import { SESSION_COOKIE, hashToken, sessionTokenFromCookies } from '@notefieber/shared/session';
 
-export const SESSION_COOKIE = 'nf_session';
+export { SESSION_COOKIE, hashToken };
 
 export interface Auth {
   sessionId: string;
@@ -18,12 +18,8 @@ export function newSessionToken(): string {
   return randomBytes(32).toString('base64url');
 }
 
-export function hashToken(token: string): string {
-  return createHash('sha256').update(token).digest('hex');
-}
-
 export function sessionToken(req: Request): string | undefined {
-  return parseCookies(req.headers.cookie)[SESSION_COOKIE] || undefined;
+  return sessionTokenFromCookies(req.headers.cookie);
 }
 
 /** Setzt res.locals.auth, wenn das Cookie zu einer gültigen Sitzung gehört. */

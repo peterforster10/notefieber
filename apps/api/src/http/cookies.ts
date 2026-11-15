@@ -2,23 +2,8 @@
 // die der Browser nur zurückgibt, aber nicht verändern darf.
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
-export function parseCookies(header: string | undefined): Record<string, string> {
-  const out: Record<string, string> = {};
-  if (!header) return out;
-  for (const part of header.split(';')) {
-    const i = part.indexOf('=');
-    if (i < 0) continue;
-    const name = part.slice(0, i).trim();
-    const value = part.slice(i + 1).trim();
-    if (!name) continue;
-    try {
-      out[name] = decodeURIComponent(value);
-    } catch {
-      // kaputt kodierte Cookies ignorieren
-    }
-  }
-  return out;
-}
+// Gemeinsam mit dem Collab-Server (packages/shared/src/session.ts)
+export { parseCookies } from '@notefieber/shared/session';
 
 export interface CookieOptions {
   maxAgeSeconds: number;

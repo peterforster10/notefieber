@@ -15,7 +15,6 @@ Bestehenden.
 
 ## Mit M1 (Editor und Echtzeit, E04)
 
-- [ ] **R-15 (Niedrig):** Adresse des Collab-Servers einstellbar machen (`COLLAB_HOST`)
 - [ ] **R-12 (Niedrig):** mit dem Outbox-Publisher den Index `outbox_unpublished` auf `id` umstellen
 
 ## Mit M5 (Pilot im Cluster)

@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "node --watch --env-file-if-exists=../../.env src/collab.ts",
     "start": "node src/collab.ts",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "test:db": "node --test --test-concurrency=1 \"src/**/*.dbtest.ts\""
   },
   "dependencies": {
     "@hocuspocus/server": "4.8.0",
+    "@notefieber/editor-schema": "workspace:*",
     "@notefieber/shared": "workspace:*",
     "pg": "8.23.1",
     "y-protocols": "1.0.7",
@@ -17,6 +19,9 @@
     "zod": "4.6.7"
   },
   "devDependencies": {
-    "@types/pg": "8.23.1"
+    "@hocuspocus/provider": "4.8.0",
+    "@types/pg": "8.23.1",
+    "@types/ws": "8.18.2",
+    "ws": "8.23.0"
   }
 }
