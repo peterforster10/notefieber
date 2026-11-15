@@ -597,6 +597,7 @@ Die Apps liegen in einem **pnpm-Monorepo** (ein Repository, mehrere Node-Projekt
 | `@notefieber/api` | `apps/api` | API (Express 5) **und** Worker: ein Paket, später ein Image, zwei Deployments | API: `wiki_api` (in `wiki_app`), Worker: `wiki_jobs` (in `wiki_worker`) | `pnpm dev:api`, `pnpm dev:worker` | `http://localhost:4000/api/v1/health` |
 | `@notefieber/collab` | `apps/collab` | Collab-Server (Hocuspocus) | `wiki_collab` (in `wiki_worker`) | `pnpm dev:collab` | `ws://127.0.0.1:1234` |
 | `@notefieber/shared` | `packages/shared` | gemeinsame Typen und Zod-Schemas: Rollen, Ereignisse, Kurznamen, Prüfung der Datenbankrolle | – | – | – |
+| `@notefieber/editor-schema` | `packages/editor-schema` | BlockNote-Schema für Browser, Worker, Collab-Server und Import; Aufbau des Yjs-Dokuments (`page:<uuid>`, Fragment `content`, Text `title`), Klartext; `/server`: Yjs ↔ BlockNote-JSON ohne DOM | – | – | – |
 
 Stand: Die API **meldet über Zitadel an** ([unten](#anmelden)) und kennt **Spaces und Seitenbaum** ([unten](#spaces-und-seitenbaum)). Der Worker meldet sich regelmäßig, der Collab-Server startet und lehnt bis E04 jede Verbindung ab. Das Frontend zeigt Anmelden, die eigenen Spaces und pro Space die Seitenleiste mit dem Baum; Seiten haben noch keinen Inhalt (Editor mit M1).
 

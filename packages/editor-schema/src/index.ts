@@ -10,7 +10,11 @@ import type { Block } from '@blocknote/core';
 
 export const schema = BlockNoteSchema.create();
 export type EditorSchema = typeof schema;
-export type EditorBlock = Block<EditorSchema['blockSchema'], EditorSchema['inlineContentSchema'], EditorSchema['styleSchema']>;
+export type EditorBlock = Block<
+  EditorSchema['blockSchema'],
+  EditorSchema['inlineContentSchema'],
+  EditorSchema['styleSchema']
+>;
 
 /** Name des Y.XmlFragment mit dem BlockNote-Inhalt */
 export const CONTENT_FRAGMENT = 'content';

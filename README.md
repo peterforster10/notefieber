@@ -24,7 +24,7 @@ Eine europäische Alternative zu Confluence, entwickelt und gehostet in der EU. 
 | `database/scripts/` | Rollen, Schema (`schema/`), Migrationen (`migrations/`, eingespielt mit `migrate.sh`), Tests (`schema_test/`), Testdaten (`seed/`) und Abfragen zum Nachsehen (`queries/`) |
 | `compose.yaml`, `docker/` | Lokale Umgebung: PostgreSQL, Garage und Zitadel, richten sich beim ersten Start selbst ein |
 | `.gitlab-ci.yml`, `.github/workflows/` | CI auf GitLab mit drei Jobs: `database` (`ci.sh`), `apps` (`pnpm check`), `api` (API-Tests gegen eine Wegwerf-Datenbank); GitHub spiegelt `main` dorthin |
-| `apps/`, `packages/` | Die Apps im pnpm-Monorepo: Frontend, API mit Worker, Collab-Server, gemeinsames Paket ([LOCAL_SETUP, Abschnitt 7](docs/LOCAL_SETUP.md#7-apps-nodejs)) |
+| `apps/`, `packages/` | Die Apps im pnpm-Monorepo: Frontend, API mit Worker, Collab-Server, gemeinsame Pakete ([LOCAL_SETUP, Abschnitt 7](docs/LOCAL_SETUP.md#7-apps-nodejs)) |
 | `prototype/` | Klickbarer UI-Prototyp: Seitenansicht mit Rechte-Dialog, Confluence-Import |
 | [LICENSE](LICENSE) | Proprietär, alle Rechte vorbehalten |
 
@@ -83,6 +83,7 @@ apps/
   collab/     Hocuspocus-Server
 packages/
   shared/     Typen, Zod-Schemas, Rollen, Ereignisse
+  editor-schema/  BlockNote-Schema, Aufbau des Yjs-Dokuments, Umwandlung Yjs ↔ BlockNote-JSON
 scripts/      Hilfsskripte (Lizenzprüfung)
 database/
   scripts/    Rollen, Schema (schema/), Migrationen (migrations/), Tests (schema_test/)
