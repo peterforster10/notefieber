@@ -3,7 +3,7 @@
 //
 // Grundgerüst: Der Server startet und prüft seine Datenbankrolle, lässt aber noch niemanden
 // herein. onAuthenticate (Rolle über die API), onLoadDocument und onStoreDocument
-// (app.store_content) kommen mit E04; bis dahin wird jede Verbindung abgelehnt.
+// (app.store_ydoc) kommen mit E04; bis dahin wird jede Verbindung abgelehnt.
 import pg from 'pg';
 import { z } from 'zod';
 import { Server } from '@hocuspocus/server';

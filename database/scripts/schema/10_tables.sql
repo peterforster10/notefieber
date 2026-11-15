@@ -186,10 +186,17 @@ CREATE TABLE page_contents (
                                  AND pg_column_size(content_json) <= 20000000)),
   plain_text            text NOT NULL DEFAULT '' CHECK (length(plain_text) <= 2000000),
   editors_since_version uuid[] NOT NULL DEFAULT '{}', -- für die Autorenliste der nächsten Version
-  updated_at            timestamptz NOT NULL DEFAULT now(),
+  updated_at            timestamptz NOT NULL DEFAULT now(), -- letztes Speichern des Yjs-Zustands
+  -- true = content_json und plain_text passen nicht mehr zu ydoc (Collab-Server hat
+  -- gespeichert, der Worker hat noch nicht abgeleitet; app.store_ydoc, app.store_derived)
+  derived_stale         boolean NOT NULL DEFAULT false,
   FOREIGN KEY (page_id, tenant_id) REFERENCES pages (id, tenant_id) ON DELETE CASCADE,
   CHECK (octet_length(ydoc) <= 50000000)              -- 50 MB pro Seite, darüber Alarm
 );
+-- Arbeit für den Worker (app.pages_to_derive): veraltete Seiten, Seiten ohne Yjs-Zustand
+CREATE INDEX page_contents_stale   ON page_contents (updated_at) WHERE derived_stale;
+CREATE INDEX page_contents_no_ydoc ON page_contents (updated_at)
+  WHERE ydoc = '\x0000'::bytea AND content_json <> '[]'::jsonb;
 
 -- Versionshistorie: Snapshots, nie überschrieben.
 CREATE TABLE page_versions (

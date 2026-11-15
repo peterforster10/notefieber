@@ -32,6 +32,7 @@
 --   17_visibility_people.sql  Test  52     Wer sieht welche Personen, Workspaces und Gruppen
 --   18_session_id_token.sql   Test  53     ID-Token an der Sitzung fürs Abmelden beim Login-Dienst
 --   19_small_rules.sql        Test  54     Einladungen nur zurücknehmen, Audit-Aktionen, CONNECT
+--   20_content_split.sql      Test  55     Inhalt in zwei Schritten: Yjs (Collab-Server), abgeleitet (Worker)
 --
 -- Testdaten: Die erfundene Firma Alpenwerk (Mandant t1) mit Peter (Organisations-Admin),
 -- Lukas, Max, Sophie und dem Gast Elena, dazu Eva im zweiten Mandanten (t2). IDs liegen
@@ -71,6 +72,16 @@ CREATE FUNCTION pg_temp.ctx(p_tenant uuid, p_user uuid) RETURNS void LANGUAGE sq
          set_config('app.user_id',   coalesce(p_user::text, ''), false)
 $$;
 CREATE FUNCTION pg_temp.id(p text) RETURNS uuid LANGUAGE sql AS $$ SELECT v FROM ids WHERE k = p $$;
+-- Inhalt so speichern, wie Collab-Server und Worker es nacheinander tun: Yjs-Zustand und
+-- Titel (app.store_ydoc), dann den daraus abgeleiteten Inhalt (app.store_derived, Test 55).
+-- Nur als wiki_worker.
+CREATE FUNCTION pg_temp.store_all(p_page uuid, p_ydoc bytea, p_json jsonb, p_text text, p_title text,
+                                  p_editors uuid[]) RETURNS void LANGUAGE plpgsql AS $$
+BEGIN
+  PERFORM app.store_ydoc(p_page, p_ydoc, p_title, p_editors);
+  ASSERT app.store_derived(p_page, (SELECT updated_at FROM page_contents WHERE page_id = p_page), p_json, p_text),
+    'abgeleiteter Inhalt nicht gespeichert';
+END $$;
 
 \ir 01_basics.sql
 \ir 02_permissions.sql
@@ -91,6 +102,7 @@ CREATE FUNCTION pg_temp.id(p text) RETURNS uuid LANGUAGE sql AS $$ SELECT v FROM
 \ir 17_visibility_people.sql
 \ir 18_session_id_token.sql
 \ir 19_small_rules.sql
+\ir 20_content_split.sql
 
 RESET ROLE;
 ROLLBACK;

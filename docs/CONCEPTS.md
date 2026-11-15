@@ -311,7 +311,7 @@ Wichtig dabei:
 - Nur der Collab-Server darf den Inhalt speichern (Datenbankrolle `wiki_worker`). Die API kann es nicht, ein Leser erst recht nicht.
 - **Ändern sich Rechte**, während jemand eine Seite offen hat (Recht geändert, Vererbung gekappt, Seite in einen anderen Rechtebereich verschoben, Person entfernt, herabgestuft oder deaktiviert, Space archiviert), trennt der Collab-Server die betroffenen Verbindungen. Er erfährt davon sofort: Ein Trigger auf der Outbox meldet jedes Ereignis per `pg_notify`, der Collab-Server hört mit `LISTEN` zu.
 - **Legt jemand die Seite in den Papierkorb**, während andere sie bearbeiten (auch eine Seite darüber), wird ihr Editor schreibgeschützt mit dem Hinweis „Diese Seite liegt im Papierkorb“; wer bearbeiten darf, kann sie dort gleich wiederherstellen und weiterschreiben. Was bis dahin gespeichert war, bleibt erhalten. Sie melden sich neu an und bekommen die neue Rolle oder keinen Zugang mehr.
-- **Der Titel lebt im Yjs-Dokument** (`Y.Text` „title“) und wird nur im Editor geändert. `pages.title` ist eine Kopie, die `store_content` schreibt. Lädt der Collab-Server eine neue, noch leere Seite, schreibt er deshalb zuerst den Titel aus `pages.title` ins Dokument, sonst würde das erste Speichern ihn leeren. Hat eine solche Seite schon BlockNote-JSON (aus den Testdaten oder später aus dem Import), baut er das Dokument daraus. So müssen Import und Testdaten kein Yjs erzeugen.
+- **Der Titel lebt im Yjs-Dokument** (`Y.Text` „title“) und wird nur im Editor geändert. `pages.title` ist eine Kopie, die `store_ydoc` schreibt. Lädt der Collab-Server eine neue, noch leere Seite, schreibt er deshalb zuerst den Titel aus `pages.title` ins Dokument, sonst würde das erste Speichern ihn leeren. Hat eine solche Seite schon BlockNote-JSON (aus den Testdaten oder später aus dem Import), baut meist schon vorher der Worker das Dokument daraus (`store_initial_ydoc`), sonst der Collab-Server beim Öffnen. So müssen Import und Testdaten kein Yjs erzeugen.
 - Der Collab-Server speichert nur den Yjs-Zustand und den Titel, damit der häufige Speichervorgang klein bleibt. Das **BlockNote-JSON** (dieselben Blöcke als lesbares JSON, für Export, Import und einen späteren Editorwechsel) und den **Klartext** für Suche (und später KI) leitet der **Worker** ab, wenn die Seite etwa 30 s ruht. Die Yjs-Daten selbst sind binär, an BlockNote und ProseMirror gebunden und für alles andere unbrauchbar. Das Schema des Editors liegt in einem gemeinsamen Paket (`packages/editor-schema`), damit Browser, Worker und Import dieselben Blöcke kennen.
 - **Änderungen von der Serverseite** (Version wiederherstellen, Seite aus der Seitenleiste umbenennen, Nacharbeiten nach dem Import) schickt die API über einen internen Aufruf an den Collab-Server. Er ändert das Dokument selbst (Hocuspocus `openDirectConnection`), sodass alle offenen Browser es sofort sehen.
 
@@ -563,7 +563,7 @@ Jede wichtige Änderung schreibt in derselben Transaktion ein Ereignis in die Ta
 | `space.updated` | `app.update_space` | `id`, `name` |
 | `space.archived` | `app.archive_space` | `id`, `archived` (`true` oder `false`) |
 | `page.created` | `app.create_page` | `id`, `parent`, `title`, `position`, `by` |
-| `page.updated` | `app.store_content` | `id`, `title`, `editors` |
+| `page.updated` | `app.store_derived` (Worker, einmal pro Ruhephase) | `id`, `title` |
 | `page.moved` | `app.move_page` | `id`, `from_parent`, `to_parent`, `position` |
 | `page.trashed` | `app.trash_page` | `id`, `count` (Seiten im Teilbaum) |
 | `page.restored` | `app.restore_page` | `id`, `count` |
@@ -777,7 +777,7 @@ Unter „Architektur“ liegt „Datenmodell“, darunter die Seite „Intern“
 ### Szenario 4: Gemeinsam bearbeiten und eine Version zurückholen
 
 1. Sophie und Lukas haben „Datenmodell“ offen. Beide haben Bearbeitungsrecht und bekommen eine schreibende Verbindung zum Collab-Server.
-2. Etwa alle zwei Sekunden ruft der Collab-Server `app.store_content` mit dem Yjs-Zustand, dem BlockNote-JSON, dem Klartext, dem Titel und den IDs der Bearbeitenden. Ereignis `page.updated`, der Worker erneuert Suchindex und Verlinkungen.
+2. Etwa alle zwei Sekunden ruft der Collab-Server `app.store_ydoc` mit dem Yjs-Zustand, dem Titel und den IDs der Bearbeitenden; der abgeleitete Inhalt gilt damit als veraltet. Tippt etwa 30 s niemand, leitet der Worker BlockNote-JSON und Klartext ab und speichert sie mit `app.store_derived`: Suchindex erneuert, Ereignis `page.updated`.
 3. Zehn Minuten lang tippt niemand. Der Worker ruft `app.create_version(seite, 'auto')`. Die Version bekommt die Autoren Sophie und Lukas, die Liste in `page_contents` wird geleert.
 4. Anna stellt Version 3 wieder her. Die API prüft ihr Bearbeitungsrecht, dann lädt der Collab-Server den alten Stand, wendet ihn als neue Änderung an, speichert und ruft `app.create_version(seite, 'restore', NULL, 3)`. Version 3 selbst bleibt unverändert.
 

@@ -14,12 +14,12 @@ SELECT pg_temp.ctx(pg_temp.id('t1'), NULL);
 DO $$
 DECLARE dm uuid := pg_temp.id('dm');
 BEGIN
-  PERFORM app.store_content(dm, '\x0c'::bytea, '[]'::jsonb, repeat('x', 2000001), repeat('T', 300), ARRAY[pg_temp.id('peter')]);
+  PERFORM pg_temp.store_all(dm, '\x0c'::bytea, '[]'::jsonb, repeat('x', 2000001), repeat('T', 300), ARRAY[pg_temp.id('peter')]);
   ASSERT (SELECT length(title) FROM pages WHERE id = dm) = 255, 'zu langer Titel nicht gekürzt';
   ASSERT (SELECT length(plain_text) FROM page_contents WHERE page_id = dm) = 2000000, 'zu langer Text nicht gekürzt';
-  PERFORM app.store_content(dm, '\x0d'::bytea, '[]'::jsonb, 'Text', NULL, ARRAY[pg_temp.id('peter')]);
+  PERFORM pg_temp.store_all(dm, '\x0d'::bytea, '[]'::jsonb, 'Text', NULL, ARRAY[pg_temp.id('peter')]);
   ASSERT (SELECT length(title) FROM pages WHERE id = dm) = 255, 'Titel ohne Angabe verändert';
-  PERFORM app.store_content(dm, '\x0e'::bytea, '[]'::jsonb, 'Text', '  Datenmodell  ', ARRAY[pg_temp.id('peter')]);
+  PERFORM pg_temp.store_all(dm, '\x0e'::bytea, '[]'::jsonb, 'Text', '  Datenmodell  ', ARRAY[pg_temp.id('peter')]);
   ASSERT (SELECT title FROM pages WHERE id = dm) = 'Datenmodell', 'Titel nicht übernommen';
   RAISE NOTICE 'OK 36 Titel nur über Yjs, zu lange Titel und Texte werden gekürzt';
 END $$;

@@ -9,15 +9,15 @@
 -- 13. Inhalt und Versionen: nur der Collab-Server speichert, Autoren pro Version
 DO $$
 BEGIN
-  PERFORM app.store_content(pg_temp.id('dm'), '\x01'::bytea, '[]'::jsonb, 'x', 'x', ARRAY[pg_temp.id('peter')]);
+  PERFORM app.store_ydoc(pg_temp.id('dm'), '\x01'::bytea, 'x', ARRAY[pg_temp.id('peter')]);
   RAISE EXCEPTION 'FEHLER: App speichert Yjs-Inhalt';
 EXCEPTION WHEN insufficient_privilege THEN NULL;
 END $$;
 RESET ROLE;
 SET ROLE wiki_worker;
 SELECT pg_temp.ctx(pg_temp.id('t1'), NULL);
-SELECT app.store_content(pg_temp.id('dm'), '\x0a'::bytea, '[]'::jsonb, 'Tabellen und Schlüssel', 'Datenmodell', ARRAY[pg_temp.id('lukas')]);
-SELECT app.store_content(pg_temp.id('dm'), '\x0b'::bytea, '[]'::jsonb, 'Tabellen, Schlüssel, RLS', 'Datenmodell v2', ARRAY[pg_temp.id('sophie')]);
+SELECT pg_temp.store_all(pg_temp.id('dm'), '\x0a'::bytea, '[]'::jsonb, 'Tabellen und Schlüssel', 'Datenmodell', ARRAY[pg_temp.id('lukas')]);
+SELECT pg_temp.store_all(pg_temp.id('dm'), '\x0b'::bytea, '[]'::jsonb, 'Tabellen, Schlüssel, RLS', 'Datenmodell v2', ARRAY[pg_temp.id('sophie')]);
 DO $$
 DECLARE v int;
 BEGIN

@@ -109,11 +109,10 @@ END $$;
 RESET ROLE;
 SET ROLE wiki_worker;
 SELECT pg_temp.ctx(pg_temp.id('t1'), NULL);
-SELECT app.store_content(pg_temp.id('geh'), '\x0102'::bytea, '[]'::jsonb, 'Gehaltsbänder 2027', 'Gehälter', ARRAY[pg_temp.id('peter')]);
+SELECT pg_temp.store_all(pg_temp.id('geh'), '\x0102'::bytea, '[]'::jsonb, 'Gehaltsbänder 2027', 'Gehälter', ARRAY[pg_temp.id('peter')]);
 SELECT app.create_version(pg_temp.id('geh'), 'auto');
 SELECT app.replace_page_links(pg_temp.id('arch'), ARRAY[pg_temp.id('geh'), pg_temp.id('dm')]);
-INSERT INTO page_search (page_id, tenant_id, space_id, tsv)
-SELECT pg_temp.id('geh'), pg_temp.id('t1'), pg_temp.id('entw'), to_tsvector('german', 'Gehälter Gehaltsbänder');
+-- page_search ('Gehälter Gehaltsbänder') schreibt app.store_derived mit (Test 55)
 RESET ROLE;
 SET ROLE wiki_app;
 SELECT pg_temp.ctx(pg_temp.id('t1'), pg_temp.id('max'));

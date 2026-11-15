@@ -37,7 +37,7 @@
 --                  UND Leserechten (Space- und Seitenrechte). Schreibt fast nur über
 --                  die Funktionen in app; direkt nur dort, wo eine Regel die Zeile
 --                  absichert (eigenes Profil, Einladungen, Workspaces, Anhänge).
---                  Seiten gar nicht direkt: Titel über Yjs (store_content), Reihenfolge
+--                  Seiten gar nicht direkt: Titel über Yjs (store_ydoc), Reihenfolge
 --                  über app.move_page.
 --   wiki_worker  – Collab-Server (Yjs speichern), Suchindex, Import, Outbox.
 --                  Unterliegt nur der Mandantentrennung.

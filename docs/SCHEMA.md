@@ -257,15 +257,15 @@ Der Seitenbaum. Inhalt und Versionen liegen in eigenen Tabellen.
 | `parent_id` | uuid | Elternseite oder `NULL` für Seiten auf oberster Ebene. Muss im selben Space liegen (Fremdschlüssel `(parent_id, space_id)`), keine Zyklen. |
 | `path` | ltree | Pfad von der obersten Seite bis zu dieser, aus den IDs ohne Bindestriche. Setzt der Trigger beim Anlegen und `move_page` beim Verschieben. Grundlage für Teilbäume (`path <@ …`) und für die Rechte. |
 | `position` | text | Reihenfolge unter Geschwistern als Fractional Index im Format des npm-Pakets `fractional-indexing` (Ziffern `0-9A-Za-z`, byteweise sortiert). Das Kopfzeichen bestimmt die Länge des ganzzahligen Teils (`a` = 2 … `z` = 27, `Z` = 2 … `A` = 27); ein `CHECK` lässt nur gültige Schlüssel zu. Ohne Angabe hängt `create_page` die Seite hinter alle Geschwister (`app.next_position`). **Nicht eindeutig**, weil die App eingeschränkte Geschwister nicht sieht: immer `ORDER BY position, id`. |
-| `title` | text | Titel, bis 255 Zeichen, leer erlaubt. Kopie aus dem Yjs-Dokument (`Y.Text` „title“), geschrieben von `store_content`. Die API ändert ihn nie direkt. |
+| `title` | text | Titel, bis 255 Zeichen, leer erlaubt. Kopie aus dem Yjs-Dokument (`Y.Text` „title“), geschrieben von `store_ydoc`. Die API ändert ihn nie direkt. |
 | `inherit_perms` | boolean | `true`: Rechte kommen von oben (nächste Seite mit eigenen Rechten oder der Space). `false`: Vererbung gekappt, es gelten die Grants dieser Seite. Nur über `app.set_page_inheritance`. |
 | `created_by`, `created_at` | | Anlage. |
-| `updated_by`, `updated_at` | | Letzte Änderung; `store_content` setzt die zuletzt bearbeitende Person. |
+| `updated_by`, `updated_at` | | Letzte Änderung; `store_ydoc` setzt die zuletzt bearbeitende Person. |
 | `deleted_at`, `deleted_by` | | Im Papierkorb seit / durch. |
 | `trash_root_id` | uuid | Die Seite, die jemand in den Papierkorb gelegt hat. Alle Seiten ihres Teilbaums, die dabei mitgingen, tragen dieselbe ID; `restore_page` holt genau diese zurück. Gesetzt genau dann, wenn `deleted_at` gesetzt ist. |
 
 - **Regeln:** Eltern im selben Space, keine Seite ist ihre eigene Elternseite, keine Zyklen. Änderungen am Baum sperren den Space (`app.lock_tree`), damit gleichzeitiges Verschieben, Anlegen und Löschen keine Zyklen oder veralteten Pfade erzeugt.
-- **Schreiben:** `app.create_page`, `app.move_page` (auch zum Umsortieren unter derselben Elternseite; aus einem Bereich mit eigenen Rechten heraus nur als dessen Admin), `app.trash_page`, `app.restore_page`, `app.set_page_inheritance`, `app.store_content` (Titel). `wiki_app` darf Seiten weder direkt anlegen noch ändern. Der Worker legt beim Import direkt an und löscht Seiten endgültig aus dem Papierkorb.
+- **Schreiben:** `app.create_page`, `app.move_page` (auch zum Umsortieren unter derselben Elternseite; aus einem Bereich mit eigenen Rechten heraus nur als dessen Admin), `app.trash_page`, `app.restore_page`, `app.set_page_inheritance`, `app.store_ydoc` (Titel). `wiki_app` darf Seiten weder direkt anlegen noch ändern. Der Worker legt beim Import direkt an und löscht Seiten endgültig aus dem Papierkorb.
 - **Lesen:** mit Leserecht (`app.page_rank(id) ≥ 1`). Seiten im Papierkorb bleiben lesbar (für die Papierkorb-Ansicht); Seitenbaum, Suche und Verlinkungen filtern `deleted_at IS NULL`.
 - **Indexe:** GiST auf `path` (Teilbäume), `(space_id, parent_id, position)` (Kinder einer Seite), Trigramm auf `title` (Titelsuche), `trash_root_id`.
 
@@ -277,12 +277,13 @@ Der aktuelle Inhalt einer Seite, eine Zeile pro Seite.
 |---|---|---|
 | `page_id` | uuid | Primärschlüssel, 1 : 1 zu `pages`. |
 | `ydoc` | bytea | Zustand des Yjs-Dokuments (`Y.encodeStateAsUpdate`), der maßgebliche Inhalt. Neue Seiten bekommen den leeren Zustand `\x0000`; der Collab-Server schreibt dann zuerst `pages.title` in `Y.Text` „title“ und baut, falls `content_json` gefüllt ist (Testdaten, Import), das Dokument daraus. Höchstens 50 MB. |
-| `content_json` | jsonb | Derselbe Inhalt als BlockNote-Dokument (Array von Blöcken), vom Collab-Server bei jedem Speichern mitgeschrieben. Grundlage für Export, Import und einen späteren Editorwechsel, ohne Yjs lesen zu müssen. Neue Seiten: `[]`. `NULL` heißt „nicht vorhanden“: Ist das JSON größer als 20 MB oder kein Array, speichert `store_content` `NULL` statt abzulehnen, und Export bzw. Import müssen auf `ydoc` zurückgreifen. Ein `CHECK` lässt nur Arrays bis 20 MB zu. |
-| `plain_text` | text | Klartext aus dem Dokument, für Suche und später KI. `store_content` kürzt auf 2 Mio. Zeichen, statt das Speichern abzulehnen. |
+| `content_json` | jsonb | Derselbe Inhalt als BlockNote-Dokument (Array von Blöcken), vom Worker aus `ydoc` abgeleitet, wenn die Seite ruht (`store_derived`). Grundlage für Export, Import und einen späteren Editorwechsel, ohne Yjs lesen zu müssen. Neue Seiten: `[]`. `NULL` heißt „nicht vorhanden“: Ist das JSON größer als 20 MB oder kein Array, speichert `store_derived` `NULL` statt abzulehnen, und Export bzw. Import müssen auf `ydoc` zurückgreifen. Ein `CHECK` lässt nur Arrays bis 20 MB zu. Gilt nur, wenn `derived_stale` falsch ist. |
+| `plain_text` | text | Klartext aus dem Dokument, für Suche und später KI, zusammen mit `content_json` abgeleitet. `store_derived` kürzt auf 2 Mio. Zeichen, statt das Speichern abzulehnen. |
 | `editors_since_version` | uuid[] | Wer seit der letzten Version bearbeitet hat. Wird zur Autorenliste der nächsten Version und danach geleert. |
-| `updated_at` | timestamptz | Letztes Speichern. |
+| `updated_at` | timestamptz | Letztes Speichern des Yjs-Zustands (`store_ydoc`, mit `clock_timestamp()`). Daran erkennt `store_derived`, ob der Worker den aktuellen Stand abgeleitet hat. |
+| `derived_stale` | boolean | `true`: `content_json` und `plain_text` passen nicht mehr zu `ydoc` (gesetzt von `store_ydoc`, zurückgesetzt von `store_derived`). Teilindex für `pages_to_derive`. |
 
-- **Schreiben:** angelegt von `create_page` und `create_space`, danach nur `app.store_content` (Collab-Server, entprellt etwa alle 2 s). Export und Import arbeiten mit `content_json` bzw. Markdown, nie direkt mit `ydoc`, außer `content_json` fehlt.
+- **Schreiben:** angelegt von `create_page` und `create_space`, danach in zwei Schritten (ARCHITECTURE_REVIEW.md, A-04): `app.store_ydoc` (Collab-Server, entprellt etwa alle 2 s, spätestens 10 s: Yjs, Titel, Bearbeitende) und `app.store_derived` (Worker, wenn die Seite etwa 30 s ruht: BlockNote-JSON, Klartext, Suchindex). Seiten, die nur `content_json` haben (Testdaten, Import), bekommen ihren ersten Yjs-Zustand über `app.store_initial_ydoc`. Export und Import arbeiten mit `content_json` bzw. Markdown, nie direkt mit `ydoc`, außer `content_json` fehlt oder ist veraltet.
 - **Lesen:** wenn die Seite lesbar ist.
 
 ### `page_versions`
@@ -294,7 +295,7 @@ Versionshistorie. Zeilen werden nie geändert.
 | `version` | integer | Fortlaufend pro Seite ab 1, eindeutig mit `page_id`. Die Funktion sperrt die Seite, damit keine Nummer doppelt vergeben wird. |
 | `kind` | text | `auto` (Worker nach 10 Minuten Ruhe), `manual` (Person speichert ausdrücklich, `app.save_version`), `restore` (Collab-Server nach dem Wiederherstellen) oder `import`. |
 | `restored_from` | integer | Bei `restore`: aus welcher Version. Muss eine vorhandene, ältere Version derselben Seite sein (Fremdschlüssel, `CHECK`). Gesetzt genau dann, wenn `kind = restore`. |
-| `title`, `ydoc`, `content_json`, `plain_text` | | Momentaufnahme von Titel und Inhalt. `content_json` wie in `page_contents` (`NULL`, wenn es dort fehlte), damit sich auch alte Versionen ohne Yjs exportieren lassen. |
+| `title`, `ydoc`, `content_json`, `plain_text` | | Momentaufnahme von Titel und Inhalt. `content_json` wie in `page_contents` (`NULL`, wenn es dort fehlte oder veraltet war; dann leitet der Worker es aus `ydoc` der Version ab), damit sich auch alte Versionen ohne Yjs exportieren lassen. |
 | `author_ids` | uuid[] | Wer seit der vorigen Version bearbeitet hat (aus `editors_since_version`). |
 | `created_by` | uuid | Wer manuell gespeichert oder wiederhergestellt hat, bei `auto` leer. |
 
@@ -787,9 +788,19 @@ Ereignis: `page.restored`. Audit: `page.restored` mit Anzahl.
 
 ### 12.9 Inhalt und Versionen
 
-#### `store_content(seite, ydoc, blocknote_json, klartext, titel, bearbeitende)`
-INVOKER, Worker (Collab-Server, `onStoreDocument`). Speichert den Yjs-Zustand, das BlockNote-Dokument (`editor.document`), den Klartext und den Titel aus `Y.Text` „title“ und ergänzt `editors_since_version`. Prüft keine Rechte; das hat die API beim Verbindungsaufbau getan. Nichts davon führt zur Ablehnung, sonst ließe sich die Seite gar nicht mehr speichern: zu lange Titel (255) und Texte (2 Mio. Zeichen) werden gekürzt, ein JSON über 20 MB oder ohne Array wird als `NULL` gespeichert. `titel = NULL` lässt den Titel unverändert. Abgelehnt für Seiten im Papierkorb.
-Ereignis: `page.updated` (der Worker aktualisiert danach Suche und Verlinkungen).
+#### `store_ydoc(seite, ydoc, titel, bearbeitende)`
+INVOKER, Worker (Collab-Server, `onStoreDocument`). Speichert den Yjs-Zustand und den Titel aus `Y.Text` „title“, ergänzt `editors_since_version`, setzt `pages.updated_by` auf die zuletzt genannte Person und markiert den abgeleiteten Inhalt als veraltet (`derived_stale`). Prüft keine Rechte; das hat der Collab-Server beim Verbindungsaufbau getan (`resolve_session`, `page_rank`). Zu lange Titel werden auf 255 Zeichen gekürzt statt abgelehnt, sonst ließe sich die Seite gar nicht mehr speichern; `titel = NULL` lässt den Titel unverändert. Abgelehnt für Seiten im Papierkorb. Für `wiki_app` gesperrt.
+Kein Ereignis: Das ist der heiße Pfad (etwa alle 2 s pro bearbeiteter Seite), `page.updated` meldet `store_derived`.
+
+#### `store_derived(seite, gesehen, blocknote_json, klartext) → boolean`
+INVOKER, Worker. Speichert BlockNote-JSON und Klartext, die der Worker aus dem Yjs-Zustand mit dem Stand `gesehen` (`page_contents.updated_at` beim Lesen) abgeleitet hat, erneuert `page_search` (Titel Gewicht A, Klartext B, Konfiguration `german`; ist der Text für einen `tsvector` zu groß, nur der Titel) und setzt `derived_stale` zurück. Hat der Collab-Server seither wieder gespeichert, ist die Seite nicht veraltet oder liegt sie im Papierkorb: `false`, nichts geändert. JSON über 20 MB oder ohne Array wird als `NULL` gespeichert, Klartext auf 2 Mio. Zeichen gekürzt. Für `wiki_app` gesperrt.
+Ereignis: `page.updated`, einmal pro Ruhephase.
+
+#### `store_initial_ydoc(seite, ydoc) → boolean`
+INVOKER, Worker (Worker, Rückfall im Collab-Server). Erster Yjs-Zustand einer Seite, die nur `content_json` hat (Testdaten aus `seed.sql`, später der Import), daraus gebaut. Schreibt nur, solange `ydoc` noch der leere Anfangszustand `\x0000` ist: Wer zuerst kommt, gewinnt, der andere bekommt `false`. `content_json` bleibt gültig. Für `wiki_app` gesperrt.
+
+#### `pages_to_derive(ruhe, anzahl) → table(tenant_id, page_id, updated_at, needs_ydoc)`
+DEFINER, nur Worker (für `wiki_app` gesperrt). Arbeit für den Worker **über alle Mandanten** (`wiki_worker` sieht ohne Mandant nichts): Seiten mit `derived_stale`, die seit `ruhe` nicht gespeichert wurden (`needs_ydoc = false`, älteste zuerst), und Seiten mit `content_json`, aber noch leerem `ydoc` (`needs_ydoc = true`), je höchstens `anzahl`. Seiten im Papierkorb fehlen. Gibt nur IDs und Zeitpunkt heraus; den Inhalt liest der Worker danach im Mandanten.
 
 #### `create_version(seite, art, actor = NULL, restored_from = NULL) → integer`
 INVOKER, Worker (für `manual` auch App). Legt eine Version an und gibt ihre Nummer zurück. `manual` leitet an `save_version` weiter. `auto` (nach 10 Minuten Ruhe), `restore` (nach dem Wiederherstellen, mit `restored_from`) und `import` sind nur für Hintergrunddienste.
@@ -798,7 +809,7 @@ INVOKER, Worker (für `manual` auch App). Legt eine Version an und gibt ihre Num
 DEFINER, App. Manuelle Version durch eine Person mit editor-Recht. Getrennt von `create_version`, weil eine `SECURITY DEFINER`-Funktion nicht erkennen kann, ob ein Worker sie aufruft.
 
 #### `insert_version(seite, art, actor, restored_from) → integer`
-INVOKER, intern/Worker. Der gemeinsame Kern: sperrt die Seite (damit Versionsnummern nicht doppelt vergeben werden), kopiert Titel, `ydoc`, `content_json` und Klartext in die nächste Version, übernimmt `editors_since_version` als Autoren und leert die Liste. Für `wiki_app` gesperrt, sonst ließen sich Versionen ohne Prüfung anlegen.
+INVOKER, intern/Worker. Der gemeinsame Kern: sperrt die Seite (damit Versionsnummern nicht doppelt vergeben werden), kopiert Titel, `ydoc`, `content_json` (nur, wenn es nicht veraltet ist, sonst `NULL`) und Klartext in die nächste Version, übernimmt `editors_since_version` als Autoren und leert die Liste. Für `wiki_app` gesperrt, sonst ließen sich Versionen ohne Prüfung anlegen.
 
 #### `replace_page_links(seite, ziele)`
 INVOKER, Worker. Ersetzt alle ausgehenden Verlinkungen einer Seite durch `ziele`. Doppelte Ziele, Links auf sich selbst und Ziele, die es im Mandanten nicht gibt, werden übergangen.

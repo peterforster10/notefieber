@@ -208,7 +208,7 @@ Teils in Datenbank oder API schon vorhanden, aber noch nicht klickbar:
 
 | Was | Wann | Stand dahinter |
 |---|---|---|
-| Inhalt bearbeiten, Titel ändern, gemeinsames Bearbeiten mit Cursorn | M1 (E04) | Datenbank fertig (`store_content`), Collab-Server lehnt noch alle Verbindungen ab |
+| Inhalt bearbeiten, Titel ändern, gemeinsames Bearbeiten mit Cursorn | M1 (E04) | Datenbank fertig (`store_ydoc`, `store_derived`), Collab-Server lehnt noch alle Verbindungen ab |
 | Drag & Drop im Seitenbaum | M2 | API fertig (`/pages/:id/move`) |
 | Versionen ansehen und wiederherstellen | M2 | Datenbank fertig (`page_versions`, `save_version`) |
 | Kommentare | M3 | Datenbank fertig (`add_comment` …) |

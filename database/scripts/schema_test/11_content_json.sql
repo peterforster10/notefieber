@@ -32,19 +32,19 @@ DECLARE
                   "content": [{"type": "text", "text": "Ziele", "styles": {}}], "children": []}]';
   v   int;
 BEGIN
-  PERFORM app.store_content(p, '\x0f'::bytea, doc, 'Ziele', 'JSON-Seite', ARRAY[pg_temp.id('peter')]);
+  PERFORM pg_temp.store_all(p, '\x0f'::bytea, doc, 'Ziele', 'JSON-Seite', ARRAY[pg_temp.id('peter')]);
   ASSERT (SELECT content_json FROM page_contents WHERE page_id = p) = doc, 'JSON nicht gespeichert';
   v := app.create_version(p, 'auto');
   ASSERT (SELECT content_json FROM page_versions WHERE page_id = p AND version = v) = doc,
     'JSON nicht in die Version übernommen';
 
   -- Kein BlockNote-Dokument (kein Array): NULL, Yjs und Klartext trotzdem gespeichert
-  PERFORM app.store_content(p, '\x10'::bytea, '{"kaputt": true}'::jsonb, 'Neu', 'JSON-Seite', ARRAY[pg_temp.id('peter')]);
+  PERFORM pg_temp.store_all(p, '\x10'::bytea, '{"kaputt": true}'::jsonb, 'Neu', 'JSON-Seite', ARRAY[pg_temp.id('peter')]);
   ASSERT (SELECT content_json IS NULL AND ydoc = '\x10'::bytea AND plain_text = 'Neu'
           FROM page_contents WHERE page_id = p), 'ungültiges JSON nicht als NULL gespeichert';
 
   -- Zu groß (über 20 MB): NULL, Yjs trotzdem gespeichert
-  PERFORM app.store_content(p, '\x11'::bytea, jsonb_build_array(repeat('x', 21000000)), 'Groß', 'JSON-Seite',
+  PERFORM pg_temp.store_all(p, '\x11'::bytea, jsonb_build_array(repeat('x', 21000000)), 'Groß', 'JSON-Seite',
                             ARRAY[pg_temp.id('peter')]);
   ASSERT (SELECT content_json IS NULL AND ydoc = '\x11'::bytea FROM page_contents WHERE page_id = p),
     'zu großes JSON nicht als NULL gespeichert';

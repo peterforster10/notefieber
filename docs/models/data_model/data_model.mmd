@@ -144,7 +144,8 @@ erDiagram
     jsonb content_json "BlockNote-Dokument, NULL = fehlt"
     text plain_text
     uuid_array editors_since_version
-    timestamptz updated_at
+    timestamptz updated_at "letztes Speichern des Yjs-Zustands"
+    boolean derived_stale "JSON und Klartext veraltet"
   }
   PAGE_VERSIONS {
     uuid id PK

@@ -50,6 +50,15 @@ FROM wiki_app;
 -- Gruppen-Claim aufruft, wird mit E03 entschieden.
 REVOKE EXECUTE ON FUNCTION app.sync_user_groups(uuid, text[], text[]) FROM wiki_app;
 
+-- Inhalt speichern nur Collab-Server und Worker (70_functions_content.sql). store_ydoc und Co.
+-- prüfen das zusätzlich selbst (require_worker); pages_to_derive sieht alle Mandanten.
+REVOKE EXECUTE ON FUNCTION
+  app.store_ydoc(uuid, bytea, text, uuid[]),
+  app.store_derived(uuid, timestamptz, jsonb, text),
+  app.store_initial_ydoc(uuid, bytea),
+  app.pages_to_derive(interval, integer)
+FROM wiki_app;
+
 -- wiki_app: Lesen, was die Regeln freigeben. Die Outbox liest nur der Worker.
 GRANT SELECT ON
   tenants, users, workspaces, workspace_members, groups, group_members, invites,
