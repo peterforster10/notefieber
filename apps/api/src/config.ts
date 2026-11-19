@@ -45,7 +45,12 @@ export function workerConfig() {
   return z
     .object({
       WORKER_DATABASE_URL: z.string().min(1, 'WORKER_DATABASE_URL fehlt (Login-Rolle in wiki_worker)'),
+      /** Lebenszeichen im Log */
       WORKER_INTERVAL_SECONDS: z.coerce.number().int().min(1).default(30),
+      /** Abgeleiteter Inhalt: so oft nach Arbeit sehen (app.pages_to_derive) */
+      WORKER_DERIVE_INTERVAL_SECONDS: z.coerce.number().min(0.1).default(5),
+      /** So lange muss eine Seite ruhen, bevor der Worker ableitet (CLAUDE.md, Abschnitt 6: ca. 30 s) */
+      WORKER_DERIVE_REST_SECONDS: z.coerce.number().min(0).default(30),
     })
     .parse(process.env);
 }

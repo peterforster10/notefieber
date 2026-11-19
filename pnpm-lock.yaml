@@ -193,6 +193,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@notefieber/editor-schema':
+        specifier: workspace:*
+        version: link:../../packages/editor-schema
       '@notefieber/shared':
         specifier: workspace:*
         version: link:../../packages/shared
