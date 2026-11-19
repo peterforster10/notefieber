@@ -267,7 +267,7 @@ Der Collab-Server liegt unter derselben Adresse (`/collab`), der Browser schickt
 
 ### Abmelden, deaktivieren, entfernen
 
-- **Logout** löscht die Sitzung (`app.end_session`), meldet bei Zitadel ab (mit dem ID-Token aus dem Login als `id_token_hint`, damit Zitadel seine Sitzung ohne Kontenauswahl beendet) und trennt offene Verbindungen zum Collab-Server (sobald es ihn gibt, E04).
+- **Logout** löscht die Sitzung (`app.end_session`), meldet bei Zitadel ab (mit dem ID-Token aus dem Login als `id_token_hint`, damit Zitadel seine Sitzung ohne Kontenauswahl beendet) und schließt offene Editoren in anderen Tabs: `app.end_session` meldet die Sitzung per `NOTIFY nf_sessions`, der Collab-Server schließt ihre Verbindungen, und der Browser zeigt „Abgemeldet“ (E04-06). Läuft eine Sitzung nur ab, merkt das der Collab-Server bei seiner regelmäßigen Prüfung (alle 5 Minuten).
 - **Deaktivierte Personen** haben sofort keinen Zugriff mehr: `app.set_user_active` löscht ihre Sitzungen, und die Rechte-Berechnung prüft `deactivated_at` ohnehin bei jeder Anfrage.
 - **Aus dem Workspace entfernte Personen** verlieren Zugriff und persönliche Rechte (siehe [Rechte](#4-rechte)).
 
@@ -309,7 +309,7 @@ Wichtig dabei:
 
 - **Lesende und Kommentierende** bekommen eine **schreibgeschützte** Verbindung. Sie sehen Änderungen live, können aber nichts ändern.
 - Nur der Collab-Server darf den Inhalt speichern (Datenbankrolle `wiki_worker`). Die API kann es nicht, ein Leser erst recht nicht.
-- **Ändern sich Rechte**, während jemand eine Seite offen hat (Recht geändert, Vererbung gekappt, Seite in einen anderen Rechtebereich verschoben, Person entfernt, herabgestuft oder deaktiviert, Space archiviert), trennt der Collab-Server die betroffenen Verbindungen. Er erfährt davon sofort: Ein Trigger auf der Outbox meldet jedes Ereignis per `pg_notify`, der Collab-Server hört mit `LISTEN` zu.
+- **Ändern sich Rechte**, während jemand eine Seite offen hat (Recht geändert, Vererbung gekappt, Seite in einen anderen Rechtebereich verschoben, Person entfernt, herabgestuft oder deaktiviert, Space archiviert), meldet der Collab-Server die betroffenen Verbindungen innerhalb weniger Sekunden neu an. Er erfährt davon sofort: Ein Trigger auf der Outbox meldet jedes Ereignis per `pg_notify`, der Collab-Server hört mit `LISTEN` zu. Dann prüft er alle offenen Verbindungen im Space mit derselben Regel wie beim Verbinden und schließt nur die, deren Zugang sich geändert hat. Der Browser verbindet sich von selbst neu und bekommt die neue Rolle: schreibgeschützt oder „Kein Zugriff mehr“, und der Inhalt verschwindet. Reißt die `LISTEN`-Verbindung ab, prüft er nach dem Neuverbinden alle offenen Verbindungen.
 - **Legt jemand die Seite in den Papierkorb**, während andere sie bearbeiten (auch eine Seite darüber), wird ihr Editor schreibgeschützt mit dem Hinweis „Diese Seite liegt im Papierkorb“; wer bearbeiten darf, kann sie dort gleich wiederherstellen und weiterschreiben. Was bis dahin gespeichert war, bleibt erhalten. Sie melden sich neu an und bekommen die neue Rolle oder keinen Zugang mehr.
 - **Der Titel lebt im Yjs-Dokument** (`Y.Text` „title“) und wird nur im Editor geändert. `pages.title` ist eine Kopie, die `store_ydoc` schreibt. Lädt der Collab-Server eine neue, noch leere Seite, schreibt er deshalb zuerst den Titel aus `pages.title` ins Dokument, sonst würde das erste Speichern ihn leeren. Hat eine solche Seite schon BlockNote-JSON (aus den Testdaten oder später aus dem Import), baut meist schon vorher der Worker das Dokument daraus (`store_initial_ydoc`), sonst der Collab-Server beim Öffnen. So müssen Import und Testdaten kein Yjs erzeugen.
 - Der Collab-Server speichert nur den Yjs-Zustand und den Titel, damit der häufige Speichervorgang klein bleibt. Das **BlockNote-JSON** (dieselben Blöcke als lesbares JSON, für Export, Import und einen späteren Editorwechsel) und den **Klartext** für Suche (und später KI) leitet der **Worker** ab, wenn die Seite etwa 30 s ruht. Die Yjs-Daten selbst sind binär, an BlockNote und ProseMirror gebunden und für alles andere unbrauchbar. Das Schema des Editors liegt in einem gemeinsamen Paket (`packages/editor-schema`), damit Browser, Worker und Import dieselben Blöcke kennen.
@@ -580,7 +580,7 @@ Die drei Ereignisse zu Personen gehen an jeden Space des betroffenen Workspaces 
 **Wer zuhört:**
 
 - **Worker:** Verlinkungen bei `page.updated` (den Suchindex pflegt er schon vorher beim Ableiten, `app.store_derived`, das `page.updated` erst auslöst), Zeitgeber für automatische Versionen, Import bei `import.requested`, später Benachrichtigungen.
-- **Collab-Server:** trennt Verbindungen bei `grant.changed`, `page.permissions_changed`, `member.removed`, `member.changed`, `user.deactivated` und `space.archived`, damit neue Rechte sofort gelten.
+- **Collab-Server** (per `LISTEN nf_events`, Trigger `outbox_notify`): prüft bei `grant.changed`, `page.permissions_changed`, `member.removed`, `member.changed`, `user.deactivated`, `space.archived`, `page.trashed` und `page.restored` die offenen Verbindungen im Space neu und meldet die betroffenen neu an, damit neue Rechte sofort gelten. Abmelden kommt nicht über die Outbox, sondern direkt von `app.end_session` (`nf_sessions`).
 - **Später TalkFieber:** Link-Vorschauen, Benachrichtigungen im Chat.
 
 **Regeln für Empfänger:**
@@ -761,7 +761,7 @@ Vier Szenarien zeigen, welche Funktion und welche Tabelle in jedem Schritt betei
 
 1. Anna legt im Space „Entwicklung“ unter „Betrieb“ die Seite „Personalplanung 2027“ an (`app.create_page`, sie braucht dafür Bearbeitungsrecht auf „Betrieb“).
 2. Sie öffnet „Teilen und Rechte“ und schaltet „Eigene Rechte“ ein: `app.set_page_inheritance(seite, false, anna)`. Die bisherigen Grants (Anna Admin, Gruppe Entwicklung Bearbeiten, Alle im Workspace Lesen) werden auf die Seite kopiert.
-3. Sie entfernt „Alle im Workspace“ und „Gruppe Entwicklung“: zweimal `app.set_grant(…, NULL, anna)`. Jedes Mal entsteht `grant.changed`, und der Collab-Server trennt alle, die die Seite gerade offen haben.
+3. Sie entfernt „Alle im Workspace“ und „Gruppe Entwicklung“: zweimal `app.set_grant(…, NULL, anna)`. Jedes Mal entsteht `grant.changed`, und der Collab-Server prüft alle, die die Seite gerade offen haben: Wer sie nicht mehr sehen darf, sieht „Kein Zugriff mehr“, alle anderen merken nichts.
 4. Max sucht „Personalplanung“. Die Volltextsuche und die Schnellsuche laufen als `wiki_app`, die Leseregeln auf `page_search` und `pages` filtern die Seite heraus: kein Treffer, keine Trefferzahl.
 5. Lukas hatte die Seite auf „Betrieb“ verlinkt. Max sieht dort einen Link, dessen Vorschau die API nicht auflöst („Seite nicht verfügbar“), und im Seitenbaum fehlt die Seite ganz. Rückverweise zeigt `page_links` nur, wenn beide Seiten lesbar sind.
 

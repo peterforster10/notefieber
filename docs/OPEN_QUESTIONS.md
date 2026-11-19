@@ -38,7 +38,8 @@ sagt, wer sie liest und wie die Ereignisse ankommen.
 - **Collab-Server:** Er muss bei `grant.changed`, `member.removed` usw. Verbindungen trennen
   (`CLAUDE.md`, Abschnitt 6). NATS kommt erst mit TalkFieber. Bis dahin `LISTEN/NOTIFY` in
   PostgreSQL, ein Aufruf vom Worker an den Collab-Server, oder liest der Collab-Server die Outbox
-  selbst? **Entschieden:** `LISTEN/NOTIFY` (`CLAUDE.md`, Abschnitt 6).
+  selbst? **Entschieden:** `LISTEN/NOTIFY` (`CLAUDE.md`, Abschnitt 6). **Gebaut** am 19. November 2026
+  (Migration `0013`, `apps/collab/src/events.ts`).
 - **Mandantentrennung:** Der Worker (`wiki_worker`) unterliegt RLS und sieht ohne Mandant nichts.
   Zum Lesen der Outbox über alle Mandanten braucht es eine eigene Funktion in der Datenbank (z. B.
   `app.claim_outbox(limit)` als `SECURITY DEFINER`), oder der Worker geht Mandant für Mandant durch.
