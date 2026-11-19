@@ -1,7 +1,7 @@
 # Review: Architektur
 
 **Momentaufnahme vom 14. November 2026** (M0 abgeschlossen, M1 steht an), wird nicht
-nachgeführt. Ergänzt das Code-Review in [REVIEW.md](REVIEW.md); dort geht es um Fehler im
+nachgeführt. Ergänzt das Code-Review in [REVIEW.md](REVIEW_M0.md); dort geht es um Fehler im
 Bestehenden, hier um Entscheidungen und Entwürfe, die erst mit M1 bis M5 zum Tragen kommen.
 
 **Weitergeführt** werden die Befunde in [docs/ROADMAP.md](docs/ROADMAP.md) (Punkte und Gates

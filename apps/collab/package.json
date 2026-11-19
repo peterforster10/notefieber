@@ -7,7 +7,8 @@
     "dev": "node --watch --env-file-if-exists=../../.env src/collab.ts",
     "start": "node src/collab.ts",
     "typecheck": "tsc -p .",
-    "test:db": "node --test --test-concurrency=1 \"src/**/*.dbtest.ts\""
+    "test:db": "node --test --test-concurrency=1 \"src/**/*.dbtest.ts\"",
+    "load-test": "node src/load-test.ts"
   },
   "dependencies": {
     "@hocuspocus/server": "4.8.0",

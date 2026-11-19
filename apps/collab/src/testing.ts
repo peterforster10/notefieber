@@ -56,7 +56,13 @@ export interface Client {
   close(): void;
 }
 
-export async function startCollab() {
+/** Zum Server in Tests und im Lasttest: Entprellung, Standard wie in den Tests 100 ms bzw. 500 ms */
+export interface StartOptions {
+  debounceMs?: number;
+  maxDebounceMs?: number;
+}
+
+export async function startCollab(opts: StartOptions = {}) {
   const workerUrl = process.env.COLLAB_TEST_DATABASE_URL;
   const appUrl = process.env.API_TEST_DATABASE_URL;
   if (!workerUrl || !appUrl) return undefined;
@@ -71,8 +77,8 @@ export async function startCollab() {
       COLLAB_HOST: '127.0.0.1',
       COLLAB_PORT: 0,
       PUBLIC_URL,
-      COLLAB_DEBOUNCE_MS: DEBOUNCE_MS,
-      COLLAB_MAX_DEBOUNCE_MS: DEBOUNCE_MS * 5,
+      COLLAB_DEBOUNCE_MS: opts.debounceMs ?? DEBOUNCE_MS,
+      COLLAB_MAX_DEBOUNCE_MS: opts.maxDebounceMs ?? DEBOUNCE_MS * 5,
       COLLAB_DATABASE_URL: workerUrl,
       COLLAB_RECHECK_SECONDS: 3600, // in den Tests gezielt über collab.recheckAll()
     },

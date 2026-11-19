@@ -67,9 +67,10 @@ export async function loadDocument(db: pg.Pool, info: DocumentInfo, doc: Y.Doc):
  * Yjs-Zustand, Titel und Bearbeitende speichern (app.store_ydoc). Liegt die Seite inzwischen im
  * Papierkorb, lehnt die Datenbank ab; dann gilt der zuletzt gespeicherte Stand (E04-07), das wird
  * nur protokolliert. Jeder andere Fehler geht weiter an Hocuspocus, das das Dokument dann im
- * Speicher behält und beim nächsten Speichern erneut versucht.
+ * Speicher behält und beim nächsten Speichern erneut versucht. Gibt die Größe des Yjs-Zustands
+ * in Byte zurück (Kennzahl, A-04: Je größer, desto mehr WAL pro Speichern).
  */
-export async function storeDocument(db: pg.Pool, info: DocumentInfo, doc: Y.Doc, editors: string[]): Promise<void> {
+export async function storeDocument(db: pg.Pool, info: DocumentInfo, doc: Y.Doc, editors: string[]): Promise<number> {
   const state = Y.encodeStateAsUpdate(doc);
   const title = doc.getText(TITLE_TEXT).toString();
   try {
@@ -87,4 +88,5 @@ export async function storeDocument(db: pg.Pool, info: DocumentInfo, doc: Y.Doc,
     if (!trashed) throw err;
     console.warn(`Collab-Server: Seite ${info.pageId} liegt im Papierkorb, Änderungen nicht gespeichert`);
   }
+  return state.length;
 }

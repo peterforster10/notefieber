@@ -2,7 +2,7 @@
 
 Eine europäische Alternative zu Confluence, entwickelt und gehostet in der EU. Zielgruppe sind vor allem Organisationen auf Confluence Data Center, das am 28. März 2029 schreibgeschützt wird. Schwesterprojekt von **TalkFieber** (Team-Chat); beide teilen Login, Mandantenmodell und Cluster.
 
-**Stand:** Meilenstein M0 abgeschlossen: Datenbankschema mit Migrationen und Tests, lokale Umgebung und CI, Login über Zitadel, Spaces und Seitenbaum, Einladungen. M1 läuft: Editor mit gemeinsamem Bearbeiten (BlockNote, Collab-Server, Worker für abgeleiteten Inhalt und Suchindex); Rechte, Papierkorb und Abmelden wirken sofort auch auf offene Editoren; Umbenennen geht auch aus der Seitenleiste, und Änderungen aus einem Funkloch überstehen ein Neuladen (lokale Kopie in IndexedDB); offen sind der Lasttest und ein Blick auf einen echten Confluence-Export. Was sich schon klicken lässt, steht in [docs/USE_CASES.md](docs/USE_CASES.md). UI-Prototyp vorhanden.
+**Stand:** Meilenstein M0 abgeschlossen: Datenbankschema mit Migrationen und Tests, lokale Umgebung und CI, Login über Zitadel, Spaces und Seitenbaum, Einladungen. M1 abgeschlossen: Editor mit gemeinsamem Bearbeiten (BlockNote, Collab-Server, Worker für abgeleiteten Inhalt und Suchindex); Rechte, Papierkorb und Abmelden wirken sofort auch auf offene Editoren; Umbenennen geht auch aus der Seitenleiste, und Änderungen aus einem Funkloch überstehen ein Neuladen (lokale Kopie in IndexedDB); der erste Lasttest (50 gleichzeitig Bearbeitende) lief ohne Datenverlust. Damit ist M1 lokal abgeschlossen. Was sich schon klicken lässt, steht in [docs/USE_CASES.md](docs/USE_CASES.md). UI-Prototyp vorhanden.
 
 ## Dokumente
 

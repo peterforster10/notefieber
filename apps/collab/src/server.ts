@@ -49,6 +49,9 @@ export function createCollab(config: CollabServerConfig, db: pg.Pool) {
   const publicOrigin = new URL(config.PUBLIC_URL).origin;
   // Offene Dokumente mit Mandant und Space (für das Neu-Prüfen nach Ereignissen im Space)
   const open = new Map<string, OpenDocument>();
+  // Kennzahlen zum Speichern (Lasttest, später Metrik-Endpunkt nach ARCHITECTURE_REVIEW.md, A-12):
+  // Zahl der Speichervorgänge, Fehler, Dauer in ms und Größe des gespeicherten Yjs-Zustands
+  const stats = { stores: 0, storeErrors: 0, storeMs: [] as number[], ydocBytes: 0 };
 
   const server = new Server<CollabContext>({
     name: 'notefieber-collab',
@@ -88,9 +91,14 @@ export function createCollab(config: CollabServerConfig, db: pg.Pool) {
       if (!info) return;
       const editors = [...info.editors];
       info.editors.clear();
+      const started = performance.now();
       try {
-        await storeDocument(db, info, document, editors);
+        stats.ydocBytes = await storeDocument(db, info, document, editors);
+        stats.stores++;
+        stats.storeMs.push(performance.now() - started);
+        if (stats.storeMs.length > 10_000) stats.storeMs.splice(0, stats.storeMs.length - 10_000);
       } catch (err) {
+        stats.storeErrors++;
         for (const e of editors) info.editors.add(e);
         throw err;
       }
@@ -180,6 +188,7 @@ export function createCollab(config: CollabServerConfig, db: pg.Pool) {
 
   return {
     server,
+    stats,
     recheck,
     recheckAll,
     endSession,

@@ -743,6 +743,27 @@ API_TEST_DATABASE_URL=postgres://wiki_api:api-lokal@localhost:55433/wiki WORKER_
 
 Erwartet: API mit Worker `pass 19`, Collab-Server `pass 13`, jeweils `fail 0` (Spaces und Seitenbaum, Einladungen, Annehmen beim Login mit erfundenen Identitäten statt Zitadel; beim Worker Testdaten zu Yjs, Ableiten nach der Ruhezeit, Weiterbearbeiten während des Ableitens; beim Collab-Server Ablehnungen, gemeinsames Bearbeiten mit lesender und schreibender Verbindung, Seiten aus BlockNote-JSON, Papierkorb; Rechteentzug, Papierkorb und Abmelden bei offenen Verbindungen, regelmäßige Prüfung, Abriss der LISTEN-Verbindung). Die Collab-Tests starten einen eigenen Server auf einem freien Port und brauchen beide Verbindungen: `COLLAB_TEST_DATABASE_URL` für den Server, `API_TEST_DATABASE_URL` für Sitzungen und Seiten. Danach `docker rm -f nf-pg18-apitest`. Ohne `API_TEST_DATABASE_URL` überspringt `pnpm test:db` die Tests mit einem Hinweis. (`$(pwd -W)` ist der Pfad in Git Bash; unter macOS und Linux `$(pwd)`.)
 
+### Lasttest des Collab-Servers
+
+[`load-test.ts`](../apps/collab/src/load-test.ts) prüft die Abnahme aus E04: viele Personen bearbeiten eine Seite gleichzeitig, ohne dass etwas verloren geht (ROADMAP M1, ARCHITECTURE_REVIEW A-04). Es startet einen Collab-Server mit der Entprellung aus dem Betrieb (2 s, spätestens 10 s) gegen die Wegwerf-Datenbank aus dem vorigen Abschnitt, verbindet die Clients über WebSocket (je eigene Sitzung) mit einer neuen Seite in `ENTW` und lässt jeden alle 300 ms ein eindeutiges Stück Text an eine zufällige Stelle tippen, mit Cursor in der Awareness. Am Ende prüft es, dass alle Clients gleich sind und jedes Stück genau einmal im gespeicherten Yjs-Zustand steht, und meldet Laufzeit der Änderungen, Dauer jedes Speicherns und die WAL-Menge (`pg_current_wal_lsn`). Die Seite landet danach im Papierkorb.
+
+```bash
+API_TEST_DATABASE_URL=postgres://wiki_api:api-lokal@localhost:55433/wiki COLLAB_TEST_DATABASE_URL=postgres://wiki_collab:collab-lokal@localhost:55433/wiki pnpm --filter @notefieber/collab load-test
+```
+
+Einstellbar mit `LOAD_CLIENTS` (50), `LOAD_SECONDS` (60) und `LOAD_INTERVAL_MS` (300). Ergebnis am 19. November 2026 (Windows-Rechner, PostgreSQL im Docker-Container):
+
+| Messung | Wert |
+|---|---|
+| Last | 50 Clients, 60 s, 9.613 Stücke (160 Änderungen pro Sekunde) |
+| Datenverlust | keiner: 9.613 gespeichert, alle verschieden; alle Clients 0,3 s nach Tippende gleich |
+| Laufzeit einer Änderung zu einem anderen Client | p50 11 ms, p95 35 ms, max 111 ms |
+| Speichern | 6-mal (bei Dauertippen greift `maxDebounce`: alle 10 s), je 64–71 ms, keine Fehler |
+| Yjs-Zustand | 203 KB am Ende |
+| WAL | 0,4 MB gesamt, 0,4 MB pro Minute |
+
+Grenzen: Server und Clients laufen in einem Prozess (Speicher zusammen 390 MB, Latenzen enthalten die Arbeit der Clients). Getestet ist Dauertippen auf einer Seite; tippt jemand in Schüben mit Pausen über 2 s, speichert der Server bis zu 30-mal pro Minute, die WAL-Menge wächst dann mit der Größe des Yjs-Zustands (PostgreSQL komprimiert ihn). Viele gleichzeitig bearbeitete Seiten und große Seiten (MB-Bereich) sind noch nicht gemessen; das gehört zur Überwachung im Pilot (A-12, Alarm bei zu großen Yjs-Dokumenten).
+
 ### Prüfen wie in der CI
 
 ```bash

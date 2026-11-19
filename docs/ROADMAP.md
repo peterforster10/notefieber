@@ -68,10 +68,9 @@ Was fertig heißt, sagen die User Stories E04-01 bis E04-08 in [EPICS](EPICS.md)
 - [x] Interner Aufruf an den Collab-Server (nur im Cluster, geteiltes Geheimnis) mit `openDirectConnection`; als Erstes für das Umbenennen aus der Seitenleiste (E04-08; 19. November 2026, eigener Port `COLLAB_INTERNAL_PORT`, `apps/collab/src/internal.ts`, API `POST /pages/:id/title`, im Browser geprüft)
 - [x] Zwei Browser bearbeiten dieselbe Seite, Cursor und Anwesenheit sichtbar (E04-01, E04-02; im Browser geprüft am 19. November 2026, `docs/USE_CASES.md` UC-19 bis UC-22)
 - [x] Verbindung trennen und wieder verbinden: nichts geht verloren (E04-04; 19. November 2026, lokale Kopie in IndexedDB pro Person und Seite, beim Abmelden gelöscht, `apps/web/src/lib/local-copies.ts`; im Browser geprüft mit gestopptem Collab-Server und Neuladen)
-- [ ] Erster Lasttest (z. B. 50 gleichzeitige Bearbeitende auf einer Seite); dabei die WAL-Menge pro Minute und die Dauer des Speicherns messen (A-04)
-- [ ] Einen echten Confluence-Export grob einlesen, nur um die Datenlage zu verstehen
+- [x] Erster Lasttest (z. B. 50 gleichzeitige Bearbeitende auf einer Seite); dabei die WAL-Menge pro Minute und die Dauer des Speicherns messen (A-04; 19. November 2026, `pnpm --filter @notefieber/collab load-test`, lokal gegen die Wegwerf-Datenbank: 50 Clients, 60 s, 160 Änderungen pro Sekunde, **kein Datenverlust**, Laufzeit einer Änderung p50 11 ms / p95 35 ms, gespeichert alle 10 s in 64–71 ms, Yjs-Zustand am Ende 203 KB, **WAL 0,4 MB pro Minute**; Ergebnis und Grenzen in [LOCAL_SETUP](LOCAL_SETUP.md), Abschnitt 7)
 
-**Gate:** Zwei Personen bearbeiten gleichzeitig, nichts geht verloren; die Abnahmekriterien von E04-01 bis E04-08 sind durch Tests oder eine Prüfung im Browser belegt (danach in `docs/USE_CASES.md`).
+**Gate:** Zwei Personen bearbeiten gleichzeitig, nichts geht verloren; die Abnahmekriterien von E04-01 bis E04-08 sind durch Tests oder eine Prüfung im Browser belegt (danach in `docs/USE_CASES.md`). **Lokal erreicht am 19. November 2026** (Tests in `apps/collab/src/*.dbtest.ts`, Lasttest, Prüfungen im Browser in [USE_CASES](USE_CASES.md), UC-19 bis UC-27).
 
 ### M2 – Wiki-Grundfunktionen
 Epics: E05, E06, E07, E08, E15, dazu der Mail-Versand aus E01 und E02
