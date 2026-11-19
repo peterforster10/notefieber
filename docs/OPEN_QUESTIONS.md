@@ -42,9 +42,13 @@ sagt, wer sie liest und wie die Ereignisse ankommen.
 - **Mandantentrennung:** Der Worker (`wiki_worker`) unterliegt RLS und sieht ohne Mandant nichts.
   Zum Lesen der Outbox über alle Mandanten braucht es eine eigene Funktion in der Datenbank (z. B.
   `app.claim_outbox(limit)` als `SECURITY DEFINER`), oder der Worker geht Mandant für Mandant durch.
+  **Muster vorhanden** (19. November 2026): `app.pages_to_derive` sieht als `SECURITY DEFINER` alle
+  Mandanten, gibt nur IDs heraus und ist nur für `wiki_worker` ausführbar; gelesen und geschrieben
+  wird danach im Mandanten der Seite. `app.claim_outbox` kann genauso gebaut werden.
 - **Geplante Jobs mit pg-boss** (im Tech-Stack, aber nirgends geplant): Papierkorb nach 30 Tagen
   leeren, abgelaufene Sitzungen und Einladungen aufräumen, Versionen nach 10 Minuten Ruhe anlegen,
-  Suchindex und Verlinkungen pflegen. pg-boss legt ein eigenes Schema an; dafür braucht es eine
+  Verlinkungen pflegen. Den Suchindex pflegt der Worker seit M1 ohne pg-boss: Er fragt alle 5 s
+  `app.pages_to_derive` ab (`apps/api/src/jobs/derive.ts`); mit pg-boss in M2 neu entscheiden, ob das so bleibt. pg-boss legt ein eigenes Schema an; dafür braucht es eine
   Migration mit den passenden Rechten.
 
 **Vorschlag:** in E04 und E08; als Punkte in M1 (Verbindungen trennen, Outbox lesen) und M2

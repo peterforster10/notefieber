@@ -1,10 +1,11 @@
 'use client';
 
 // Ansicht eines Spaces: Seitenleiste mit Space-Umschalter, Seitenbaum und Papierkorb, rechts
-// die ausgewählte Seite (ohne Auswahl die Startseite). Der Editor folgt mit M1.
+// die ausgewählte Seite (ohne Auswahl die Startseite) mit dem Editor (page-editor.tsx).
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useParams, usePathname, useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { pageIdFromSlug, pagePath, spacePath } from '@notefieber/shared';
 import { LoginForm, logout } from '@/app/account';
@@ -22,6 +23,12 @@ import {
   type Space,
 } from '@/lib/api';
 import { PageTree } from './page-tree';
+
+// Editor nur im Browser: BlockNote und Yjs brauchen das DOM und eine WebSocket-Verbindung
+const PageEditor = dynamic(() => import('./page-editor').then((m) => m.PageEditor), {
+  ssr: false,
+  loading: () => <p className="nf-muted">Editor wird geladen …</p>,
+});
 
 const ROLE_NAMES: Record<string, string> = {
   viewer: 'Lesen',
@@ -161,12 +168,36 @@ function Trash({ space }: { space: Space }) {
   );
 }
 
+/**
+ * Nach einer Titeländerung im Editor Seitenbaum, Brotkrume und Adresse nachziehen (E04-08: spätestens
+ * nach 10 s). Den Titel in pages.title schreibt der Collab-Server entprellt (ca. 2 s, spätestens 10 s);
+ * deshalb zweimal nachfragen, kurz danach und nach der längsten Wartezeit.
+ */
+function useRefreshAfterTitleChange(spaceKey: string | undefined) {
+  const queryClient = useQueryClient();
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
+  return useCallback(() => {
+    if (!spaceKey) return;
+    timers.current.forEach(clearTimeout);
+    const refresh = () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.tree(spaceKey) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.pages }),
+      ]);
+    timers.current = [setTimeout(refresh, 3_000), setTimeout(refresh, 11_000)];
+  }, [queryClient, spaceKey]);
+}
+
 function PageView({ id, canonicalize }: { id: string; canonicalize: boolean }) {
   const page = usePage(id);
+  const me = useMe();
   useCanonicalPath(page.data && canonicalize ? pagePath(page.data.spaceKey, page.data) : undefined);
+  const onTitleChange = useRefreshAfterTitleChange(page.data?.spaceKey);
   if (page.isPending) return <p>Einen Moment …</p>;
   if (page.isError) return <p role="alert">Diese Seite gibt es nicht, oder sie ist für dich nicht sichtbar.</p>;
   const p = page.data;
+  const lock = p.restricted ? <span title="Eigene Rechte">🔒</span> : null;
   return (
     <article>
       <nav aria-label="Brotkrume" className="nf-breadcrumb">
@@ -176,14 +207,26 @@ function PageView({ id, canonicalize }: { id: string; canonicalize: boolean }) {
           </span>
         ))}
       </nav>
-      <h1>
-        {p.title || 'Ohne Titel'} {p.restricted && <span title="Eigene Rechte">🔒</span>}
-      </h1>
       <p className="nf-muted">
         Deine Rolle: {p.role ? ROLE_NAMES[p.role] : '–'}
         {p.trashed ? ' · im Papierkorb' : ''}
       </p>
-      <p className="nf-placeholder">Der Editor kommt mit Meilenstein M1 (BlockNote und gemeinsames Bearbeiten).</p>
+      {me.data ? (
+        <PageEditor
+          key={p.id}
+          pageId={p.id}
+          user={{ id: me.data.id, name: me.data.displayName }}
+          mayEdit={canEdit(p.role)}
+          trashed={p.trashed}
+          fallbackTitle={p.title}
+          onTitleChange={onTitleChange}
+          titleAddon={lock}
+        />
+      ) : (
+        <h1>
+          {p.title || 'Ohne Titel'} {lock}
+        </h1>
+      )}
     </article>
   );
 }

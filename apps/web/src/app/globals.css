@@ -274,13 +274,6 @@ a {
   opacity: 0.7;
   margin: 0;
 }
-.nf-placeholder {
-  margin-top: 32px;
-  padding: 16px;
-  border: 1px dashed var(--nf-border);
-  border-radius: 8px;
-  color: var(--nf-muted);
-}
 .nf-breadcrumb {
   font-size: 13px;
   color: var(--nf-muted);
@@ -338,4 +331,62 @@ a {
   display: inline-block;
   text-decoration: none;
   margin-top: 8px;
+}
+
+/* Editor (page-editor.tsx): Titel aus Yjs, Anwesenheit, BlockNote */
+.nf-editor-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.nf-title {
+  flex: 1;
+  min-width: 0;
+  margin: 8px 0 16px;
+}
+.nf-title-input {
+  width: 100%;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  outline: none;
+}
+.nf-title-input::placeholder {
+  color: var(--nf-muted);
+}
+.nf-presence {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.nf-presence li {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid var(--nf-bg);
+  margin-left: -6px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+.nf-presence li.nf-presence-more {
+  background: var(--nf-muted);
+}
+.nf-notice {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #fff4ec;
+  color: var(--nf-attention);
+  font-size: 14px;
+}
+/* BlockNote rückt den Inhalt für Seitenmenü und Ziehpunkt ein; hier bündig mit dem Titel */
+.nf-editor .bn-editor {
+  padding-inline: 0;
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
 }

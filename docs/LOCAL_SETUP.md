@@ -19,14 +19,14 @@ Diese Anleitung beschreibt, was man für die Entwicklung am eigenen Rechner brau
 
 ## 1. Überblick
 
-Das Projekt steht am Anfang von Stufe 1 der [ROADMAP](ROADMAP.md). Datenbank, Dateispeicher und Login-Dienst laufen per Docker Compose ([`compose.yaml`](../compose.yaml)) und richten sich beim ersten Start selbst ein. Die Apps laufen mit Node.js direkt auf dem Rechner; bisher als Grundgerüst ohne Fachlogik.
+Das Projekt steht am Anfang von Stufe 1 der [ROADMAP](ROADMAP.md). Datenbank, Dateispeicher und Login-Dienst laufen per Docker Compose ([`compose.yaml`](../compose.yaml)) und richten sich beim ersten Start selbst ein. Die Apps laufen mit Node.js direkt auf dem Rechner: Login, Spaces, Seitenbaum, Einladungen und der Editor mit gemeinsamem Bearbeiten (M1, Stück 1).
 
 | Baustein | Stand | Container | Erreichbar unter | Abschnitt |
 |---|---|---|---|---|
 | Datenbank: PostgreSQL 18 mit Schema, Tests und Testdaten | fertig | `nf-pg18` | `localhost:5432` | [4](#4-datenbank-postgresql) |
 | Dateien: Garage (S3), Bucket `wiki` | fertig | `nf-garage`, `garage-init` | `localhost:3900` (S3), `localhost:3903` (Admin) | [5](#5-dateien-garage) |
 | Login: Zitadel v4 mit Organisationen, Testpersonen und OIDC-Clients | fertig | `nf-zitadel`, `nf-zitadel-login`, `nf-zitadel-proxy`, `zitadel-init` | `localhost:8080` | [6](#6-login-zitadel) |
-| Frontend, API, Worker, Collab-Server (`apps/…`) | Grundgerüst | – (Node.js direkt auf dem Rechner) | `localhost:3000` (Frontend), `localhost:4000` (API), `localhost:1234` (Collab) | [7](#7-apps-nodejs) |
+| Frontend, API, Worker, Collab-Server (`apps/…`) | Login, Spaces und Seitenbaum, Editor mit gemeinsamem Bearbeiten | – (Node.js direkt auf dem Rechner) | `localhost:3000` (Frontend), `localhost:4000` (API), `localhost:1234` (Collab) | [7](#7-apps-nodejs) |
 
 Wer mitarbeitet, braucht Git, Docker, eine Bash und Node.js 24 mit pnpm.
 
@@ -599,7 +599,7 @@ Die Apps liegen in einem **pnpm-Monorepo** (ein Repository, mehrere Node-Projekt
 | `@notefieber/shared` | `packages/shared` | gemeinsame Typen und Zod-Schemas: Rollen, Ereignisse, Kurznamen, Prüfung der Datenbankrolle | – | – | – |
 | `@notefieber/editor-schema` | `packages/editor-schema` | BlockNote-Schema für Browser, Worker, Collab-Server und Import; Aufbau des Yjs-Dokuments (`page:<uuid>`, Fragment `content`, Text `title`), Klartext; `/server`: Yjs ↔ BlockNote-JSON ohne DOM | – | – | – |
 
-Stand: Die API **meldet über Zitadel an** ([unten](#anmelden)) und kennt **Spaces und Seitenbaum** ([unten](#spaces-und-seitenbaum)). Der **Worker** sieht alle `WORKER_DERIVE_INTERVAL_SECONDS` (5 s) nach Arbeit (`app.pages_to_derive`): Seiten, die seit `WORKER_DERIVE_REST_SECONDS` (30 s) ruhen, bekommen BlockNote-JSON, Klartext und Suchindex (`app.store_derived`, ein `page.updated`), Seiten nur mit BlockNote-JSON (die Testdaten) ihren ersten Yjs-Zustand (`app.store_initial_ydoc`); dazu ein Lebenszeichen im Log. Der **Collab-Server** lässt Verbindungen mit dem Sitzungs-Cookie herein (`Origin` muss `PUBLIC_URL` sein, Rolle über `app.page_rank`: viewer und commenter lesend, editor schreibend, Seiten im Papierkorb lesend), lädt und speichert den Yjs-Zustand (`app.store_ydoc`, entprellt `COLLAB_DEBOUNCE_MS`, spätestens `COLLAB_MAX_DEBOUNCE_MS`); noch ohne Trennen bei Rechteänderungen (M1, Stück 2). Das Frontend zeigt Anmelden, die eigenen Spaces und pro Space die Seitenleiste mit dem Baum; Seiten haben noch keinen Inhalt (Editor mit M1).
+Stand: Die API **meldet über Zitadel an** ([unten](#anmelden)) und kennt **Spaces und Seitenbaum** ([unten](#spaces-und-seitenbaum)). Der **Worker** sieht alle `WORKER_DERIVE_INTERVAL_SECONDS` (5 s) nach Arbeit (`app.pages_to_derive`): Seiten, die seit `WORKER_DERIVE_REST_SECONDS` (30 s) ruhen, bekommen BlockNote-JSON, Klartext und Suchindex (`app.store_derived`, ein `page.updated`), Seiten nur mit BlockNote-JSON (die Testdaten) ihren ersten Yjs-Zustand (`app.store_initial_ydoc`); dazu ein Lebenszeichen im Log. Der **Collab-Server** lässt Verbindungen mit dem Sitzungs-Cookie herein (`Origin` muss `PUBLIC_URL` sein, Rolle über `app.page_rank`: viewer und commenter lesend, editor schreibend, Seiten im Papierkorb lesend), lädt und speichert den Yjs-Zustand (`app.store_ydoc`, entprellt `COLLAB_DEBOUNCE_MS`, spätestens `COLLAB_MAX_DEBOUNCE_MS`); noch ohne Trennen bei Rechteänderungen (M1, Stück 2). Das Frontend zeigt Anmelden, die eigenen Spaces, pro Space die Seitenleiste mit dem Baum und die Seite im **Editor** (BlockNote, verbunden mit dem Collab-Server; lokal unter `ws://localhost:<COLLAB_PORT>`, ohne Einstellung). Zum Bearbeiten müssen also alle vier laufen: API, Collab-Server, Worker und Frontend. Gemeinsames Bearbeiten probiert man mit zwei Personen in zwei verschiedenen Browsern (oder einem privaten Fenster) aus, siehe [USE_CASES](USE_CASES.md), UC-19 bis UC-22.
 
 ### Einrichten
 
@@ -661,7 +661,7 @@ Erwartet: `{"status":"ok","database":{"login":"wiki_api"}}`. `curl -s localhost:
 
 Die API meldet über Zitadel an und hält die Sitzung selbst ([CONCEPTS.md, Abschnitt 5](CONCEPTS.md#5-login-und-sitzung)). Das Frontend leitet `/api` an die API weiter (`rewrites` in [`next.config.ts`](../apps/web/next.config.ts)), so wie später der Ingress: Für den Browser liegen beide unter `http://localhost:3000`, das Sitzungs-Cookie gilt für beide, und es braucht kein CORS.
 
-1. `pnpm dev:api` und `pnpm dev:web` starten, `http://localhost:3000` öffnen.
+1. `pnpm dev:api` und `pnpm dev:web` starten (für den Editor zusätzlich `pnpm dev:collab` und `pnpm dev:worker`), `http://localhost:3000` öffnen.
 2. Mandant eingeben (`alpenwerk`), „Anmelden“: Das Formular geht an `GET /api/v1/auth/login?tenant=alpenwerk`. Die API leitet zu Zitadel weiter (Code-Flow mit PKCE, Scope auf die Organisation des Mandanten beschränkt) und merkt sich State, Nonce und PKCE-Verifier zehn Minuten lang im signierten Cookie `nf_login`.
 3. Bei Zitadel anmelden, z. B. als `peter.forster@alpenwerk.example` mit `NoteFieber-lokal-1`.
 4. Zitadel springt zu `/api/v1/auth/callback` zurück. Die API tauscht den Code (mit Client-Geheimnis), prüft das ID-Token und dass die Organisation zum Mandanten passt, sucht die Person über `idp_subject` und legt mit `app.create_session` eine Sitzung an. Der Browser bekommt nur das Cookie **`nf_session`** (`HttpOnly`, `SameSite=Lax`, auf dem Server zusätzlich `Secure`); die Tokens von Zitadel bleiben auf dem Server und werden nicht gespeichert.

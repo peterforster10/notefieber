@@ -2,7 +2,7 @@
 
 Eine europäische Alternative zu Confluence, entwickelt und gehostet in der EU. Zielgruppe sind vor allem Organisationen auf Confluence Data Center, das am 28. März 2029 schreibgeschützt wird. Schwesterprojekt von **TalkFieber** (Team-Chat); beide teilen Login, Mandantenmodell und Cluster.
 
-**Stand:** Meilenstein M0 abgeschlossen: Datenbankschema mit Migrationen und Tests, lokale Umgebung und CI, Login über Zitadel, Spaces und Seitenbaum, Einladungen. Der Editor folgt mit M1. Was sich schon klicken lässt, steht in [docs/USE_CASES.md](docs/USE_CASES.md). UI-Prototyp vorhanden.
+**Stand:** Meilenstein M0 abgeschlossen: Datenbankschema mit Migrationen und Tests, lokale Umgebung und CI, Login über Zitadel, Spaces und Seitenbaum, Einladungen. M1 läuft: Editor mit gemeinsamem Bearbeiten (BlockNote, Collab-Server, Worker für abgeleiteten Inhalt und Suchindex); offen sind Rechteentzug in offenen Editoren, Umbenennen in der Seitenleiste, Funkloch über Neuladen und der Lasttest. Was sich schon klicken lässt, steht in [docs/USE_CASES.md](docs/USE_CASES.md). UI-Prototyp vorhanden.
 
 ## Dokumente
 
@@ -66,7 +66,7 @@ Die App verbindet sich nie als `wiki_owner`, sondern mit Login-Rollen in `wiki_a
 
 ## Repository und CI
 
-Gearbeitet wird im Repository auf **GitHub** (`github.com/peterforster10/notefieber`). Bei jedem Push auf `main` spiegelt die GitHub Action [`.github/workflows/sync-to-gitlab.yml`](.github/workflows/sync-to-gitlab.yml) den Stand nach **GitLab** (`gitlab.com/peterforster101/notefieber`). Dort läuft die **CI** ([`.gitlab-ci.yml`](.gitlab-ci.yml)), derzeit alle Datenbanktests ([`ci.sh`](database/scripts/schema_test/ci.sh)).
+Gearbeitet wird im Repository auf **GitHub** (`github.com/peterforster10/notefieber`). Bei jedem Push auf `main` spiegelt die GitHub Action [`.github/workflows/sync-to-gitlab.yml`](.github/workflows/sync-to-gitlab.yml) den Stand nach **GitLab** (`gitlab.com/peterforster101/notefieber`). Dort läuft die **CI** ([`.gitlab-ci.yml`](.gitlab-ci.yml)) mit drei Jobs: alle Datenbanktests ([`ci.sh`](database/scripts/schema_test/ci.sh)), `pnpm check` für die Apps und die Tests von API, Worker und Collab-Server gegen eine Wegwerf-Datenbank (`pnpm test:db`).
 
 - GitLab ist nur ein Spiegel: dort nichts direkt committen, sonst bricht der nächste Sync ab (er pusht ohne `--force`).
 - Gespiegelt wird nur `main`, Pipelines gibt es also nur für `main`.

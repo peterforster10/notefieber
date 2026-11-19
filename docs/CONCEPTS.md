@@ -579,7 +579,7 @@ Die drei Ereignisse zu Personen gehen an jeden Space des betroffenen Workspaces 
 
 **Wer zuhört:**
 
-- **Worker:** Suchindex und Verlinkungen bei `page.updated`, Zeitgeber für automatische Versionen, Import bei `import.requested`, später Benachrichtigungen.
+- **Worker:** Verlinkungen bei `page.updated` (den Suchindex pflegt er schon vorher beim Ableiten, `app.store_derived`, das `page.updated` erst auslöst), Zeitgeber für automatische Versionen, Import bei `import.requested`, später Benachrichtigungen.
 - **Collab-Server:** trennt Verbindungen bei `grant.changed`, `page.permissions_changed`, `member.removed`, `member.changed`, `user.deactivated` und `space.archived`, damit neue Rechte sofort gelten.
 - **Später TalkFieber:** Link-Vorschauen, Benachrichtigungen im Chat.
 

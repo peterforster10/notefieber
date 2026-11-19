@@ -15,6 +15,14 @@ try {
 
 const apiInternalUrl = process.env.API_INTERNAL_URL ?? 'http://localhost:4000';
 
+// Collab-Server: im Cluster unter derselben Adresse (/collab, der Browser rechnet sie zur Laufzeit
+// aus, siehe components/page-editor.tsx). Lokal läuft er auf eigenem Port; ohne Angabe nimmt
+// next dev deshalb ws://localhost:<COLLAB_PORT>. Eine Next.js-Weiterleitung reicht WebSockets
+// nicht zuverlässig durch. NEXT_PUBLIC_-Werte stehen nach dem Build fest im Bundle.
+const collabUrl =
+  process.env.NEXT_PUBLIC_COLLAB_URL ??
+  (process.env.NODE_ENV === 'development' ? `ws://localhost:${process.env.COLLAB_PORT ?? '1234'}` : undefined);
+
 const nextConfig: NextConfig = {
   // Eigener Container (K3s): .next/standalone enthält Server und nötige Pakete. Wurzel für
   // die Suche nach Dateien ist das Monorepo, damit packages/shared mitkommt.
@@ -22,7 +30,8 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: root,
   reactStrictMode: true,
   poweredByHeader: false,
-  transpilePackages: ['@notefieber/shared'],
+  transpilePackages: ['@notefieber/shared', '@notefieber/editor-schema'],
+  env: collabUrl ? { NEXT_PUBLIC_COLLAB_URL: collabUrl } : {},
   // Frontend und API unter einer Adresse, wie später der Ingress (/ → web, /api → api).
   // So gilt das Sitzungs-Cookie für beide, und der Browser braucht kein CORS.
   async rewrites() {

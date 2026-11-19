@@ -1,7 +1,7 @@
 # Use Cases in der Oberfläche
 
-Was sich im Frontend schon durchklicken lässt. **Stand: 14. November 2026** (M0 abgeschlossen,
-noch ohne Editor). Wird nachgeführt, sobald ein neuer Ablauf in der Oberfläche dazukommt; was es
+Was sich im Frontend schon durchklicken lässt. **Stand: 19. November 2026** (M0 abgeschlossen,
+M1 mit Editor und gemeinsamem Bearbeiten, noch ohne Trennen bei Rechteänderungen). Wird nachgeführt, sobald ein neuer Ablauf in der Oberfläche dazukommt; was es
 nur in Datenbank oder API gibt, steht unten unter „Noch nicht in der Oberfläche“.
 
 **Spalte „Geprüft“:** *Browser* = am 12. November 2026 von Hand gegen die lokale Umgebung
@@ -10,7 +10,7 @@ abgedeckt; *Code* = nur aus dem Code abgeleitet, noch nicht von Hand geklickt.
 
 ## Ausprobieren
 
-Lokale Umgebung starten (`docker compose up -d`, dann `pnpm dev:api` und `pnpm dev:web`, siehe
+Lokale Umgebung starten (`docker compose up -d`, dann `pnpm dev:api`, `pnpm dev:collab`, `pnpm dev:worker` und `pnpm dev:web`, siehe
 [LOCAL_SETUP.md](LOCAL_SETUP.md), Abschnitt 7) und `http://localhost:3000` öffnen. Der Mandant
 `alpenwerk` ist vorgeschlagen. Anmeldename ist die E-Mail, das Passwort der Testpersonen steht
 in `compose.yaml` (`NF_TEST_PASSWORD`).
@@ -45,7 +45,11 @@ in `compose.yaml` (`NF_TEST_PASSWORD`).
 | UC-15 | Person einladen | Workspace-Owner und -Admins, Organisations-Admins | Browser |
 | UC-16 | Einladungen ansehen und zurücknehmen | wie UC-15 | Browser |
 | UC-17 | Einladung annehmen | eingeladene Person | Browser (Einladungsseite), Skript (Annehmen) |
-| UC-18 | Links bleiben gültig | alle | Code |
+| UC-18 | Links bleiben gültig | alle | Browser (19. November 2026, Adresse nach Umbenennen) |
+| UC-19 | Seite bearbeiten | Bearbeitende | Browser (19. November 2026) |
+| UC-20 | Gemeinsam bearbeiten, sehen wer da ist | alle mit Leserecht | Browser (19. November 2026, Lukas und Max in getrennten Browsern; Cursor mit Namen: Code) |
+| UC-21 | Live lesen, ohne zu schreiben | Lesende, Kommentierende | Browser (19. November 2026) |
+| UC-22 | Titel im Editor ändern | Bearbeitende | Browser (19. November 2026) |
 
 ## Anmelden und Abmelden
 
@@ -108,7 +112,7 @@ Oben in der Seitenleiste per Auswahlliste, oder über „NoteFieber“ zurück z
 Ein Klick im Seitenbaum öffnet die Seite. Ohne Auswahl zeigt ein Space seine Startseite
 (eigener Eintrag „Startseite“ über dem Baum). Angezeigt werden Brotkrume (nur Seiten, die die
 Person sehen darf), Titel, Schloss bei Seiten mit eigenen Rechten und die eigene Rolle (Lesen,
-Kommentieren, Bearbeiten, Admin). Den Inhalt zeigt die Seite noch nicht: Der Editor kommt mit M1.
+Kommentieren, Bearbeiten, Admin). Darunter der Editor mit dem Inhalt (UC-19 bis UC-22).
 
 ### UC-08 Seitenbaum auf- und zuklappen
 
@@ -199,8 +203,41 @@ mit einem Konto für eine andere Adresse wird abgelehnt (UC-02). Ausprobieren: P
 
 Adressen haben die Form `/spaces/entw/pages/architektur-<kurze id>`. Nur die kurze ID zählt:
 Ein Link mit altem Titel oder großgeschriebenem Space-Schlüssel führt auf die richtige Seite,
-und die Adresse wird ohne neuen Eintrag im Verlauf korrigiert. Titel ändern geht allerdings
-erst mit dem Editor (M1).
+und die Adresse wird ohne neuen Eintrag im Verlauf korrigiert, auch nach dem Umbenennen im
+Editor (UC-22).
+
+## Editor
+
+### UC-19 Seite bearbeiten
+
+Wer die Seite bearbeiten darf (Rolle Bearbeiten oder Admin), schreibt direkt unter dem Titel im
+Block-Editor (BlockNote, deutsche Oberfläche, Menü mit „/“). Gespeichert wird von selbst: etwa
+2 s nach der letzten Änderung, spätestens nach 10 s. Klartext und Suchindex zieht der Worker
+nach, wenn die Seite etwa 30 s ruht. Seiten aus den Testdaten haben ihren Inhalt schon beim
+ersten Öffnen. Ist der Collab-Server nicht erreichbar, steht da „Collab-Server nicht erreichbar …“;
+reißt die Verbindung später ab, „Offline. Änderungen werden übertragen, sobald die Verbindung
+zurück ist.“
+
+### UC-20 Gemeinsam bearbeiten, sehen wer da ist
+
+Zwei Personen öffnen dieselbe Seite (zum Ausprobieren in zwei verschiedenen Browsern oder einem
+privaten Fenster, sonst teilen sie sich das Sitzungs-Cookie). Was die eine tippt, sieht die
+andere sofort. Rechts neben dem Titel stehen die Avatare aller, die die Seite offen haben, auch
+der Lesenden; eine Person mit mehreren Tabs nur einmal. Andere Bearbeitende haben einen Cursor
+mit Namen und Farbe (die Farbe hängt an der Person).
+
+### UC-21 Live lesen, ohne zu schreiben
+
+Mit Rolle Lesen oder Kommentieren (z. B. Max in `ENTW`) ist der Editor schreibgeschützt, und
+der Titel ist kein Eingabefeld; Änderungen anderer erscheinen trotzdem sofort. Der Collab-Server
+verbindet nur lesend und verwirft Änderungen, die trotzdem kommen. Seiten im Papierkorb sind
+auch für Bearbeitende nur lesbar, mit dem Hinweis „Diese Seite liegt im Papierkorb …“.
+
+### UC-22 Titel im Editor ändern
+
+Der Titel ist ein Eingabefeld über dem Inhalt (höchstens 255 Zeichen). Andere sehen die
+Änderung sofort; Seitenbaum, Brotkrume und Adresse (`/spaces/…/pages/<titel>-<id>`) ziehen nach
+spätestens 10 s nach. Umbenennen aus der Seitenleiste kommt mit M1, Stück 3.
 
 ## Noch nicht in der Oberfläche
 
@@ -208,13 +245,15 @@ Teils in Datenbank oder API schon vorhanden, aber noch nicht klickbar:
 
 | Was | Wann | Stand dahinter |
 |---|---|---|
-| Inhalt bearbeiten, Titel ändern, gemeinsames Bearbeiten mit Cursorn | M1 (E04) | Datenbank fertig (`store_ydoc`, `store_derived`), Collab-Server lehnt noch alle Verbindungen ab |
+| Rechteentzug und Papierkorb wirken sofort auf offene Editoren, Abmelden schließt Editoren in anderen Tabs | M1 (E04-05 bis E04-07) | Collab-Server prüft Rechte bisher nur beim Verbinden |
+| Umbenennen in der Seitenleiste | M1 (E04-08) | interner Aufruf an den Collab-Server fehlt noch |
+| Änderungen nach einem Funkloch auch über ein Neuladen retten (IndexedDB) | M1 (E04-04) | kurze Abbrüche überbrückt der Editor schon im Speicher |
 | Drag & Drop im Seitenbaum | M2 | API fertig (`/pages/:id/move`) |
 | Versionen ansehen und wiederherstellen | M2 | Datenbank fertig (`page_versions`, `save_version`) |
 | Kommentare | M3 | Datenbank fertig (`add_comment` …) |
 | Rechte-Dialog, eigene Rechte für eine Seite, Gruppen pflegen | M3 | Datenbank fertig (`set_grant`, `set_page_inheritance`, `create_group` …) |
 | „Ansehen als …“ | M3 | Datenbank fertig (`app.view_as`) |
-| Suche | M3 | Tabelle `page_search` da, Worker pflegt sie noch nicht |
+| Suche | M3 | Worker pflegt `page_search` (nach etwa 30 s Ruhe), Abfrage fehlt |
 | Space umbenennen, archivieren | offen | Datenbank fertig (`update_space`, `archive_space`) |
 | Mitglieder eines Workspaces verwalten (Rolle ändern, entfernen) | offen | Datenbank fertig (`set_workspace_member_role`, `remove_workspace_member`) |
 | Confluence-Import, Export | M4 | Datenbank vorbereitet (`imports`, `start_import`) |
