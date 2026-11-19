@@ -14,11 +14,13 @@
 //   POST   /pages/:id/move                verschieben (Elternseite, Nachbar davor/dahinter)
 //   DELETE /pages/:id                     in den Papierkorb
 //   POST   /pages/:id/restore             aus dem Papierkorb zurück
+//   POST   /pages/:id/title               umbenennen (über den Collab-Server, E04-08)
 import express, { type Request, type Response } from 'express';
 import type pg from 'pg';
 import { z } from 'zod';
-import { idSchema, pageTitleSchema, spaceKeySchema, type SpaceRole } from '@notefieber/shared';
+import { idSchema, pageTitleSchema, roleRank, spaceKeySchema, type SpaceRole } from '@notefieber/shared';
 import { getAuth } from '../auth/session.ts';
+import { CollabUnavailable, type CollabClient } from '../collab-client.ts';
 import { withContext } from '../db.ts';
 import { positionFor, type Sibling } from '../positions.ts';
 
@@ -99,7 +101,15 @@ async function siblings(tx: Tx, spaceId: string, parentId: string | null, except
   return rows;
 }
 
-export function spacesRouter(db: pg.Pool) {
+// Titel: gekürzt statt abgelehnt wie im Editor (app.store_ydoc), Leerraum außen fällt weg
+const renameBody = z.object({
+  title: z
+    .string()
+    .max(10_000)
+    .transform((t) => t.trim()),
+});
+
+export function spacesRouter(db: pg.Pool, collab?: CollabClient) {
   const router = express.Router();
 
   const tx = <T>(res: Response, fn: (tx: Tx) => Promise<T>) => {
@@ -346,6 +356,52 @@ export function spacesRouter(db: pg.Pool) {
         return rows[0]!.n;
       });
       res.json({ count });
+    }),
+  );
+
+  // Umbenennen aus der Seitenleiste (E04-08). Der Titel lebt im Yjs-Dokument; die API ändert
+  // pages.title nie selbst, sondern prüft die Rechte und lässt den Collab-Server das Dokument
+  // ändern (interner Aufruf). Wenn die Antwort kommt, ist der neue Titel schon gespeichert.
+  router.post(
+    '/pages/:id/title',
+    handle(async (req, res) => {
+      const id = idSchema.parse(req.params.id);
+      const { title } = renameBody.parse(req.body);
+      const auth = getAuth(res)!;
+      const page = await tx(res, async (t) => {
+        const { rows } = await t.query<{ trashed: boolean; role: SpaceRole | null }>(
+          'SELECT deleted_at IS NOT NULL AS trashed, app.page_role(id) AS role FROM pages WHERE id = $1',
+          [id],
+        );
+        return rows[0];
+      });
+      if (!page) throw new NotFound();
+      if (roleRank(page.role) < roleRank('editor')) {
+        res.status(403).json({ error: 'forbidden', message: 'Nur wer bearbeiten darf, kann umbenennen' });
+        return;
+      }
+      if (page.trashed) {
+        res.status(409).json({ error: 'rejected', message: 'Seite liegt im Papierkorb' });
+        return;
+      }
+      if (!collab) {
+        res.status(503).json({ error: 'unavailable', message: 'Umbenennen ist nicht eingerichtet' });
+        return;
+      }
+      try {
+        const result = await collab.renamePage(id, { tenantId: auth.tenantId, userId: auth.userId, title });
+        if (result === 'not-found') throw new NotFound();
+        if (result === 'trashed') {
+          res.status(409).json({ error: 'rejected', message: 'Seite liegt im Papierkorb' });
+          return;
+        }
+      } catch (err) {
+        if (!(err instanceof CollabUnavailable)) throw err;
+        console.error(`API: ${err.message}`);
+        res.status(503).json({ error: 'unavailable', message: 'Umbenennen gerade nicht möglich' });
+        return;
+      }
+      res.status(204).end();
     }),
   );
 

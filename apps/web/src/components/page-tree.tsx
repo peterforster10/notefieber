@@ -8,6 +8,9 @@
 //
 // Verschieben geht mit Knöpfen (auch per Tastatur): nach oben, nach unten, einrücken (unter
 // die vorige Seite), ausrücken (hinter die Elternseite). Drag & Drop folgt (M2).
+//
+// Umbenennen (✎) geht über die API, die den Collab-Server bittet, den Titel im Yjs-Dokument zu
+// ändern (E04-08): Wer die Seite gerade offen hat, sieht den neuen Titel sofort.
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState, type FormEvent } from 'react';
@@ -22,6 +25,7 @@ export function PageTree({ space, pages, selectedId }: { space: Space; pages: Tr
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [creatingUnder, setCreatingUnder] = useState<string | null>(null);
+  const [renaming, setRenaming] = useState<string | null>(null);
 
   const homeId = space.homePageId;
   const { byId, children, roots, top } = useMemo(() => {
@@ -87,6 +91,17 @@ export function PageTree({ space, pages, selectedId }: { space: Space; pages: Tr
     },
     onError,
   });
+  const rename = useMutation({
+    mutationFn: (v: { id: string; title: string }) =>
+      api(`/pages/${v.id}/title`, { method: 'POST', body: { title: v.title } }),
+    onMutate: () => setError(null),
+    onSuccess: async () => {
+      setRenaming(null);
+      // Gespeichert ist der neue Titel schon; Baum, Brotkrume und Adresse ziehen nach
+      await refresh();
+    },
+    onError,
+  });
   const create = useMutation({
     mutationFn: (v: { parentId: string | null; title: string }) =>
       api<{ id: string }>(`/spaces/${space.key}/pages`, { method: 'POST', body: v }),
@@ -149,6 +164,9 @@ export function PageTree({ space, pages, selectedId }: { space: Space; pages: Tr
               <IconButton label="Neue Unterseite" onClick={() => setCreatingUnder(p.id)}>
                 +
               </IconButton>
+              <IconButton label="Umbenennen" disabled={rename.isPending} onClick={() => setRenaming(p.id)}>
+                ✎
+              </IconButton>
               {!isHome && (
                 <>
                   <IconButton
@@ -200,8 +218,20 @@ export function PageTree({ space, pages, selectedId }: { space: Space; pages: Tr
             </span>
           )}
         </div>
+        {renaming === p.id && (
+          <TitleForm
+            initial={p.title}
+            label="Neuer Titel"
+            submitText="Umbenennen"
+            busy={rename.isPending}
+            onCancel={() => setRenaming(null)}
+            onSubmit={(title) => (title === p.title ? setRenaming(null) : rename.mutate({ id: p.id, title }))}
+          />
+        )}
         {creatingUnder === p.id && (
-          <NewPageForm
+          <TitleForm
+            label="Titel der neuen Seite"
+            submitText="Anlegen"
             busy={create.isPending}
             onCancel={() => setCreatingUnder(null)}
             onSubmit={(title) => create.mutate({ parentId: p.id, title })}
@@ -225,7 +255,9 @@ export function PageTree({ space, pages, selectedId }: { space: Space; pages: Tr
       )}
       {/* Die Startseite steht nicht im Baum: Das Formular für Seiten unter ihr kommt hierher */}
       {(creatingUnder === 'root' || (creatingUnder !== null && creatingUnder === homeId)) && (
-        <NewPageForm
+        <TitleForm
+          label="Titel der neuen Seite"
+          submitText="Anlegen"
           busy={create.isPending}
           onCancel={() => setCreatingUnder(null)}
           onSubmit={(title) => create.mutate({ parentId: creatingUnder === 'root' ? null : creatingUnder, title })}
@@ -253,16 +285,23 @@ export function PageTree({ space, pages, selectedId }: { space: Space; pages: Tr
   );
 }
 
-function NewPageForm({
+/** Titel eingeben: neue Seite oder umbenennen */
+function TitleForm({
+  initial = '',
+  label,
+  submitText,
   busy,
   onSubmit,
   onCancel,
 }: {
+  initial?: string;
+  label: string;
+  submitText: string;
   busy: boolean;
   onSubmit: (title: string) => void;
   onCancel: () => void;
 }) {
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState(initial);
   function submit(e: FormEvent) {
     e.preventDefault();
     if (title.trim()) onSubmit(title.trim());
@@ -271,7 +310,7 @@ function NewPageForm({
     <form onSubmit={submit} className="nf-new-page">
       <input
         autoFocus
-        aria-label="Titel der neuen Seite"
+        aria-label={label}
         placeholder="Titel"
         value={title}
         maxLength={255}
@@ -279,7 +318,7 @@ function NewPageForm({
         onKeyDown={(e) => e.key === 'Escape' && onCancel()}
       />
       <button type="submit" disabled={busy}>
-        Anlegen
+        {submitText}
       </button>
       <button type="button" onClick={onCancel}>
         Abbrechen

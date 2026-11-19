@@ -7,6 +7,7 @@
 // Eigene Blöcke (z. B. Platzhalter für Confluence-Makros) kommen hier dazu, nie nur im Browser.
 import { BlockNoteSchema } from '@blocknote/core';
 import type { Block } from '@blocknote/core';
+import type * as Y from 'yjs';
 
 export const schema = BlockNoteSchema.create();
 export type EditorSchema = typeof schema;
@@ -24,6 +25,36 @@ export const TITLE_TEXT = 'title';
 export const TITLE_MAX_LENGTH = 255;
 /** Leerer Anfangszustand neuer Seiten in page_contents.ydoc (app.create_page) */
 export const EMPTY_YDOC = Uint8Array.of(0, 0);
+
+/**
+ * Titel im Y.Text setzen, mit der kleinsten Änderung (gemeinsamer Anfang und gemeinsames Ende
+ * bleiben): Tippt jemand gleichzeitig im Titel, gehen seine Zeichen nicht verloren. Für den Editor
+ * im Browser und für Änderungen von der Serverseite (Umbenennen aus der Seitenleiste). Kürzt auf
+ * TITLE_MAX_LENGTH.
+ */
+export function setTitle(text: Y.Text, title: string): void {
+  const next = title.slice(0, TITLE_MAX_LENGTH);
+  const prev = text.toString();
+  if (prev === next) return;
+  let start = 0;
+  while (start < prev.length && start < next.length && prev[start] === next[start]) start++;
+  let endPrev = prev.length;
+  let endNext = next.length;
+  while (endPrev > start && endNext > start && prev[endPrev - 1] === next[endNext - 1]) {
+    endPrev--;
+    endNext--;
+  }
+  // Erst einfügen, dann löschen: So hängt der neue Text vor dem alten (rechter Nachbar sichtbar),
+  // und was jemand gleichzeitig hinter dem alten tippt, landet verlässlich dahinter. Andersherum
+  // entschiede bei gleichzeitigem Tippen die zufällige Client-ID über die Reihenfolge.
+  const apply = () => {
+    const inserted = endNext - start;
+    if (inserted > 0) text.insert(start, next.slice(start, endNext));
+    if (endPrev > start) text.delete(start + inserted, endPrev - start);
+  };
+  if (text.doc) text.doc.transact(apply);
+  else apply();
+}
 
 const DOCUMENT = /^page:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/;
 

@@ -1,11 +1,12 @@
 // Collab-Server (Hocuspocus): Yjs-Sync, Cursor, Anwesenheit. Ein Dokument pro Seite,
 // Name page:<uuid> (CLAUDE.md, Abschnitte 6 und 7). Verbindet sich als wiki_worker.
 // Anmeldung über das Sitzungs-Cookie (auth.ts), Laden und Speichern in store.ts, die Hooks in
-// server.ts, Rechteänderungen und Abmelden per LISTEN in events.ts. Noch nicht hier (M1, Stück 3):
-// interner Aufruf für Änderungen von der Serverseite.
+// server.ts, Rechteänderungen und Abmelden per LISTEN in events.ts, Änderungen von der Serverseite
+// (interner Aufruf der API) in internal.ts.
 import pg from 'pg';
 import { assertDbRole } from '@notefieber/shared';
 import { collabConfig } from './config.ts';
+import { startInternal } from './internal.ts';
 import { createCollab } from './server.ts';
 
 const config = collabConfig();
@@ -25,12 +26,27 @@ console.log(
   `Collab-Server: ${collab.server.webSocketURL} (Origin ${new URL(config.PUBLIC_URL).origin}, LISTEN nf_events, nf_sessions)`,
 );
 
+// Interner Aufruf der API (Umbenennen aus der Seitenleiste), nur mit Geheimnis
+const internal = config.COLLAB_INTERNAL_SECRET
+  ? await startInternal(collab, db, {
+      host: config.COLLAB_INTERNAL_HOST,
+      port: config.COLLAB_INTERNAL_PORT,
+      secret: config.COLLAB_INTERNAL_SECRET,
+    })
+  : undefined;
+console.log(
+  internal
+    ? `Collab-Server: interner Aufruf auf http://${config.COLLAB_INTERNAL_HOST}:${config.COLLAB_INTERNAL_PORT}`
+    : 'Collab-Server: interner Aufruf aus (COLLAB_INTERNAL_SECRET fehlt), Umbenennen aus der Seitenleiste geht nicht',
+);
+
 // Beim Beenden erst alle offenen Dokumente speichern (Hocuspocus destroy), dann LISTEN und Datenbank
 let stopping = false;
 async function shutdown(signal: string) {
   if (stopping) return;
   stopping = true;
   console.log(`Collab-Server: ${signal}, speichere und beende`);
+  internal?.close();
   await collab.stop();
   await db.end();
   process.exit(0);

@@ -11,6 +11,7 @@ import { toHttpError } from './http/errors.ts';
 import { sameOriginOnly } from './http/origin.ts';
 import { PositionError } from './positions.ts';
 import { invitesRouter } from './routes/invites.ts';
+import { createCollabClient } from './collab-client.ts';
 import { spacesRouter } from './routes/spaces.ts';
 
 export function createApp(config: ApiConfig, db: pg.Pool, idp: Oidc) {
@@ -47,7 +48,7 @@ export function createApp(config: ApiConfig, db: pg.Pool, idp: Oidc) {
 
   v1.use('/auth', authRouter(config, db, idp));
   v1.use(invitesRouter(config, db));
-  v1.use(spacesRouter(db));
+  v1.use(spacesRouter(db, createCollabClient(config.COLLAB_INTERNAL_URL, config.COLLAB_INTERNAL_SECRET)));
 
   app.use('/api/v1', v1);
 

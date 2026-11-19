@@ -14,7 +14,15 @@ import { de } from '@blocknote/core/locales';
 import { withCollaboration } from '@blocknote/core/yjs';
 import { useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
-import { CONTENT_FRAGMENT, TITLE_MAX_LENGTH, TITLE_TEXT, documentName, schema } from '@notefieber/editor-schema';
+import { clearLocalCopy, closeLocalCopy, openLocalCopy } from '@/lib/local-copies';
+import {
+  CONTENT_FRAGMENT,
+  TITLE_MAX_LENGTH,
+  TITLE_TEXT,
+  documentName,
+  schema,
+  setTitle,
+} from '@notefieber/editor-schema';
 
 export interface EditorUser {
   id: string;
@@ -75,6 +83,7 @@ export function PageEditor(props: {
   onRestore?: () => Promise<unknown>;
 }) {
   const { pageId, onAccessChange } = props;
+  const userId = props.user.id;
   const [conn, setConn] = useState<Connection>();
   const [status, setStatus] = useState<Status>('connecting');
   const [scope, setScope] = useState<Scope>();
@@ -87,10 +96,13 @@ export function PageEditor(props: {
   // Eine Verbindung pro Seite (die Komponente hat die Seiten-ID als key, wird also pro Seite neu
   // aufgebaut); beim Verlassen wieder abbauen. Der Editor erscheint erst nach dem ersten Abgleich,
   // sonst legte BlockNote in ein noch leeres Dokument einen eigenen Anfangsblock.
+  // Daneben die lokale Kopie in IndexedDB (lib/local-copies.ts, E04-04): Was bei einem Funkloch
+  // noch nicht übertragen war, übersteht ein Neuladen und geht beim nächsten Verbinden hinaus.
   useEffect(() => {
     let alive = true;
     let authentications = 0;
     const doc = new Y.Doc();
+    const local = openLocalCopy(userId, pageId, doc);
     const provider = new HocuspocusProvider({
       url: collabUrl(),
       name: documentName(pageId),
@@ -109,15 +121,20 @@ export function PageEditor(props: {
         if (!alive) return;
         setDenied(reason);
         accessChanged.current?.();
+        // Kein Leserecht mehr: auch die lokale Kopie weg. Abgemeldet: Das Löschen übernimmt der
+        // Tab, in dem abgemeldet wurde (clearAllLocalCopies), hier nur die Verbindung schließen.
+        if (reason === 'forbidden') void clearLocalCopy(local);
+        else closeLocalCopy(local);
       },
       onSynced: () => alive && setConn((c) => c ?? { doc, provider }),
     });
     return () => {
       alive = false;
       provider.destroy();
+      closeLocalCopy(local);
       doc.destroy();
     };
-  }, [pageId]);
+  }, [pageId, userId]);
 
   if (denied) {
     // Kein Zugriff (mehr) oder abgemeldet: nichts vom Inhalt zeigen, auch nicht den Titel aus Yjs
@@ -263,24 +280,6 @@ function CollabEditor({
   );
 }
 
-/** Kleinste Änderung von a nach b, damit gleichzeitiges Tippen im Titel zusammenpasst */
-function applyDiff(text: Y.Text, next: string) {
-  const prev = text.toString();
-  if (prev === next) return;
-  let start = 0;
-  while (start < prev.length && start < next.length && prev[start] === next[start]) start++;
-  let endPrev = prev.length;
-  let endNext = next.length;
-  while (endPrev > start && endNext > start && prev[endPrev - 1] === next[endNext - 1]) {
-    endPrev--;
-    endNext--;
-  }
-  text.doc?.transact(() => {
-    if (endPrev > start) text.delete(start, endPrev - start);
-    if (endNext > start) text.insert(start, next.slice(start, endNext));
-  });
-}
-
 function useYText(text: Y.Text): string {
   return useSyncExternalStore(
     (cb) => {
@@ -319,7 +318,7 @@ function TitleField({
         value={title}
         maxLength={TITLE_MAX_LENGTH}
         placeholder="Ohne Titel"
-        onChange={(e) => applyDiff(text, e.target.value.slice(0, TITLE_MAX_LENGTH))}
+        onChange={(e) => setTitle(text, e.target.value)}
       />
     </h1>
   );

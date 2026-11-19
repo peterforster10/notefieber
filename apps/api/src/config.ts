@@ -35,6 +35,11 @@ export function apiConfig() {
       SESSION_HOURS: z.coerce.number().int().min(1).max(720).default(12),
       /** Cookies nur über HTTPS. Lokal (http://localhost) false. */
       COOKIE_SECURE: bool.default(true),
+
+      /** Interner Aufruf an den Collab-Server (Umbenennen aus der Seitenleiste), nur im Cluster */
+      COLLAB_INTERNAL_URL: z.url().default('http://127.0.0.1:1235'),
+      /** Geteiltes Geheimnis, dasselbe wie im Collab-Server; ohne geht Umbenennen nicht (503) */
+      COLLAB_INTERNAL_SECRET: z.string().min(32, 'COLLAB_INTERNAL_SECRET kürzer als 32 Zeichen').optional(),
     })
     .parse(process.env);
   return { ...c, OIDC_REDIRECT_URI: c.OIDC_REDIRECT_URI ?? new URL('/api/v1/auth/callback', c.PUBLIC_URL).href };

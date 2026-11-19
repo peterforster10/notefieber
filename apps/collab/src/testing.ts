@@ -210,6 +210,8 @@ export async function startCollab() {
     query,
     connect,
     collab,
+    /** Verbindung des Servers (wiki_worker), z. B. für den internen Aufruf */
+    workerPool: worker,
     async close() {
       await collab.stop();
       await worker.end();

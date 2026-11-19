@@ -1,7 +1,8 @@
 # Use Cases in der Oberfläche
 
 Was sich im Frontend schon durchklicken lässt. **Stand: 19. November 2026** (M0 abgeschlossen,
-M1 mit Editor, gemeinsamem Bearbeiten und Rechten, die auch für offene Editoren sofort gelten). Wird nachgeführt, sobald ein neuer Ablauf in der Oberfläche dazukommt; was es
+M1 mit Editor, gemeinsamem Bearbeiten, Rechten, die auch für offene Editoren sofort gelten,
+Umbenennen aus der Seitenleiste und lokalen Kopien für Funklöcher). Wird nachgeführt, sobald ein neuer Ablauf in der Oberfläche dazukommt; was es
 nur in Datenbank oder API gibt, steht unten unter „Noch nicht in der Oberfläche“.
 
 **Spalte „Geprüft“:** *Browser* = am 12. November 2026 von Hand gegen die lokale Umgebung
@@ -53,6 +54,8 @@ in `compose.yaml` (`NF_TEST_PASSWORD`).
 | UC-23 | Recht verlieren, während die Seite offen ist | alle | Browser (19. November 2026, Max verliert den Zugang zu „Release-Prozess“) |
 | UC-24 | Seite im Papierkorb, während jemand schreibt | Bearbeitende | Browser (19. November 2026, mit „Wiederherstellen“) |
 | UC-25 | Abmelden schließt Editoren in anderen Tabs | alle | Browser (19. November 2026, zwei Tabs) |
+| UC-26 | Seite in der Seitenleiste umbenennen | Bearbeitende | Browser (19. November 2026, Editor offen) |
+| UC-27 | Weiterschreiben nach einem Funkloch, auch nach Neuladen | Bearbeitende | Browser (19. November 2026, Collab-Server gestoppt) |
 
 ## Anmelden und Abmelden
 
@@ -219,7 +222,7 @@ Block-Editor (BlockNote, deutsche Oberfläche, Menü mit „/“). Gespeichert w
 nach, wenn die Seite etwa 30 s ruht. Seiten aus den Testdaten haben ihren Inhalt schon beim
 ersten Öffnen. Ist der Collab-Server nicht erreichbar, steht da „Collab-Server nicht erreichbar …“;
 reißt die Verbindung später ab, „Offline. Änderungen werden übertragen, sobald die Verbindung
-zurück ist.“
+zurück ist.“ (UC-27).
 
 ### UC-20 Gemeinsam bearbeiten, sehen wer da ist
 
@@ -240,7 +243,7 @@ auch für Bearbeitende nur lesbar (UC-24).
 
 Der Titel ist ein Eingabefeld über dem Inhalt (höchstens 255 Zeichen). Andere sehen die
 Änderung sofort; Seitenbaum, Brotkrume und Adresse (`/spaces/…/pages/<titel>-<id>`) ziehen nach
-spätestens 10 s nach. Umbenennen aus der Seitenleiste kommt mit M1, Stück 3.
+spätestens 10 s nach. Umbenennen geht auch aus der Seitenleiste (UC-26).
 
 ### UC-23 Recht verlieren, während die Seite offen ist
 
@@ -265,8 +268,29 @@ Hinweis den Fehler der API).
 ### UC-25 Abmelden schließt Editoren in anderen Tabs
 
 Wer sich in einem Tab abmeldet, dessen Editoren in anderen Tabs schließen sich nach etwa einer
-Sekunde mit „Abgemeldet. Bitte neu anmelden.“ und dem Knopf „Neu anmelden“. Läuft die Sitzung
+Sekunde mit „Abgemeldet. Bitte neu anmelden.“ und dem Knopf „Neu anmelden“. Abmelden löscht
+außerdem alle lokalen Kopien von Seiten in diesem Browser (UC-27); was noch nicht übertragen war,
+ist damit verworfen. Läuft die Sitzung
 ab, schließt der Editor spätestens nach 5 Minuten (regelmäßige Prüfung im Collab-Server).
+
+### UC-26 Seite in der Seitenleiste umbenennen
+
+Im Seitenbaum über ✎ an der Seite (erscheint beim Darüberfahren oder per Tastatur), neuen Titel
+eingeben, Enter. Nur für Bearbeitende; die Startseite benennt man im Editor um. Der neue Titel
+steht sofort im Baum, in der Brotkrume und in der Adresse, und wer die Seite gerade offen hat,
+sieht ihn im Editor ohne Neuladen (die API bittet den Collab-Server, den Titel im Yjs-Dokument zu
+ändern). Lokal braucht das `COLLAB_INTERNAL_SECRET` in der `.env` (siehe `.env.example`), sonst
+antwortet die API mit „Umbenennen ist nicht eingerichtet“.
+
+### UC-27 Weiterschreiben nach einem Funkloch, auch nach Neuladen
+
+Reißt die Verbindung zum Collab-Server ab, schreibt man einfach weiter; der Editor zeigt „Offline.
+Änderungen werden übertragen, sobald die Verbindung zurück ist.“ und verbindet sich von selbst
+neu. Jede geöffnete Seite hat dafür eine lokale Kopie im Browser (IndexedDB, pro Person und
+Seite): Lädt man die Seite neu, während die Verbindung noch weg ist, wartet der Editor mit
+„Collab-Server nicht erreichbar …“, und sobald er wieder da ist, kommen die Änderungen an.
+Ausprobieren: Collab-Server stoppen, tippen, neu laden, Collab-Server starten. Abmelden löscht
+alle lokalen Kopien (UC-25), „Kein Zugriff mehr“ die der Seite (UC-23).
 
 ## Noch nicht in der Oberfläche
 
@@ -274,8 +298,6 @@ Teils in Datenbank oder API schon vorhanden, aber noch nicht klickbar:
 
 | Was | Wann | Stand dahinter |
 |---|---|---|
-| Umbenennen in der Seitenleiste | M1 (E04-08) | interner Aufruf an den Collab-Server fehlt noch |
-| Änderungen nach einem Funkloch auch über ein Neuladen retten (IndexedDB) | M1 (E04-04) | kurze Abbrüche überbrückt der Editor schon im Speicher |
 | Drag & Drop im Seitenbaum | M2 | API fertig (`/pages/:id/move`) |
 | Versionen ansehen und wiederherstellen | M2 | Datenbank fertig (`page_versions`, `save_version`) |
 | Kommentare | M3 | Datenbank fertig (`add_comment` …) |

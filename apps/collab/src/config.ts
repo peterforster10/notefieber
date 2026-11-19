@@ -14,6 +14,11 @@ const schema = z.object({
   COLLAB_MAX_DEBOUNCE_MS: z.coerce.number().int().min(0).default(10000),
   // Offene Verbindungen regelmäßig neu prüfen: abgelaufene Sitzungen, verpasste Meldungen (E04-06: 5 Minuten)
   COLLAB_RECHECK_SECONDS: z.coerce.number().min(1).default(300),
+  // Interner Aufruf der API (internal.ts): eigener Port, nie über den Ingress, dazu ein geteiltes
+  // Geheimnis (mindestens 32 Zeichen, dasselbe wie in der API). Ohne Geheimnis ist er aus.
+  COLLAB_INTERNAL_HOST: z.string().min(1).default('127.0.0.1'),
+  COLLAB_INTERNAL_PORT: z.coerce.number().int().min(0).max(65535).default(1235),
+  COLLAB_INTERNAL_SECRET: z.string().min(32, 'COLLAB_INTERNAL_SECRET kürzer als 32 Zeichen').optional(),
 });
 
 export type CollabConfig = z.infer<typeof schema>;

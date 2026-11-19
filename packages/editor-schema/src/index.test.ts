@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { blocksToPlainText, documentName, pageIdFromDocument } from './index.ts';
+import { blocksToPlainText, documentName, pageIdFromDocument, setTitle } from './index.ts';
 
 const ID = '01a1bc1b-c003-7b51-b4d7-a9701a1a81d2';
 
@@ -57,4 +57,31 @@ test('Klartext: eine Zeile pro Block, Links, Kinder, Tabellen, leere Blöcke üb
   ];
   assert.equal(blocksToPlainText(blocks), 'Grundsätze\nSiehe Doku.\nUnterpunkt\nA\tB\n\tD');
   assert.equal(blocksToPlainText([]), '');
+});
+
+test('setTitle: kleinste Änderung, gleichzeitiges Tippen bleibt erhalten, gekürzt auf 255', async () => {
+  const Y = await import('yjs');
+  // A benennt um (Server), B tippt gleichzeitig hinten weiter (Browser). Die Reihenfolge darf
+  // nicht von den zufälligen Client-IDs abhängen, deshalb viele Durchläufe mit neuen Dokumenten.
+  for (let i = 0; i < 100; i++) {
+    const x = new Y.Doc();
+    const y = new Y.Doc();
+    x.getText('title').insert(0, 'Release-Prozess');
+    Y.applyUpdate(y, Y.encodeStateAsUpdate(x));
+    setTitle(x.getText('title'), 'Release-Ablauf');
+    y.getText('title').insert(y.getText('title').length, ' 2027');
+    Y.applyUpdate(x, Y.encodeStateAsUpdate(y));
+    Y.applyUpdate(y, Y.encodeStateAsUpdate(x));
+    assert.equal(x.getText('title').toString(), 'Release-Ablauf 2027', `Durchlauf ${i}`);
+    assert.equal(y.getText('title').toString(), x.getText('title').toString());
+  }
+
+  const a = new Y.Doc();
+  a.getText('title').insert(0, 'Release-Prozess');
+
+  setTitle(a.getText('title'), 'T'.repeat(300));
+  assert.equal(a.getText('title').length, 255);
+  const before = Y.encodeStateVector(a);
+  setTitle(a.getText('title'), 'T'.repeat(255));
+  assert.deepEqual(Y.encodeStateVector(a), before, 'gleicher Titel ändert nichts');
 });
