@@ -1,12 +1,12 @@
 // Collab-Server (Hocuspocus): Yjs-Sync, Cursor, Anwesenheit. Ein Dokument pro Seite,
 // Name page:<uuid> (CLAUDE.md, Abschnitte 6 und 7). Verbindet sich als wiki_worker.
 // Anmeldung über das Sitzungs-Cookie (auth.ts), Laden und Speichern in store.ts, die Hooks in
-// server.ts. Noch nicht hier (M1, Stück 2 und 3): Trennen bei Rechteänderungen (LISTEN/NOTIFY),
-// Abmelden in anderen Tabs, interner Aufruf für Änderungen von der Serverseite.
+// server.ts, Rechteänderungen und Abmelden per LISTEN in events.ts. Noch nicht hier (M1, Stück 3):
+// interner Aufruf für Änderungen von der Serverseite.
 import pg from 'pg';
 import { assertDbRole } from '@notefieber/shared';
 import { collabConfig } from './config.ts';
-import { createCollabServer } from './server.ts';
+import { createCollab } from './server.ts';
 
 const config = collabConfig();
 
@@ -19,17 +19,19 @@ try {
   process.exit(1);
 }
 
-const server = createCollabServer(config, db);
-await server.listen();
-console.log(`Collab-Server: ${server.webSocketURL} (Origin ${new URL(config.PUBLIC_URL).origin})`);
+const collab = createCollab(config, db);
+await collab.start();
+console.log(
+  `Collab-Server: ${collab.server.webSocketURL} (Origin ${new URL(config.PUBLIC_URL).origin}, LISTEN nf_events, nf_sessions)`,
+);
 
-// Beim Beenden erst alle offenen Dokumente speichern (Hocuspocus destroy), dann die Datenbank
+// Beim Beenden erst alle offenen Dokumente speichern (Hocuspocus destroy), dann LISTEN und Datenbank
 let stopping = false;
 async function shutdown(signal: string) {
   if (stopping) return;
   stopping = true;
   console.log(`Collab-Server: ${signal}, speichere und beende`);
-  await server.destroy();
+  await collab.stop();
   await db.end();
   process.exit(0);
 }

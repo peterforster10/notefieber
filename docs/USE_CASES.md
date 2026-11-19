@@ -1,7 +1,7 @@
 # Use Cases in der Oberfläche
 
 Was sich im Frontend schon durchklicken lässt. **Stand: 19. November 2026** (M0 abgeschlossen,
-M1 mit Editor und gemeinsamem Bearbeiten, noch ohne Trennen bei Rechteänderungen). Wird nachgeführt, sobald ein neuer Ablauf in der Oberfläche dazukommt; was es
+M1 mit Editor, gemeinsamem Bearbeiten und Rechten, die auch für offene Editoren sofort gelten). Wird nachgeführt, sobald ein neuer Ablauf in der Oberfläche dazukommt; was es
 nur in Datenbank oder API gibt, steht unten unter „Noch nicht in der Oberfläche“.
 
 **Spalte „Geprüft“:** *Browser* = am 12. November 2026 von Hand gegen die lokale Umgebung
@@ -50,6 +50,9 @@ in `compose.yaml` (`NF_TEST_PASSWORD`).
 | UC-20 | Gemeinsam bearbeiten, sehen wer da ist | alle mit Leserecht | Browser (19. November 2026, Lukas und Max in getrennten Browsern; Cursor mit Namen: Code) |
 | UC-21 | Live lesen, ohne zu schreiben | Lesende, Kommentierende | Browser (19. November 2026) |
 | UC-22 | Titel im Editor ändern | Bearbeitende | Browser (19. November 2026) |
+| UC-23 | Recht verlieren, während die Seite offen ist | alle | Browser (19. November 2026, Max verliert den Zugang zu „Release-Prozess“) |
+| UC-24 | Seite im Papierkorb, während jemand schreibt | Bearbeitende | Browser (19. November 2026, mit „Wiederherstellen“) |
+| UC-25 | Abmelden schließt Editoren in anderen Tabs | alle | Browser (19. November 2026, zwei Tabs) |
 
 ## Anmelden und Abmelden
 
@@ -231,7 +234,7 @@ mit Namen und Farbe (die Farbe hängt an der Person).
 Mit Rolle Lesen oder Kommentieren (z. B. Max in `ENTW`) ist der Editor schreibgeschützt, und
 der Titel ist kein Eingabefeld; Änderungen anderer erscheinen trotzdem sofort. Der Collab-Server
 verbindet nur lesend und verwirft Änderungen, die trotzdem kommen. Seiten im Papierkorb sind
-auch für Bearbeitende nur lesbar, mit dem Hinweis „Diese Seite liegt im Papierkorb …“.
+auch für Bearbeitende nur lesbar (UC-24).
 
 ### UC-22 Titel im Editor ändern
 
@@ -239,13 +242,38 @@ Der Titel ist ein Eingabefeld über dem Inhalt (höchstens 255 Zeichen). Andere 
 Änderung sofort; Seitenbaum, Brotkrume und Adresse (`/spaces/…/pages/<titel>-<id>`) ziehen nach
 spätestens 10 s nach. Umbenennen aus der Seitenleiste kommt mit M1, Stück 3.
 
+### UC-23 Recht verlieren, während die Seite offen ist
+
+Ändert ein Admin die Rechte, während jemand die Seite offen hat (Recht entzogen oder
+herabgestuft, eigene Rechte für die Seite, Seite in einen eingeschränkten Bereich verschoben,
+aus dem Workspace entfernt, deaktiviert, Space archiviert), meldet der Collab-Server die
+betroffene Verbindung innerhalb weniger Sekunden neu an. Wer nur noch lesen darf, hat danach
+einen schreibgeschützten Editor; wer die Seite gar nicht mehr sehen darf, sieht „Kein Zugriff mehr
+auf diese Seite.“ statt des Inhalts, und die Seite verschwindet aus seinem Seitenbaum. Wer nicht
+betroffen ist, merkt nichts. Einen Rechte-Dialog gibt es noch nicht (M3); zum Ausprobieren die
+Rechte mit `app.set_page_inheritance` und `app.set_grant` in der Datenbank ändern.
+
+### UC-24 Seite im Papierkorb, während jemand schreibt
+
+Legt jemand die Seite (oder eine Seite darüber) in den Papierkorb, wird der Editor aller, die sie
+offen haben, innerhalb weniger Sekunden schreibgeschützt. Bearbeitende sehen „Diese Seite liegt
+im Papierkorb und kann nicht bearbeitet werden.“ mit „Wiederherstellen“; danach können sie gleich
+weiterschreiben. Was bis dahin gespeichert war, bleibt erhalten. Wiederherstellen geht nur für
+die Seite, die in den Papierkorb gelegt wurde, nicht für mitgelöschte Unterseiten (dann zeigt der
+Hinweis den Fehler der API).
+
+### UC-25 Abmelden schließt Editoren in anderen Tabs
+
+Wer sich in einem Tab abmeldet, dessen Editoren in anderen Tabs schließen sich nach etwa einer
+Sekunde mit „Abgemeldet. Bitte neu anmelden.“ und dem Knopf „Neu anmelden“. Läuft die Sitzung
+ab, schließt der Editor spätestens nach 5 Minuten (regelmäßige Prüfung im Collab-Server).
+
 ## Noch nicht in der Oberfläche
 
 Teils in Datenbank oder API schon vorhanden, aber noch nicht klickbar:
 
 | Was | Wann | Stand dahinter |
 |---|---|---|
-| Rechteentzug und Papierkorb wirken sofort auf offene Editoren, Abmelden schließt Editoren in anderen Tabs | M1 (E04-05 bis E04-07) | Collab-Server prüft Rechte bisher nur beim Verbinden |
 | Umbenennen in der Seitenleiste | M1 (E04-08) | interner Aufruf an den Collab-Server fehlt noch |
 | Änderungen nach einem Funkloch auch über ein Neuladen retten (IndexedDB) | M1 (E04-04) | kurze Abbrüche überbrückt der Editor schon im Speicher |
 | Drag & Drop im Seitenbaum | M2 | API fertig (`/pages/:id/move`) |

@@ -705,6 +705,7 @@ DEFINER, App, vor dem Mandanten-Kontext (bei jeder Anfrage mit Cookie). Liefert 
 #### `end_session(token_hash) → boolean`
 DEFINER, App, ohne Kontext (das Token genügt). Löscht die Sitzung und gibt zurück, ob es eine gab.
 Audit: `session.ended` (direkt mit dem Mandanten der Sitzung, weil kein Kontext gesetzt ist).
+Meldet die Sitzung per `NOTIFY nf_sessions` (`{"tenant", "session"}`, zugestellt beim Commit), damit der Collab-Server offene Editoren dieser Sitzung sofort schließt (E04-06). Kein Outbox-Ereignis, weil eine Sitzung zu keinem Space gehört.
 
 #### `create_group(name, actor) → uuid`
 DEFINER, App. Legt eine Gruppe mit Quelle `local` an (Name ohne Leerzeichen am Rand). Nur für Organisations-Admins.
@@ -844,3 +845,4 @@ Ereignis: `import.requested`. Audit: `import.started`.
 | `protect_last_owner` | `workspace_members`, vor `UPDATE OF role` und `DELETE` | `app.protect_last_owner()` | Jeder Workspace behält mindestens einen aktiven Owner (`restrict_violation`). Sperrt den Workspace, damit zwei gleichzeitige Änderungen nicht beide durchkommen. |
 | `protect_last_org_admin` | `users`, vor `UPDATE OF role, deactivated_at` und `DELETE` | `app.protect_last_org_admin()` | Jeder Mandant behält mindestens einen aktiven Organisations-Admin (`restrict_violation`). Sperrt den Mandanten. |
 | `admin_remains` | `grants`, nach `DELETE` und `UPDATE OF role`, **beim Commit** (`DEFERRABLE INITIALLY DEFERRED`) | `app.check_admin_remains()` (DEFINER) | Rückfallebene für alle Wege an `set_grant` vorbei (Worker, gelöschte Personen): Jeder Space und jede Seite mit gekappter Vererbung behält einen wirksamen Admin. Prüft erst beim Commit, damit „löschen und neu anlegen“ in einer Transaktion geht; ausgenommen sind gelöschte Objekte und Seiten, die wieder erben. Sperren und Gruppenaustritte ändern keine Grants und lösen ihn deshalb nicht aus; Austritte aus Wiki-Gruppen prüft `remove_group_member` selbst. |
+| `outbox_notify` | `outbox`, nach `INSERT`, pro Zeile | `app.notify_outbox()` | Meldet jedes Ereignis zusätzlich per `NOTIFY nf_events` mit `{"tenant", "space", "type"}` (Space aus dem Subject, keine Inhalte). Zugestellt wird beim Commit, zurückgerollte Ereignisse nie. Der Collab-Server hört mit `LISTEN` zu und prüft bei Rechteänderungen, Papierkorb und Austritten die offenen Verbindungen im Space neu (CLAUDE.md, Abschnitt 6). Die Outbox bleibt der verlässliche Weg; NOTIFY ist nur der schnelle, verpasste Meldungen holt der Collab-Server durch regelmäßiges Neu-Prüfen nach. |

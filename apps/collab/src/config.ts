@@ -12,6 +12,8 @@ const schema = z.object({
   // Speichern entprellt (CLAUDE.md, Abschnitt 6): etwa alle 2 s, spätestens nach 10 s
   COLLAB_DEBOUNCE_MS: z.coerce.number().int().min(0).default(2000),
   COLLAB_MAX_DEBOUNCE_MS: z.coerce.number().int().min(0).default(10000),
+  // Offene Verbindungen regelmäßig neu prüfen: abgelaufene Sitzungen, verpasste Meldungen (E04-06: 5 Minuten)
+  COLLAB_RECHECK_SECONDS: z.coerce.number().min(1).default(300),
 });
 
 export type CollabConfig = z.infer<typeof schema>;

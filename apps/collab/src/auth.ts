@@ -2,13 +2,13 @@
 // Token, sondern dasselbe Sitzungs-Cookie wie bei der API, beim WebSocket-Handshake mitgeschickt.
 //   1. Origin muss das Frontend sein (PUBLIC_URL)
 //   2. Sitzung über app.resolve_session (Hash des Cookie-Tokens)
-//   3. Rolle über app.page_rank(seite, person), dieselbe Funktion wie in allen Lesepfaden
+//   3. Zugang über app.page_rank(seite, person) (access.ts), dieselbe Regel wie beim Neu-Prüfen
 // Viewer und Commenter bekommen eine lesende Verbindung, Editoren und Admins eine schreibende.
 // Seiten im Papierkorb nur lesend (E04-07); app.store_ydoc lehnt sie ohnehin ab.
 import type pg from 'pg';
 import { pageIdFromDocument } from '@notefieber/editor-schema';
-import { roleRank } from '@notefieber/shared';
 import { hashToken, sessionTokenFromCookies } from '@notefieber/shared/session';
+import { pageAccess } from './access.ts';
 import { withTenant } from './db.ts';
 
 export interface CollabContext {
@@ -23,10 +23,15 @@ export interface CollabContext {
 /** Gründe für eine Ablehnung; der Browser bekommt sie als reason (onAuthenticationFailed) */
 export type RejectReason = 'invalid-document' | 'forbidden-origin' | 'unauthenticated' | 'forbidden';
 
+/**
+ * Erwartete Ablehnung, kein Fehler: ohne message, weil Hocuspocus Fehler mit message samt Stack
+ * protokolliert (jedes abgelaufene Cookie, jeder Rechteentzug). Der Browser bekommt reason.
+ */
 export class Rejected extends Error {
   readonly reason: RejectReason;
   constructor(reason: RejectReason) {
-    super(`Collab-Server: abgelehnt (${reason})`);
+    super();
+    this.name = 'Rejected';
     this.reason = reason;
   }
 }
@@ -50,23 +55,17 @@ export async function authenticate(
   const session = rows[0];
   if (!session) throw new Rejected('unauthenticated');
 
-  const page = await withTenant(db, session.tenant_id, async (client) => {
-    const r = await client.query<{ space_id: string; trashed: boolean; rank: number }>(
-      `SELECT space_id, deleted_at IS NOT NULL AS trashed, app.page_rank(id, $2) AS rank
-       FROM pages WHERE id = $1`,
-      [pageId, session.user_id],
-    );
-    return r.rows[0];
-  });
-  // Seite aus einem anderen Mandanten oder ohne Leserecht: dieselbe Antwort, verrät nichts
-  if (!page || page.rank < roleRank('viewer')) throw new Rejected('forbidden');
+  const { access, spaceId } = await withTenant(db, session.tenant_id, (client) =>
+    pageAccess(client, pageId, session.user_id),
+  );
+  if (access === 'none' || !spaceId) throw new Rejected('forbidden');
 
   return {
     tenantId: session.tenant_id,
     userId: session.user_id,
     sessionId: session.session_id,
     pageId,
-    spaceId: page.space_id,
-    readOnly: page.trashed || page.rank < roleRank('editor'),
+    spaceId,
+    readOnly: access !== 'write',
   };
 }

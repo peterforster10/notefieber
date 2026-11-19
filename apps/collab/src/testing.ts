@@ -11,7 +11,7 @@ import { HocuspocusProvider, HocuspocusProviderWebsocket } from '@hocuspocus/pro
 import { documentName } from '@notefieber/editor-schema';
 import { assertDbRole } from '@notefieber/shared';
 import { SESSION_COOKIE, hashToken } from '@notefieber/shared/session';
-import { createCollabServer } from './server.ts';
+import { createCollab } from './server.ts';
 
 export const PUBLIC_URL = 'http://localhost:3000';
 export const DEBOUNCE_MS = 100;
@@ -39,13 +39,19 @@ async function asApp<T>(db: pg.Pool, tenantId: string, userId: string, fn: (c: p
 export interface Person {
   userId: string;
   cookie: string;
+  /** SHA-256 des Tokens, wie in sessions.token_hash (für app.end_session) */
+  tokenHash: string;
 }
+
+export type AuthResult = { scope?: string; denied?: string };
 
 export interface Client {
   provider: HocuspocusProvider;
   doc: Y.Doc;
-  /** 'readonly' | 'read-write' nach der Anmeldung, sonst der Grund der Ablehnung */
-  result: Promise<{ scope?: string; denied?: string }>;
+  /** 'readonly' | 'read-write' nach der (ersten) Anmeldung, sonst der Grund der Ablehnung */
+  result: Promise<AuthResult>;
+  /** Ergebnis der nächsten Anmeldung, z. B. nachdem der Server die Verbindung geschlossen hat */
+  nextAuth(): Promise<AuthResult>;
   synced: Promise<void>;
   close(): void;
 }
@@ -60,18 +66,20 @@ export async function startCollab() {
   await assertDbRole(worker, 'wiki_worker');
   await assertDbRole(app, 'wiki_app');
 
-  const server = createCollabServer(
+  const collab = createCollab(
     {
       COLLAB_HOST: '127.0.0.1',
       COLLAB_PORT: 0,
       PUBLIC_URL,
       COLLAB_DEBOUNCE_MS: DEBOUNCE_MS,
       COLLAB_MAX_DEBOUNCE_MS: DEBOUNCE_MS * 5,
+      COLLAB_DATABASE_URL: workerUrl,
+      COLLAB_RECHECK_SECONDS: 3600, // in den Tests gezielt über collab.recheckAll()
     },
     worker,
   );
-  await server.listen();
-  const url = `ws://127.0.0.1:${server.address.port}`;
+  await collab.start();
+  const url = `ws://127.0.0.1:${collab.server.address.port}`;
 
   const { rows } = await app.query<{ tenant_id: string }>("SELECT tenant_id FROM app.resolve_tenant('alpenwerk')");
   const tenantId = rows[0]?.tenant_id;
@@ -92,7 +100,7 @@ export async function startCollab() {
         hashToken(token),
       ]),
     );
-    return { userId, cookie: `${SESSION_COOKIE}=${token}` };
+    return { userId, cookie: `${SESSION_COOKIE}=${token}`, tokenHash: hashToken(token) };
   }
 
   /** Neue Seite unter der Startseite eines Spaces, angelegt wie über die API */
@@ -117,6 +125,11 @@ export async function startCollab() {
   /** Seite über die API-Rolle in den Papierkorb legen */
   async function trashPage(by: Person, pageId: string) {
     await asApp(app, tenantId!, by.userId, (c) => c.query('SELECT app.trash_page($1, $2)', [pageId, by.userId]));
+  }
+
+  /** Beliebige Abfrage der API-Rolle im Namen einer Person (z. B. app.set_grant) */
+  async function asPerson<T extends pg.QueryResultRow>(by: Person, sql: string, params: unknown[] = []) {
+    return asApp(app, tenantId!, by.userId, async (c) => (await c.query<T>(sql, params)).rows);
   }
 
   /** Seiten-ID über den Titel (als Collab-Server, sieht alles im Mandanten) */
@@ -150,8 +163,15 @@ export async function startCollab() {
       }
     }
     const doc = new Y.Doc();
-    let resolveResult!: (r: { scope?: string; denied?: string }) => void;
-    const result = new Promise<{ scope?: string; denied?: string }>((r) => (resolveResult = r));
+    // Jede Anmeldung (auch nach einem Neuverbinden) landet hier; result ist die erste
+    const results: AuthResult[] = [];
+    const waiting: ((r: AuthResult) => void)[] = [];
+    const report = (r: AuthResult) => {
+      results.push(r);
+      for (const w of waiting.splice(0)) w(r);
+    };
+    const result = new Promise<AuthResult>((r) => (results.length ? r(results[0]!) : waiting.push(r)));
+    const nextAuth = () => new Promise<AuthResult>((r) => waiting.push(r));
     let resolveSynced!: () => void;
     const synced = new Promise<void>((r) => (resolveSynced = r));
     // Eigene Verbindung pro Client (wie ein Browser-Tab), mit den Headern von oben
@@ -161,8 +181,8 @@ export async function startCollab() {
       name: opts.name ?? documentName(pageId),
       document: doc,
       token: '',
-      onAuthenticated: ({ scope }) => resolveResult({ scope }),
-      onAuthenticationFailed: ({ reason }) => resolveResult({ denied: reason }),
+      onAuthenticated: ({ scope }) => report({ scope }),
+      onAuthenticationFailed: ({ reason }) => report({ denied: reason }),
       onSynced: () => resolveSynced(),
     });
     provider.attach();
@@ -170,6 +190,7 @@ export async function startCollab() {
       provider,
       doc,
       result,
+      nextAuth,
       synced,
       close: () => {
         provider.destroy();
@@ -184,11 +205,13 @@ export async function startCollab() {
     person,
     createPage,
     trashPage,
+    asPerson,
     pageByTitle,
     query,
     connect,
+    collab,
     async close() {
-      await server.destroy();
+      await collab.stop();
       await worker.end();
       await app.end();
     },

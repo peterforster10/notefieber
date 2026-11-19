@@ -189,13 +189,39 @@ function useRefreshAfterTitleChange(spaceKey: string | undefined) {
   }, [queryClient, spaceKey]);
 }
 
+/**
+ * Nach einer neuen Anmeldung am Collab-Server (Rechte geändert, Papierkorb, Wiederherstellen) Seite,
+ * Baum und Papierkorb neu laden, damit Rolle, Hinweis und Seitenleiste wieder stimmen.
+ */
+function useRefreshAccess(spaceKey: string | undefined) {
+  const queryClient = useQueryClient();
+  return useCallback(async () => {
+    if (!spaceKey) return;
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.pages }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.tree(spaceKey) }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.trash(spaceKey) }),
+    ]);
+  }, [queryClient, spaceKey]);
+}
+
 function PageView({ id, canonicalize }: { id: string; canonicalize: boolean }) {
   const page = usePage(id);
   const me = useMe();
   useCanonicalPath(page.data && canonicalize ? pagePath(page.data.spaceKey, page.data) : undefined);
   const onTitleChange = useRefreshAfterTitleChange(page.data?.spaceKey);
+  const refreshAccess = useRefreshAccess(page.data?.spaceKey);
+  // Aus dem Papierkorb holen; danach meldet der Collab-Server die Verbindung schreibend neu an
+  const restore = useCallback(async () => {
+    await api(`/pages/${id}/restore`, { method: 'POST' });
+    await refreshAccess();
+  }, [id, refreshAccess]);
   if (page.isPending) return <p>Einen Moment …</p>;
-  if (page.isError) return <p role="alert">Diese Seite gibt es nicht, oder sie ist für dich nicht sichtbar.</p>;
+  // Schlägt erst das Neuladen fehl (Recht entzogen, während die Seite offen war), bleiben die alten
+  // Daten stehen: Dann sagt der Editor „Kein Zugriff mehr“ und zeigt keinen Inhalt (E04-05)
+  if (page.isError && !page.data) {
+    return <p role="alert">Diese Seite gibt es nicht, oder sie ist für dich nicht sichtbar.</p>;
+  }
   const p = page.data;
   const lock = p.restricted ? <span title="Eigene Rechte">🔒</span> : null;
   return (
@@ -221,6 +247,8 @@ function PageView({ id, canonicalize }: { id: string; canonicalize: boolean }) {
           fallbackTitle={p.title}
           onTitleChange={onTitleChange}
           titleAddon={lock}
+          onAccessChange={refreshAccess}
+          onRestore={restore}
         />
       ) : (
         <h1>

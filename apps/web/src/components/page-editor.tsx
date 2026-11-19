@@ -48,10 +48,12 @@ export function colorFor(id: string): string {
   return COLORS[h % COLORS.length]!;
 }
 
-const DENIED: Record<string, string> = {
-  forbidden: 'Kein Zugriff auf diese Seite.',
-  unauthenticated: 'Abgemeldet. Bitte neu anmelden.',
-};
+/** Text zur Ablehnung des Collab-Servers; `before`: der Editor war schon offen (Recht entzogen, abgemeldet) */
+function deniedText(reason: string, before: boolean): string {
+  if (reason === 'forbidden') return before ? 'Kein Zugriff mehr auf diese Seite.' : 'Kein Zugriff auf diese Seite.';
+  if (reason === 'unauthenticated') return 'Abgemeldet. Bitte neu anmelden.';
+  return 'Der Editor konnte nicht verbunden werden.';
+}
 
 export function PageEditor(props: {
   pageId: string;
@@ -64,18 +66,30 @@ export function PageEditor(props: {
   onTitleChange?: (title: string) => void;
   /** Zusätzliches im Kopfbereich neben dem Titel, z. B. das Schloss */
   titleAddon?: React.ReactNode;
+  /**
+   * Der Collab-Server hat die Verbindung neu angemeldet oder abgelehnt (Rechte geändert, Papierkorb,
+   * abgemeldet): Seitendaten der API neu laden, damit Rolle und Papierkorb wieder stimmen.
+   */
+  onAccessChange?: () => void;
+  /** Seite aus dem Papierkorb holen (nur für Bearbeitende angeboten, E04-07) */
+  onRestore?: () => Promise<unknown>;
 }) {
-  const { pageId } = props;
+  const { pageId, onAccessChange } = props;
   const [conn, setConn] = useState<Connection>();
   const [status, setStatus] = useState<Status>('connecting');
   const [scope, setScope] = useState<Scope>();
   const [denied, setDenied] = useState<string>();
+  const accessChanged = useRef(onAccessChange);
+  useEffect(() => {
+    accessChanged.current = onAccessChange;
+  }, [onAccessChange]);
 
   // Eine Verbindung pro Seite (die Komponente hat die Seiten-ID als key, wird also pro Seite neu
   // aufgebaut); beim Verlassen wieder abbauen. Der Editor erscheint erst nach dem ersten Abgleich,
   // sonst legte BlockNote in ein noch leeres Dokument einen eigenen Anfangsblock.
   useEffect(() => {
     let alive = true;
+    let authentications = 0;
     const doc = new Y.Doc();
     const provider = new HocuspocusProvider({
       url: collabUrl(),
@@ -87,8 +101,15 @@ export function PageEditor(props: {
         if (!alive) return;
         setDenied(undefined);
         setScope(s as Scope);
+        // Jede Anmeldung nach der ersten heißt: Der Server hat die Verbindung geschlossen, weil sich
+        // der Zugang geändert hat (oder das Netz war weg); Rolle und Papierkorb neu laden
+        if (authentications++ > 0) accessChanged.current?.();
       },
-      onAuthenticationFailed: ({ reason }) => alive && setDenied(reason),
+      onAuthenticationFailed: ({ reason }) => {
+        if (!alive) return;
+        setDenied(reason);
+        accessChanged.current?.();
+      },
       onSynced: () => alive && setConn((c) => c ?? { doc, provider }),
     });
     return () => {
@@ -99,13 +120,19 @@ export function PageEditor(props: {
   }, [pageId]);
 
   if (denied) {
-    // Kein Zugriff (mehr): nichts vom Inhalt zeigen (E04-05)
+    // Kein Zugriff (mehr) oder abgemeldet: nichts vom Inhalt zeigen, auch nicht den Titel aus Yjs
+    // (E04-05, E04-06). Der Titel aus der API ist der zuletzt gesehene.
     return (
       <>
-        <h1>{props.fallbackTitle || 'Ohne Titel'}</h1>
+        <h1>{denied === 'forbidden' && conn ? 'Kein Zugriff' : props.fallbackTitle || 'Ohne Titel'}</h1>
         <p role="alert" className="nf-alert">
-          {DENIED[denied] ?? 'Der Editor konnte nicht verbunden werden.'}
+          {deniedText(denied, !!conn)}
         </p>
+        {denied === 'unauthenticated' && (
+          <button type="button" onClick={() => window.location.reload()}>
+            Neu anmelden
+          </button>
+        )}
       </>
     );
   }
@@ -129,15 +156,46 @@ export function PageEditor(props: {
       titleAddon={props.titleAddon}
       notice={
         // Erst nach dem ersten Abgleich sichtbar: alles außer verbunden heißt jetzt Funkloch
-        status !== 'connected'
-          ? 'Offline. Änderungen werden übertragen, sobald die Verbindung zurück ist.'
-          : props.trashed
-            ? 'Diese Seite liegt im Papierkorb und kann nicht bearbeitet werden.'
-            : scope === 'readonly' && props.mayEdit
-              ? 'Nur lesend verbunden.'
-              : undefined
+        status !== 'connected' ? (
+          'Offline. Änderungen werden übertragen, sobald die Verbindung zurück ist.'
+        ) : props.trashed ? (
+          <TrashNotice canRestore={props.mayEdit} onRestore={props.onRestore} />
+        ) : scope === 'readonly' && props.mayEdit ? (
+          'Nur lesend verbunden.'
+        ) : undefined
       }
     />
+  );
+}
+
+/** Seite im Papierkorb (E04-07): nur lesbar; wer bearbeiten darf, holt sie hier zurück */
+function TrashNotice({ canRestore, onRestore }: { canRestore: boolean; onRestore?: () => Promise<unknown> }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string>();
+  return (
+    <>
+      Diese Seite liegt im Papierkorb und kann nicht bearbeitet werden.
+      {canRestore && onRestore && (
+        <>
+          {' '}
+          <button
+            type="button"
+            className="nf-link-button"
+            disabled={busy}
+            onClick={() => {
+              setBusy(true);
+              setError(undefined);
+              onRestore()
+                .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)))
+                .finally(() => setBusy(false));
+            }}
+          >
+            Wiederherstellen
+          </button>
+        </>
+      )}
+      {error && <span role="alert"> {error}</span>}
+    </>
   );
 }
 
@@ -152,7 +210,7 @@ function CollabEditor({
   conn: Connection;
   user: EditorUser;
   editable: boolean;
-  notice?: string;
+  notice?: React.ReactNode;
   onTitleChange?: (title: string) => void;
   titleAddon?: React.ReactNode;
 }) {
@@ -173,8 +231,23 @@ function CollabEditor({
   );
 
   // Anwesenheit: wer die Seite offen hat, auch Lesende (E04-02). Die eigene ID für die Liste.
+  // Neu setzen, sobald sie fehlt: Beim Neuanmelden nach einer Rechteänderung und beim Wechsel
+  // zwischen lesend und schreibend räumen Provider bzw. BlockNote den eigenen Zustand teils ab.
   useEffect(() => {
-    provider.awareness?.setLocalStateField('person', { id: user.id, name: user.name, color });
+    const awareness = provider.awareness;
+    if (!awareness) return;
+    const person = { id: user.id, name: user.name, color };
+    const ensure = () => {
+      const own = awareness.getLocalState() as { person?: { id?: string } } | null;
+      if (own?.person?.id !== person.id) awareness.setLocalStateField('person', person);
+    };
+    ensure();
+    awareness.on('change', ensure);
+    provider.on('synced', ensure);
+    return () => {
+      awareness.off('change', ensure);
+      provider.off('synced', ensure);
+    };
   }, [provider, user.id, user.name, color]);
 
   return (

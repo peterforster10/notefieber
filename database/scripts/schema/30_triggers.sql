@@ -106,3 +106,22 @@ END $$;
 CREATE CONSTRAINT TRIGGER admin_remains AFTER DELETE OR UPDATE OF role ON grants
   DEFERRABLE INITIALLY DEFERRED
   FOR EACH ROW EXECUTE FUNCTION app.check_admin_remains();
+
+-- Ereignisse sofort an den Collab-Server melden (CLAUDE.md, Abschnitt 6; ARCHITECTURE_REVIEW.md,
+-- A-08): Er hört mit LISTEN nf_events zu und prüft bei Rechteänderungen, Papierkorb und
+-- Austritten die offenen Verbindungen im betroffenen Space neu. Nur Mandant, Space und Art des
+-- Ereignisses, keine Inhalte (NOTIFY-Nutzlast höchstens 8000 Byte, und wer LISTEN darf, soll nichts
+-- über fremde Mandanten erfahren). Zugestellt wird erst beim Commit, zurückgerollt wird nichts
+-- gemeldet. Die Outbox selbst bleibt der verlässliche Weg (später NATS), NOTIFY nur der schnelle.
+CREATE FUNCTION app.notify_outbox() RETURNS trigger
+LANGUAGE plpgsql AS $$
+BEGIN
+  PERFORM pg_notify('nf_events', json_build_object(
+    'tenant', NEW.tenant_id,
+    'space',  split_part(NEW.subject, '.', 5),   -- t.<tenant>.wiki.s.<space> (app.emit)
+    'type',   NEW.event_type)::text);
+  RETURN NULL;
+END $$;
+
+CREATE TRIGGER outbox_notify AFTER INSERT ON outbox
+  FOR EACH ROW EXECUTE FUNCTION app.notify_outbox();

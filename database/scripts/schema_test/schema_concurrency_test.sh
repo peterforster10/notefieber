@@ -112,4 +112,29 @@ N=$(q -c "SELECT count(*) FROM grants WHERE space_id = '$SPACE' AND role = 'admi
 [[ "$N" -ge 1 ]] || fail "Space ohne Admin"
 ok "4 Zwei Admins entfernen sich gleichzeitig: einer bleibt"
 
+# --- 5. Ereignisse und Abmelden kommen per NOTIFY beim Collab-Server an ---------
+# Sitzung 1 hört zu (wie der Collab-Server, als wiki_worker); psql gibt Benachrichtigungen
+# nach dem nächsten Befehl aus. Sitzung 2 ändert ein Recht und meldet eine Sitzung ab.
+TOKEN=$(printf "abmelden-%s" "$SLUG" | sha256sum | cut -c1-64)   # wie hashToken: 64 Hex-Zeichen
+as "$BEN" -c "SELECT app.create_session('$BEN', '$TOKEN', now() + interval '1 hour', 'test')" >/dev/null
+SID=$(q -c "SELECT id FROM sessions WHERE token_hash = '$TOKEN'")
+LOG=$(mktemp)
+q -c "SET ROLE wiki_worker" -c "LISTEN nf_events" -c "LISTEN nf_sessions" \
+  -c "SELECT pg_sleep($HOLD)" -c "SELECT 1" > "$LOG" 2>&1 &
+sleep 0.5
+as "$PETER" -c "SELECT app.set_grant('$SPACE', NULL, 'user', '$BEN', NULL, 'viewer', '$PETER')" >/dev/null
+q -c "SET ROLE wiki_app" -c "SELECT app.end_session('$TOKEN')" >/dev/null
+# Zurückgerollt: keine Benachrichtigung
+q -c "$(ctx "$PETER")" -c "BEGIN" \
+  -c "SELECT app.set_grant('$SPACE', NULL, 'user', '$BEN', NULL, 'editor', '$PETER')" -c "ROLLBACK" >/dev/null
+wait
+grep -q "\"tenant\" : \"$T\", \"space\" : \"$SPACE\", \"type\" : \"grant.changed\"" "$LOG" \
+  || { cat "$LOG" >&2; rm -f "$LOG"; fail "grant.changed nicht per NOTIFY nf_events gemeldet"; }
+grep -q "\"session\" : \"$SID\"" "$LOG" \
+  || { cat "$LOG" >&2; rm -f "$LOG"; fail "Abmelden nicht per NOTIFY nf_sessions gemeldet"; }
+N=$(grep -c "grant.changed" "$LOG" || true)
+rm -f "$LOG"
+[[ "$N" -eq 1 ]] || fail "$N Benachrichtigungen für grant.changed statt einer (zurückgerollt mitgemeldet?)"
+ok "5 Ereignisse und Abmelden kommen per NOTIFY an, zurückgerollte nicht"
+
 echo "Alle Nebenläufigkeitstests bestanden (Mandant $SLUG wird wieder gelöscht)."

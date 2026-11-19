@@ -488,17 +488,21 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, public, pg_te
 $$;
 
 -- Abmelden: Sitzung zum Token löschen. Braucht keinen Kontext, das Token genügt. Gibt
--- zurück, ob es eine Sitzung gab.
+-- zurück, ob es eine Sitzung gab. Meldet die Sitzung an den Collab-Server (LISTEN nf_sessions),
+-- damit offene Editoren in anderen Tabs sofort schließen (E04-06); kein Outbox-Ereignis, weil
+-- eine Sitzung zu keinem Space gehört. Zugestellt wird erst beim Commit.
 CREATE FUNCTION app.end_session(p_token_hash text)
 RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $$
 DECLARE
+  v_id     uuid;
   v_tenant uuid;
   v_user   uuid;
 BEGIN
-  DELETE FROM sessions WHERE token_hash = p_token_hash RETURNING tenant_id, user_id INTO v_tenant, v_user;
+  DELETE FROM sessions WHERE token_hash = p_token_hash RETURNING id, tenant_id, user_id INTO v_id, v_tenant, v_user;
   IF NOT FOUND THEN RETURN false; END IF;
   -- app.audit nimmt den Mandanten aus dem Kontext; hier gibt es keinen, also direkt
   INSERT INTO audit_log (tenant_id, actor_id, action, target_type, target_id)
   VALUES (v_tenant, v_user, 'session.ended', 'user', v_user);
+  PERFORM pg_notify('nf_sessions', json_build_object('tenant', v_tenant, 'session', v_id)::text);
   RETURN true;
 END $$;
