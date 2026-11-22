@@ -6,7 +6,7 @@
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useParams, usePathname, useRouter } from 'next/navigation';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { pageIdFromSlug, pagePath, spacePath, spaceSettingsPath } from '@notefieber/shared';
 import { LoginForm, logout } from '@/app/account';
@@ -24,6 +24,7 @@ import {
 } from '@/lib/api';
 import { PageTree } from './page-tree';
 import { SpaceSettings } from './space-settings';
+import { loadTrashOpen, saveTrashOpen } from '@/lib/sidebar-state';
 
 // Editor nur im Browser: BlockNote und Yjs brauchen das DOM und eine WebSocket-Verbindung
 const PageEditor = dynamic(() => import('./page-editor').then((m) => m.PageEditor), {
@@ -156,8 +157,18 @@ function Trash({ space }: { space: Space }) {
       ]),
   });
   const items = trash.data ?? [];
+  // Offen oder zu bleibt beim Seitenwechsel (lib/sidebar-state.ts)
+  const [open, setOpen] = useState(() => loadTrashOpen(space.id));
   return (
-    <details className="nf-trash">
+    <details
+      className="nf-trash"
+      open={open}
+      onToggle={(e) => {
+        const now = e.currentTarget.open;
+        setOpen(now);
+        saveTrashOpen(space.id, now);
+      }}
+    >
       <summary>Papierkorb ({items.length})</summary>
       {restore.isError && (
         <p role="alert" className="nf-alert nf-alert-dark">

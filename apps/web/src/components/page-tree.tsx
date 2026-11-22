@@ -3,7 +3,8 @@
 // Seitenbaum in der Seitenleiste (CLAUDE.md, Abschnitt 9). Der Baum lädt ebenenweise
 // (ARCHITECTURE_REVIEW.md, A-01): erst die oberste Ebene und die Ebene unter der Startseite,
 // dann jede Ebene, sobald jemand sie aufklappt (GET /spaces/:key/pages?parent=…). Aufgeklappt
-// ist anfangs der Weg zur ausgewählten Seite (ihre Brotkrume). Wie in Confluence steht die
+// ist, was die Person zuletzt in diesem Space aufgeklappt hat (bleibt beim Seitenwechsel und
+// Neuladen, lib/sidebar-state.ts), dazu immer der Weg zur ausgewählten Seite (ihre Brotkrume). Wie in Confluence steht die
 // Startseite nicht im Baum, sondern als eigener Eintrag darüber; der Baum beginnt mit ihren
 // Unterseiten. Eine Seite, deren Elternseite die Person nicht sieht, steht unter der nächsten
 // sichtbaren Seite (wie in der Brotkrume); sie heißt hier „verwaist“ und lässt sich nicht
@@ -33,6 +34,7 @@ import {
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { pagePath, spacePath } from '@notefieber/shared';
 import { api, canEdit, queryKeys, usePage, useTreeLevel, type Space, type TreePage } from '@/lib/api';
+import { loadExpanded, saveExpanded } from '@/lib/sidebar-state';
 
 type MoveBody = { parentId: string | null; afterId?: string; beforeId?: string };
 type Zone = 'before' | 'inside' | 'after';
@@ -94,10 +96,12 @@ export function PageTree({ space, selectedId }: { space: Space; selectedId?: str
   const homeLevel = useTreeLevel(space.key, homeId, !!homeId);
   const home = root.data?.find((p) => p.id === homeId);
 
-  // Aufgeklappt: der Weg zur ausgewählten Seite (Brotkrume, dieselbe Abfrage wie die Seite selbst),
-  // danach, was die Person auf- und zuklappt
+  // Aufgeklappt: was die Person in diesem Space zuletzt aufgeklappt hat (die Seitenleiste entsteht
+  // bei jedem Seitenwechsel neu), dazu der Weg zur ausgewählten Seite (Brotkrume, dieselbe Abfrage
+  // wie die Seite selbst)
   const selected = usePage(selectedId);
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
+  const [expanded, setExpanded] = useState<Set<string>>(() => loadExpanded(space.id));
+  useEffect(() => saveExpanded(space.id, expanded), [space.id, expanded]);
   // Neue Brotkrume (andere Seite ausgewählt): ihre Seiten zusätzlich aufklappen. Während des
   // Renderns statt in einem Effekt, damit der Baum nicht erst zugeklappt erscheint.
   const crumbs = selected.data?.breadcrumb.map((c) => c.id).join(',');

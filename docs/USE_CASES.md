@@ -37,7 +37,7 @@ in `compose.yaml` (`NF_TEST_PASSWORD`).
 | UC-05 | Space anlegen | Mitglieder (keine Gäste) | Browser (14. November 2026, mit zwei Workspaces) |
 | UC-06 | Space wechseln | alle | Browser |
 | UC-07 | Seite öffnen | alle mit Leserecht | Browser |
-| UC-08 | Seitenbaum auf- und zuklappen | alle | Browser (22. November 2026, jede Ebene lädt erst beim Aufklappen) |
+| UC-08 | Seitenbaum auf- und zuklappen | alle | Browser (22. November 2026, jede Ebene lädt erst beim Aufklappen; Baum und Papierkorb bleiben beim Seitenwechsel und Neuladen offen) |
 | UC-09 | Seite anlegen | Bearbeitende | Browser |
 | UC-10 | Seite verschieben | Bearbeitende | Browser (↑), Code (↓ → ←); Drag & Drop: UC-28 |
 | UC-11 | Seite in den Papierkorb legen | Bearbeitende | Browser |
@@ -127,7 +127,9 @@ Kommentieren, Bearbeiten, Admin). Darunter der Editor mit dem Inhalt (UC-19 bis 
 ### UC-08 Seitenbaum auf- und zuklappen
 
 Mit dem Dreieck vor einer Seite; das Dreieck steht nur an Seiten mit (sichtbaren) Unterseiten.
-Beim Öffnen einer Seite ist der Weg zu ihr aufgeklappt. Der Baum lädt Ebene für Ebene: zuerst
+Beim Öffnen einer Seite ist der Weg zu ihr aufgeklappt. Was man auf- oder zugeklappt hat,
+bleibt beim Wechsel auf eine andere Seite und beim Neuladen so, ebenso der Papierkorb (pro Space
+und Tab; Abmelden vergisst es). Der Baum lädt Ebene für Ebene: zuerst
 nur die oberste Ebene und die Unterseiten der Startseite, jede weitere erst beim Aufklappen
 (kurz „…“). So öffnet sich auch ein Space mit Tausenden Seiten sofort.
 

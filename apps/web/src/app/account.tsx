@@ -5,6 +5,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { api, type Me } from '@/lib/api';
 import { clearAllLocalCopies } from '@/lib/local-copies';
+import { clearSidebarState } from '@/lib/sidebar-state';
 
 const LOGIN_ERRORS: Record<string, string> = {
   unknown_tenant: 'Diesen Mandanten gibt es nicht.',
@@ -72,12 +73,14 @@ export function LoginForm({ returnTo = '/' }: { returnTo?: string }) {
 
 /**
  * Abmelden: Sitzung in der API beenden (offene Editoren in anderen Tabs schließen sich, E04-06),
- * alle lokalen Kopien von Seiten in diesem Browser löschen (lib/local-copies.ts), dann bei Zitadel
+ * alle lokalen Kopien von Seiten in diesem Browser löschen (lib/local-copies.ts) und den Zustand der
+ * Seitenleiste in diesem Tab vergessen (lib/sidebar-state.ts), dann bei Zitadel
  * abmelden. Nicht übertragene Änderungen aus einem Funkloch sind damit verworfen.
  */
 export async function logout() {
   const { logoutUrl } = await api<{ logoutUrl: string }>('/auth/logout', { method: 'POST' });
   await clearAllLocalCopies();
+  clearSidebarState();
   window.location.assign(logoutUrl);
 }
 
