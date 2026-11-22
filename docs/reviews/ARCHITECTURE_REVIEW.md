@@ -4,17 +4,17 @@
 nachgeführt. Ergänzt das Code-Review in [REVIEW.md](REVIEW_M0.md); dort geht es um Fehler im
 Bestehenden, hier um Entscheidungen und Entwürfe, die erst mit M1 bis M5 zum Tragen kommen.
 
-**Weitergeführt** werden die Befunde in [docs/ROADMAP.md](docs/ROADMAP.md) (Punkte und Gates
-in M1 bis M5, mit der ID) und in [docs/OPEN_QUESTIONS.md](docs/OPEN_QUESTIONS.md), wo eine
+**Weitergeführt** werden die Befunde in [docs/ROADMAP.md](../ROADMAP.md) (Punkte und Gates
+in M1 bis M5, mit der ID) und in [docs/OPEN_QUESTIONS.md](../OPEN_QUESTIONS.md), wo eine
 Entscheidung fehlt: Frage 8 (A-04 bis A-08, am 14. November 2026 entschieden, jetzt in
-`CLAUDE.md`), Frage 9 (A-02), Frage 10 (A-09), Frage 11 (A-01),
+`../../CLAUDE.md`), Frage 9 (A-02), Frage 10 (A-09), Frage 11 (A-01),
 Frage 7 (A-11), „Ebenfalls offen“ (A-13, A-14). Hier bleibt der Befund als Beleg stehen.
 
-**Maßstab** sind die Ziele aus `CLAUDE.md`: Ein Team von 10 bis 50 Personen importiert seinen
+**Maßstab** sind die Ziele aus `../../CLAUDE.md`: Ein Team von 10 bis 50 Personen importiert seinen
 Confluence-Space und arbeitet danach ohne Rückfall weiter; regulierte Organisationen, SaaS
 zuerst, On-Prem später, gemeinsame Plattform mit TalkFieber, Betrieb auf einem VPS.
 
-**Grundlage:** `CLAUDE.md` (Abschnitte 3, 6, 8, 11, 12), `docs/CONCEPTS.md`, `docs/ROADMAP.md`,
+**Grundlage:** `../../CLAUDE.md` (Abschnitte 3, 6, 8, 11, 12), `docs/CONCEPTS.md`, `docs/ROADMAP.md`,
 `docs/OPEN_QUESTIONS.md`, der Code nach dem Code-Review und eine Messung des Rechtemodells
 (A-01). Was in `docs/OPEN_QUESTIONS.md` schon steht, ist hier nur verwiesen, nicht wiederholt.
 
@@ -64,7 +64,7 @@ Alle drei lassen sich vor dem jeweiligen Meilenstein lösen, wenn sie jetzt eing
 **Befund:** Die Leseregel auf `pages` ruft `app.page_rank(id)` für jede Zeile auf, die API ruft
 für den Seitenbaum zusätzlich `app.page_role(id)` pro Seite auf. `page_rank` macht dabei
 jedes Mal mehrere Abfragen (Seite, Workspace-Rolle, Rechtequelle über den Pfad, Grants,
-Archiv). `CLAUDE.md` nennt das als „später“-Thema. Die Messung zeigt, dass es schon bei der
+Archiv). `../../CLAUDE.md` nennt das als „später“-Thema. Die Messung zeigt, dass es schon bei der
 Größe eines gewöhnlichen Confluence-Spaces nicht reicht.
 
 **Messung** (Wegwerf-Datenbank mit `postgres:18.6`, Testdaten, ein Space mit Unterbereichen,
@@ -118,7 +118,7 @@ Import (bzw. später SCIM) legt Personen **ohne Login** an, mit E-Mail, Mitglied
 Rechten. Beim ersten Login verknüpft `app.accept_invite` sie schon heute über die E-Mail.
 Dazu eine Sammeleinladung („alle importierten Personen einladen“). Das ändert die
 Entscheidung „neue Personen nur über eine Einladung“ in „nur über eine Einladung, den Import
-oder SCIM“ und gehört in E13 und `CLAUDE.md`, Abschnitt 3. Bis dahin auch klären, was mit
+oder SCIM“ und gehört in E13 und `../../CLAUDE.md`, Abschnitt 3. Bis dahin auch klären, was mit
 Confluence-Personen passiert, die es beim Kunden nicht mehr gibt (Autor ohne Konto).
 
 ### A-03 · Mittel · Import: Versionen ohne Yjs
@@ -138,7 +138,7 @@ ein Yjs-Update. Vor M4 als Migration, mit Test.
 Yjs-Zustand, das BlockNote-JSON, den Klartext und den Titel schreiben und ein `page.updated`
 in die Outbox legen. Große Werte schreibt PostgreSQL dabei jedes Mal vollständig neu
 (TOAST), das erzeugt viel WAL. WAL geht laufend ins externe Backup (Pflichtpunkt in
-`CLAUDE.md`, Abschnitt 11). Der Worker baut für jedes Ereignis den Suchindex neu.
+`../../CLAUDE.md`, Abschnitt 11). Der Worker baut für jedes Ereignis den Suchindex neu.
 
 **Vorschlag:** In M1 trennen, was sofort gespeichert werden muss (Yjs-Zustand, mit
 Hocuspocus `debounce` und `maxDebounce`), und was später reicht (JSON, Klartext, Suchindex:
@@ -153,7 +153,7 @@ Schema des Browsers läuft auf dem Server (z. B. `@blocknote/server-util`), auch
 Blöcken wie den Platzhaltern für Confluence-Makros. Weicht das Schema zwischen Browser und
 Server ab, gehen Inhalte beim Umwandeln verloren.
 
-**Vorschlag:** Das Editor-Schema als gemeinsames Paket (z. B. `packages/editor-schema`), das
+**Vorschlag:** Das Editor-Schema als gemeinsames Paket (z. B. `../../packages/editor-schema`), das
 Browser, Worker und Import benutzen. Die Umwandlung in den Worker legen, nicht in den
 Collab-Server (passt zu A-04). Lizenz des Server-Pakets vor M1 prüfen (`check-licenses.mjs`).
 
@@ -183,7 +183,7 @@ die Änderung sofort sehen. Einmal bauen, für alle Abläufe nutzen.
 
 ### A-08 · Mittel · Ereignisse zum Collab-Server
 
-**Befund:** Siehe `docs/OPEN_QUESTIONS.md`, Frage 2. Der Collab-Server muss bei
+**Befund:** Siehe `../OPEN_QUESTIONS.md`, Frage 2. Der Collab-Server muss bei
 Rechteänderungen Verbindungen trennen, NATS kommt erst mit TalkFieber.
 
 **Vorschlag:** Ein Trigger auf `outbox` ruft `pg_notify` mit Mandant, Space und Art des
@@ -216,13 +216,13 @@ Sichtbarkeit aus A-01 filtern. In M3.
 ### A-11 · Mittel · Kapazität für Dateien und Import
 
 **Befund:** CONCEPTS sieht einen Virenscan mit ClamAV vor; ClamAV braucht etwa 1 bis 1,5 GB
-RAM und fehlt in der RAM-Tabelle in `CLAUDE.md`, Abschnitt 11. Confluence-Exporte mit
+RAM und fehlt in der RAM-Tabelle in `../../CLAUDE.md`, Abschnitt 11. Confluence-Exporte mit
 Anhängen sind oft mehrere GB groß; der Worker muss sie gestreamt entpacken und braucht
 Platz auf der Platte.
 
 **Vorschlag:** ClamAV und den Plattenplatz für Import-Archive in die Kapazitätsplanung des
 VPS aufnehmen, Größengrenzen für Uploads und Importe festlegen (passt zu Frage 7 in
-`docs/OPEN_QUESTIONS.md`).
+`../OPEN_QUESTIONS.md`).
 
 ### A-12 · Niedrig · Logs, Metriken, Nachverfolgung
 
@@ -235,7 +235,7 @@ Prozess, im Cluster nur intern erreichbar.
 
 ### A-13 · Niedrig · Drizzle
 
-**Befund:** `CLAUDE.md` und CONCEPTS nennen Drizzle ORM für die API. Die API nutzt `pg` mit SQL
+**Befund:** `../../CLAUDE.md` und CONCEPTS nennen Drizzle ORM für die API. Die API nutzt `pg` mit SQL
 und ruft vor allem Funktionen im Schema `app` auf; Drizzle ist nicht installiert.
 
 **Vorschlag:** Entscheiden und die Doku angleichen: Drizzle streichen (das Schema ist reines SQL
@@ -264,6 +264,6 @@ Angriffsfläche. Nicht dringend; wenn später Server-Rendering für Link-Vorscha
 
 ## Nicht betrachtet
 
-- Kosten und Preise, Rechtliches (AV-Vertrag usw., siehe `docs/OPEN_QUESTIONS.md`).
+- Kosten und Preise, Rechtliches (AV-Vertrag usw., siehe `../OPEN_QUESTIONS.md`).
 - TalkFieber selbst; nur die Schnittstellen dahin.
-- Der Prototyp unter `prototype/`.
+- Der Prototyp unter `../../prototype`.

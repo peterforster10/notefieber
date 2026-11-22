@@ -2,7 +2,7 @@
 
 Themen, die in [EPICS.md](EPICS.md) und [ROADMAP.md](ROADMAP.md) fehlen oder zu spät stehen (Durchsicht vom
 8. November 2026, ergänzt am 14. November 2026 um die Fragen 8 bis 11 aus
-[ARCHITECTURE_REVIEW.md](../ARCHITECTURE_REVIEW.md); Frage 8, der Entwurf des Collab-Servers, ist am selben Tag
+[ARCHITECTURE_REVIEW.md](reviews/ARCHITECTURE_REVIEW.md); Frage 8, der Entwurf des Collab-Servers, ist am selben Tag
 entschieden und steht jetzt in der `CLAUDE.md`, Abschnitte 3, 6 und 7). Jeder Punkt hat einen Vorschlag, wo er hingehört. Ist ein Punkt geklärt, wandert
 er in EPICS und ROADMAP (Entscheidungen in die `CLAUDE.md`) und wird hier gelöscht. Offene Produktentscheidungen (Name, Lizenz, Zielgruppe …) stehen dagegen in der `CLAUDE.md`, Abschnitt 4.
 
@@ -137,7 +137,7 @@ Pläne in E20.
 `app.set_grant` aber nur für aktive Mitglieder, und Personen entstehen nur über eine Einladung
 beim Login. Nach einem Import sind die meisten Personen eines Confluence-Spaces noch nicht im
 Wiki; ihre Rechte, Gruppenmitgliedschaften und Autorenschaften hätten keinen Halt
-([ARCHITECTURE_REVIEW.md](../ARCHITECTURE_REVIEW.md), A-02).
+([ARCHITECTURE_REVIEW.md](reviews/ARCHITECTURE_REVIEW.md), A-02).
 
 **Offene Fragen:**
 - Darf der Import (und später SCIM) Personen **ohne Login** anlegen, mit E-Mail, Mitgliedschaft
@@ -153,7 +153,7 @@ eine Einladung, den Import oder SCIM“. In E13 und E02.
 
 **Problem:** Beim Anmelden tippt man den Kurznamen des Mandanten ein. Das ist für Endnutzer
 ungewohnt, verrät, welche Kurznamen es gibt, und hängt mit Adressen, Cookies, TLS und Ingress
-zusammen. Nach dem Pilot schwer zu ändern ([ARCHITECTURE_REVIEW.md](../ARCHITECTURE_REVIEW.md),
+zusammen. Nach dem Pilot schwer zu ändern ([ARCHITECTURE_REVIEW.md](reviews/ARCHITECTURE_REVIEW.md),
 A-09).
 
 **Offene Fragen:**
@@ -169,7 +169,7 @@ A-09).
 
 **Problem:** Die Leseregel auf `pages` rechnet `page_rank` pro Zeile. Gemessen braucht der
 Seitenbaum eines Spaces mit 10.000 Seiten 2–3 s, direkt nach einem Massenimport ohne
-`ANALYZE` 28–52 s ([ARCHITECTURE_REVIEW.md](../ARCHITECTURE_REVIEW.md), A-01). Für Listen
+`ANALYZE` 28–52 s ([ARCHITECTURE_REVIEW.md](reviews/ARCHITECTURE_REVIEW.md), A-01). Für Listen
 ist in M3 eine mengenbasierte Berechnung geplant.
 
 **Offene Fragen:**

@@ -1,17 +1,17 @@
 # Review M0: Code und Dokumentation
 
 **Momentaufnahme vom 12. November 2026** (Stand `c2e13da`, M0 abgeschlossen), wird nicht
-nachgeführt. Die umsetzbaren Punkte stehen in [TODOS.md](TODOS.md); dort abhaken und löschen,
+nachgeführt. Die umsetzbaren Punkte stehen in [TODOS.md](../TODOS.md); dort abhaken und löschen,
 hier bleibt der Befund als Beleg stehen.
 
-**Umfang:** alles außer `prototype/`: Datenbank (Schema, Migrationen, Tests, Testdaten), API,
+**Umfang:** alles außer `../../prototype`: Datenbank (Schema, Migrationen, Tests, Testdaten), API,
 Worker, Collab-Server, Frontend, `packages/shared`, lokale Umgebung, CI, Skripte und alle
 Dokumente. Prüfmaßstab sind die Regeln aus `CLAUDE.md` (Abschnitte 3, 6, 8 und 13).
 
 **Vorgehen:** erst alle automatischen Prüfungen, dann jede Datei gelesen. Jeder Befund ab
 „Mittel“ ist im Code nachgeprüft; R-01 bis R-04 und R-06 zusätzlich mit Abfragen in einer
 Wegwerf-Datenbank (Migrationen und `seed.sql`, als `wiki_app`, jeweils zurückgerollt).
-Danach Login und Oberfläche gegen die lokale Umgebung (`compose.yaml`, `pnpm dev:api`,
+Danach Login und Oberfläche gegen die lokale Umgebung (`../../compose.yaml`, `pnpm dev:api`,
 `pnpm dev:web`): `scripts/check-login.mjs` und ein Durchgang im Browser mit drei Testpersonen.
 
 ## Gesamteinschätzung
@@ -41,12 +41,12 @@ Am besten alle vor M3 schließen (Rechte-Dialog, Personenauswahl), R-10 schon in
 | Prüfung | Ergebnis |
 |---|---|
 | `pnpm lint`, `format:check`, `typecheck` | bestanden |
-| `pnpm test` (Unit-Tests API und shared) | bestanden (14 Tests in `apps/api`, dazu `packages/shared`) |
+| `pnpm test` (Unit-Tests API und shared) | bestanden (14 Tests in `../../apps/api`, dazu `packages/shared`) |
 | `pnpm licenses:check` | bestanden, 151 Pakete; LGPL nur `@img/sharp-*` (erlaubt, dynamisch geladen) |
 | `pnpm build` | bestanden (Next.js 16.4.5) |
-| `database/scripts/schema_test/ci.sh` auf leerem `postgres:18` (18.6) | bestanden: 3 Migrationen, 49 Tests leer und mit Testdaten, Nebenläufigkeit (4), Migrationsgleichheit (2) |
+| `../../database/scripts/schema_test/ci.sh` auf leerem `postgres:18` (18.6) | bestanden: 3 Migrationen, 49 Tests leer und mit Testdaten, Nebenläufigkeit (4), Migrationsgleichheit (2) |
 | `setup_test_db.sh` + `pnpm test:db` | bestanden, 12 Tests (Ausgabe enthält einen erwarteten Stacktrace, siehe R-16) |
-| `scripts/check-login.mjs` gegen Zitadel v4.20.1 | bestanden, alle 21 Prüfungen (Login, `/me`, Logout, fremde Organisation, unbekannter Mandant, fremdes `returnTo`, Einladung für Nina Neu) |
+| `../../scripts/check-login.mjs` gegen Zitadel v4.20.1 | bestanden, alle 21 Prüfungen (Login, `/me`, Logout, fremde Organisation, unbekannter Mandant, fremdes `returnTo`, Einladung für Nina Neu) |
 
 ## Prüfung im Browser
 
@@ -97,9 +97,9 @@ Alpenwerk (vom Prüfskript, so vorgesehen), Sitzungen der Testpersonen.
 | R-15 | Niedrig | Betrieb | Collab-Server lauscht fest auf `127.0.0.1`; im Container nicht erreichbar |
 | R-16 | Niedrig | Tests | Erwarteter OIDC-Fehler landet als Stacktrace in der Ausgabe von `pnpm test:db` |
 | R-17 | Niedrig | Korrektheit | Frontend bricht bei Fehlerantworten ohne JSON (z. B. 502 vom Proxy) mit `SyntaxError` ab |
-| D-01 | Niedrig | Doku | Veralteter Pfad zum ER-Diagramm in `docs/CONCEPTS.md` |
+| D-01 | Niedrig | Doku | Veralteter Pfad zum ER-Diagramm in `../CONCEPTS.md` |
 | D-02 | Niedrig | Doku | ER-Diagramm ohne einige Spalten, ohne Hinweis darauf |
-| D-03 | Niedrig | Doku | Veraltete Sätze in `README.md`, `docs/ROADMAP.md`, `docs/LOCAL_SETUP.md`, `schema.sql` |
+| D-03 | Niedrig | Doku | Veraltete Sätze in `../../README.md`, `docs/ROADMAP.md`, `docs/LOCAL_SETUP.md`, `schema.sql` |
 
 ### R-01 · Hoch · Wirksamer Admin über Gruppe ohne Zugang
 
@@ -113,7 +113,7 @@ mit Mitgliedschaft im Workspace des Spaces (`app.space_ws_role`). Ein Gruppenmit
 außerhalb des Workspaces hält die Prüfung also offen, obwohl es den Space gar nicht öffnen
 kann. Dasselbe gilt für `remove_workspace_member`: Es prüft nur persönliche Grants. Wird das
 letzte Mitglied einer Admin-Gruppe aus dem Workspace entfernt, bleibt der Space ohne
-wirksamen Admin. Das widerspricht `CLAUDE.md`, Abschnitt 8. Beim Confluence-Import wird das
+wirksamen Admin. Das widerspricht `../../CLAUDE.md`, Abschnitt 8. Beim Confluence-Import wird das
 häufig vorkommen, weil dort Gruppen oft über Workspaces hinweg reichen.
 
 **Beleg:** Space mit Admin-Gruppe {Lukas, Zora}, Zora ohne Workspace. Peter gibt seinen Admin
@@ -123,7 +123,7 @@ ab, Lukas wird aus der Gruppe entfernt: Beides gelingt. Danach liefert `has_admi
 **Vorschlag:** `has_admin` zählt nur Personen, die aktive Mitglieder im Workspace des Spaces
 sind (bei Seiten über `pages.space_id`). `remove_workspace_member` prüft zusätzlich die
 Objekte, auf denen Gruppen der Person Admin sind. Dazu ein Test in
-`schema_test/12_groups.sql` (beide Wege), eine Migration und ein Nachtrag in `docs/SCHEMA.md`.
+`schema_test/12_groups.sql` (beide Wege), eine Migration und ein Nachtrag in `../SCHEMA.md`.
 Wiederherstellen kann ein Organisations-Admin heute schon (`set_grant`); deshalb nicht
 kritisch.
 
@@ -198,7 +198,7 @@ nachziehen. Dazu Tests in `14_invites.sql` und `invites.dbtest.ts`.
 
 **Befund:** `wiki_app` darf `INSERT` auf `users`; die Regel verlangt nur
 `role = 'member'`. Seit den Einladungen legt die API Personen nie direkt an, sondern nur über
-`app.accept_invite` (kein `INSERT INTO users` in `apps/`). Das Recht ist also überflüssig und
+`app.accept_invite` (kein `INSERT INTO users` in `../../apps`). Das Recht ist also überflüssig und
 widerspricht der Entscheidung „Neue Personen kommen nur über eine Einladung hinein“
 (`CLAUDE.md`, Abschnitt 3). Jede angemeldete Person könnte über einen API-Fehler Personen mit
 beliebigem `idp_subject` anlegen. Damit käme ein Zitadel-Konto ohne Einladung in den
@@ -218,12 +218,12 @@ Doku-Stellen sowie den Kommentar in `80_rls.sql` anpassen.
 
 **Befund:** Liegt eine Seite im Papierkorb, lehnt `store_content` jedes Speichern ab („Seite
 fehlt oder liegt im Papierkorb“). `page.trashed` steht aber nicht in `RECONNECT_EVENTS` und
-nicht in der Liste in `CLAUDE.md`, Abschnitt 6. Wer die Seite gerade bearbeitet, tippt weiter,
+nicht in der Liste in `../../CLAUDE.md`, Abschnitt 6. Wer die Seite gerade bearbeitet, tippt weiter,
 und nichts davon wird gespeichert.
 
 **Vorschlag:** Beim Bau von E04 entscheiden. Entweder trennt `page.trashed` die
 Verbindungen (der Client zeigt „Seite liegt im Papierkorb“), oder der Collab-Server schließt
-das Dokument schreibgeschützt. Ergänzen in `RECONNECT_EVENTS` und `CLAUDE.md`.
+das Dokument schreibgeschützt. Ergänzen in `RECONNECT_EVENTS` und `../../CLAUDE.md`.
 
 ### R-18 · Mittel · Abmelden bei Zitadel unvollständig
 
@@ -272,7 +272,7 @@ können damit `invited_by` auf eine andere Person setzen (die Einladungsseite ze
 ### R-08 · Niedrig · Verbindungen zu anderen Datenbanken
 
 **Fundstelle:** [local_login_roles.sql:37](database/scripts/local_login_roles.sql:37),
-[roles_database.sql](database/scripts/roles_database.sql)
+[roles_database.sql](../../database/scripts/roles_database.sql)
 
 **Befund:** Der Kommentar sagt „Verbinden dürfen sie nur mit der Datenbank wiki“, aber
 `CONNECT` hat `PUBLIC` auf jeder Datenbank. `wiki_api` darf sich lokal mit `postgres`
@@ -306,7 +306,7 @@ der unsichtbaren Elternseite (403).
 ### R-12 · Niedrig · Index der Outbox
 
 **Fundstelle:** [10_tables.sql:368](database/scripts/schema/10_tables.sql:368),
-[schema.sql](database/scripts/schema/schema.sql) („Der Outbox-Publisher sortiert nach id“)
+[schema.sql](../../database/scripts/schema/schema.sql) („Der Outbox-Publisher sortiert nach id“)
 
 **Vorschlag:** Mit dem Publisher (OPEN_QUESTIONS 2) den Index auf `(id) WHERE published_at IS NULL` umstellen.
 
@@ -323,7 +323,7 @@ der unsichtbaren Elternseite (403).
 **Fundstelle:** [compose.yaml:45](compose.yaml:45) (`postgres:18`), [.gitlab-ci.yml:14](.gitlab-ci.yml:14)
 (`node:24`, `postgres:18`)
 
-**Befund:** `CLAUDE.md` verlangt „Alle Versionen fest“. Die übrigen Images (Zitadel, Garage,
+**Befund:** `../../CLAUDE.md` verlangt „Alle Versionen fest“. Die übrigen Images (Zitadel, Garage,
 Traefik, Node im Init-Container) sind fest versioniert.
 
 **Vorschlag:** Auf Minor-Versionen festlegen, z. B. `postgres:18.6`, `node:24.11.1`.
@@ -354,13 +354,13 @@ den Fehler dabei als vollen Stacktrace aus, der in der Ausgabe wie ein Fehler au
 ### D-01 bis D-03 · Doku
 
 - **D-01:** [CONCEPTS.md:460](docs/CONCEPTS.md:460) nennt `docs/data_model.mmd` bzw. `.svg`;
-  richtig ist `docs/models/data_model/`.
-- **D-02:** [data_model.mmd](docs/models/data_model/data_model.mmd) lässt Spalten weg:
+  richtig ist `../models/data_model`.
+- **D-02:** [data_model.mmd](../models/data_model/data_model.mmd) lässt Spalten weg:
   `created_at` bei `users`, `workspaces`, `groups`, `invites`, `spaces`, `pages`, `grants`,
   `comments`, `files`, `imports`, `outbox`; dazu `invites.invited_by`, `pages.deleted_by`,
   `page_search.updated_at`, `comments.edited_at`, `files.deleted_at`,
   `imports.started_at`/`finished_at`, `import_items.note`. Ergänzen, oder im Kopf vermerken,
-  dass Zeitstempel fehlen. Tabellen und Funktionen in `docs/SCHEMA.md` sind vollständig.
+  dass Zeitstempel fehlen. Tabellen und Funktionen in `../SCHEMA.md` sind vollständig.
 - **D-03:** [ROADMAP.md:49](docs/ROADMAP.md:49) „abhaken, sobald die erste Pipeline grün war.
   Tests der Apps kommen mit dem ersten Code …“ ist überholt (abgehakt, Tests gibt es).
   [LOCAL_SETUP.md:304](docs/LOCAL_SETUP.md:304) nennt als Beispiel `0002_space_icon.sql`; die
@@ -372,7 +372,7 @@ den Fehler dabei als vollen Stacktrace aus, der in der Ausgabe wie ein Fehler au
 
 ## Hinweise ohne eigenen Befund
 
-- **Schon in `docs/OPEN_QUESTIONS.md`:** Sicherheitsheader (CSP, `frame-ancestors`, HSTS)
+- **Schon in `../OPEN_QUESTIONS.md`:** Sicherheitsheader (CSP, `frame-ancestors`, HSTS)
   und Rate Limiting (Frage 4), außerdem das Lesen der Outbox über alle Mandanten (Frage 2).
   Weil `tenants` und `outbox` für `wiki_worker` nur mit gesetztem Mandanten lesbar sind,
   braucht der Worker für Outbox, Aufräumen von Sitzungen und Papierkorb eine
@@ -387,11 +387,11 @@ den Fehler dabei als vollen Stacktrace aus, der in der Ausgabe wie ein Fehler au
   schützt vor Fehlern in der Logik der API, nicht vor einer kompromittierten API (z. B.
   SQL-Injection). Das ist üblich; die API verwendet durchgehend Parameter, es gibt keine
   zusammengesetzten SQL-Texte mit Eingaben.
-- **`docs/MVP.md`** nennt „44 Funktionstests“: Momentaufnahme, kein Fehler.
+- **`../MVP.md`** nennt „44 Funktionstests“: Momentaufnahme, kein Fehler.
 
 ## Nicht geprüft
 
-- `prototype/` (vereinbart)
+- `../../prototype` (vereinbart)
 - Die Pipeline auf GitLab selbst; lokal liefen dieselben Befehle wie in den drei CI-Jobs.
 - Collab-Server und Worker im Betrieb: Beide sind noch Grundgerüste ohne Aufgaben (E04 und
   E08); geprüft ist nur der Code.

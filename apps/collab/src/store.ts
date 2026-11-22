@@ -1,9 +1,12 @@
 // Laden und Speichern der Yjs-Dokumente (CLAUDE.md, Abschnitt 6, Schritte 3 und 5).
-// Laden: page_contents.ydoc. Ist es noch der leere Anfangszustand, zuerst pages.title in
-// Y.Text "title" (sonst leert das erste Speichern den Titel); hat die Seite schon BlockNote-JSON
-// (Testdaten, Import) und war der Worker noch nicht da, baut der Collab-Server das Dokument daraus
-// (Rückfall, app.store_initial_ydoc). Speichern: nur Yjs-Zustand, Titel und Bearbeitende
-// (app.store_ydoc); BlockNote-JSON und Klartext leitet der Worker ab, wenn die Seite ruht.
+// Laden: page_contents.ydoc. Ist es noch der leere Anfangszustand, baut der Collab-Server einen
+// ersten Zustand: pages.title in Y.Text "title" (sonst leert das erste Speichern den Titel) und,
+// wenn die Seite schon BlockNote-JSON hat (Testdaten, Import) und der Worker noch nicht da war,
+// den Inhalt daraus. Diesen Zustand sichert er sofort (app.store_initial_ydoc), nicht erst beim
+// nächsten Speichern: Sonst fügte jedes Laden den Titel neu ein, und ein Browser mit dem alten
+// Stand (lokale Kopie, offener Tab nach einem Neustart) verdoppelte ihn (REVIEW_M1.md, R-19).
+// Speichern: nur Yjs-Zustand, Titel und Bearbeitende (app.store_ydoc); BlockNote-JSON und
+// Klartext leitet der Worker ab, wenn die Seite ruht.
 import type pg from 'pg';
 import * as Y from 'yjs';
 import { CONTENT_FRAGMENT, EMPTY_YDOC, TITLE_MAX_LENGTH, TITLE_TEXT } from '@notefieber/editor-schema';
@@ -33,34 +36,48 @@ export async function loadDocument(db: pg.Pool, info: DocumentInfo, doc: Y.Doc):
 
   if (!isEmptyState(row.ydoc)) {
     Y.applyUpdate(doc, row.ydoc);
-    return;
+  } else {
+    Y.applyUpdate(doc, await storeInitial(db, info, await initialState(row.content_json, row.title)));
   }
+  doc.getXmlFragment(CONTENT_FRAGMENT); // Fragment anlegen, damit alle denselben Typ sehen
+}
 
-  if (Array.isArray(row.content_json) && row.content_json.length > 0) {
+/** Erster Yjs-Zustand einer Seite, die noch den leeren Anfangszustand hat */
+async function initialState(contentJson: unknown[] | null, title: string): Promise<Uint8Array> {
+  if (Array.isArray(contentJson) && contentJson.length > 0) {
     // Rückfall: Der Worker baut den Yjs-Zustand sonst vorher (app.pages_to_derive). Erst hier
     // geladen, damit der Collab-Server den Editor ohne Oberfläche nur in diesem Fall braucht.
     const { initialYDocState } = await import('@notefieber/editor-schema/server');
-    const state = initialYDocState(row.content_json, row.title);
-    const stored = await withTenant(db, info.tenantId, async (client) => {
-      const r = await client.query<{ ok: boolean }>('SELECT app.store_initial_ydoc($1, $2) AS ok', [
-        info.pageId,
-        Buffer.from(state),
-      ]);
-      if (r.rows[0]?.ok) return state;
-      // Der Worker war gerade schneller: seinen Stand nehmen, nicht zwei verschiedene
-      const again = await client.query<{ ydoc: Buffer }>('SELECT ydoc FROM page_contents WHERE page_id = $1', [
-        info.pageId,
-      ]);
-      return again.rows[0]?.ydoc ?? state;
-    });
-    Y.applyUpdate(doc, stored);
-    return;
+    return initialYDocState(contentJson, title);
   }
+  // Neue, leere Seite: nur der Titel
+  const doc = new Y.Doc();
+  try {
+    if (title) doc.getText(TITLE_TEXT).insert(0, title.slice(0, TITLE_MAX_LENGTH));
+    return Y.encodeStateAsUpdate(doc);
+  } finally {
+    doc.destroy();
+  }
+}
 
-  // Neue, leere Seite: nur den Titel. Diese Änderung speichert erst das nächste Speichern mit;
-  // sie geschieht vor dem Anmelden des Update-Handlers und löst deshalb kein Speichern aus.
-  if (row.title) doc.getText(TITLE_TEXT).insert(0, row.title.slice(0, TITLE_MAX_LENGTH));
-  doc.getXmlFragment(CONTENT_FRAGMENT); // Fragment anlegen, damit alle denselben Typ sehen
+/**
+ * Ersten Zustand sichern (app.store_initial_ydoc, schreibt nur über den leeren Anfangszustand) und
+ * zurückgeben, was danach gilt: der eigene Zustand oder, war der Worker gerade schneller, seiner.
+ * So gibt es pro Seite genau eine Einfügung des Titels, egal wie oft das Dokument geladen wird.
+ */
+async function storeInitial(db: pg.Pool, info: DocumentInfo, state: Uint8Array): Promise<Uint8Array> {
+  if (isEmptyState(state)) return state; // ohne Titel und Inhalt gibt es nichts zu sichern
+  return withTenant(db, info.tenantId, async (client) => {
+    const r = await client.query<{ ok: boolean }>('SELECT app.store_initial_ydoc($1, $2) AS ok', [
+      info.pageId,
+      Buffer.from(state),
+    ]);
+    if (r.rows[0]?.ok) return state;
+    const again = await client.query<{ ydoc: Buffer }>('SELECT ydoc FROM page_contents WHERE page_id = $1', [
+      info.pageId,
+    ]);
+    return again.rows[0]?.ydoc ?? state;
+  });
 }
 
 /**

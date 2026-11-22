@@ -58,7 +58,7 @@ Epics: E04, Teile von E06 und E07
 
 Was fertig heißt, sagen die User Stories E04-01 bis E04-08 in [EPICS](EPICS.md) mit ihren Abnahmekriterien. Die Punkte hier sind die technischen Schritte dahin, jeweils mit den Stories, denen sie dienen.
 
-- [x] **Vor dem Bau:** Entwurf des Collab-Servers entschieden (14. November 2026, `CLAUDE.md` Abschnitte 3, 6 und 7; [ARCHITECTURE_REVIEW](../ARCHITECTURE_REVIEW.md), A-04 bis A-08)
+- [x] **Vor dem Bau:** Entwurf des Collab-Servers entschieden (14. November 2026, `CLAUDE.md` Abschnitte 3, 6 und 7; [ARCHITECTURE_REVIEW](reviews/ARCHITECTURE_REVIEW.md), A-04 bis A-08)
 - [x] Next.js-Grundgerüst, BlockNote als Client-Komponente (E04-01, E04-03; 19. November 2026, `apps/web/src/components/page-editor.tsx`, Titel aus Yjs, Avatare aus Awareness)
 - [x] Hocuspocus nach dem Entwurf in `CLAUDE.md`, Abschnitt 6 (entschieden am 14. November 2026; gebaut 15. November 2026, `apps/collab/src/`, Tests `collab.dbtest.ts`): `onAuthenticate` über das Sitzungs-Cookie (`Origin`, `app.resolve_session`, `app.page_rank(seite, person)`), `onLoadDocument`, `onStoreDocument` nur mit Yjs-Zustand und Titel (E04-01, E04-03)
 - [x] Datenbank dafür (15. November 2026, Migration `0012_split_store_content.sql`, Test 55): `store_content` aufteilen in Yjs und Titel (Collab-Server) und abgeleiteten Inhalt (Worker), dazu ein Merkmal „abgeleiteter Inhalt veraltet“. Manuelle Versionen und Export nehmen BlockNote-JSON nur, wenn es aktuell ist, sonst leitet der Worker zuerst ab (E04-01)

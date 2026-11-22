@@ -12,9 +12,10 @@ Eine europäische Alternative zu Confluence, entwickelt und gehostet in der EU. 
 | [docs/USE_CASES.md](docs/USE_CASES.md) | Was sich in der Oberfläche schon durchklicken lässt, mit Testpersonen zum Ausprobieren |
 | [docs/MVP.md](docs/MVP.md) | Architektur und Umfang des MVP auf einen Blick (Momentaufnahme vom 5. November 2026) |
 | [CLAUDE.md](CLAUDE.md) | Entscheidungen und aktueller Stand, Übergabe für Claude Code |
-| [TODOS.md](TODOS.md) | Offene Punkte aus der letzten Konsistenzprüfung |
-| [REVIEW.md](REVIEW.md) | Review von Code und Dokumentation (Momentaufnahme vom 12. November 2026), Befunde mit Beleg |
-| [ARCHITECTURE_REVIEW.md](ARCHITECTURE_REVIEW.md) | Review der Architektur (Momentaufnahme vom 14. November 2026): Risiken für M1 bis M5, mit Messung des Rechtemodells |
+| [TODOS.md](docs/TODOS.md) | Offene Punkte aus der letzten Konsistenzprüfung |
+| [REVIEW_M0.md](docs/reviews/REVIEW_M0.md) | Review von Code und Dokumentation nach M0 (Momentaufnahme vom 12. November 2026), Befunde mit Beleg |
+| [REVIEW_M1.md](docs/reviews/REVIEW_M1.md) | Review des Codes für M1 (Momentaufnahme vom 22. November 2026): Editor, Collab-Server, Worker |
+| [ARCHITECTURE_REVIEW.md](docs/reviews/ARCHITECTURE_REVIEW.md) | Review der Architektur (Momentaufnahme vom 14. November 2026): Risiken für M1 bis M5, mit Messung des Rechtemodells |
 | [docs/OPEN_QUESTIONS.md](docs/OPEN_QUESTIONS.md) | Offene Fragen: Themen, die in EPICS und ROADMAP noch fehlen |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Stufen 0–4, Meilensteine M0–M5, Kriterien für den nächsten Schritt |
 | [docs/EPICS.md](docs/EPICS.md) | Epics E01–E31 als Grundlage für User Stories |

@@ -159,8 +159,14 @@ export async function startCollab(opts: StartOptions = {}) {
     }
   }
 
-  /** Verbindung wie im Browser: Cookie und Origin beim Handshake */
-  function connect(pageId: string, opts: { cookie?: string; origin?: string; name?: string } = {}): Client {
+  /**
+   * Verbindung wie im Browser: Cookie und Origin beim Handshake. `state`: Stand, den der Browser
+   * schon vor dem Verbinden hat (lokale Kopie in IndexedDB, offener Tab nach einem Neustart).
+   */
+  function connect(
+    pageId: string,
+    opts: { cookie?: string; origin?: string; name?: string; state?: Uint8Array } = {},
+  ): Client {
     const headers: Record<string, string> = { origin: opts.origin ?? PUBLIC_URL };
     if (opts.cookie) headers.cookie = opts.cookie;
     class HeaderWebSocket extends WebSocket {
@@ -169,6 +175,7 @@ export async function startCollab(opts: StartOptions = {}) {
       }
     }
     const doc = new Y.Doc();
+    if (opts.state) Y.applyUpdate(doc, opts.state);
     // Jede Anmeldung (auch nach einem Neuverbinden) landet hier; result ist die erste
     const results: AuthResult[] = [];
     const waiting: ((r: AuthResult) => void)[] = [];

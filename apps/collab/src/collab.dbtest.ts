@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import * as Y from 'yjs';
-import { CONTENT_FRAGMENT, TITLE_TEXT } from '@notefieber/editor-schema';
+import { CONTENT_FRAGMENT, TITLE_TEXT, documentName } from '@notefieber/editor-schema';
 import { DEBOUNCE_MS, eventually, startCollab } from './testing.ts';
 import type { Person } from './testing.ts';
 
@@ -105,6 +105,49 @@ test(
     } finally {
       again.close();
     }
+  },
+);
+
+test(
+  'neue Seite: Titel gleich gesichert, verdoppelt sich beim Wiederöffnen nicht (REVIEW_M1.md, R-19)',
+  { skip },
+  async () => {
+    const c = collab!;
+    const title = 'Collab: Wiederöffnen';
+    const page = await c.createPage(lukas, 'ENTW', title);
+    const name = documentName(page);
+
+    // Lukas öffnet die neue Seite, tippt nichts und schließt sie. Sein Browser behält den Stand
+    // (lokale Kopie in IndexedDB), der Server entlädt das Dokument.
+    const first = c.connect(page, { cookie: lukas.cookie });
+    let local: Uint8Array;
+    try {
+      await first.synced;
+      assert.equal(first.doc.getText(TITLE_TEXT).toString(), title);
+      local = Y.encodeStateAsUpdate(first.doc);
+    } finally {
+      first.close();
+    }
+    await eventually(() => !c.collab.server.hocuspocus.documents.has(name));
+
+    // Wiederöffnen mit der lokalen Kopie: ein Titel, im Browser und nach dem Speichern
+    const again = c.connect(page, { cookie: lukas.cookie, state: local });
+    try {
+      await again.synced;
+      await wait(DEBOUNCE_MS * 8);
+      assert.equal(again.doc.getText(TITLE_TEXT).toString(), title);
+      const [p] = await c.query<{ title: string }>('SELECT title FROM pages WHERE id = $1', [page]);
+      assert.equal(p!.title, title);
+    } finally {
+      again.close();
+    }
+
+    // Grund: Der Anfangszustand mit Titel steht schon nach dem ersten Öffnen in der Datenbank,
+    // nicht nur im Speicher des Servers (jedes Laden fügte den Titel sonst neu ein)
+    const [row] = await c.query<{ ydoc: Buffer }>('SELECT ydoc FROM page_contents WHERE page_id = $1', [page]);
+    const stored = new Y.Doc();
+    Y.applyUpdate(stored, row!.ydoc);
+    assert.equal(stored.getText(TITLE_TEXT).toString(), title);
   },
 );
 

@@ -283,7 +283,7 @@ Der aktuelle Inhalt einer Seite, eine Zeile pro Seite.
 | `updated_at` | timestamptz | Letztes Speichern des Yjs-Zustands (`store_ydoc`, mit `clock_timestamp()`). Daran erkennt `store_derived`, ob der Worker den aktuellen Stand abgeleitet hat. |
 | `derived_stale` | boolean | `true`: `content_json` und `plain_text` passen nicht mehr zu `ydoc` (gesetzt von `store_ydoc`, zurückgesetzt von `store_derived`). Teilindex für `pages_to_derive`. |
 
-- **Schreiben:** angelegt von `create_page` und `create_space`, danach in zwei Schritten (ARCHITECTURE_REVIEW.md, A-04): `app.store_ydoc` (Collab-Server, entprellt etwa alle 2 s, spätestens 10 s: Yjs, Titel, Bearbeitende) und `app.store_derived` (Worker, wenn die Seite etwa 30 s ruht: BlockNote-JSON, Klartext, Suchindex). Seiten, die nur `content_json` haben (Testdaten, Import), bekommen ihren ersten Yjs-Zustand über `app.store_initial_ydoc`. Export und Import arbeiten mit `content_json` bzw. Markdown, nie direkt mit `ydoc`, außer `content_json` fehlt oder ist veraltet.
+- **Schreiben:** angelegt von `create_page` und `create_space`, danach in zwei Schritten (ARCHITECTURE_REVIEW.md, A-04): `app.store_ydoc` (Collab-Server, entprellt etwa alle 2 s, spätestens 10 s: Yjs, Titel, Bearbeitende) und `app.store_derived` (Worker, wenn die Seite etwa 30 s ruht: BlockNote-JSON, Klartext, Suchindex). Seiten, die nur `content_json` haben (Testdaten, Import), und neue Seiten beim ersten Öffnen (nur mit Titel) bekommen ihren ersten Yjs-Zustand über `app.store_initial_ydoc`. Export und Import arbeiten mit `content_json` bzw. Markdown, nie direkt mit `ydoc`, außer `content_json` fehlt oder ist veraltet.
 - **Lesen:** wenn die Seite lesbar ist.
 
 ### `page_versions`
@@ -798,7 +798,7 @@ INVOKER, Worker. Speichert BlockNote-JSON und Klartext, die der Worker aus dem Y
 Ereignis: `page.updated`, einmal pro Ruhephase.
 
 #### `store_initial_ydoc(seite, ydoc) → boolean`
-INVOKER, Worker (Worker, Rückfall im Collab-Server). Erster Yjs-Zustand einer Seite, die nur `content_json` hat (Testdaten aus `seed.sql`, später der Import), daraus gebaut. Schreibt nur, solange `ydoc` noch der leere Anfangszustand `\x0000` ist: Wer zuerst kommt, gewinnt, der andere bekommt `false`. `content_json` bleibt gültig. Für `wiki_app` gesperrt.
+INVOKER, Worker (Worker, Collab-Server). Erster Yjs-Zustand einer Seite mit noch leerem `ydoc`: aus `content_json` gebaut (Testdaten aus `seed.sql`, später der Import; der Worker, der Collab-Server nur als Rückfall), sonst nur mit dem Titel (Collab-Server beim ersten Öffnen einer neuen Seite, damit jedes Laden denselben Titel sieht statt ihn neu einzufügen, REVIEW_M1.md R-19). Schreibt nur, solange `ydoc` noch der leere Anfangszustand `\x0000` ist: Wer zuerst kommt, gewinnt, der andere bekommt `false`. `content_json` bleibt gültig. Für `wiki_app` gesperrt.
 
 #### `pages_to_derive(ruhe, anzahl) → table(tenant_id, page_id, updated_at, needs_ydoc)`
 DEFINER, nur Worker (für `wiki_app` gesperrt). Arbeit für den Worker **über alle Mandanten** (`wiki_worker` sieht ohne Mandant nichts): Seiten mit `derived_stale`, die seit `ruhe` nicht gespeichert wurden (`needs_ydoc = false`, älteste zuerst), und Seiten mit `content_json`, aber noch leerem `ydoc` (`needs_ydoc = true`), je höchstens `anzahl`. Seiten im Papierkorb fehlen. Gibt nur IDs und Zeitpunkt heraus; den Inhalt liest der Worker danach im Mandanten.

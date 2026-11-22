@@ -93,11 +93,13 @@ BEGIN
   RETURN true;
 END $$;
 
--- Ersten Yjs-Zustand einer Seite speichern, die nur BlockNote-JSON hat (Testdaten aus
--- seed.sql, später der Import): Der Worker baut ihn, sobald er die Seite findet, der
--- Collab-Server nur als Rückfall beim Öffnen. Schreibt nur, solange noch der leere
--- Anfangszustand gespeichert ist; wer zuerst kommt, gewinnt, der andere bekommt false
--- und lädt den gespeicherten Stand. content_json passt dazu, die Seite bleibt aktuell.
+-- Ersten Yjs-Zustand einer Seite speichern, die noch den leeren Anfangszustand hat. Hat sie
+-- BlockNote-JSON (Testdaten aus seed.sql, später der Import), baut der Worker ihn, sobald er
+-- die Seite findet, der Collab-Server nur als Rückfall beim Öffnen. Neue Seiten ohne Inhalt
+-- sichert der Collab-Server beim ersten Öffnen mit dem Titel (REVIEW_M1.md, R-19: sonst
+-- verdoppelte sich der Titel). Schreibt nur, solange noch der leere Anfangszustand gespeichert
+-- ist; wer zuerst kommt, gewinnt, der andere bekommt false und lädt den gespeicherten Stand.
+-- content_json passt dazu, die Seite bleibt aktuell.
 CREATE FUNCTION app.store_initial_ydoc(p_page_id uuid, p_ydoc bytea)
 RETURNS boolean LANGUAGE plpgsql AS $$
 BEGIN

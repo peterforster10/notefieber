@@ -6,7 +6,7 @@ Umbenennen aus der Seitenleiste und lokalen Kopien für Funklöcher). Wird nachg
 nur in Datenbank oder API gibt, steht unten unter „Noch nicht in der Oberfläche“.
 
 **Spalte „Geprüft“:** *Browser* = am 12. November 2026 von Hand gegen die lokale Umgebung
-durchgeklickt (`../REVIEW_M0.md`, „Prüfung im Browser“); *Skript* = durch `scripts/check-login.mjs`
+durchgeklickt (`reviews/REVIEW_M0.md`, „Prüfung im Browser“); *Skript* = durch `scripts/check-login.mjs`
 abgedeckt; *Code* = nur aus dem Code abgeleitet, noch nicht von Hand geklickt.
 
 ## Ausprobieren
