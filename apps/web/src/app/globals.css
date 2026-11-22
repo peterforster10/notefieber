@@ -12,6 +12,7 @@
   --nf-muted: #5b6675;
   --nf-border: #d9dee5;
   --nf-bg: #ffffff;
+  --nf-drop: #6f9cf0; /* Akzent, aufgehellt für die dunkle Seitenleiste */
 }
 
 * {
@@ -167,6 +168,38 @@ a {
   opacity: 0.3;
   cursor: default;
 }
+.nf-tree-loading {
+  padding: 2px 0 2px 24px;
+  font-size: 13px;
+  opacity: 0.7;
+}
+/* Drag & Drop: Linie davor bzw. dahinter, Rahmen beim Ablegen hinein */
+.nf-tree-row.nf-dragging {
+  opacity: 0.45;
+}
+.nf-tree-row.nf-drop-before {
+  box-shadow: inset 0 2px 0 var(--nf-drop);
+  border-radius: 0;
+}
+.nf-tree-row.nf-drop-after {
+  box-shadow: inset 0 -2px 0 var(--nf-drop);
+  border-radius: 0;
+}
+.nf-tree-row.nf-drop-inside {
+  box-shadow: inset 0 0 0 2px var(--nf-drop);
+  background: var(--nf-sidebar-hover);
+}
+.nf-tree-row[draggable='true'] {
+  cursor: grab;
+}
+.nf-switcher-links {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+}
+.nf-switcher-links a {
+  color: var(--nf-sidebar-text);
+}
 .nf-sidebar-button {
   font: inherit;
   font-size: 14px;
@@ -239,6 +272,25 @@ a {
 }
 .nf-button:disabled {
   opacity: 0.6;
+}
+.nf-button-attention {
+  background: var(--nf-attention);
+}
+.nf-input-wide {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  margin-right: 0;
+}
+textarea.nf-input {
+  resize: vertical;
+}
+.nf-saved {
+  color: var(--nf-done-fg);
+  margin-left: 8px;
+}
+.nf-settings h2 {
+  font-size: 18px;
 }
 .nf-link-button {
   font: inherit;

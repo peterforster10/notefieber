@@ -25,7 +25,9 @@
 --     Elena Novak     Gast (Agentur Nord), sieht nur „Kampagne Frühjahr“
 --   Spaces
 --     ENTW Entwicklung   alle lesen, Gruppe Entwicklung bearbeitet; Baum wie im Prototyp,
---                        „Personalplanung 2027“ nur für Peter und Lukas, Kommentare,
+--                        „Personalplanung 2027“ nur für Peter und Lukas, darunter
+--                        „Urlaubsplanung Vertrieb“ auch für Max (er sieht sie unter
+--                        „Betrieb“, weil die Personalplanung für ihn unsichtbar ist), Kommentare,
 --                        zwei Versionen von „Datenmodell“, „Alte Notizen“ im Papierkorb
 --     VERT Vertrieb      von Max angelegt, alle kommentieren; „Kampagne Frühjahr“ mit Elena
 --     PERS Personal      privat, nur Peter
@@ -170,7 +172,7 @@ END $$;
 -- Space ENTW (wie im Prototyp)
 -- -----------------------------------------------------------------------------
 DO $$
-DECLARE s uuid; h uuid; a uuid; b uuid; p uuid;
+DECLARE s uuid; h uuid; a uuid; b uuid; p uuid; u uuid;
 BEGIN
   s := app.create_space(pg_temp.id('ws1'), 'ENTW', 'Entwicklung', pg_temp.id('peter'), 'viewer',
                         'Architektur, Abläufe und Betrieb des Entwicklungsteams');
@@ -195,6 +197,13 @@ BEGIN
   PERFORM app.set_grant(NULL, p, 'workspace', NULL, NULL, NULL, pg_temp.id('peter'));
   PERFORM app.set_grant(NULL, p, 'group', NULL, pg_temp.id('grp_entw'), NULL, pg_temp.id('peter'));
   PERFORM app.set_grant(NULL, p, 'user', pg_temp.id('lukas'), NULL, 'editor', pg_temp.id('peter'));
+
+  -- Darunter eine Seite, die auch Max lesen darf. Er sieht sie im Seitenbaum unter „Betrieb“,
+  -- der nächsten Seite, die er sieht (app.tree_level)
+  u := app.create_page(s, p, 'Urlaubsplanung Vertrieb', pg_temp.id('peter'));
+  INSERT INTO ids VALUES ('urlaub_vert', u);
+  PERFORM app.set_page_inheritance(u, false, pg_temp.id('peter'));
+  PERFORM app.set_grant(NULL, u, 'user', pg_temp.id('max'), NULL, 'viewer', pg_temp.id('peter'));
 END $$;
 
 -- Kommentare (Textstellen-Anker brauchen eine Yjs-Position, daher Seitenkommentare)
@@ -316,6 +325,8 @@ BEGIN
     'CloudNativePG sichert laufend in einen S3-Speicher bei einem anderen Anbieter. Die Wiederherstellung wird einmal pro Quartal geprobt.']);
   PERFORM pg_temp.fill(pg_temp.id('personal'), pg_temp.id('peter'), ARRAY[
     'Bereitschaftsplan und Personalplanung für 2027. Diese Seite sehen nur ausgewählte Personen.']);
+  PERFORM pg_temp.fill(pg_temp.id('urlaub_vert'), pg_temp.id('peter'), ARRAY[
+    'Urlaube im Vertrieb 2027. Max darf diese Seite lesen, die Personalplanung darüber nicht.']);
   PERFORM pg_temp.fill(pg_temp.id('notizen'), pg_temp.id('lukas'), ARRAY[
     'Notizen aus dem Kick-off, inzwischen in die richtigen Seiten übertragen.']);
 

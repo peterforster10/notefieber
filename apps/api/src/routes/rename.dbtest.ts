@@ -79,8 +79,12 @@ test('Lesende: 403; ohne Leserecht: 404; Papierkorb: 409; jeweils ohne Aufruf', 
   const page = await newPage('Umbenennen: Rechte');
   assert.equal((await app!.call(max, 'POST', `/pages/${page}/title`, { title: 'x' })).status, 403);
 
-  const tree = (await app!.call(lukas, 'GET', '/spaces/ENTW/pages')).body as { id: string; title: string }[];
-  const secret = tree.find((p) => p.title === 'Personalplanung 2027')!.id;
+  // Startseite → Betrieb → Personalplanung 2027, Ebene für Ebene wie in der Seitenleiste
+  type Level = { id: string; title: string }[];
+  const level = async (parent: string) =>
+    (await app!.call(lukas, 'GET', `/spaces/ENTW/pages?parent=${parent}`)).body as Level;
+  const betrieb = (await level(home)).find((p) => p.title === 'Betrieb')!.id;
+  const secret = (await level(betrieb)).find((p) => p.title === 'Personalplanung 2027')!.id;
   assert.equal((await app!.call(max, 'POST', `/pages/${secret}/title`, { title: 'x' })).status, 404);
 
   await app!.call(lukas, 'DELETE', `/pages/${page}`);

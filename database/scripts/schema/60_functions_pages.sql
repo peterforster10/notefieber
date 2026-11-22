@@ -197,3 +197,91 @@ BEGIN
   PERFORM app.audit(p_actor_id, 'page.restored', 'page', p_page_id, jsonb_build_object('count', v_count));
   RETURN v_count;
 END $$;
+
+-- =============================================================================
+-- Seitenbaum lesen
+-- =============================================================================
+
+-- Eine Ebene des Seitenbaums für die angemeldete Person (ROADMAP M2; ARCHITECTURE_REVIEW.md,
+-- A-01): die Seiten, deren nächste sichtbare Vorfahrin p_parent_id ist (NULL = oberste Ebene).
+-- Das sind die sichtbaren Kinder, dazu sichtbare Seiten tiefer unten, wenn alles dazwischen
+-- für die Person unsichtbar ist (eine Seite mit eigenen Rechten unter einer, die sie nicht
+-- sieht). So steht jede sichtbare Seite genau einmal im Baum, unter derselben Seite wie in der
+-- Brotkrume. has_children sagt, ob die Ebene darunter etwas enthält.
+--
+-- Mengenbasiert statt page_rank pro Zeile: Sichtbarkeit ändert sich nur an Seiten mit eigenen
+-- Rechten. Ein erbendes Kind ist sichtbar, wenn seine Elternseite es ist; unter einer
+-- sichtbaren Seite kann also nur eine Seite mit eigenen Rechten unsichtbar sein (auf der
+-- obersten Ebene auch eine erbende, wenn die Person auf dem Space keinen Rang hat). Die
+-- Funktion rechnet deshalb den Rang der Elternseite einmal und den jeder Seite mit eigenen
+-- Rechten im Teilbaum einmal (selten), nicht den jeder Seite. Dieselben Ergebnisse wie
+-- page_rank (Test 56).
+--
+-- SECURITY DEFINER, weil sie unsichtbare Seiten durchsuchen muss; heraus kommen nur sichtbare.
+-- parent_id ist die echte Elternseite (bei Seiten unter unsichtbaren eine ID ohne Titel).
+-- Unsichtbare oder gelöschte Elternseite, fremder Space: leer.
+CREATE FUNCTION app.tree_level(p_space_id uuid, p_parent_id uuid)
+RETURNS TABLE (id uuid, parent_id uuid, "position" text, title text, inherit_perms boolean,
+               role text, has_children boolean)
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $$
+#variable_conflict use_column
+DECLARE
+  v_tenant  uuid := app.current_tenant();
+  v_user    uuid := app.current_user_id();
+  v_ws_role text;
+  v_parent  pages%ROWTYPE;
+  v_base    integer;            -- Rang der Elternseite (oberste Ebene: des Spaces)
+  v_depth   integer := 0;       -- Tiefe der Elternseite im Pfad
+  v_cap     integer := 4;       -- archivierte Spaces: höchstens viewer
+BEGIN
+  IF v_user IS NULL THEN RETURN; END IF;
+  v_ws_role := app.space_ws_role(p_space_id, v_user);   -- prüft auch den Mandanten
+  IF v_ws_role IS NULL THEN RETURN; END IF;
+  IF (SELECT s.archived_at IS NOT NULL FROM spaces s WHERE s.id = p_space_id) THEN v_cap := 1; END IF;
+
+  IF p_parent_id IS NULL THEN
+    v_base := app.grant_rank(p_space_id, NULL, v_user, v_ws_role);
+  ELSE
+    SELECT * INTO v_parent FROM pages p
+    WHERE p.id = p_parent_id AND p.space_id = p_space_id AND p.tenant_id = v_tenant AND p.deleted_at IS NULL;
+    IF NOT FOUND THEN RETURN; END IF;
+    v_base := app.page_rank(p_parent_id, v_user);
+    IF v_base < 1 THEN RETURN; END IF;
+    v_depth := nlevel(v_parent.path);
+  END IF;
+
+  RETURN QUERY
+  WITH r AS MATERIALIZED (
+    -- Seiten mit eigenen Rechten unter der Elternseite, jede mit ihrem Rang
+    SELECT p.id, p.path, app.grant_rank(NULL, p.id, v_user, v_ws_role) AS rank
+    FROM pages p
+    WHERE p.space_id = p_space_id AND p.tenant_id = v_tenant AND NOT p.inherit_perms AND p.deleted_at IS NULL
+      AND (p_parent_id IS NULL OR (p.path <@ v_parent.path AND p.id <> p_parent_id))
+  ), lvl AS (
+    -- direkte Kinder: erbende mit dem Rang der Elternseite, sonst mit ihrem eigenen
+    SELECT c.id, CASE WHEN c.inherit_perms THEN v_base ELSE (SELECT r.rank FROM r WHERE r.id = c.id) END AS rank
+    FROM pages c
+    WHERE c.space_id = p_space_id AND c.tenant_id = v_tenant AND c.deleted_at IS NULL
+      AND (c.parent_id = p_parent_id OR (p_parent_id IS NULL AND c.parent_id IS NULL))
+    UNION ALL
+    -- tiefer: sichtbare Seiten mit eigenen Rechten, wenn alles dazwischen unsichtbar ist. Die
+    -- erste Seite darunter ist unsichtbar (eigene Rechte ohne Rang, oder erbend ohne Rang der
+    -- Elternseite), und keine Seite mit eigenen Rechten dazwischen ist sichtbar.
+    SELECT x.id, x.rank FROM r x
+    WHERE x.rank > 0 AND nlevel(x.path) > v_depth + 1
+      AND (v_base = 0 OR EXISTS (SELECT 1 FROM r f
+                                 WHERE f.id = ltree2text(subltree(x.path, v_depth, v_depth + 1))::uuid))
+      AND NOT EXISTS (SELECT 1 FROM r y WHERE y.rank > 0 AND y.path @> x.path AND y.id <> x.id)
+  )
+  SELECT p.id, p.parent_id, p.position, p.title, p.inherit_perms,
+         app.rank_role(least(l.rank, v_cap)),
+         -- erbende Kinder sind sichtbar wie die Seite selbst; sonst zählt jede sichtbare Seite
+         -- mit eigenen Rechten darunter (sie oder eine Vorfahrin steht in der Ebene darunter)
+         EXISTS (SELECT 1 FROM pages c
+                 WHERE c.space_id = p_space_id AND c.parent_id = p.id AND c.inherit_perms AND c.deleted_at IS NULL)
+         OR EXISTS (SELECT 1 FROM r y WHERE y.rank > 0 AND y.path <@ p.path AND y.id <> p.id)
+  FROM lvl l
+  JOIN pages p ON p.id = l.id
+  WHERE l.rank > 0
+  ORDER BY p.position, p.id;
+END $$;

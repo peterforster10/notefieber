@@ -241,13 +241,13 @@ Mit `SET LOCAL ROLE wiki_worker` und ohne `app.user_id` sieht man, was Collab-Se
 
 ### Tests ausführen
 
-**Funktionstest** (55 Tests für Rechte, Sichtbarkeit und Regeln):
+**Funktionstest** (56 Tests für Rechte, Sichtbarkeit und Regeln):
 
 ```bash
 docker exec nf-pg18 psql -U wiki_owner -d wiki -v ON_ERROR_STOP=1 -f /scripts/schema_test/schema_test.sql
 ```
 
-Erwartet: `NOTICE: OK 1 …` bis `NOTICE: OK 49 …`, dann `Alle Tests bestanden (zurückgerollt, die Datenbank ist unverändert).` Der Test läuft in einer Transaktion und rollt am Ende zurück. Man kann ihn also beliebig oft wiederholen, auch auf einer Datenbank mit Testdaten (die Tests nutzen eigene Mandanten). Bricht ein Test ab, zeigt `ERROR:` den Grund, und die Datenbank ist ebenfalls unverändert.
+Erwartet: `NOTICE: OK 1 …` bis `NOTICE: OK 56 …`, dann `Alle Tests bestanden (zurückgerollt, die Datenbank ist unverändert).` Der Test läuft in einer Transaktion und rollt am Ende zurück. Man kann ihn also beliebig oft wiederholen, auch auf einer Datenbank mit Testdaten (die Tests nutzen eigene Mandanten). Bricht ein Test ab, zeigt `ERROR:` den Grund, und die Datenbank ist ebenfalls unverändert.
 
 **Nebenläufigkeitstest** (Sperren im Seitenbaum mit zwei gleichzeitigen Sitzungen, Benachrichtigungen an den Collab-Server per `NOTIFY`, dauert etwa 12 Sekunden):
 
@@ -686,7 +686,7 @@ Erwartet: nur Zeilen mit `OK`, dann `Alle Prüfungen bestanden.` Beim ersten Lau
 
 ### Spaces und Seitenbaum
 
-Nach dem Anmelden zeigt `http://localhost:3000` die eigenen Spaces und „Neuer Space“. Ein Space öffnet sich unter `/spaces/<schlüssel>` (klein geschrieben, z. B. `/spaces/entw`; gespeichert und angezeigt wird `ENTW`), eine Seite unter `/spaces/entw/pages/<titel>-<kurze id>`, z. B. `/spaces/entw/pages/architektur-034uANlqQWodlcQ4FIOXYJ`. Die kurze ID ist die UUID der Seite in Base62 (22 Zeichen, [`urls.ts`](../packages/shared/src/urls.ts)); der Titel davor ist nur zum Lesen. Alte Links mit altem Titel oder großem Schlüssel funktionieren weiter, das Frontend zieht die Adresse dann nach. Die API selbst arbeitet mit UUIDs und nimmt Schlüssel in beiden Schreibweisen an. In der Seitenleiste: Space-Umschalter, „+ Neue Seite“ (unter der Startseite), der Eintrag „Startseite“, der Baum und der Papierkorb. Wie in Confluence steht die Startseite selbst nicht im Baum; der Baum beginnt mit ihren Unterseiten, „Ausrücken“ geht deshalb nur bis zu dieser obersten Ebene. Fährt man über eine Seite (oder springt mit der Tab-Taste hinein), erscheinen die Knöpfe: neue Unterseite, nach oben, nach unten, einrücken (unter die vorige Seite), ausrücken (hinter die Elternseite), in den Papierkorb. Wer nur liest, sieht keine Knöpfe. Drag & Drop kommt mit M2.
+Nach dem Anmelden zeigt `http://localhost:3000` die eigenen Spaces und „Neuer Space“. Ein Space öffnet sich unter `/spaces/<schlüssel>` (klein geschrieben, z. B. `/spaces/entw`; gespeichert und angezeigt wird `ENTW`), eine Seite unter `/spaces/entw/pages/<titel>-<kurze id>`, z. B. `/spaces/entw/pages/architektur-034uANlqQWodlcQ4FIOXYJ`. Die kurze ID ist die UUID der Seite in Base62 (22 Zeichen, [`urls.ts`](../packages/shared/src/urls.ts)); der Titel davor ist nur zum Lesen. Alte Links mit altem Titel oder großem Schlüssel funktionieren weiter, das Frontend zieht die Adresse dann nach. Die API selbst arbeitet mit UUIDs und nimmt Schlüssel in beiden Schreibweisen an. In der Seitenleiste: Space-Umschalter, „+ Neue Seite“ (unter der Startseite), der Eintrag „Startseite“, der Baum und der Papierkorb. Wie in Confluence steht die Startseite selbst nicht im Baum; der Baum beginnt mit ihren Unterseiten, „Ausrücken“ geht deshalb nur bis zu dieser obersten Ebene. Der Baum lädt ebenenweise: erst die oberste Ebene und die Unterseiten der Startseite, jede weitere Ebene beim Aufklappen. Seiten unter einer Seite, die die Person nicht sieht, stehen unter der nächsten sichtbaren (in den Testdaten sieht Max „Urlaubsplanung Vertrieb“ direkt unter „Betrieb“, weil die „Personalplanung 2027“ dazwischen für ihn unsichtbar ist). Seiten lassen sich per Drag & Drop verschieben (obere Kante davor, untere dahinter, Mitte hinein). Fährt man über eine Seite (oder springt mit der Tab-Taste hinein), erscheinen außerdem die Knöpfe: neue Unterseite, umbenennen, nach oben, nach unten, einrücken (unter die vorige Seite), ausrücken (hinter die Elternseite), in den Papierkorb. Wer nur liest, sieht keine Knöpfe. Admins finden unter dem Space-Umschalter „Einstellungen“ (`/spaces/<schlüssel>/settings`): Name, Beschreibung, archivieren und zurückholen.
 
 Die API dazu (alle nur mit Sitzung):
 
@@ -695,8 +695,10 @@ Die API dazu (alle nur mit Sitzung):
 | `GET /api/v1/workspaces` | eigene Workspaces | – |
 | `GET /api/v1/spaces` | sichtbare Spaces mit eigener Rolle | – (RLS) |
 | `POST /api/v1/spaces` | Space anlegen: `key`, `name`, optional `workspaceId` (nötig bei mehreren Workspaces), `workspaceAccess` (Standard `viewer`) | `app.create_space` |
-| `GET /api/v1/spaces/:key` | ein Space | – |
-| `GET /api/v1/spaces/:key/pages` | Seitenbaum, flach, sortiert nach `position, id`, mit eigener Rolle und `restricted` | – (RLS, `app.page_role`) |
+| `GET /api/v1/spaces/:key` | ein Space, mit eigener Rolle und `canManage` (darf archivieren und zurückholen) | – (`app.space_role`, `app.can_manage_space`) |
+| `PATCH /api/v1/spaces/:key` | `name` und `description` ändern (leer = keine); nur Space-Admins, nicht im archivierten Space | `app.update_space` |
+| `POST /api/v1/spaces/:key/archive` | `archived: true/false`; Space-Admins und Organisations-Admins | `app.archive_space` |
+| `GET /api/v1/spaces/:key/pages?parent=<id>` | eine Ebene des Seitenbaums (ohne `parent`: oberste Ebene): die Seiten, deren nächste sichtbare Vorfahrin `parent` ist, sortiert nach `position, id`, mit eigener Rolle, `restricted` und `hasChildren`; unsichtbare Elternseite: leere Liste | `app.tree_level` |
 | `GET /api/v1/spaces/:key/trash` | Papierkorb (die gemeinsam gelöschten Wurzeln) | – |
 | `POST /api/v1/spaces/:key/pages` | Seite anlegen: `parentId` (`null` = oberste Ebene), `title`, optional `afterId` | `app.create_page` |
 | `GET /api/v1/pages/:id` | Seite mit Brotkrume (nur lesbare Vorfahren) | – |
@@ -741,7 +743,7 @@ Nach etwa 20 Sekunden (`docker logs nf-pg18-apitest` zeigt `Testdaten eingespiel
 API_TEST_DATABASE_URL=postgres://wiki_api:api-lokal@localhost:55433/wiki WORKER_TEST_DATABASE_URL=postgres://wiki_jobs:jobs-lokal@localhost:55433/wiki COLLAB_TEST_DATABASE_URL=postgres://wiki_collab:collab-lokal@localhost:55433/wiki pnpm test:db
 ```
 
-Erwartet: API mit Worker `pass 20`, Collab-Server `pass 15`, jeweils `fail 0` (Spaces und Seitenbaum, Einladungen, Annehmen beim Login mit erfundenen Identitäten statt Zitadel; beim Worker Testdaten zu Yjs, Ableiten nach der Ruhezeit, Weiterbearbeiten während des Ableitens; beim Collab-Server Ablehnungen, gemeinsames Bearbeiten mit lesender und schreibender Verbindung, Titel neuer Seiten beim Wiederöffnen mit lokaler Kopie, Umbenennen über den internen Aufruf (auch wenn die Seite dazwischen in den Papierkorb kommt), Seiten aus BlockNote-JSON, Papierkorb; Rechteentzug, Papierkorb und Abmelden bei offenen Verbindungen, regelmäßige Prüfung, Abriss der LISTEN-Verbindung). Die Collab-Tests starten einen eigenen Server auf einem freien Port und brauchen beide Verbindungen: `COLLAB_TEST_DATABASE_URL` für den Server, `API_TEST_DATABASE_URL` für Sitzungen und Seiten. Danach `docker rm -f nf-pg18-apitest`. Ohne `API_TEST_DATABASE_URL` überspringt `pnpm test:db` die Tests mit einem Hinweis. (`$(pwd -W)` ist der Pfad in Git Bash; unter macOS und Linux `$(pwd)`.)
+Erwartet: API mit Worker `pass 22`, Collab-Server `pass 15`, jeweils `fail 0` (Spaces und Seitenbaum, auch Ebene für Ebene und mit Seiten unter unsichtbaren, Space umbenennen und archivieren, Einladungen, Annehmen beim Login mit erfundenen Identitäten statt Zitadel; beim Worker Testdaten zu Yjs, Ableiten nach der Ruhezeit, Weiterbearbeiten während des Ableitens; beim Collab-Server Ablehnungen, gemeinsames Bearbeiten mit lesender und schreibender Verbindung, Titel neuer Seiten beim Wiederöffnen mit lokaler Kopie, Umbenennen über den internen Aufruf (auch wenn die Seite dazwischen in den Papierkorb kommt), Seiten aus BlockNote-JSON, Papierkorb; Rechteentzug, Papierkorb und Abmelden bei offenen Verbindungen, regelmäßige Prüfung, Abriss der LISTEN-Verbindung). Die Collab-Tests starten einen eigenen Server auf einem freien Port und brauchen beide Verbindungen: `COLLAB_TEST_DATABASE_URL` für den Server, `API_TEST_DATABASE_URL` für Sitzungen und Seiten. Danach `docker rm -f nf-pg18-apitest`. Ohne `API_TEST_DATABASE_URL` überspringt `pnpm test:db` die Tests mit einem Hinweis. (`$(pwd -W)` ist der Pfad in Git Bash; unter macOS und Linux `$(pwd)`.)
 
 ### Lasttest des Collab-Servers
 
@@ -763,6 +765,16 @@ Einstellbar mit `LOAD_CLIENTS` (50), `LOAD_SECONDS` (60) und `LOAD_INTERVAL_MS` 
 | WAL | 0,4 MB gesamt, 0,4 MB pro Minute |
 
 Grenzen: Server und Clients laufen in einem Prozess (Speicher zusammen 390 MB, Latenzen enthalten die Arbeit der Clients). Getestet ist Dauertippen auf einer Seite; tippt jemand in Schüben mit Pausen über 2 s, speichert der Server bis zu 30-mal pro Minute, die WAL-Menge wächst dann mit der Größe des Yjs-Zustands (PostgreSQL komprimiert ihn). Viele gleichzeitig bearbeitete Seiten und große Seiten (MB-Bereich) sind noch nicht gemessen; das gehört zur Überwachung im Pilot (A-12, Alarm bei zu großen Yjs-Dokumenten).
+
+### Lastprüfung des Seitenbaums
+
+[`tree_load_test.sh`](../database/scripts/schema_test/tree_load_test.sh) prüft A-01 aus dem Architektur-Review: Lädt ein Space mit 10.000 Seiten seinen Seitenbaum schnell genug? Es legt in einem eigenen Mandanten einen Space mit 10.101 Seiten an (100 Bereiche, je 10 Abschnitte, je 9 Seiten; jede 50. Seite mit eigenen Rechten) und misst `app.tree_level` als `wiki_app` für vier Ebenen und zwei Personen, einmal direkt nach dem Anlegen (ohne Statistik, wie nach einem Import) und einmal nach `ANALYZE`, dazu zum Vergleich den früheren flachen Baum. Am Ende löscht es den Mandanten wieder. Nur gegen eine Wegwerf-Datenbank, z. B. die aus dem vorigen Abschnitt (etwa eine Minute):
+
+```bash
+PSQL="docker exec -i nf-pg18-apitest psql -U wiki_owner -d wiki" bash database/scripts/schema_test/tree_load_test.sh
+```
+
+Ziel unter 100 ms pro Ebene, Fehler über 1 s. Ergebnis am 22. November 2026 (Windows-Rechner, PostgreSQL im Docker-Container): 2–42 ms pro Ebene (oberste Ebene und Startseite mit 100 Seiten 23–42 ms, tiefere Ebenen 2–3 ms), mit und ohne `ANALYZE` gleich; der frühere flache Baum über die Leseregel brauchte 2,7 s. Nicht Teil von `ci.sh`.
 
 ### Prüfen wie in der CI
 

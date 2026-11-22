@@ -178,6 +178,13 @@ ist in M3 eine mengenbasierte Berechnung geplant.
   die Ereignisse gepflegt)?
 - Wenn die Tabelle kommt: Wie lange darf sie nach einer Rechteänderung veraltet sein?
 
+**Stand 22. November 2026:** Der Seitenbaum ist mengenbasiert (`app.tree_level`, eine Ebene pro
+Anfrage): 2–42 ms pro Ebene bei 10.101 Seiten, davon 202 mit eigenen Rechten, auch direkt nach
+dem Anlegen ohne `ANALYZE` (`database/scripts/schema_test/tree_load_test.sh`). Für den Baum
+braucht es die Tabelle also nicht. Offen bleiben Suche, „Ansehen als …“ und Rückverweise, die
+noch `page_rank` pro Zeile rechnen, sowie die Leseregel auf `spaces` (sucht für Personen ohne
+Rang auf dem Space eine lesbare Seite, ebenfalls pro Zeile).
+
 **Vorschlag:** nach der Lastprüfung in M3 entscheiden (Gate: 10.000 Seiten unter einer Sekunde).
 
 ---

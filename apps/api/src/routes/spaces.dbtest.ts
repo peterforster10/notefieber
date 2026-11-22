@@ -2,6 +2,7 @@
 // seed.sql (siehe testing.ts). Prüft vor allem, was Personen sehen und tun dürfen.
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
+import { withContext } from '../db.ts';
 import { startTestApp, type TestApp } from '../testing.ts';
 
 const app = await startTestApp();
@@ -21,8 +22,43 @@ before(async () => {
 after(() => app?.close());
 
 const a = () => app as TestApp;
-type Page = { id: string; parentId: string | null; title: string; restricted: boolean; role: string | null };
+type Page = {
+  id: string;
+  parentId: string | null;
+  title: string;
+  restricted: boolean;
+  role: string | null;
+  hasChildren: boolean;
+};
 const titles = (pages: Page[]) => pages.map((p) => p.title);
+
+/** Eine Ebene des Seitenbaums (ohne parent: oberste Ebene) */
+const level = async (cookie: string, key: string, parent?: string) => {
+  const r = await a().call(cookie, 'GET', `/spaces/${key}/pages${parent ? `?parent=${parent}` : ''}`);
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  return r.body as Page[];
+};
+
+/** Ganzer Baum, Ebene für Ebene geladen wie in der Seitenleiste; under = angezeigt unter */
+const walk = async (cookie: string, key: string) => {
+  const all: (Page & { under: string | null })[] = [];
+  const queue: (string | null)[] = [null];
+  while (queue.length) {
+    const parent = queue.shift()!;
+    for (const p of await level(cookie, key, parent ?? undefined)) {
+      all.push({ ...p, under: parent });
+      if (p.hasChildren) queue.push(p.id);
+    }
+  }
+  return all;
+};
+
+/** Als Person direkt in der Datenbank handeln (Funktionen ohne eigene Route, z. B. Rechte) */
+const asUser = async (cookie: string, sql: string, params: unknown[]) => {
+  const me = (await a().call(cookie, 'GET', '/auth/me')).body as { id: string; tenant: { id: string } };
+  await withContext(a().db, { tenantId: me.tenant.id, userId: me.id }, (tx) => tx.query(sql, params));
+  return me.id;
+};
 
 test('ohne Sitzung kein Zugriff', { skip }, async () => {
   assert.equal((await a().call(null, 'GET', '/spaces')).status, 401);
@@ -44,7 +80,7 @@ test('jede Person sieht nur ihre Spaces', { skip }, async () => {
 });
 
 test('der Seitenbaum zeigt eingeschränkte Seiten nur den Berechtigten', { skip }, async () => {
-  const tree = async (c: string) => (await a().call(c, 'GET', '/spaces/ENTW/pages')).body as Page[];
+  const tree = (c: string) => walk(c, 'ENTW');
   const l = await tree(lukas);
   const plan = l.find((p) => p.title === 'Personalplanung 2027');
   assert.ok(plan?.restricted, 'Lukas sieht die Personalplanung nicht oder nicht als eingeschränkt');
@@ -71,10 +107,7 @@ test('Space anlegen, Seiten anlegen, verschieben, Papierkorb', { skip }, async (
     assert.equal(res.status, 201, JSON.stringify(res.body));
     return res.body.id as string;
   };
-  const children = async (parentId: string) =>
-    titles(
-      ((await a().call(peter, 'GET', `/spaces/${key}/pages`)).body as Page[]).filter((p) => p.parentId === parentId),
-    );
+  const children = async (parentId: string) => titles(await level(peter, key, parentId));
 
   const pa = await create('A');
   const pb = await create('B');
@@ -98,7 +131,7 @@ test('Space anlegen, Seiten anlegen, verschieben, Papierkorb', { skip }, async (
   assert.equal(r.status, 409, 'Seite unter die eigene Unterseite verschoben');
 
   // Max liest mit (Standard: alle im Workspace lesen), darf aber nichts ändern
-  assert.equal((await a().call(max, 'GET', `/spaces/${key}/pages`)).status, 200);
+  assert.deepEqual(titles(await level(max, key)), ['Test über die API']);
   assert.equal((await a().call(max, 'POST', `/pages/${pb}/move`, { parentId: pa })).status, 403);
   assert.equal((await a().call(max, 'DELETE', `/pages/${pb}`)).status, 403);
 
@@ -123,9 +156,97 @@ test('Eingaben werden geprüft', { skip }, async () => {
   assert.equal(entw.status, 200);
   assert.equal(entw.body.key, 'ENTW');
   assert.equal((await a().call(peter, 'GET', '/spaces/entw/pages')).status, 200);
+  assert.equal((await a().call(peter, 'GET', '/spaces/entw/pages?parent=keine-uuid')).status, 400);
   assert.equal((await a().call(peter, 'GET', '/spaces/1abc')).status, 400);
   assert.equal((await a().call(peter, 'GET', '/spaces/GIBTSNICHT')).status, 404);
   assert.equal((await a().call(peter, 'GET', '/pages/keine-uuid')).status, 400);
   const r = await a().call(peter, 'POST', '/spaces/ENTW/pages', { parentId: null, title: '' });
   assert.equal(r.status, 400);
+});
+
+test(
+  'der Baum lädt ebenenweise, Seiten unter unsichtbaren stehen unter der nächsten sichtbaren',
+  { skip },
+  async () => {
+    const key = `B${Date.now().toString(36).toUpperCase()}`;
+    const home = (await a().call(peter, 'POST', '/spaces', { key, name: 'Baum' })).body.homePageId as string;
+    const create = async (title: string, parentId: string) =>
+      (await a().call(peter, 'POST', `/spaces/${key}/pages`, { parentId, title })).body.id as string;
+    const geheim = await create('Geheim', home);
+    const darin = await create('Darin', geheim);
+    const fuerMax = await create('Für Max', darin);
+    // Geheim nur für Peter; „Für Max“ darunter mit eigenen Rechten, Max darf bearbeiten
+    const maxId = (await a().call(max, 'GET', '/auth/me')).body.id as string;
+    await asUser(
+      peter,
+      `SELECT app.set_page_inheritance($1, false, app.current_user_id()),
+            app.set_grant(NULL, $1, 'workspace', NULL, NULL, NULL, app.current_user_id())`,
+      [geheim],
+    );
+    await asUser(
+      peter,
+      `SELECT app.set_page_inheritance($1, false, app.current_user_id()),
+            app.set_grant(NULL, $1, 'user', $2, NULL, 'editor', app.current_user_id())`,
+      [fuerMax, maxId],
+    );
+
+    // Peter: jede Ebene einzeln, has_children nur, wo etwas darunter liegt
+    assert.deepEqual(titles(await level(peter, key)), ['Baum']);
+    const top = await level(peter, key, home);
+    assert.deepEqual(titles(top), ['Geheim']);
+    assert.ok(top[0]!.hasChildren && top[0]!.restricted);
+    const unten = await level(peter, key, darin);
+    assert.deepEqual(titles(unten), ['Für Max']);
+    assert.equal(unten[0]!.hasChildren, false);
+
+    // Max: „Für Max“ direkt unter der Startseite, als editor; parentId bleibt die echte Elternseite
+    const m = await walk(max, key);
+    assert.deepEqual(
+      m.map((p) => [p.title, p.under]),
+      [
+        ['Baum', null],
+        ['Für Max', home],
+      ],
+    );
+    assert.equal(m[1]!.role, 'editor');
+    assert.equal(m[1]!.parentId, darin);
+    // Ebene unter einer unsichtbaren Seite: leer, nicht 404 (verrät nichts)
+    assert.deepEqual(await level(max, key, geheim), []);
+  },
+);
+
+test('Space umbenennen und archivieren', { skip }, async () => {
+  const key = `S${Date.now().toString(36).toUpperCase()}`;
+  let r = await a().call(peter, 'POST', '/spaces', { key, name: 'Vorher', description: 'Alt' });
+  assert.equal(r.status, 201, JSON.stringify(r.body));
+  assert.equal(r.body.canManage, true);
+  assert.equal(r.body.description, 'Alt');
+
+  r = await a().call(peter, 'PATCH', `/spaces/${key}`, { name: '  Nachher ', description: '' });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.name, 'Nachher');
+  assert.equal(r.body.description, null, 'leere Beschreibung nicht als NULL gespeichert');
+  assert.equal((await a().call(peter, 'PATCH', `/spaces/${key}`, { name: '' })).status, 400);
+
+  // Max liest mit (alle im Workspace), verwaltet aber nicht
+  r = await a().call(max, 'GET', `/spaces/${key}`);
+  assert.equal(r.body.role, 'viewer');
+  assert.equal(r.body.canManage, false);
+  assert.equal((await a().call(max, 'PATCH', `/spaces/${key}`, { name: 'Von Max' })).status, 403);
+  assert.equal((await a().call(max, 'POST', `/spaces/${key}/archive`, { archived: true })).status, 403);
+
+  // Archiviert: für alle nur lesbar, Peter kann zurückholen
+  r = await a().call(peter, 'POST', `/spaces/${key}/archive`, { archived: true });
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  assert.equal(r.body.archived, true);
+  assert.equal(r.body.role, 'viewer');
+  assert.equal(r.body.canManage, true);
+  assert.ok(
+    (await walk(peter, key)).every((p) => p.role === 'viewer'),
+    'archivierter Space bearbeitbar',
+  );
+  assert.equal((await a().call(peter, 'PATCH', `/spaces/${key}`, { name: 'Archiviert' })).status, 403);
+  r = await a().call(peter, 'POST', `/spaces/${key}/archive`, { archived: false });
+  assert.equal(r.body.archived, false);
+  assert.equal(r.body.role, 'admin');
 });

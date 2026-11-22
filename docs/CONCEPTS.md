@@ -207,6 +207,8 @@ Die Funktion `app.page_rank(seite, person)` geht so vor:
 
 **Diese eine Funktion ist die einzige Wahrheit.** Seitenbaum, Suche, Link-Vorschau, Kommentare, Anhänge, Export, Benachrichtigungen und Import fragen alle sie. Die meisten Datenlecks in Wikis entstehen über Nebenwege (ein Suchtreffer zeigt den Titel einer geheimen Seite, ein Rückverweis verrät, dass es sie gibt). Deshalb gibt es keine zweite Rechte-Logik irgendwo in der App. Die API kann damit nur die Rechte der angemeldeten Person abfragen (`app.page_rank(seite)`), die Variante für eine beliebige Person ist ihr bewusst verwehrt.
 
+**Eine Ausnahme aus Leistungsgründen: Listen.** Für jede Seite einzeln `page_rank` zu rechnen, ist bei Tausenden Seiten zu langsam (ein Seitenbaum mit 10.000 Seiten brauchte so fast 3 Sekunden). Der Seitenbaum nutzt deshalb `app.tree_level`: dieselben Regeln, aber für eine ganze Ebene auf einmal gerechnet. Sie nutzt aus, dass sich Sichtbarkeit nur an Seiten mit gekappter Vererbung ändert, und rechnet nur deren Rang einzeln. Damit diese zweite Fassung nie von der ersten abweicht, prüft ein Test für alle Personen und Spaces der Testdaten, dass beide genau dieselben Seiten mit denselben Rollen ergeben. Suche und „Ansehen als …“ folgen demselben Muster (M3).
+
 ### Vererbung kappen, ohne sich auszusperren
 
 Wer die Vererbung einer Seite kappt (`app.set_page_inheritance`), dem passiert nichts Überraschendes:
@@ -495,6 +497,8 @@ Ein Baum in einer relationalen Datenbank braucht drei Dinge:
 - **`position`** legt die Reihenfolge unter Geschwistern fest, als **Fractional Index**: kurze Zeichenketten, die sich sortieren lassen und zwischen die man immer eine neue einfügen kann (zwischen `a0` und `a1` passt `a0V`). Beim Umsortieren ändert sich so nur eine Zeile, nicht alle Geschwister. Die App erzeugt sie mit dem npm-Paket `fractional-indexing`; ohne Angabe hängt die Datenbank eine neue Seite hinter alle Geschwister, auch die unsichtbaren. Positionen sind unter Geschwistern **nicht eindeutig**, weil die App eingeschränkte Geschwister nicht sieht. Sortiert wird deshalb immer mit `ORDER BY position, id`.
 
 Ein Wiki wird viel öfter gelesen als umgebaut. Deshalb ist Lesen billig (ein Pfad-Vergleich) und Verschieben etwas teurer (alle Pfade im Teilbaum neu schreiben).
+
+Die Seitenleiste lädt den Baum **Ebene für Ebene** (`app.tree_level`), nicht auf einmal: Ein Space mit Tausenden Seiten öffnet sich trotzdem sofort. Darf jemand eine Seite lesen, deren Elternseite er nicht sieht (eine Seite mit eigenen Rechten unter einem gesperrten Bereich), steht sie unter der nächsten Seite, die er sieht, genau wie in der Brotkrume.
 
 ### Der Inhalt: `page_contents`
 

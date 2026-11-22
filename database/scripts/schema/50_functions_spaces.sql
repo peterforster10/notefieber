@@ -196,6 +196,24 @@ BEGIN
   PERFORM app.audit(p_actor_id, 'space.updated', 'space', p_space_id);
 END $$;
 
+-- Darf die angemeldete Person diesen Space archivieren und zurückholen? Space-Admins über
+-- ihre Grants (ohne die Kappung im archivierten Space, wo space_rank höchstens viewer meldet)
+-- und Organisations-Admins. Für app.archive_space und die API (Knopf „Zurückholen“).
+CREATE FUNCTION app.can_manage_space(p_space_id uuid) RETURNS boolean
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $$
+DECLARE
+  v_user    uuid := app.current_user_id();
+  v_ws_role text;
+BEGIN
+  IF v_user IS NULL
+     OR NOT EXISTS (SELECT 1 FROM spaces WHERE id = p_space_id AND tenant_id = app.current_tenant()) THEN
+    RETURN false;
+  END IF;
+  IF app.is_org_admin(v_user) THEN RETURN true; END IF;
+  v_ws_role := app.space_ws_role(p_space_id, v_user);
+  RETURN v_ws_role IS NOT NULL AND app.grant_rank(p_space_id, NULL, v_user, v_ws_role) = 4;
+END $$;
+
 -- Space archivieren (nur noch lesbar) oder zurückholen. Erlaubt für Space-Admins (auch
 -- im archivierten Space, dort gilt sonst höchstens viewer) und Organisations-Admins.
 -- space.archived lässt den Collab-Server offene Verbindungen schreibgeschützt neu aufbauen.
@@ -203,12 +221,9 @@ CREATE FUNCTION app.archive_space(p_space_id uuid, p_archived boolean, p_actor_i
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $$
 DECLARE
   v_tenant  uuid := app.current_tenant();
-  v_ws_role text;
 BEGIN
-  PERFORM app.require_actor(p_actor_id);
-  v_ws_role := app.space_ws_role(p_space_id, p_actor_id);
-  IF NOT ((v_ws_role IS NOT NULL AND app.grant_rank(p_space_id, NULL, p_actor_id, v_ws_role) = 4)
-          OR app.is_org_admin(p_actor_id)) THEN
+  PERFORM app.require_actor(p_actor_id);   -- danach ist p_actor_id die angemeldete Person
+  IF NOT app.can_manage_space(p_space_id) THEN
     RAISE EXCEPTION USING
       ERRCODE = 'insufficient_privilege',
       MESSAGE = 'Nur Admins dürfen einen Space archivieren';

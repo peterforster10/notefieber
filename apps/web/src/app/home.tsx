@@ -37,6 +37,7 @@ export function Home() {
               <strong>{s.name}</strong> <code>{s.key}</code>
             </Link>
             {s.archived && <span className="nf-muted"> · archiviert</span>}
+            {s.description && <span className="nf-muted"> · {s.description}</span>}
           </li>
         ))}
       </ul>

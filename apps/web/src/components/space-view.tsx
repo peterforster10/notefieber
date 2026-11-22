@@ -1,13 +1,14 @@
 'use client';
 
 // Ansicht eines Spaces: Seitenleiste mit Space-Umschalter, Seitenbaum und Papierkorb, rechts
-// die ausgewählte Seite (ohne Auswahl die Startseite) mit dem Editor (page-editor.tsx).
+// die ausgewählte Seite (ohne Auswahl die Startseite) mit dem Editor (page-editor.tsx) oder
+// die Einstellungen des Spaces (space-settings.tsx, /spaces/<schlüssel>/settings).
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { pageIdFromSlug, pagePath, spacePath } from '@notefieber/shared';
+import { pageIdFromSlug, pagePath, spacePath, spaceSettingsPath } from '@notefieber/shared';
 import { LoginForm, logout } from '@/app/account';
 import {
   ApiError,
@@ -19,10 +20,10 @@ import {
   useSpace,
   useSpaces,
   useTrash,
-  useTree,
   type Space,
 } from '@/lib/api';
 import { PageTree } from './page-tree';
+import { SpaceSettings } from './space-settings';
 
 // Editor nur im Browser: BlockNote und Yjs brauchen das DOM und eine WebSocket-Verbindung
 const PageEditor = dynamic(() => import('./page-editor').then((m) => m.PageEditor), {
@@ -37,7 +38,7 @@ const ROLE_NAMES: Record<string, string> = {
   admin: 'Admin',
 };
 
-export function SpaceView() {
+export function SpaceView({ view = 'page' }: { view?: 'page' | 'settings' }) {
   const params = useParams<{ key: string; slug?: string }>();
   const pathname = usePathname();
   const key = decodeURIComponent(params.key);
@@ -54,7 +55,7 @@ export function SpaceView() {
     );
   // Adresse /spaces/entw/pages/<titel>-<kurze id>: zählt nur die ID (siehe packages/shared/src/urls.ts)
   const pageId = params.slug ? (pageIdFromSlug(decodeURIComponent(params.slug)) ?? 'ungueltig') : undefined;
-  return <SignedInSpace spaceKey={key} pageId={pageId} />;
+  return <SignedInSpace spaceKey={key} pageId={pageId} view={view} />;
 }
 
 /**
@@ -69,10 +70,10 @@ function useCanonicalPath(path: string | undefined) {
   }, [path, pathname, router]);
 }
 
-function SignedInSpace({ spaceKey, pageId }: { spaceKey: string; pageId?: string }) {
+function SignedInSpace({ spaceKey, pageId, view }: { spaceKey: string; pageId?: string; view: 'page' | 'settings' }) {
   const space = useSpace(spaceKey);
-  const tree = useTree(spaceKey);
-  useCanonicalPath(space.data && !pageId ? spacePath(space.data.key) : undefined);
+  const canonical = space.data && (view === 'settings' ? spaceSettingsPath(space.data.key) : spacePath(space.data.key));
+  useCanonicalPath(!pageId ? canonical : undefined);
 
   if (space.isError) {
     const notFound = space.error instanceof ApiError && [400, 404].includes(space.error.status);
@@ -85,14 +86,14 @@ function SignedInSpace({ spaceKey, pageId }: { spaceKey: string; pageId?: string
       </Shell>
     );
   }
-  if (!space.data || !tree.data) return <Shell>Einen Moment …</Shell>;
-  const selected = pageId ?? space.data.homePageId ?? undefined;
+  if (!space.data) return <Shell>Einen Moment …</Shell>;
+  const selected = view === 'settings' ? undefined : (pageId ?? space.data.homePageId ?? undefined);
 
   return (
     <main className="nf-shell">
       <aside className="nf-sidebar">
         <SpaceSwitcher current={space.data} />
-        <PageTree key={space.data.id} space={space.data} pages={tree.data} selectedId={selected} />
+        <PageTree key={space.data.id} space={space.data} selectedId={selected} />
         <Trash space={space.data} />
         <div className="nf-sidebar-foot">
           <button type="button" className="nf-link-button nf-on-dark" onClick={logout}>
@@ -102,7 +103,13 @@ function SignedInSpace({ spaceKey, pageId }: { spaceKey: string; pageId?: string
         </div>
       </aside>
       <section className="nf-main">
-        {selected ? <PageView id={selected} canonicalize={!!pageId} /> : <p>Dieser Space hat keine Startseite.</p>}
+        {view === 'settings' ? (
+          <SpaceSettings key={space.data.id} space={space.data} />
+        ) : selected ? (
+          <PageView id={selected} canonicalize={!!pageId} />
+        ) : (
+          <p>Dieser Space hat keine Startseite.</p>
+        )}
       </section>
     </main>
   );
@@ -127,6 +134,11 @@ function SpaceSwitcher({ current }: { current: Space }) {
         ))}
       </select>
       {current.archived && <p className="nf-muted-dark">Archiviert, nur lesbar</p>}
+      {(current.canManage || current.role === 'admin') && (
+        <div className="nf-switcher-links">
+          <Link href={spaceSettingsPath(current.key)}>Einstellungen</Link>
+        </div>
+      )}
     </div>
   );
 }

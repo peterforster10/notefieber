@@ -33,6 +33,7 @@
 --   18_session_id_token.sql   Test  53     ID-Token an der Sitzung fürs Abmelden beim Login-Dienst
 --   19_small_rules.sql        Test  54     Einladungen nur zurücknehmen, Audit-Aktionen, CONNECT
 --   20_content_split.sql      Test  55     Inhalt in zwei Schritten: Yjs (Collab-Server), abgeleitet (Worker)
+--   21_tree_level.sql         Test  56     Seitenbaum ebenenweise (tree_level), Space verwalten
 --
 -- Testdaten: Die erfundene Firma Alpenwerk (Mandant t1) mit Peter (Organisations-Admin),
 -- Lukas, Max, Sophie und dem Gast Elena, dazu Eva im zweiten Mandanten (t2). IDs liegen
@@ -103,6 +104,7 @@ END $$;
 \ir 18_session_id_token.sql
 \ir 19_small_rules.sql
 \ir 20_content_split.sql
+\ir 21_tree_level.sql
 
 RESET ROLE;
 ROLLBACK;

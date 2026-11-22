@@ -62,6 +62,11 @@ export function spacePath(key: string): string {
   return `/spaces/${key.toLowerCase()}`;
 }
 
+/** Einstellungen eines Spaces: Name, Beschreibung, Archivieren */
+export function spaceSettingsPath(key: string): string {
+  return `${spacePath(key)}/settings`;
+}
+
 export function pagePath(spaceKey: string, page: { id: string; title: string }): string {
   return `${spacePath(spaceKey)}/pages/${pageSlug(page.title, page.id)}`;
 }

@@ -267,7 +267,8 @@ Der Seitenbaum. Inhalt und Versionen liegen in eigenen Tabellen.
 - **Regeln:** Eltern im selben Space, keine Seite ist ihre eigene Elternseite, keine Zyklen. Änderungen am Baum sperren den Space (`app.lock_tree`), damit gleichzeitiges Verschieben, Anlegen und Löschen keine Zyklen oder veralteten Pfade erzeugt.
 - **Schreiben:** `app.create_page`, `app.move_page` (auch zum Umsortieren unter derselben Elternseite; aus einem Bereich mit eigenen Rechten heraus nur als dessen Admin), `app.trash_page`, `app.restore_page`, `app.set_page_inheritance`, `app.store_ydoc` (Titel). `wiki_app` darf Seiten weder direkt anlegen noch ändern. Der Worker legt beim Import direkt an und löscht Seiten endgültig aus dem Papierkorb.
 - **Lesen:** mit Leserecht (`app.page_rank(id) ≥ 1`). Seiten im Papierkorb bleiben lesbar (für die Papierkorb-Ansicht); Seitenbaum, Suche und Verlinkungen filtern `deleted_at IS NULL`.
-- **Indexe:** GiST auf `path` (Teilbäume), `(space_id, parent_id, position)` (Kinder einer Seite), Trigramm auf `title` (Titelsuche), `trash_root_id`.
+- **Lesen als Baum:** ebenenweise über `app.tree_level` (12.8), nicht über die Leseregel pro Zeile.
+- **Indexe:** GiST auf `path` (Teilbäume), `(space_id, parent_id, position)` (Kinder einer Seite), Trigramm auf `title` (Titelsuche), `trash_root_id`, `pages_restricted` auf `space_id` nur für Seiten mit `inherit_perms = false` (für `tree_level`, seit Migration 0014).
 
 ### `page_contents`
 
@@ -619,6 +620,7 @@ Alle Funktionen liegen im Schema `app`. Zu jeder Funktion: wer sie aufruft, was 
 | `perm_source(seite) → uuid` | DEFINER, intern | Woher die Seite ihre Rechte hat: ID der nächsten Seite oberhalb (oder der Seite selbst) mit gekappter Vererbung, `NULL` = vom Space. Nutzt `move_page`. |
 | `has_admin(objekt) → boolean` | DEFINER, intern | Hat ein Space bzw. eine Seite mit gekappter Vererbung noch einen wirksamen Admin? Zählt nur Admin-Grants für Personen bzw. Gruppen mit mindestens einem Mitglied, die aktiv und Mitglied im Workspace des Spaces sind (Gruppen gelten für den ganzen Mandanten, Zugriff gibt es nur über den Workspace). Ohne Mandantenfilter, damit der Trigger `admin_remains` beim Commit unabhängig vom Kontext prüfen kann. |
 | `is_org_admin(person) → boolean` | DEFINER, App/Worker | Ist die Person aktiver Organisations-Admin im eigenen Mandanten? |
+| `can_manage_space(space) → boolean` | DEFINER, App/Worker | Darf die **angemeldete** Person den Space archivieren und zurückholen? Organisations-Admins und Admins des Spaces über ihre Grants, ohne die Kappung im archivierten Space (dort meldet `space_role` auch für Admins nur `viewer`). Für `archive_space` und die API (Knopf „Zurückholen“). Fremder Space oder ohne Person: `false`. Seit Migration 0014. |
 | `is_workspace_admin(workspace, person) → boolean` | DEFINER, App/Worker | Organisations-Admin oder aktiver Owner bzw. Admin des Workspaces. Wer das ist, darf Mitglieder und Einladungen verwalten. |
 | `member_workspaces() → uuid[]` | DEFINER, App/Worker | Workspaces, in denen die angemeldete Person aktiv und Mitglied ist, aber kein Gast. Grundlage der Leseregeln auf Personen, Workspaces, Mitgliedschaften und Gruppen; dort immer in einer Unterabfrage, damit es pro Abfrage nur einmal läuft. |
 | `is_own_avatar(datei, person) → boolean` | DEFINER, App/Worker | Ist die Datei eine eigene Datei der Person ohne Seite? Für die Regel `write_update` auf `users`; als Funktion, weil eine Unterabfrage auf `files` mit der Leseregel auf `users` einen Kreis ergäbe. |
@@ -738,7 +740,7 @@ DEFINER, App. Ändert Name und Beschreibung, nur für Space-Admins.
 Ereignis: `space.updated`. Audit: `space.updated`.
 
 #### `archive_space(space, archiviert, actor)`
-DEFINER, App. Archiviert einen Space (danach für alle höchstens viewer) oder holt ihn zurück. Erlaubt für Space-Admins über ihre Grants (auch im archivierten Space, wo ihr Rang sonst auf 1 begrenzt ist) und für Organisations-Admins. Ändert sich nichts, passiert nichts.
+DEFINER, App. Archiviert einen Space (danach für alle höchstens viewer) oder holt ihn zurück. Erlaubt, wenn `can_manage_space` stimmt: Space-Admins über ihre Grants (auch im archivierten Space, wo ihr Rang sonst auf 1 begrenzt ist) und Organisations-Admins. Ändert sich nichts, passiert nichts.
 Ereignis: `space.archived` mit `archived: true/false` (der Collab-Server baut schreibende Verbindungen schreibgeschützt neu auf). Audit: `space.archived` bzw. `space.unarchived`.
 
 #### `set_grant(space, seite, subjekt_typ, person, gruppe, rolle, actor)`
@@ -764,6 +766,11 @@ DEFINER, App. „Ansehen als …“: zeigt, wie eine Person einen Space sieht, z
 Audit: `space.viewed_as` mit der angesehenen Person, bei jedem Aufruf.
 
 ### 12.8 Seitenbaum
+
+#### `tree_level(space, eltern) → (id, parent_id, position, title, inherit_perms, role, has_children)`
+DEFINER, App. Eine Ebene des Seitenbaums für die **angemeldete** Person (seit Migration 0014; ARCHITECTURE_REVIEW A-01): die Seiten, deren **nächste sichtbare Vorfahrin** `eltern` ist, `NULL` = oberste Ebene. Das sind die sichtbaren Kinder, dazu sichtbare Seiten tiefer unten, wenn alles dazwischen für die Person unsichtbar ist (eine Seite mit eigenen Rechten unter einer, die sie nicht sieht). Jede sichtbare Seite steht so genau einmal im Baum, unter derselben Seite wie in der Brotkrume; `parent_id` bleibt die echte Elternseite (bei solchen Seiten eine ID ohne Titel). `role` wie `page_role` (im archivierten Space höchstens viewer), `has_children`: die Ebene darunter ist nicht leer. Ohne Seiten im Papierkorb, sortiert nach `position, id`. Unsichtbare oder gelöschte Elternseite, fremder Space oder Mandant, keine Person: leer.
+
+Mengenbasiert statt `page_rank` pro Zeile: Sichtbarkeit ändert sich nur an Seiten mit eigenen Rechten. Ein erbendes Kind ist sichtbar, wenn seine Elternseite es ist; unter einer sichtbaren Seite kann also nur eine Seite mit eigenen Rechten unsichtbar sein (auf der obersten Ebene auch eine erbende, wenn die Person auf dem Space keinen Rang hat). Die Funktion rechnet den Rang der Elternseite einmal und den jeder Seite mit eigenen Rechten im Teilbaum einmal (Index `pages_restricted`). Test 56 prüft für mehrere Personen und alle Spaces der Testdaten, dass der Baum aus Ebenen genau die Seiten und Rollen von `page_rank` ergibt. Gemessen (`schema_test/tree_load_test.sh`, 10.101 Seiten, 202 mit eigenen Rechten): 2–42 ms pro Ebene, mit und ohne aktuelle Statistik; der frühere flache Baum über die Leseregel 2,7 s.
 
 #### `create_page(space, eltern, titel, actor, position = NULL) → uuid`
 DEFINER, App. Legt eine Seite an: unter einer Elternseite (editor auf der Elternseite) oder auf oberster Ebene (editor im Space). Die Elternseite muss im selben Space liegen und darf nicht im Papierkorb sein; das prüft sie erst nach der geteilten Sperre des Baums, damit ein gleichzeitiges Löschen nicht durchrutscht. Ohne `position` kommt die Seite hinter alle Geschwister (`next_position`, über alle Geschwister, auch unsichtbare). Legt leeren Inhalt (`\x0000`) an. Abgelehnt in archivierten Spaces (dort fehlt das Recht ohnehin).

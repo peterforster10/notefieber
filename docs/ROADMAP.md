@@ -74,7 +74,7 @@ Was fertig heißt, sagen die User Stories E04-01 bis E04-08 in [EPICS](EPICS.md)
 
 ### M2 – Wiki-Grundfunktionen
 Epics: E05, E06, E07, E08, E15, dazu der Mail-Versand aus E01 und E02
-- [ ] Spaces mit Startseite, Seitenbaum mit Drag & Drop; der Baum lädt ebenenweise statt aller Seiten auf einmal (A-01)
+- [x] Spaces mit Startseite, Seitenbaum mit Drag & Drop; der Baum lädt ebenenweise statt aller Seiten auf einmal (A-01) (22. November 2026: `app.tree_level` mit Migration `0014` und Test 56, gemessen mit `schema_test/tree_load_test.sh`: 10.101 Seiten, 2–42 ms pro Ebene, auch ohne aktuelle Statistik, statt 2,7 s für den flachen Baum; Seiten unter unsichtbaren stehen unter der nächsten sichtbaren; Drag & Drop nativ mit HTML5, Knöpfe bleiben; Space umbenennen, beschreiben, archivieren und zurückholen; im Browser geprüft, [USE_CASES](USE_CASES.md) UC-28 bis UC-30)
 - [ ] Blöcke: Überschriften, Listen, Tabellen, Code, Bilder, Callouts, Seitenlinks
 - [ ] Versionen anzeigen, vergleichen, wiederherstellen; Papierkorb
 - [ ] Web-Client nach UI-Entwurf

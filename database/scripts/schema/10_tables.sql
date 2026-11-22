@@ -170,6 +170,8 @@ CREATE INDEX pages_path      ON pages USING gist (path);
 CREATE INDEX pages_children  ON pages (space_id, parent_id, position);
 CREATE INDEX pages_title_trgm ON pages USING gin (title gin_trgm_ops);
 CREATE INDEX pages_trash     ON pages (trash_root_id) WHERE trash_root_id IS NOT NULL;
+-- Seiten mit eigenen Rechten pro Space (selten): für app.tree_level
+CREATE INDEX pages_restricted ON pages (space_id) WHERE NOT inherit_perms;
 
 ALTER TABLE spaces ADD FOREIGN KEY (home_page_id, id) REFERENCES pages (id, space_id);
 

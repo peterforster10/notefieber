@@ -1,8 +1,9 @@
 # Use Cases in der Oberfläche
 
-Was sich im Frontend schon durchklicken lässt. **Stand: 19. November 2026** (M0 abgeschlossen,
+Was sich im Frontend schon durchklicken lässt. **Stand: 22. November 2026** (M0 abgeschlossen,
 M1 mit Editor, gemeinsamem Bearbeiten, Rechten, die auch für offene Editoren sofort gelten,
-Umbenennen aus der Seitenleiste und lokalen Kopien für Funklöcher). Wird nachgeführt, sobald ein neuer Ablauf in der Oberfläche dazukommt; was es
+Umbenennen aus der Seitenleiste und lokalen Kopien für Funklöcher; M2 mit Seitenbaum, der
+ebenenweise lädt, Drag & Drop und Space-Einstellungen). Wird nachgeführt, sobald ein neuer Ablauf in der Oberfläche dazukommt; was es
 nur in Datenbank oder API gibt, steht unten unter „Noch nicht in der Oberfläche“.
 
 **Spalte „Geprüft“:** *Browser* = am 12. November 2026 von Hand gegen die lokale Umgebung
@@ -20,7 +21,7 @@ in `compose.yaml` (`NF_TEST_PASSWORD`).
 |---|---|---|
 | Peter Forster | `peter.forster@alpenwerk.example` | Organisations-Admin: alles, auch Einladungen und der Space `PERS` |
 | Lukas Gruber | `lukas.gruber@alpenwerk.example` | Bearbeiten in `ENTW`, sieht die eingeschränkte Seite „Personalplanung 2027“ |
-| Max Mustermann | `max.mustermann@alpenwerk.example` | nur Lesen in `ENTW`, sieht „Personalplanung 2027“ nicht |
+| Max Mustermann | `max.mustermann@alpenwerk.example` | nur Lesen in `ENTW`, sieht „Personalplanung 2027“ nicht, aber „Urlaubsplanung Vertrieb“ darunter |
 | Elena Novak | `elena.novak@agentur-nord.example` | Gast im Workspace |
 | Eva Fischer | `eva.fischer@nordlicht.example` | anderer Mandant (`nordlicht`); bei `alpenwerk` abgelehnt |
 | Nina Neu | `nina.neu@alpenwerk.example` | gibt es nur in Zitadel: zum Ausprobieren einer Einladung |
@@ -36,9 +37,9 @@ in `compose.yaml` (`NF_TEST_PASSWORD`).
 | UC-05 | Space anlegen | Mitglieder (keine Gäste) | Browser (14. November 2026, mit zwei Workspaces) |
 | UC-06 | Space wechseln | alle | Browser |
 | UC-07 | Seite öffnen | alle mit Leserecht | Browser |
-| UC-08 | Seitenbaum auf- und zuklappen | alle | Browser |
+| UC-08 | Seitenbaum auf- und zuklappen | alle | Browser (22. November 2026, jede Ebene lädt erst beim Aufklappen) |
 | UC-09 | Seite anlegen | Bearbeitende | Browser |
-| UC-10 | Seite verschieben | Bearbeitende | Browser (↑), Code (↓ → ←) |
+| UC-10 | Seite verschieben | Bearbeitende | Browser (↑), Code (↓ → ←); Drag & Drop: UC-28 |
 | UC-11 | Seite in den Papierkorb legen | Bearbeitende | Browser |
 | UC-12 | Seite aus dem Papierkorb wiederherstellen | Bearbeitende | Browser |
 | UC-13 | Archivierten Space lesen | alle mit Leserecht | Browser |
@@ -56,6 +57,9 @@ in `compose.yaml` (`NF_TEST_PASSWORD`).
 | UC-25 | Abmelden schließt Editoren in anderen Tabs | alle | Browser (19. November 2026, zwei Tabs) |
 | UC-26 | Seite in der Seitenleiste umbenennen | Bearbeitende | Browser (19. November 2026, Editor offen) |
 | UC-27 | Weiterschreiben nach einem Funkloch, auch nach Neuladen | Bearbeitende | Browser (19. November 2026, Collab-Server gestoppt) |
+| UC-28 | Seite per Drag & Drop verschieben | Bearbeitende | Browser (22. November 2026; Ziehen per Skript ausgelöst, weil die Testautomatik kein natives Ziehen kann) |
+| UC-29 | Space umbenennen und beschreiben | Space-Admins | Browser (22. November 2026) |
+| UC-30 | Space archivieren und zurückholen | Space-Admins, Organisations-Admins | Browser (22. November 2026, Peter als Organisations-Admin in „Vertrieb“) |
 
 ## Anmelden und Abmelden
 
@@ -122,7 +126,10 @@ Kommentieren, Bearbeiten, Admin). Darunter der Editor mit dem Inhalt (UC-19 bis 
 
 ### UC-08 Seitenbaum auf- und zuklappen
 
-Mit dem Dreieck vor einer Seite. Beim Öffnen einer Seite ist der Weg zu ihr aufgeklappt.
+Mit dem Dreieck vor einer Seite; das Dreieck steht nur an Seiten mit (sichtbaren) Unterseiten.
+Beim Öffnen einer Seite ist der Weg zu ihr aufgeklappt. Der Baum lädt Ebene für Ebene: zuerst
+nur die oberste Ebene und die Unterseiten der Startseite, jede weitere erst beim Aufklappen
+(kurz „…“). So öffnet sich auch ein Space mit Tausenden Seiten sofort.
 
 ### UC-09 Seite anlegen
 
@@ -141,14 +148,16 @@ Knöpfe an der Seite (beim Darüberfahren oder per Tastatur):
 - ←: ausrücken, also hinter die Elternseite (nicht aus der Startseite heraus)
 
 Verschieben nimmt die Unterseiten mit. Aus einem Bereich mit eigenen Rechten heraus geht es nur
-als Admin dieses Bereichs; sonst erscheint eine Meldung. Drag & Drop kommt mit M2.
+als Admin dieses Bereichs; sonst erscheint eine Meldung. Mit der Maus geht es per Drag & Drop
+(UC-28); die Knöpfe bleiben für Tastatur und Touch.
 
-An Seiten, deren Elternseite die Person nicht sieht (sie stehen oben im Baum), gibt es ↑ und ↓
-nicht: Umsortieren dort verlangt Rechte auf der unsichtbaren Elternseite.
+An Seiten, deren Elternseite die Person nicht sieht (sie stehen unter der nächsten sichtbaren
+Seite, UC-14), gibt es ↑, ↓ und ← nicht: Umsortieren dort verlangt Rechte auf der unsichtbaren
+Elternseite.
 
 ### UC-11 Seite in den Papierkorb legen
 
-Papierkorb-Knopf an der Seite, Rückfrage mit Titel und Zahl der Unterseiten bestätigen. Die
+Papierkorb-Knopf an der Seite, Rückfrage mit Titel (und „alle Unterseiten“, falls es welche gibt) bestätigen. Die
 Seite verschwindet samt Unterseiten aus dem Baum; war sie geöffnet, geht es zur Startseite. Die
 Startseite selbst lässt sich nicht löschen, ebenso wenig eine Seite, unter der Seiten liegen,
 die die Person nicht bearbeiten darf.
@@ -163,17 +172,20 @@ nicht in der Oberfläche (das macht später der Worker nach 30 Tagen).
 ### UC-13 Archivierten Space lesen
 
 Ein archivierter Space zeigt „Archiviert, nur lesbar“. Alle haben dort höchstens Leserechte, es
-gibt keine Knöpfe zum Anlegen, Verschieben oder Löschen. Archivieren selbst geht noch nicht in
-der Oberfläche.
+gibt keine Knöpfe zum Anlegen, Verschieben oder Löschen. Archivieren und zurückholen: UC-30.
 
 ### UC-14 Nur sehen, was man sehen darf
 
 Kein eigener Knopf, sondern eine Eigenschaft aller Ansichten: Seiten mit eigenen Rechten fehlen
 für Personen ohne Zugriff im Baum, in der Brotkrume und in der API. Ein direkter Link zeigt
 „Diese Seite gibt es nicht, oder sie ist für dich nicht sichtbar“. Knöpfe zum Bearbeiten
-erscheinen nur mit Rolle Bearbeiten oder Admin.
+erscheinen nur mit Rolle Bearbeiten oder Admin. Darf jemand eine Seite unter einer für ihn
+unsichtbaren lesen, steht sie im Baum unter der nächsten Seite, die er sieht (wie in der
+Brotkrume), mit Schloss.
 
-Zum Ausprobieren: als Lukas und als Max „Entwicklung“ → „Betrieb“ öffnen.
+Zum Ausprobieren: als Lukas und als Max „Entwicklung“ → „Betrieb“ öffnen. Lukas sieht
+„Personalplanung 2027“ mit „Urlaubsplanung Vertrieb“ darunter, Max nur „Urlaubsplanung
+Vertrieb“, direkt unter „Betrieb“.
 
 ## Einladungen
 
@@ -292,19 +304,49 @@ Seite): Lädt man die Seite neu, während die Verbindung noch weg ist, wartet de
 Ausprobieren: Collab-Server stoppen, tippen, neu laden, Collab-Server starten. Abmelden löscht
 alle lokalen Kopien (UC-25), „Kein Zugriff mehr“ die der Seite (UC-23).
 
+## Seitenbaum und Spaces (M2)
+
+### UC-28 Seite per Drag & Drop verschieben
+
+Eine Seite im Baum anfassen und ziehen. Wo sie landet, zeigt der Baum beim Darüberfahren:
+
+- obere Kante einer Seite (Linie darüber): davor, als Geschwister
+- untere Kante (Linie darunter): dahinter; ist die Seite aufgeklappt, als ihre erste Unterseite
+- Mitte (Rahmen): hinein, als letzte Unterseite; eine zugeklappte Seite klappt nach kurzem
+  Verweilen auf
+- „Startseite“: hinein in die Startseite
+
+Der Baum zeigt das Ergebnis sofort und springt zurück, wenn die Datenbank ablehnt (z. B. aus
+einem Bereich mit eigenen Rechten heraus ohne Admin-Recht, siehe UC-10). Auf sich selbst und
+in die eigenen Unterseiten lässt sich nichts ablegen; die Startseite und Seiten unter
+unsichtbaren Seiten lassen sich nicht ziehen. Escape bricht ab.
+
+### UC-29 Space umbenennen und beschreiben
+
+„Einstellungen“ unter dem Space-Umschalter (nur für Admins des Spaces und
+Organisations-Admins). Name und Beschreibung ändern, „Speichern“. Der Name ändert sich sofort im
+Umschalter und auf der Startseite; die Beschreibung steht in der Liste der Spaces. Der
+Schlüssel (z. B. `ENTW`) bleibt fest. Im archivierten Space erst zurückholen (UC-30).
+Organisations-Admins ohne Admin-Recht im Space sehen die Felder nur zum Lesen.
+
+### UC-30 Space archivieren und zurückholen
+
+In den Einstellungen „Space archivieren“, Rückfrage bestätigen. Danach können alle den Space
+nur noch lesen (UC-13), offene Editoren werden schreibgeschützt. „Space zurückholen“ stellt die
+bisherigen Rechte wieder her. Erlaubt für Admins des Spaces und Organisations-Admins, die den
+Space sehen.
+
 ## Noch nicht in der Oberfläche
 
 Teils in Datenbank oder API schon vorhanden, aber noch nicht klickbar:
 
 | Was | Wann | Stand dahinter |
 |---|---|---|
-| Drag & Drop im Seitenbaum | M2 | API fertig (`/pages/:id/move`) |
 | Versionen ansehen und wiederherstellen | M2 | Datenbank fertig (`page_versions`, `save_version`) |
 | Kommentare | M3 | Datenbank fertig (`add_comment` …) |
 | Rechte-Dialog, eigene Rechte für eine Seite, Gruppen pflegen | M3 | Datenbank fertig (`set_grant`, `set_page_inheritance`, `create_group` …) |
 | „Ansehen als …“ | M3 | Datenbank fertig (`app.view_as`) |
 | Suche | M3 | Worker pflegt `page_search` (nach etwa 30 s Ruhe), Abfrage fehlt |
-| Space umbenennen, archivieren | offen | Datenbank fertig (`update_space`, `archive_space`) |
 | Mitglieder eines Workspaces verwalten (Rolle ändern, entfernen) | offen | Datenbank fertig (`set_workspace_member_role`, `remove_workspace_member`) |
 | Confluence-Import, Export | M4 | Datenbank vorbereitet (`imports`, `start_import`) |
 | Audit-Log, Admin-Konsole | später (E17) | Datenbank schreibt das Audit-Log schon |

@@ -53,7 +53,10 @@ export interface Space {
   homePageId: string | null;
   archived: boolean;
   role: Role | null;
+  /** Darf archivieren und zurückholen (im archivierten Space ist role höchstens viewer) */
+  canManage: boolean;
 }
+/** Eine Seite in einer Ebene des Seitenbaums (GET /spaces/:key/pages?parent=…) */
 export interface TreePage {
   id: string;
   parentId: string | null;
@@ -61,6 +64,8 @@ export interface TreePage {
   title: string;
   restricted: boolean;
   role: Role | null;
+  /** In der Ebene darunter steht mindestens eine Seite */
+  hasChildren: boolean;
 }
 export interface PageDetails {
   id: string;
@@ -100,15 +105,23 @@ export const useSpaces = (enabled = true) =>
 // API groß (ENTW); hier immer groß, damit Laden und Auffrischen (invalidateQueries) zusammenpassen.
 export const queryKeys = {
   space: (key: string) => ['space', key.toUpperCase()] as const,
+  /** Präfix aller geladenen Ebenen eines Spaces: Invalidieren frischt den ganzen Baum auf */
   tree: (key: string) => ['tree', key.toUpperCase()] as const,
+  treeLevel: (key: string, parentId: string | null) => ['tree', key.toUpperCase(), parentId ?? 'root'] as const,
   trash: (key: string) => ['trash', key.toUpperCase()] as const,
   pages: ['page'] as const,
 };
 
 export const useSpace = (key: string) =>
   useQuery({ queryKey: queryKeys.space(key), queryFn: () => api<Space>(`/spaces/${key}`), retry });
-export const useTree = (key: string) =>
-  useQuery({ queryKey: queryKeys.tree(key), queryFn: () => api<TreePage[]>(`/spaces/${key}/pages`), retry });
+/** Eine Ebene des Seitenbaums: Seiten, deren nächste sichtbare Vorfahrin parentId ist (null = oberste Ebene) */
+export const useTreeLevel = (key: string, parentId: string | null, enabled = true) =>
+  useQuery({
+    queryKey: queryKeys.treeLevel(key, parentId),
+    queryFn: () => api<TreePage[]>(`/spaces/${key}/pages${parentId ? `?parent=${parentId}` : ''}`),
+    enabled,
+    retry,
+  });
 export const useTrash = (key: string) =>
   useQuery({ queryKey: queryKeys.trash(key), queryFn: () => api<TrashedPage[]>(`/spaces/${key}/trash`), retry });
 export const usePage = (id: string | undefined) =>

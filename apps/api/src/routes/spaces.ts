@@ -1,13 +1,16 @@
 // Workspaces, Spaces und Seitenbaum (ROADMAP M0, Epics E05 und E06). Nur für angemeldete
 // Personen. Jede Anfrage läuft in einer Transaktion mit Mandant und Person aus der Sitzung;
 // was die Person sehen und tun darf, entscheiden Row Level Security und die Funktionen in
-// app (app.create_space, create_page, move_page, trash_page, restore_page).
+// app (app.create_space, update_space, archive_space, tree_level, create_page, move_page,
+// trash_page, restore_page).
 //
 //   GET    /workspaces                    Workspaces der Person
 //   GET    /spaces                        sichtbare Spaces mit eigener Rolle
 //   POST   /spaces                        Space anlegen (mit Startseite)
 //   GET    /spaces/:key                   ein Space
-//   GET    /spaces/:key/pages             Seitenbaum (flach, sortiert nach position, id)
+//   PATCH  /spaces/:key                   Name und Beschreibung ändern (Space-Admins)
+//   POST   /spaces/:key/archive           archivieren oder zurückholen (Space- und Organisations-Admins)
+//   GET    /spaces/:key/pages?parent=     eine Ebene des Seitenbaums (ohne parent: oberste Ebene)
 //   GET    /spaces/:key/trash             Papierkorb (die gemeinsam gelöschten Wurzeln)
 //   POST   /spaces/:key/pages             Seite anlegen
 //   GET    /pages/:id                     Seite mit Brotkrume
@@ -41,10 +44,12 @@ interface SpaceRow {
   home_page_id: string | null;
   archived_at: Date | null;
   role: SpaceRole | null;
+  can_manage: boolean;
 }
 
+// can_manage: archivieren und zurückholen; im archivierten Space meldet role nur viewer
 const SPACE_COLUMNS = `s.id, s.key, s.name, s.description, s.workspace_id, s.home_page_id, s.archived_at,
-  app.space_role(s.id) AS role`;
+  app.space_role(s.id) AS role, app.can_manage_space(s.id) AS can_manage`;
 
 function space(r: SpaceRow) {
   return {
@@ -56,13 +61,22 @@ function space(r: SpaceRow) {
     homePageId: r.home_page_id,
     archived: r.archived_at !== null,
     role: r.role,
+    canManage: r.can_manage,
   };
 }
 
+const spaceName = z.string().trim().min(1).max(200);
+const spaceDescription = z
+  .string()
+  .trim()
+  .max(2000)
+  .nullish()
+  .transform((d) => d || null);
+
 const createSpaceBody = z.object({
   key: spaceKey,
-  name: z.string().trim().min(1).max(200),
-  description: z.string().max(2000).nullish(),
+  name: spaceName,
+  description: spaceDescription,
   workspaceId: idSchema.optional(),
   /** Rolle für alle im Workspace (ohne Gäste); null = keine. Standard: lesen */
   workspaceAccess: z.enum(['viewer', 'commenter', 'editor']).nullable().default('viewer'),
@@ -78,6 +92,20 @@ const createPageBody = z.object({
   /** Neue Seite direkt hinter diese Geschwisterseite; sonst ans Ende */
   afterId: idSchema.nullish(),
 });
+
+const updateSpaceBody = z.object({ name: spaceName, description: spaceDescription });
+const archiveBody = z.object({ archived: z.boolean() });
+const treeQuery = z.object({ parent: idSchema.optional() });
+
+interface TreeRow {
+  id: string;
+  parent_id: string | null;
+  position: string;
+  title: string;
+  inherit_perms: boolean;
+  role: SpaceRole | null;
+  has_children: boolean;
+}
 
 const moveBody = z
   .object({
@@ -200,24 +228,49 @@ export function spacesRouter(db: pg.Pool, collab?: CollabClient) {
     }),
   );
 
+  router.patch(
+    '/spaces/:key',
+    handle(async (req, res) => {
+      const key = spaceKey.parse(req.params.key);
+      const body = updateSpaceBody.parse(req.body);
+      const auth = getAuth(res)!;
+      const updated = await tx(res, async (t) => {
+        const s = await spaceByKey(t, key);
+        await t.query('SELECT app.update_space($1, $2, $3, $4)', [s.id, body.name, body.description, auth.userId]);
+        return spaceByKey(t, key);
+      });
+      res.json(space(updated));
+    }),
+  );
+
+  router.post(
+    '/spaces/:key/archive',
+    handle(async (req, res) => {
+      const key = spaceKey.parse(req.params.key);
+      const { archived } = archiveBody.parse(req.body);
+      const auth = getAuth(res)!;
+      const updated = await tx(res, async (t) => {
+        const s = await spaceByKey(t, key);
+        await t.query('SELECT app.archive_space($1, $2, $3)', [s.id, archived, auth.userId]);
+        return spaceByKey(t, key);
+      });
+      res.json(space(updated));
+    }),
+  );
+
+  // Eine Ebene des Seitenbaums (ARCHITECTURE_REVIEW.md, A-01): die Seiten, deren nächste
+  // sichtbare Vorfahrin `parent` ist, ohne `parent` die oberste Ebene. Seiten unter einer für
+  // die Person unsichtbaren Seite stehen so unter der nächsten sichtbaren (parentId bleibt die
+  // echte Elternseite). Unsichtbare Elternseite: leere Liste. Rechte rechnet app.tree_level
+  // einmal pro Ebene, nicht pro Seite.
   router.get(
     '/spaces/:key/pages',
     handle(async (req, res) => {
       const key = spaceKey.parse(req.params.key);
+      const { parent } = treeQuery.parse(req.query);
       const pages = await tx(res, async (t) => {
         const s = await spaceByKey(t, key);
-        const { rows } = await t.query<{
-          id: string;
-          parent_id: string | null;
-          position: string;
-          title: string;
-          inherit_perms: boolean;
-          role: SpaceRole | null;
-        }>(
-          `SELECT id, parent_id, position, title, inherit_perms, app.page_role(id) AS role
-           FROM pages WHERE space_id = $1 AND deleted_at IS NULL ORDER BY position, id`,
-          [s.id],
-        );
+        const { rows } = await t.query<TreeRow>('SELECT * FROM app.tree_level($1, $2)', [s.id, parent ?? null]);
         return rows;
       });
       res.json(
@@ -228,6 +281,7 @@ export function spacesRouter(db: pg.Pool, collab?: CollabClient) {
           title: p.title,
           restricted: !p.inherit_perms,
           role: p.role,
+          hasChildren: p.has_children,
         })),
       );
     }),
