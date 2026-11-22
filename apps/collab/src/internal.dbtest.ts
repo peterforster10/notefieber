@@ -4,9 +4,10 @@
 import assert from 'node:assert/strict';
 import type { AddressInfo } from 'node:net';
 import { after, before, test } from 'node:test';
+import type pg from 'pg';
 import { TITLE_TEXT } from '@notefieber/editor-schema';
 import { INTERNAL_SECRET_HEADER, internalTitlePath } from '@notefieber/shared';
-import { startInternal } from './internal.ts';
+import { renamePage, startInternal } from './internal.ts';
 import { eventually, startCollab } from './testing.ts';
 import type { Person } from './testing.ts';
 
@@ -89,3 +90,26 @@ test('fremder Mandant: 404; Papierkorb: 409; ungültige Angaben: 400', { skip },
   await c!.trashPage(lukas, page);
   assert.equal((await rename(page, { tenantId: c!.tenantId, userId: lukas.userId, title: 'x' })).status, 409);
 });
+
+test(
+  'erst nach der Prüfung in den Papierkorb: nicht gespeichert, kein Erfolg (REVIEW_M1.md, R-22)',
+  { skip },
+  async () => {
+    const page = await c!.createPage(lukas, 'ENTW', 'Intern: Dazwischen');
+    const [p] = await c!.query<{ space_id: string }>('SELECT space_id FROM pages WHERE id = $1', [page]);
+    await c!.trashPage(lukas, page);
+    // Die Vorprüfung sieht noch den Stand davor (Seite nicht im Papierkorb), wie bei einem
+    // Papierkorb zwischen Prüfung und Speichern; gespeichert wird über die echte Datenbank
+    const seenBefore = {
+      connect: async () => ({
+        query: async (sql: string) =>
+          sql.includes('AS trashed') ? { rows: [{ space_id: p!.space_id, trashed: false }] } : { rows: [] },
+        release() {},
+      }),
+    } as unknown as pg.Pool;
+    const result = await renamePage(c!.collab, seenBefore, c!.tenantId, lukas.userId, page, 'Intern: Zu spät');
+    assert.equal(result, 'trashed');
+    const [row] = await c!.query<{ title: string }>('SELECT title FROM pages WHERE id = $1', [page]);
+    assert.equal(row?.title, 'Intern: Dazwischen');
+  },
+);

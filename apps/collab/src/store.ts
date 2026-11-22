@@ -10,7 +10,7 @@
 import type pg from 'pg';
 import * as Y from 'yjs';
 import { CONTENT_FRAGMENT, EMPTY_YDOC, TITLE_MAX_LENGTH, TITLE_TEXT } from '@notefieber/editor-schema';
-import { withTenant } from './db.ts';
+import { withContext } from '@notefieber/shared/db';
 
 export interface DocumentInfo {
   tenantId: string;
@@ -24,7 +24,7 @@ function isEmptyState(state: Uint8Array): boolean {
 
 /** Gespeicherten Stand in doc laden (doc ist noch leer und an keine Verbindung gebunden). */
 export async function loadDocument(db: pg.Pool, info: DocumentInfo, doc: Y.Doc): Promise<void> {
-  const row = await withTenant(db, info.tenantId, async (client) => {
+  const row = await withContext(db, { tenantId: info.tenantId }, async (client) => {
     const r = await client.query<{ ydoc: Buffer; content_json: unknown[] | null; title: string }>(
       `SELECT c.ydoc, c.content_json, p.title
        FROM page_contents c JOIN pages p ON p.id = c.page_id WHERE c.page_id = $1`,
@@ -67,7 +67,7 @@ async function initialState(contentJson: unknown[] | null, title: string): Promi
  */
 async function storeInitial(db: pg.Pool, info: DocumentInfo, state: Uint8Array): Promise<Uint8Array> {
   if (isEmptyState(state)) return state; // ohne Titel und Inhalt gibt es nichts zu sichern
-  return withTenant(db, info.tenantId, async (client) => {
+  return withContext(db, { tenantId: info.tenantId }, async (client) => {
     const r = await client.query<{ ok: boolean }>('SELECT app.store_initial_ydoc($1, $2) AS ok', [
       info.pageId,
       Buffer.from(state),
@@ -84,18 +84,24 @@ async function storeInitial(db: pg.Pool, info: DocumentInfo, state: Uint8Array):
  * Yjs-Zustand, Titel und Bearbeitende speichern (app.store_ydoc). Liegt die Seite inzwischen im
  * Papierkorb, lehnt die Datenbank ab; dann gilt der zuletzt gespeicherte Stand (E04-07), das wird
  * nur protokolliert. Jeder andere Fehler geht weiter an Hocuspocus, das das Dokument dann im
- * Speicher behält und beim nächsten Speichern erneut versucht. Gibt die Größe des Yjs-Zustands
- * in Byte zurück (Kennzahl, A-04: Je größer, desto mehr WAL pro Speichern).
+ * Speicher behält und beim nächsten Speichern erneut versucht. Gibt zurück, ob gespeichert wurde
+ * (false: Papierkorb), und die Größe des Yjs-Zustands in Byte (Kennzahl, A-04: Je größer, desto
+ * mehr WAL pro Speichern).
  */
-export async function storeDocument(db: pg.Pool, info: DocumentInfo, doc: Y.Doc, editors: string[]): Promise<number> {
+export async function storeDocument(
+  db: pg.Pool,
+  info: DocumentInfo,
+  doc: Y.Doc,
+  editors: string[],
+): Promise<{ stored: boolean; bytes: number }> {
   const state = Y.encodeStateAsUpdate(doc);
   const title = doc.getText(TITLE_TEXT).toString();
   try {
-    await withTenant(db, info.tenantId, (client) =>
+    await withContext(db, { tenantId: info.tenantId }, (client) =>
       client.query('SELECT app.store_ydoc($1, $2, $3, $4::uuid[])', [info.pageId, Buffer.from(state), title, editors]),
     );
   } catch (err) {
-    const trashed = await withTenant(db, info.tenantId, async (client) => {
+    const trashed = await withContext(db, { tenantId: info.tenantId }, async (client) => {
       const r = await client.query<{ trashed: boolean }>(
         'SELECT deleted_at IS NOT NULL AS trashed FROM pages WHERE id = $1',
         [info.pageId],
@@ -104,6 +110,7 @@ export async function storeDocument(db: pg.Pool, info: DocumentInfo, doc: Y.Doc,
     }).catch(() => false);
     if (!trashed) throw err;
     console.warn(`Collab-Server: Seite ${info.pageId} liegt im Papierkorb, Änderungen nicht gespeichert`);
+    return { stored: false, bytes: state.length };
   }
-  return state.length;
+  return { stored: true, bytes: state.length };
 }

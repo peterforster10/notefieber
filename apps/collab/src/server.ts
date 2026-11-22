@@ -18,7 +18,7 @@ import type { Access } from './access.ts';
 import { authenticate } from './auth.ts';
 import type { CollabContext } from './auth.ts';
 import type { CollabConfig } from './config.ts';
-import { withTenant } from './db.ts';
+import { withContext } from '@notefieber/shared/db';
 import { listen } from './events.ts';
 import type { Listener } from './events.ts';
 import { loadDocument, storeDocument } from './store.ts';
@@ -86,18 +86,23 @@ export function createCollab(config: CollabServerConfig, db: pg.Pool) {
       if (context?.userId && !context.readOnly) open.get(documentName)?.editors.add(context.userId);
     },
 
-    async onStoreDocument({ documentName, document }) {
+    // lastContext: Kontext der Verbindung, die das Speichern ausgelöst hat; bei einer direkten
+    // Verbindung (internal.ts) erfährt sie so, ob ihre Änderung gespeichert ist
+    async onStoreDocument({ documentName, document, lastContext }) {
       const info = open.get(documentName);
       if (!info) return;
       const editors = [...info.editors];
       info.editors.clear();
       const started = performance.now();
       try {
-        stats.ydocBytes = await storeDocument(db, info, document, editors);
+        const { stored, bytes } = await storeDocument(db, info, document, editors);
+        if (lastContext) lastContext.storeResult = stored ? 'stored' : 'trashed';
+        stats.ydocBytes = bytes;
         stats.stores++;
         stats.storeMs.push(performance.now() - started);
         if (stats.storeMs.length > 10_000) stats.storeMs.splice(0, stats.storeMs.length - 10_000);
       } catch (err) {
+        if (lastContext) lastContext.storeResult = 'failed';
         stats.storeErrors++;
         for (const e of editors) info.editors.add(e);
         throw err;
@@ -128,7 +133,7 @@ export function createCollab(config: CollabServerConfig, db: pg.Pool) {
   }
 
   async function currentAccess(ctx: CollabContext): Promise<Access> {
-    return withTenant(db, ctx.tenantId, async (client) =>
+    return withContext(db, { tenantId: ctx.tenantId }, async (client) =>
       (await sessionValid(client, ctx.sessionId)) ? (await pageAccess(client, ctx.pageId, ctx.userId)).access : 'none',
     );
   }
@@ -192,9 +197,12 @@ export function createCollab(config: CollabServerConfig, db: pg.Pool) {
     recheck,
     recheckAll,
     endSession,
-    /** Lauschen, LISTEN starten, regelmäßig alle prüfen */
-    async start() {
-      await server.listen();
+    /**
+     * Erst LISTEN, dann Verbindungen annehmen, dann regelmäßig alle prüfen. Steht LISTEN nach
+     * `listenTimeoutMs` nicht, bricht start() ab (REVIEW_M1.md, R-23): Ohne Meldungen wirkten
+     * Rechteänderungen nicht sofort, und Kubernetes startet den Server ohnehin neu.
+     */
+    async start(listenTimeoutMs = 30_000) {
       listener = listen(config.COLLAB_DATABASE_URL, {
         onEvent: (e) => {
           if (reconnectEvents.has(e.type)) onSpaceEvent(e.tenant, e.space);
@@ -205,7 +213,19 @@ export function createCollab(config: CollabServerConfig, db: pg.Pool) {
         },
         onReconnect: () => void recheckAll(),
       });
-      await listener.ready;
+      let timeout: NodeJS.Timeout | undefined;
+      const ready = await Promise.race([
+        listener.ready.then(() => true),
+        new Promise<false>((r) => (timeout = setTimeout(() => r(false), listenTimeoutMs))),
+      ]);
+      clearTimeout(timeout);
+      if (!ready) {
+        await listener.stop();
+        throw new Error(
+          `LISTEN nach ${(listenTimeoutMs / 1000).toLocaleString('de-DE')} s nicht möglich (Datenbank erreichbar?)`,
+        );
+      }
+      await server.listen();
       // Abgelaufene Sitzungen und Meldungen, die trotz allem verloren gingen (E04-06: spätestens 5 Minuten)
       timer = setInterval(() => {
         void recheckAll().then((n) => {

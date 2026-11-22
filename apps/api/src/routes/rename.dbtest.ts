@@ -95,3 +95,17 @@ test('Collab-Server lehnt ab oder ist gestört: 409 bzw. 503', { skip }, async (
   reply = 500;
   assert.equal((await app!.call(lukas, 'POST', `/pages/${page}/title`, { title: 'x' })).status, 503);
 });
+
+test('leerer oder zu langer Titel: 400 wie beim Anlegen, ohne Aufruf (REVIEW_M1.md, R-24)', { skip }, async () => {
+  const page = await newPage('Umbenennen: Grenzen');
+  for (const title of ['', '   ', 'x'.repeat(256)]) {
+    assert.equal(
+      (await app!.call(lukas, 'POST', `/pages/${page}/title`, { title })).status,
+      400,
+      JSON.stringify(title),
+    );
+  }
+  assert.equal(calls.length, 0, 'Collab-Server trotz ungültigem Titel aufgerufen');
+  // Genau 255 Zeichen gehen, wie beim Anlegen
+  assert.equal((await app!.call(lukas, 'POST', `/pages/${page}/title`, { title: 'x'.repeat(255) })).status, 204);
+});

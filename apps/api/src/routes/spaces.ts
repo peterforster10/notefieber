@@ -68,9 +68,13 @@ const createSpaceBody = z.object({
   workspaceAccess: z.enum(['viewer', 'commenter', 'editor']).nullable().default('viewer'),
 });
 
+// Titel beim Anlegen und Umbenennen: Leerraum außen fällt weg, danach 1 bis 255 Zeichen
+// (REVIEW_M1.md, R-24). Nur der Editor selbst lässt einen leeren Titel zu („Ohne Titel“).
+const titleInput = pageTitleSchema.trim().min(1);
+
 const createPageBody = z.object({
   parentId: idSchema.nullable(),
-  title: pageTitleSchema.trim().min(1),
+  title: titleInput,
   /** Neue Seite direkt hinter diese Geschwisterseite; sonst ans Ende */
   afterId: idSchema.nullish(),
 });
@@ -101,13 +105,7 @@ async function siblings(tx: Tx, spaceId: string, parentId: string | null, except
   return rows;
 }
 
-// Titel: gekürzt statt abgelehnt wie im Editor (app.store_ydoc), Leerraum außen fällt weg
-const renameBody = z.object({
-  title: z
-    .string()
-    .max(10_000)
-    .transform((t) => t.trim()),
-});
+const renameBody = z.object({ title: titleInput });
 
 export function spacesRouter(db: pg.Pool, collab?: CollabClient) {
   const router = express.Router();

@@ -13,7 +13,7 @@ export interface PageAccess {
   spaceId?: string;
 }
 
-/** Im Mandanten-Kontext (withTenant) aufrufen */
+/** Im Mandanten-Kontext (withContext mit tenantId) aufrufen */
 export async function pageAccess(client: pg.PoolClient, pageId: string, userId: string): Promise<PageAccess> {
   const r = await client.query<{ space_id: string; trashed: boolean; rank: number }>(
     `SELECT space_id, deleted_at IS NOT NULL AS trashed, app.page_rank(id, $2) AS rank

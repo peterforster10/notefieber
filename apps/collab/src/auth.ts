@@ -9,7 +9,7 @@ import type pg from 'pg';
 import { pageIdFromDocument } from '@notefieber/editor-schema';
 import { hashToken, sessionTokenFromCookies } from '@notefieber/shared/session';
 import { pageAccess } from './access.ts';
-import { withTenant } from './db.ts';
+import { withContext } from '@notefieber/shared/db';
 
 export interface CollabContext {
   tenantId: string;
@@ -18,6 +18,11 @@ export interface CollabContext {
   pageId: string;
   spaceId: string;
   readOnly: boolean;
+  /**
+   * Nur bei direkten Verbindungen des Servers (internal.ts): Ergebnis des Speicherns beim Trennen.
+   * Hocuspocus fängt Fehler beim Speichern selbst ab, disconnect() wirft deshalb nie.
+   */
+  storeResult?: 'stored' | 'trashed' | 'failed';
 }
 
 /** Gründe für eine Ablehnung; der Browser bekommt sie als reason (onAuthenticationFailed) */
@@ -55,7 +60,7 @@ export async function authenticate(
   const session = rows[0];
   if (!session) throw new Rejected('unauthenticated');
 
-  const { access, spaceId } = await withTenant(db, session.tenant_id, (client) =>
+  const { access, spaceId } = await withContext(db, { tenantId: session.tenant_id }, (client) =>
     pageAccess(client, pageId, session.user_id),
   );
   if (access === 'none' || !spaceId) throw new Rejected('forbidden');

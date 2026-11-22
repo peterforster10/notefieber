@@ -3,6 +3,7 @@
 // Anmeldung über das Sitzungs-Cookie (auth.ts), Laden und Speichern in store.ts, die Hooks in
 // server.ts, Rechteänderungen und Abmelden per LISTEN in events.ts, Änderungen von der Serverseite
 // (interner Aufruf der API) in internal.ts.
+import type http from 'node:http';
 import pg from 'pg';
 import { assertDbRole } from '@notefieber/shared';
 import { collabConfig } from './config.ts';
@@ -21,13 +22,36 @@ try {
 }
 
 const collab = createCollab(config, db);
-await collab.start();
+let internal: http.Server | undefined = undefined; // erst nach dem Start, shutdown braucht ihn vorher
+
+// Beim Beenden erst alle offenen Dokumente speichern (Hocuspocus destroy), dann LISTEN und
+// Datenbank. Schon vor dem Start angemeldet (REVIEW_M1.md, R-23), damit auch ein Signal während
+// des Starts nicht ohne Speichern beendet.
+let stopping = false;
+async function shutdown(signal: string, code = 0) {
+  if (stopping) return;
+  stopping = true;
+  console.log(`Collab-Server: ${signal}, speichere und beende`);
+  internal?.close();
+  await collab.stop().catch((err: unknown) => console.error('Collab-Server: Beenden:', err));
+  await db.end();
+  process.exit(code);
+}
+process.on('SIGTERM', () => void shutdown('SIGTERM'));
+process.on('SIGINT', () => void shutdown('SIGINT'));
+
+try {
+  await collab.start();
+} catch (err) {
+  console.error(`Collab-Server: Start fehlgeschlagen: ${err instanceof Error ? err.message : String(err)}`);
+  await shutdown('Startfehler', 1);
+}
 console.log(
   `Collab-Server: ${collab.server.webSocketURL} (Origin ${new URL(config.PUBLIC_URL).origin}, LISTEN nf_events, nf_sessions)`,
 );
 
 // Interner Aufruf der API (Umbenennen aus der Seitenleiste), nur mit Geheimnis
-const internal = config.COLLAB_INTERNAL_SECRET
+internal = config.COLLAB_INTERNAL_SECRET
   ? await startInternal(collab, db, {
       host: config.COLLAB_INTERNAL_HOST,
       port: config.COLLAB_INTERNAL_PORT,
@@ -39,17 +63,3 @@ console.log(
     ? `Collab-Server: interner Aufruf auf http://${config.COLLAB_INTERNAL_HOST}:${config.COLLAB_INTERNAL_PORT}`
     : 'Collab-Server: interner Aufruf aus (COLLAB_INTERNAL_SECRET fehlt), Umbenennen aus der Seitenleiste geht nicht',
 );
-
-// Beim Beenden erst alle offenen Dokumente speichern (Hocuspocus destroy), dann LISTEN und Datenbank
-let stopping = false;
-async function shutdown(signal: string) {
-  if (stopping) return;
-  stopping = true;
-  console.log(`Collab-Server: ${signal}, speichere und beende`);
-  internal?.close();
-  await collab.stop();
-  await db.end();
-  process.exit(0);
-}
-process.on('SIGTERM', () => void shutdown('SIGTERM'));
-process.on('SIGINT', () => void shutdown('SIGINT'));

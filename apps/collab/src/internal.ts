@@ -13,7 +13,7 @@ import type pg from 'pg';
 import { TITLE_TEXT, documentName, setTitle } from '@notefieber/editor-schema';
 import { INTERNAL_SECRET_HEADER, idSchema, internalTitleSchema } from '@notefieber/shared';
 import type { CollabContext } from './auth.ts';
-import { withTenant } from './db.ts';
+import { withContext } from '@notefieber/shared/db';
 import type { Collab } from './server.ts';
 
 export interface InternalConfig {
@@ -56,7 +56,7 @@ export async function renamePage(
   pageId: string,
   title: string,
 ) {
-  const page = await withTenant(db, tenantId, async (c) => {
+  const page = await withContext(db, { tenantId }, async (c) => {
     const r = await c.query<{ space_id: string; trashed: boolean }>(
       'SELECT space_id, deleted_at IS NOT NULL AS trashed FROM pages WHERE id = $1',
       [pageId],
@@ -72,9 +72,13 @@ export async function renamePage(
   try {
     await conn.transact((doc) => setTitle(doc.getText(TITLE_TEXT), title.trim()));
   } finally {
-    // Speichert sofort (app.store_ydoc), danach steht der neue Titel auch in pages.title
+    // Speichert sofort (app.store_ydoc), danach steht der neue Titel auch in pages.title.
+    // Fehler dabei fängt Hocuspocus ab; das Ergebnis steht in context.storeResult (server.ts).
     await conn.disconnect();
   }
+  // Inzwischen im Papierkorb: nichts gespeichert, nicht als Erfolg melden (REVIEW_M1.md, R-22)
+  if (context.storeResult === 'trashed') return 'trashed' as const;
+  if (context.storeResult !== 'stored') throw new Error(`Titel der Seite ${pageId} nicht gespeichert`);
   return 'ok' as const;
 }
 

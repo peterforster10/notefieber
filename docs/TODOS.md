@@ -36,13 +36,3 @@ Bestehenden.
 
 ## Klein, jederzeit
 
-- [ ] **R-22 (Niedrig):** Umbenennen meldet 409, wenn das Speichern wegen Papierkorb abgelehnt wurde
-  (`../apps/collab/src/internal.ts`)
-- [ ] **R-23 (Niedrig):** Signal-Handler im Collab-Server vor `collab.start()` anmelden, auf
-  `LISTEN` mit Zeitlimit warten
-- [ ] **R-24 (Niedrig):** Leeren Titel beim Umbenennen entweder ablehnen (wie beim Anlegen) oder
-  bewusst erlauben und in `CONCEPTS.md` festhalten
-- [ ] **R-26 (Niedrig):** `withContext` nach `../packages/shared`, im Collab-Server statt `withTenant`
-
-- [ ] **D-02 (Rest):** Das ER-Diagramm (`data_model.mmd`) hat jetzt alle Spalten; `data_model.svg`
-  daraus neu exportieren (z. B. mit Mermaid Live oder `@mermaid-js/mermaid-cli`)
