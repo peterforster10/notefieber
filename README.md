@@ -61,7 +61,7 @@ corepack enable
 pnpm install
 cp .env.example .env
 pnpm dev:api        # und in weiteren Terminals: pnpm dev:web (Anmelden unter http://localhost:3000), pnpm dev:worker, pnpm dev:collab
-pnpm check          # Lint, Formatierung, Typen, Lizenzen, Build (wie in der CI)
+pnpm check          # Lint, Formatierung, Typen, Tests, Lizenzen, fremde Hinweise, Build (wie in der CI)
 ```
 
 Die App verbindet sich nie als `wiki_owner`, sondern mit Login-Rollen in `wiki_app` (API) bzw. `wiki_worker` (Collab-Server, Worker). Das Datenmodell beschreibt [docs/SCHEMA.md](docs/SCHEMA.md), die Entscheidungen stehen in `CLAUDE.md`.
@@ -88,7 +88,7 @@ apps/
 packages/
   shared/     Typen, Zod-Schemas, Rollen, Ereignisse
   editor-schema/  BlockNote-Schema (Blöcke, Callout, Seitenlink, Erwähnung, Inhaltsverzeichnis), Aufbau des Yjs-Dokuments, Umwandlung Yjs ↔ BlockNote-JSON
-scripts/      Hilfsskripte (Lizenzprüfung, Login prüfen)
+scripts/      Hilfsskripte (Lizenzprüfung, fremde Lizenzhinweise, Login prüfen)
 database/
   scripts/    Rollen, Schema (schema/), Migrationen (migrations/), Tests (schema_test/)
 deploy/       (geplant)

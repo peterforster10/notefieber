@@ -858,8 +858,9 @@ Die vollständige Anleitung steht in [LOCAL_SETUP.md](LOCAL_SETUP.md). Kurz:
 Der Code entsteht größtenteils mit Claude Code. Das geht, weil die Datenbank die Rechte erzwingt: Ein Fehler in der Oberfläche oder in der API kann kaum zeigen, was die Leseregeln und `app.page_rank` verbergen. Deshalb gibt es drei Zonen (`CLAUDE.md`, Abschnitt 14):
 
 - **Frei:** Oberfläche, Styling, Editor-Integration, Import-Assistent (Oberfläche), Export. Fehler dort sind sichtbar und schnell behoben.
+- **Fremder Code:** Bekannte Algorithmen kommen als Bibliothek, nicht als Nachbau. Was nach einer Vorlage entsteht, nennt Quelle und Lizenz; fremde Lizenzhinweise ohne Begründung lehnt die CI ab.
 - **Jeder Diff wird von Hand gelesen:** das Datenbankschema, Login und Sitzungen, die Anmeldung und das Trennen im Collab-Server, die Rechtefunktionen und alles, was Sichtbarkeit berührt. Zuerst der Test, dann der Code.
-- **Die CI wacht:** Datenbanktests, API-Tests, Lizenzprüfung, Secret-Scanning, ab M3 ein End-to-End-Test „kein Lesepfad zeigt Seiten ohne Leserecht“. Updates der Abhängigkeiten nur über Dependabot mit grüner Pipeline.
+- **Die CI wacht:** Datenbanktests, API-Tests, Lizenzprüfung, fremde Lizenzhinweise im eigenen Code, Secret-Scanning, ab M3 ein End-to-End-Test „kein Lesepfad zeigt Seiten ohne Leserecht“. Updates der Abhängigkeiten nur über Dependabot mit grüner Pipeline.
 
 Weil das Repository öffentlich ist, kommen weder Secrets noch echte Kundendaten hinein (auch keine Confluence-Exporte von Pilotkunden); Testdaten sind synthetisch. Sicherheitslücken meldet man vertraulich ([SECURITY.md](../SECURITY.md)).
 

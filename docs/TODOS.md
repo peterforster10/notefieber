@@ -61,6 +61,12 @@ Umgestellt sind `LICENSE` (AGPL-3.0-only), Lizenzprüfung, `SECURITY.md`, `.giti
 - [ ] **Images in `.gitlab-ci.yml` und `compose.yaml`** (Node, PostgreSQL, gitleaks, Zitadel,
   Garage) hält Dependabot nicht aktuell; mit jedem Meilenstein von Hand prüfen oder später
   Renovate nur dafür
+- [ ] **Snippet-Matching (Option):** `scripts/check-notices.mjs` findet nur fremden Code mit
+  Hinweis. Wörtlich wiedergegebene Snippets ohne Hinweis fände SCANOSS (`scanoss-py`, schickt nur
+  Fingerabdrücke an die API): zuerst als Bericht ohne Rot in der wöchentlichen geplanten Pipeline,
+  bekannte Fehltreffer in eine Liste, rot nur bei unverträglicher Lizenz. Vorher Grenzen der
+  kostenlosen API und Version prüfen; spätestens vor dem ersten Enterprise-Teil oder einer
+  Lizenzprüfung durch einen Kunden
 - [ ] **TalkFieber:** `LICENSE` mit AGPL-3.0-only und dieselbe Lizenzprüfung, sobald dort Code
   entsteht (Entscheidung steht in beiden `CLAUDE.md`)
 - [ ] **CLA oder DCO** vor dem ersten fremden Beitrag entscheiden (`CLAUDE.md` Abschnitt 4,

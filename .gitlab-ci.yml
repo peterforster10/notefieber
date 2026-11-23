@@ -4,7 +4,8 @@
 #
 # Fünf Jobs, die parallel laufen (docs/LOCAL_SETUP.md, „CI (GitLab)“):
 #   database  Migrationen und alle Datenbanktests (database/scripts/schema_test/ci.sh)
-#   apps      Lint, Formatierung, Typprüfung, Unit-Tests, Lizenzprüfung (AGPL-verträglich) und Build (pnpm check)
+#   apps      Lint, Formatierung, Typprüfung, Unit-Tests, Lizenzprüfung (AGPL-verträglich), fremde
+#             Lizenzhinweise im eigenen Code und Build (pnpm check)
 #   api       API-, Worker- und Collab-Tests gegen eine echte Datenbank mit Testdaten (pnpm test:db)
 #   secrets   Secret-Scanning mit gitleaks über den ganzen Verlauf (.gitleaks.toml)
 #   audit     bekannte Sicherheitslücken in den Abhängigkeiten (pnpm audit)
