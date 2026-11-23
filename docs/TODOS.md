@@ -54,10 +54,6 @@ Umgestellt sind `LICENSE` (AGPL-3.0-only), Lizenzprüfung, `SECURITY.md`, `.giti
 - [ ] **`minimatch` (mittel, GHSA-g3hv-75wg-m249):** nur in Werkzeugen über `typescript-eslint`,
   deshalb lässt `audit` sie durch (Werkzeuge erst ab `high`). Verschwindet mit dem nächsten
   Update von `typescript-eslint`; sonst mit `pnpm audit --fix` (Override) beheben
-- [ ] **Erste Pipeline mit `secrets` abwarten:** gitleaks prüft den ganzen Verlauf. Findet es
-  etwas, das kein lokaler Testwert ist: Wert sperren und neu erzeugen, bevor das Repository
-  öffentlich wird; meldet es einen lokalen Testwert, den `.gitleaks.toml` noch nicht kennt, dort
-  nachtragen
 - [ ] **Pipeline-Status zurück nach GitHub:** GitHub kennt das Ergebnis der GitLab-Pipeline
   nicht, „rote Pipeline = kein Merge“ ist deshalb eine Regel, kein Zwang. Möglich: ein letzter
   Job, der den Status über die GitHub-API an den Commit meldet (eigenes Token mit
