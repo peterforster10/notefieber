@@ -1,7 +1,7 @@
 {
   "name": "@notefieber/api",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "AGPL-3.0-only",
   "type": "module",
   "scripts": {
     "dev": "node --watch --env-file-if-exists=../../.local/zitadel.env --env-file-if-exists=../../.env src/api.ts",

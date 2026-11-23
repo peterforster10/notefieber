@@ -46,5 +46,33 @@ Bestehenden.
   Oberfläche gibt es nur auf Deutsch (Definition of Done in `EPICS.md`: Deutsch und Englisch);
   mit der Übersetzung der Oberfläche in M2 (`ROADMAP.md`)
 
+## Open Source und öffentliches Repository (seit 23. November 2026)
+
+Umgestellt sind `LICENSE` (AGPL-3.0-only), Lizenzprüfung, `SECURITY.md`, `.gitignore`, CI-Job
+`secrets`, Dependabot und der Spiegel aller Branches (`CLAUDE.md`, Abschnitt 14). Offen:
+
+- [ ] **Einstellungen auf GitHub (nur Peter), bevor das Repository öffentlich wird:** „Private
+  vulnerability reporting“ an (darauf verweist `SECURITY.md`), Secret Scanning mit Push
+  Protection, Dependabot Alerts und Security Updates, `GITLAB_TOKEN` zusätzlich als
+  Dependabot-Secret, Schutzregel für `main` (kein Force-Push, kein Löschen)
+- [ ] **`minimatch` (mittel, GHSA-g3hv-75wg-m249):** nur in Werkzeugen über `typescript-eslint`,
+  deshalb lässt `audit` sie durch (Werkzeuge erst ab `high`). Verschwindet mit dem nächsten
+  Update von `typescript-eslint`; sonst mit `pnpm audit --fix` (Override) beheben
+- [ ] **Erste Pipeline mit `secrets` abwarten:** gitleaks prüft den ganzen Verlauf. Findet es
+  etwas, das kein lokaler Testwert ist: Wert sperren und neu erzeugen, bevor das Repository
+  öffentlich wird; meldet es einen lokalen Testwert, den `.gitleaks.toml` noch nicht kennt, dort
+  nachtragen
+- [ ] **Pipeline-Status zurück nach GitHub:** GitHub kennt das Ergebnis der GitLab-Pipeline
+  nicht, „rote Pipeline = kein Merge“ ist deshalb eine Regel, kein Zwang. Möglich: ein letzter
+  Job, der den Status über die GitHub-API an den Commit meldet (eigenes Token mit
+  `statuses: write`), dann eine Schutzregel auf diesen Status
+- [ ] **Images in `.gitlab-ci.yml` und `compose.yaml`** (Node, PostgreSQL, gitleaks, Zitadel,
+  Garage) hält Dependabot nicht aktuell; mit jedem Meilenstein von Hand prüfen oder später
+  Renovate nur dafür
+- [ ] **TalkFieber:** `LICENSE` mit AGPL-3.0-only und dieselbe Lizenzprüfung, sobald dort Code
+  entsteht (Entscheidung steht in beiden `CLAUDE.md`)
+- [ ] **CLA oder DCO** vor dem ersten fremden Beitrag entscheiden (`CLAUDE.md` Abschnitt 4,
+  Punkt 12), dann `CONTRIBUTING.md`
+
 ## Klein, jederzeit
 

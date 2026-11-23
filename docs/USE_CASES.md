@@ -51,7 +51,7 @@ in `compose.yaml` (`NF_TEST_PASSWORD`).
 | UC-19 | Seite bearbeiten | Bearbeitende | Browser (19. November 2026) |
 | UC-20 | Gemeinsam bearbeiten, sehen wer da ist | alle mit Leserecht | Browser (19. November 2026, Lukas und Max in getrennten Browsern; Cursor mit Namen: Code) |
 | UC-21 | Live lesen, ohne zu schreiben | Lesende, Kommentierende | Browser (19. November 2026) |
-| UC-22 | Titel im Editor ändern | Bearbeitende | Browser (19. November 2026) |
+| UC-22 | Titel im Editor ändern | Bearbeitende | Browser (19. November 2026; Enter im Titel: 23. November 2026) |
 | UC-23 | Recht verlieren, während die Seite offen ist | alle | Browser (19. November 2026, Max verliert den Zugang zu „Release-Prozess“) |
 | UC-24 | Seite im Papierkorb, während jemand schreibt | Bearbeitende | Browser (19. November 2026, mit „Wiederherstellen“) |
 | UC-25 | Abmelden schließt Editoren in anderen Tabs | alle | Browser (19. November 2026, zwei Tabs) |
@@ -264,7 +264,9 @@ auch für Bearbeitende nur lesbar (UC-24).
 
 Der Titel ist ein Eingabefeld über dem Inhalt (höchstens 255 Zeichen). Andere sehen die
 Änderung sofort; Seitenbaum, Brotkrume und Adresse (`/spaces/…/pages/<titel>-<id>`) ziehen nach
-spätestens 10 s nach. Umbenennen geht auch aus der Seitenleiste (UC-26).
+spätestens 10 s nach. Umbenennen geht auch aus der Seitenleiste (UC-26). Enter im Titel fügt oben im
+Inhalt eine neue, leere Zeile ein und setzt den Cursor hinein; ist die erste Zeile schon leer
+(neue Seite), springt der Cursor nur dorthin. Der Titel selbst bleibt dabei unverändert.
 
 ### UC-23 Recht verlieren, während die Seite offen ist
 

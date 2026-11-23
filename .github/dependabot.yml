@@ -1,0 +1,32 @@
+# Dependabot schlägt Updates als Pull Request auf GitHub vor (CLAUDE.md, Abschnitt 14). Die
+# Branches spiegelt sync-to-gitlab.yml nach GitLab, dort prüft sie dieselbe Pipeline wie jede
+# andere Änderung: erst mergen, wenn sie grün ist. Sicherheitsupdates kommen zusätzlich sofort,
+# sobald „Dependabot security updates“ in den Einstellungen des Repositorys an ist.
+#
+# Alle Versionen sind fest (CLAUDE.md, Abschnitt 3); Dependabot hebt sie in package.json und
+# pnpm-lock.yaml gemeinsam an. Neue Versionen erst nach einer Woche vorschlagen: Kompromittierte
+# npm-Pakete fallen meist in den ersten Tagen auf und werden zurückgezogen.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 10
+    versioning-strategy: increase
+    groups:
+      # Kleine Updates gebündelt, große einzeln (die brauchen meist Anpassungen)
+      minor-und-patch:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7

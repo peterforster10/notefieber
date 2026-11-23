@@ -10,7 +10,7 @@
 // Code mit Hervorhebung (@blocknote/code-block, nur Darstellung).
 // Nur im Browser geladen (next/dynamic mit ssr: false, siehe space-view.tsx).
 import '@blocknote/mantine/style.css';
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import * as Y from 'yjs';
 import { HocuspocusProvider } from '@hocuspocus/provider';
@@ -292,10 +292,30 @@ function CollabEditor({
     };
   }, [provider, user.id, user.name, color]);
 
+  // Enter im Titel: oben im Inhalt eine neue, leere Zeile und den Cursor hinein (wie in Confluence
+  // und Notion). Ist die erste Zeile schon ein leerer Absatz (neue Seite), nur dorthin springen,
+  // statt leere Zeilen zu stapeln.
+  const startWriting = useCallback(() => {
+    const first = editor.document[0];
+    const emptyParagraph = first?.type === 'paragraph' && Array.isArray(first.content) && first.content.length === 0;
+    const target = emptyParagraph
+      ? first
+      : first
+        ? editor.insertBlocks([{ type: 'paragraph' }], first, 'before')[0]
+        : undefined;
+    editor.focus();
+    if (target) editor.setTextCursorPosition(target, 'start');
+  }, [editor]);
+
   return (
     <div className="nf-editor">
       <div className="nf-editor-head">
-        <TitleField text={doc.getText(TITLE_TEXT)} editable={editable} onChange={onTitleChange} />
+        <TitleField
+          text={doc.getText(TITLE_TEXT)}
+          editable={editable}
+          onChange={onTitleChange}
+          onEnter={startWriting}
+        />
         {titleAddon}
         <Presence provider={provider} selfId={user.id} />
       </div>
@@ -321,10 +341,13 @@ function TitleField({
   text,
   editable,
   onChange,
+  onEnter,
 }: {
   text: Y.Text;
   editable: boolean;
   onChange?: (title: string) => void;
+  /** Enter im Titel: weiter in den Inhalt */
+  onEnter?: () => void;
 }) {
   const title = useYText(text);
   const first = useRef(true);
@@ -346,6 +369,12 @@ function TitleField({
         maxLength={TITLE_MAX_LENGTH}
         placeholder="Ohne Titel"
         onChange={(e) => setTitle(text, e.target.value)}
+        onKeyDown={(e) => {
+          // Nicht während einer Eingabe mit IME (z. B. Japanisch), dort bestätigt Enter die Auswahl
+          if (e.key !== 'Enter' || e.nativeEvent.isComposing || !onEnter) return;
+          e.preventDefault();
+          onEnter();
+        }}
       />
     </h1>
   );

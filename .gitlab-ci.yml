@@ -1,16 +1,31 @@
 # CI auf GitLab (gitlab.com/peterforster101/notefieber). Das Repository liegt auf GitHub;
-# .github/workflows/sync-to-gitlab.yml spiegelt main nach GitLab, dort läuft diese Pipeline.
+# .github/workflows/sync-to-gitlab.yml spiegelt jeden Branch nach GitLab, dort läuft diese
+# Pipeline. Rote Pipeline = kein Merge (CLAUDE.md, Abschnitt 14).
 #
-# Drei Jobs, die parallel laufen (docs/LOCAL_SETUP.md, „CI (GitLab)“):
+# Fünf Jobs, die parallel laufen (docs/LOCAL_SETUP.md, „CI (GitLab)“):
 #   database  Migrationen und alle Datenbanktests (database/scripts/schema_test/ci.sh)
-#   apps      Lint, Formatierung, Typprüfung, Unit-Tests, Lizenzprüfung und Build (pnpm check)
+#   apps      Lint, Formatierung, Typprüfung, Unit-Tests, Lizenzprüfung (AGPL-verträglich) und Build (pnpm check)
 #   api       API-, Worker- und Collab-Tests gegen eine echte Datenbank mit Testdaten (pnpm test:db)
+#   secrets   Secret-Scanning mit gitleaks über den ganzen Verlauf (.gitleaks.toml)
+#   audit     bekannte Sicherheitslücken in den Abhängigkeiten (pnpm audit)
+#
+# Geplante Pipeline (in GitLab unter Build → Pipeline schedules, wöchentlich auf main): nur
+# audit und secrets, damit neue Sicherheitsmeldungen auch ohne Push auffallen. Die anderen Jobs
+# lassen geplante Läufe aus (rules), sie prüfen nur Änderungen.
 
 stages:
   - test
 
+# Für apps, api und database: nicht in geplanten Pipelines (siehe oben)
+.not-scheduled:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - when: on_success
+
 apps:
   stage: test
+  extends: .not-scheduled
   image: node:24.18.1
   variables:
     COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
@@ -32,6 +47,7 @@ apps:
 
 api:
   stage: test
+  extends: .not-scheduled
   image: node:24.18.1
   services:
     - name: postgres:18.6
@@ -71,6 +87,7 @@ api:
 
 database:
   stage: test
+  extends: .not-scheduled
   # psql und pg_dump in derselben Hauptversion wie der Server (pg_dump lehnt neuere Server ab).
   # Leerer Entrypoint: das Start-Skript des Images soll hier keinen Server starten.
   image:
@@ -92,3 +109,36 @@ database:
   timeout: 15 minutes
   script:
     - bash database/scripts/schema_test/ci.sh
+
+secrets:
+  stage: test
+  # gitleaks mit fester Version; Leerer Entrypoint, damit GitLab das Skript in der Shell ausführt
+  image:
+    name: zricethezav/gitleaks:v8.28.0
+    entrypoint: [""]
+  variables:
+    # Ganzer Verlauf: Ein Secret, das in einem früheren Commit stand, ist trotzdem öffentlich
+    GIT_DEPTH: "0"
+  timeout: 10 minutes
+  script:
+    # Das Image läuft nicht als der Benutzer, dem der Checkout gehört
+    - git config --global --add safe.directory "$CI_PROJECT_DIR"
+    - gitleaks git --config .gitleaks.toml --redact --verbose --exit-code 1 .
+
+audit:
+  stage: test
+  image: node:24.18.1
+  variables:
+    COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+    GIT_DEPTH: "1"
+  timeout: 5 minutes
+  # Ersatz für Dependabot-Meldungen: GitHub wertet die zweiteilige pnpm-lock.yaml von pnpm 12
+  # nicht aus (CLAUDE.md, Abschnitt 14). pnpm audit liest nur die Lock-Datei, ohne Installation,
+  # und fragt die Sicherheitsmeldungen der npm-Registry ab.
+  before_script:
+    - corepack enable
+  script:
+    # Was ausgeliefert wird: jede bekannte Lücke macht die Pipeline rot
+    - pnpm audit --prod
+    # Alles, auch Werkzeuge für Build und Tests (laufen in der CI): ab „high“
+    - pnpm audit --audit-level high

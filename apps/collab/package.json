@@ -1,7 +1,7 @@
 {
   "name": "@notefieber/collab",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "AGPL-3.0-only",
   "type": "module",
   "scripts": {
     "dev": "node --watch --env-file-if-exists=../../.env src/collab.ts",

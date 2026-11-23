@@ -53,7 +53,8 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Hostinger-VPS mit K3s und Namespaces `staging` und `pilot` (erst in Stufe 2)
 - CloudNativePG mit Datenbanken `wiki`, `zitadel` und später `chat`; Zitadel; Garage mit Bucket pro Produkt; cert-manager
 - Deployments: `web` (Next.js), `api`, `collab` (eine Replik, Recreate), `worker`
-- CI/CD auf GitLab (Repository auf GitHub, `main` per GitHub Action nach GitLab gespiegelt): Build, Tests, Lizenzprüfung, Ausrollen nach `staging`, Freigabe für `pilot`
+- CI/CD auf GitLab (öffentliches Repository auf GitHub, jeder Branch per GitHub Action nach GitLab gespiegelt): Build, Tests, Lizenzprüfung (nur AGPL-verträgliche Lizenzen), Secret-Scanning, Ausrollen nach `staging`, Freigabe für `pilot`; rote Pipeline = kein Merge
+- Updates der Abhängigkeiten über Dependabot, `SECURITY.md` für vertrauliche Meldungen (`CLAUDE.md` Abschnitt 14)
 - Secrets mit SOPS oder Sealed Secrets, Firewall nur 80, 443 und SSH
 - Laufende Backups zu einem S3-Speicher bei einem anderen Anbieter
 - Monitoring: Logs, Metriken, Alarm bei Ausfall, vollem Speicher, fehlgeschlagenem Backup, Yjs-Dokumenten über 10 MB
@@ -247,7 +248,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Erwähnungen von Personen (Benachrichtigung erst mit E16; die Personen-IDs liefert `mentionIds` aus `packages/editor-schema`)
 - Inhaltsverzeichnis, Tastenkürzel, Markdown-Kürzel
 
-**Nicht enthalten:** mehrspaltige Layouts und BlockNote-XL-Pakete (offene Entscheidung), Datenbanken (E29).
+**Nicht enthalten:** mehrspaltige Layouts (mit dem XL-Paket unter GPL-3.0 im AGPL-Kern möglich, später), Datenbanken (E29).
 
 **Abnahmekriterien:**
 - Alle Blöcke überstehen Speichern, Versionen, Export und Wiederherstellen ohne Verlust.
@@ -398,6 +399,8 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 
 **Abhängigkeiten:** E05–E11.
 
+**Testdaten:** Echte Exporte von Pilotkunden bleiben außerhalb des öffentlichen Repositorys, ebenso daraus abgeleitete Fixtures. Die Tests des Importers nutzen synthetische Exporte, die die gezählten Makros und Rechte nachbauen (`CLAUDE.md` Abschnitt 14).
+
 **Story-Kandidaten:** Export hochladen · Probelauf prüfen · Gruppen zuordnen · Import ausführen · Import rückgängig machen
 
 ---
@@ -411,7 +414,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Export enthält nur, was die Person lesen darf
 - Audit-Log für Rechte, Vererbung, Papierkorb, Verschieben, Import, Export, „Ansehen als …“, Löschen fremder Kommentare
 
-**Nicht enthalten:** PDF-, Word- und ODT-Export (offene Entscheidung zu BlockNote XL), Audit-Ansicht für Admins (E17).
+**Nicht enthalten:** PDF-, Word- und ODT-Export (später über die BlockNote-XL-Exporter, im AGPL-Kern unter GPL-3.0 erlaubt; `CLAUDE.md` Abschnitt 3), Audit-Ansicht für Admins (E17).
 
 **Abnahmekriterien:**
 - Ein exportierter Space lässt sich wieder importieren, ohne Inhalt zu verlieren.

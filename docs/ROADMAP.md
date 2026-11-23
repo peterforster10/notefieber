@@ -20,14 +20,14 @@ Das Wiki kommt vor TalkFieber. Es legt deshalb die gemeinsame Plattform an (Zita
 
 ## Stufe 0: Vorbereitung
 
-- [x] **Arbeitsvertrag prüfen** (gilt für beide Projekte): Klauseln zu Nebentätigkeit und Rechten an Software.
-- [x] **Lizenz:** vorerst proprietär. Open Core oder Quelltext für Kunden bleiben spätere Optionen.
+- [x] **Lizenz:** Open Source, Kern unter AGPL-3.0-only (23. November 2026, für NoteFieber und TalkFieber gleich). Enterprise-Funktionen unter eigener Lizenz (Open Core) bleiben eine spätere Option.
+- [ ] **CLA oder DCO** für fremde Beiträge entscheiden, vor dem ersten fremden Pull Request (`CLAUDE.md` Abschnitt 4, Punkt 12). Ein CLA nur, wenn später eine Enterprise-Lizenz kommen soll.
 - [x] **Betrieb:** vorrangig SaaS, On-Prem (Helm-Chart, E23) später.
 - [x] **Name:** vorerst NoteFieber (Arbeitstitel).
 - [x] **Eigenbau statt Fork von La Suite Docs:** entschieden. BlockNote, Yjs und Hocuspocus als Bibliotheken.
 - [x] **Stack festlegen:** entschieden, TypeScript mit Next.js, Express, BlockNote, Hocuspocus, PostgreSQL 18 (CloudNativePG), Zitadel, Garage, K3s.
 - [ ] **5–10 Gespräche mit Confluence-Data-Center-Kunden:** Wann müssen sie entscheiden, was hält sie bei Confluence, welche Makros und Apps nutzen sie, SaaS oder on-prem, was würden sie zahlen?
-- [ ] **XWiki und BlueSpice ausprobieren** (sobald echte Exporte da sind, M4): einen echten Export in beide importieren und notieren, wo es hakt. Diese Schwachstellen sind das eigene Produkt. In den Gesprächen fragen, ob die Kunden XWiki schon geprüft haben.
+- [ ] **XWiki, BlueSpice und Docmost ausprobieren** (sobald echte Exporte da sind, M4): einen echten Export in alle drei importieren und notieren, wo es hakt. Docmost ist seit der Entscheidung für Open Source der direkteste Konkurrent (AGPL-3.0, gleicher Stack). Diese Schwachstellen sind das eigene Produkt. In den Gesprächen fragen, ob die Kunden XWiki schon geprüft haben.
 - [ ] **Codenamen und Domain sichern.** Über einen gemeinsamen Markennamen für Wiki und Chat nachdenken.
 
 **Weiter, wenn** die Gespräche zeigen, dass der Wechsel von Confluence Data Center ein echter Bedarf ist .
@@ -40,13 +40,13 @@ Infrastruktur: eigener Rechner. Node direkt, PostgreSQL 18, Zitadel und Garage p
 
 ### M0 – Fundament
 Epics: E01 (lokal), E02 (ohne Gruppenpflege, die kommt mit M3), E03 (einfach), vorgezogen Teile von E05 und E06 (Spaces anlegen, Seitenbaum)
-- [x] Repository mit Lizenz (proprietär, `LICENSE`), `CLAUDE.md`, `docs/EPICS.md`, `docs/ROADMAP.md`
+- [x] Repository mit Lizenz (`LICENSE`, anfangs proprietär, seit 23. November 2026 AGPL-3.0-only), `CLAUDE.md`, `docs/EPICS.md`, `docs/ROADMAP.md`
 - [x] Grundgerüst der Apps als pnpm-Monorepo: `apps/web`, `apps/api` (mit Worker), `apps/collab`, `packages/shared`; eigene Login-Rollen pro App
 - [x] Lokale Umgebung mit PostgreSQL 18, Zitadel, Garage (alle per `compose.yaml`, siehe [LOCAL_SETUP](LOCAL_SETUP.md))
 - [x] Migrationen: eigenes Skript `migrate.sh` (psql) statt eines Werkzeugs, das Schema als erste Migration (`0001_initial_schema.sql`, gebündelt mit `schema/bundle.sh`), Gleichheit von `schema/` und Migrationen geprüft (`schema_migrations_test.sh`)
 - [x] Sync GitHub → GitLab: `.github/workflows/sync-to-gitlab.yml` spiegelt jeden Push auf `main`
 - [x] Tests der Datenbank in der CI auf GitLab: `.gitlab-ci.yml` mit `ci.sh` (`schema_test.sql`, `schema_concurrency_test.sh`, `schema_migrations_test.sh`, eingespielt als `wiki_owner`, nie als `postgres`). Erste Pipeline am 8. November 2026 grün
-- [x] CI auf GitLab für die Apps: Job `apps` mit `pnpm check` (Lint, Formatierung, Typen, Lizenzen ohne BlockNote-XL-Pakete, Build)., dazu Job `api` mit den API-Tests gegen eine Wegwerf-Datenbank (`pnpm test:db`)
+- [x] CI auf GitLab für die Apps: Job `apps` mit `pnpm check` (Lint, Formatierung, Typen, Lizenzen, Build), dazu Job `api` mit den API-Tests gegen eine Wegwerf-Datenbank (`pnpm test:db`)
 - [x] Login per OIDC über Zitadel (Mandant und Person aus dem Token): Sitzung in der API (`sessions`, Cookie `nf_session`), Claims an einer Stelle, Prüfskript `scripts/check-login.mjs`
 - [x] Einladungen: Link in einen Workspace (anlegen, auflisten, zurücknehmen), erste Anmeldung über `app.accept_invite` nur mit passender, bestätigter E-Mail; Konto in Zitadel muss es geben (lokal: Nina Neu)
 - [x] Space anlegen, Seitenbaum per API (anlegen, verschieben, Papierkorb) und Seitenleiste im Frontend; API-Tests gegen die Datenbank (`pnpm test:db`, CI-Job `api`)
@@ -77,6 +77,8 @@ Epics: E05, E06, E07, E08, E15, dazu der Mail-Versand aus E01 und E02 und das Pr
 - [x] Spaces mit Startseite, Seitenbaum mit Drag & Drop; der Baum lädt ebenenweise statt aller Seiten auf einmal (A-01) (22. November 2026: `app.tree_level` mit Migration `0014` und Test 56, gemessen mit `schema_test/tree_load_test.sh`: 10.101 Seiten, 2–42 ms pro Ebene, auch ohne aktuelle Statistik, statt 2,7 s für den flachen Baum; Seiten unter unsichtbaren stehen unter der nächsten sichtbaren; Drag & Drop nativ mit HTML5, Knöpfe bleiben; Space umbenennen, beschreiben, archivieren und zurückholen; im Browser geprüft, [USE_CASES](USE_CASES.md) UC-28 bis UC-30)
 - [x] Blöcke: Überschriften, Listen, Tabellen, Code, Bilder, Callouts, Seitenlinks (23. November 2026: Schema in `packages/editor-schema` ohne Datei-, Video- und Audio-Block, dazu `callout` und der Inline-Inhalt `pageLink` nur mit Seiten-ID, Rundlauf-Tests für jede Blockart; Code mit Sprachauswahl und Hervorhebung über `@blocknote/code-block`; Bilder über die API in Garage, `POST /pages/:id/files`, `GET /files/:id`, Tests `files.dbtest.ts`; Seitenlinks über „[“ mit Titelsuche `GET /pages/search` und Titeln aus `POST /pages/lookup`; Worker pflegt `page_links`; fremde Bild-Adressen per CSP gesperrt; im Browser geprüft, [USE_CASES](USE_CASES.md) UC-31 bis UC-35)
 - [x] Erwähnungen von Personen und Inhaltsverzeichnis (restlicher Umfang von E07) (23. November 2026: Inline-Inhalt `mention` nur mit Personen-ID, Namen aus `POST /people/lookup`, Suche hinter „@“ über `GET /people/search` (Mitglieder des Workspaces, Gäste finden nur sich selbst), Tests `people.dbtest.ts`; Block `toc`, den der Browser aus den Überschriften baut und bei jeder Änderung nachzieht; `mentionIds` für die Benachrichtigungen in E16; im Browser geprüft, [USE_CASES](USE_CASES.md) UC-36 und UC-37)
+- [x] Open Source und öffentliches Repository (23. November 2026, `CLAUDE.md` Abschnitt 14): `LICENSE` mit AGPL-3.0-only, Lizenzprüfung auf AGPL-Verträglichkeit umgestellt (Freigabeliste), `SECURITY.md`, `.gitignore` für Secrets und echte Exporte, CI-Job `secrets` (gitleaks über den ganzen Verlauf), Dependabot, Spiegel aller Branches nach GitLab (Pipeline vor dem Merge)
+- [ ] Einstellungen auf GitHub, bevor das Repository öffentlich wird (nur Peter): private Meldung von Sicherheitslücken, Secret Scanning mit Push Protection, Dependabot Alerts und Security Updates, `GITLAB_TOKEN` zusätzlich als Dependabot-Secret, Schutz für `main`; erste grüne Pipeline mit `secrets` über den ganzen Verlauf (siehe [TODOS](TODOS.md))
 - [ ] Worker-Aufträge mit pg-boss (Grundlage für die Versionen und das endgültige Löschen; dazu die Punkte „Mit M2“ in [TODOS](TODOS.md))
 - [ ] Versionen (E08): automatische Version nach 10 Minuten Ruhe (Worker), manuelle Version (`app.save_version`), Versionen mit Autoren anzeigen, zwei Versionen vergleichen, wiederherstellen als neue Version über den internen Aufruf an den Collab-Server (`restored_from`); prüfen, dass alle Blöcke aus E07 Speichern, Version und Wiederherstellen ohne Verlust überstehen
 - [ ] Papierkorb (E08): endgültiges Löschen nach 30 Tagen durch den Worker, mit den Objekten der Bilder in Garage
@@ -103,11 +105,13 @@ Epics: E09, E10, E11, E12, E14, dazu aus E02 die Gruppenpflege (aus M0 verschobe
 - [ ] Ein Webhook (E19, Teil des MVP laut `CLAUDE.md` Abschnitt 5): ausgewählte Ereignisse aus der Outbox an eine Adresse pro Mandant, mit Signatur
 - [ ] Audit-Log
 
-**Gate:** Kein Lesepfad (Baum, Suche, Links, Kommentare, Export, Dateien) zeigt Seiten ohne Leserecht. Durch Tests abgesichert. Ein Space mit 10.000 Seiten lädt seinen Seitenbaum in unter einer Sekunde (Lastprüfung, A-01).
+- [ ] End-to-End-Test für das Gate als eigener Job in `.gitlab-ci.yml`: alle Lesepfade über die API mit Personen ohne Leserecht (Testdaten synthetisch), rot, sobald einer eine Seite zeigt (`CLAUDE.md` Abschnitt 14)
+
+**Gate:** Kein Lesepfad (Baum, Suche, Links, Kommentare, Export, Dateien) zeigt Seiten ohne Leserecht. Durch Tests abgesichert, darunter der End-to-End-Test in der CI. Ein Space mit 10.000 Seiten lädt seinen Seitenbaum in unter einer Sekunde (Lastprüfung, A-01).
 
 ### M4 – Confluence-Import
 Epic: E13
-- [ ] 2–3 echte Confluence-Space-Exporte besorgen (anonymisiert reicht), zu Beginn von M4, und die häufigsten Makros zählen
+- [ ] 2–3 echte Confluence-Space-Exporte besorgen (anonymisiert reicht), zu Beginn von M4, und die häufigsten Makros zählen. **Nie ins Repository**, auch keine daraus abgeleiteten Fixtures: lokal außerhalb (z. B. `.local/confluence-exports/`), Test-Fixtures für den Importer synthetisch nachbauen (`CLAUDE.md` Abschnitt 14)
 - [ ] Space-Export (HTML bzw. XML) einlesen: Hierarchie, Inhalte, Anhänge, Versionen
 - [ ] Rechte übersetzen, Gruppen zuordnen
 - [ ] Die häufigsten Makros abbilden (aus den echten Exporten gezählt), Rest als sichtbarer Platzhalter mit Originalinhalt

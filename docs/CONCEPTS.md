@@ -47,6 +47,8 @@ Was als **Empfehlung** gekennzeichnet ist, ist noch nicht entschieden und gehör
 
 NoteFieber ist ein Firmen-Wiki: ein Ort, an dem Teams ihr Wissen in Seiten ablegen, die in einem Baum geordnet sind, gemeinsam bearbeitet werden und gut durchsuchbar sind. Funktional ist es eine Alternative zu Confluence.
 
+NoteFieber ist **Open Source** (AGPL-3.0-only): Der Code ist öffentlich und prüfbar, was Behörden, KRITIS und die openDesk-Welt ausdrücklich verlangen („Public Money, Public Code“). Die AGPL sorgt dafür, dass niemand es als geschlossenen SaaS-Dienst weiterverkauft. Open Source allein unterscheidet aber nicht: Docmost (AGPL-3.0, gleicher Stack) und XWiki sind ebenfalls offen.
+
 Drei Dinge unterscheiden es von einem beliebigen Wiki:
 
 - **Europäisch:** entwickelt und betrieben in der EU, von einem Anbieter ohne US-Mutterfirma. Damit greift der US CLOUD Act nicht, der US-Behörden Zugriff auf Daten bei US-Firmen erlaubt, auch wenn die Server in Europa stehen.
@@ -662,13 +664,13 @@ Anhänge und Bilder liegen nicht in der Datenbank, sondern in **Garage**, einem 
 
 ## 15. Der Stack und warum
 
-Leitlinie: **bewährte Technik, eine Sprache, offene Lizenzen ohne Falle.** Innovation nur dort, wo Nutzer sie spüren: im Editor und im Import.
+Leitlinie: **bewährte Technik, eine Sprache, offene Lizenzen ohne Falle.** NoteFieber selbst ist Open Source unter AGPL-3.0-only; jede Abhängigkeit muss damit verträglich sein (Lizenzprüfung in der CI). Innovation nur dort, wo Nutzer sie spüren: im Editor und im Import.
 
 | Baustein | Wahl | Warum | Lizenz |
 |---|---|---|---|
 | Sprache | **TypeScript** überall | Frontend, API und Collab-Server teilen Typen. Ein Team, ein Build. Wie bei TalkFieber | – |
 | Oberfläche | **Next.js** (React) | Verbreitet und bekannt. Wird nur als Oberfläche genutzt | MIT |
-| Editor | **BlockNote** | Notion-artige Blöcke, Slash-Menü, Drag & Drop und Yjs-Anbindung fertig. Baut auf Tiptap und ProseMirror. Die XL-Zusatzpakete (GPL-3.0) werden vorerst nicht genutzt | MPL-2.0 |
+| Editor | **BlockNote** | Notion-artige Blöcke, Slash-Menü, Drag & Drop und Yjs-Anbindung fertig. Baut auf Tiptap und ProseMirror. Die XL-Zusatzpakete (GPL-3.0, z. B. Export nach DOCX, ODT, PDF) sind mit der AGPL verträglich und dürfen im Kern genutzt werden, sobald sie gebraucht werden | MPL-2.0 (XL GPL-3.0) |
 | Echtzeit | **Yjs + Hocuspocus** | Bewährter CRDT und fertiger Server mit Einstiegspunkten für Login und Speichern | MIT |
 | API | **Express 5**, **Zod**, **Drizzle** | Express ist Standard. Zod prüft Eingaben, Drizzle bleibt nah an SQL | MIT |
 | Jobs | **pg-boss** | Job-Queue in PostgreSQL, kein zusätzlicher Dienst | MIT |
@@ -679,7 +681,7 @@ Leitlinie: **bewährte Technik, eine Sprache, offene Lizenzen ohne Falle.** Inno
 
 **Bewusst nicht dabei:** Microservices, Kafka, eine NoSQL-Datenbank, Redis (im MVP), Ende-zu-Ende-Verschlüsselung (sie würde Suche, Import und Export unmöglich machen). Später kommen NATS und Valkey mit TalkFieber, OpenSearch erst, wenn die Suche in PostgreSQL nicht mehr reicht.
 
-**Zur AGPL von Zitadel und Garage:** Diese Lizenz verlangt, dass man *Änderungen an diesen Programmen* offenlegt, wenn man sie als Dienst anbietet. NoteFieber ändert sie nicht und spricht nur über Standard-Schnittstellen mit ihnen. Der eigene Code ist davon nicht betroffen.
+**Zur AGPL:** Diese Lizenz verlangt, dass man den Quelltext einer *veränderten Fassung* den Nutzenden zugänglich macht, wenn man sie als Dienst über ein Netzwerk anbietet. Für NoteFieber selbst ist das gewollt: Niemand kann es als geschlossenen SaaS-Dienst weiterverkaufen. Zitadel und Garage stehen ebenfalls unter AGPL-3.0; NoteFieber ändert sie nicht und spricht nur über Standard-Schnittstellen mit ihnen.
 
 ---
 
@@ -846,10 +848,20 @@ Die vollständige Anleitung steht in [LOCAL_SETUP.md](LOCAL_SETUP.md). Kurz:
 
 ### Tests
 
-- `schema_test.sql`, `schema_concurrency_test.sh` und `schema_migrations_test.sh` laufen bei jedem Push auf `main` in der CI (`ci.sh`). Die CI läuft auf **GitLab**: Das Repository liegt auf GitHub, und eine GitHub Action (`sync-to-gitlab.yml`) spiegelt `main` nach GitLab, wo `.gitlab-ci.yml` die Tests startet (Einzelheiten in [LOCAL_SETUP.md](LOCAL_SETUP.md), „CI (GitLab)“).
+- `schema_test.sql`, `schema_concurrency_test.sh` und `schema_migrations_test.sh` laufen bei jedem Push auf jedem Branch in der CI (`ci.sh`). Die CI läuft auf **GitLab**: Das Repository liegt öffentlich auf GitHub, und eine GitHub Action (`sync-to-gitlab.yml`) spiegelt jeden Branch nach GitLab, wo `.gitlab-ci.yml` die Tests, die Lizenzprüfung und das Secret-Scanning startet. Rote Pipeline = kein Merge (Einzelheiten in [LOCAL_SETUP.md](LOCAL_SETUP.md), „CI (GitLab)“).
 - API-Tests laufen gegen eine **echte PostgreSQL**, nicht gegen Mocks. Die Rechte stecken in der Datenbank, ein Mock würde genau das nicht testen. Umgesetzt als `*.dbtest.ts` in `apps/api` (`pnpm test:db`, CI-Job `api`) auf einer Wegwerf-Datenbank mit den Testdaten; reine Logik ohne Datenbank testen `*.test.ts` (`pnpm test`).
 - Später Ende-zu-Ende-Tests mit Playwright, z. B. zwei Browser, die dieselbe Seite bearbeiten.
 - Alles, was Rechte, Mandantentrennung oder Sichtbarkeit berührt, bekommt **zuerst** einen Test.
+
+### Vibe Coding mit Claude Code
+
+Der Code entsteht größtenteils mit Claude Code. Das geht, weil die Datenbank die Rechte erzwingt: Ein Fehler in der Oberfläche oder in der API kann kaum zeigen, was die Leseregeln und `app.page_rank` verbergen. Deshalb gibt es drei Zonen (`CLAUDE.md`, Abschnitt 14):
+
+- **Frei:** Oberfläche, Styling, Editor-Integration, Import-Assistent (Oberfläche), Export. Fehler dort sind sichtbar und schnell behoben.
+- **Jeder Diff wird von Hand gelesen:** das Datenbankschema, Login und Sitzungen, die Anmeldung und das Trennen im Collab-Server, die Rechtefunktionen und alles, was Sichtbarkeit berührt. Zuerst der Test, dann der Code.
+- **Die CI wacht:** Datenbanktests, API-Tests, Lizenzprüfung, Secret-Scanning, ab M3 ein End-to-End-Test „kein Lesepfad zeigt Seiten ohne Leserecht“. Updates der Abhängigkeiten nur über Dependabot mit grüner Pipeline.
+
+Weil das Repository öffentlich ist, kommen weder Secrets noch echte Kundendaten hinein (auch keine Confluence-Exporte von Pilotkunden); Testdaten sind synthetisch. Sicherheitslücken meldet man vertraulich ([SECURITY.md](../SECURITY.md)).
 
 ```markdown
 # 7. Sitzungscookie statt Tokens im Browser
@@ -915,7 +927,8 @@ Manches ist mit Absicht einfach gehalten. Wer es ändern will, sollte den Grund 
 | `INSERT … RETURNING` auf eine Tabelle mit Leseregel, bevor die Zeile lesbar ist | Fehler, weil RLS auch die zurückgegebene Zeile prüft (z. B. ein Space vor seinem ersten Grant) | ID vorher mit `uuidv7()` erzeugen, kein `RETURNING` |
 | Geschäftslogik in Next.js (Server Actions) | Zweites Backend neben Express | Next.js nur als Oberfläche |
 | Zwei Collab-Server-Instanzen | Zwei Stände desselben Dokuments, Datenverlust | Im MVP genau eine Instanz, Update-Strategie „Recreate“ |
-| BlockNote-XL-Paket eingebunden | GPL-3.0-Pflichten für den eigenen Code | Nur Core-Pakete, Lizenzprüfung in der CI |
+| Abhängigkeit mit einer Lizenz, die mit der AGPL unverträglich ist (z. B. GPL-2.0-only, SSPL, BSL), oder BlockNote-XL in einem künftigen proprietären Enterprise-Teil | Der Code darf so nicht verbreitet werden | Freigabeliste in `scripts/check-licenses.mjs`, Lizenzprüfung in der CI |
+| Secret oder echte Kundendaten (Confluence-Export, Fixture daraus) eingecheckt | Öffentlich, auch nach dem Löschen noch im Verlauf | `.gitignore`, gitleaks in der CI, Testdaten synthetisch; ein geleaktes Secret sofort sperren und neu erzeugen |
 | Schemaänderung ohne Test | Unbemerkte Lücke in Rechten oder Trennung | Erst Test in `schema_test.sql`, dann Änderung |
 | Seiten im Papierkorb nicht ausgefiltert | Gelöschte Seiten tauchen in Baum, Suche oder Links auf | Überall `deleted_at IS NULL`, außer in der Papierkorb-Ansicht |
 | Titel direkt in `pages.title` geändert | Wird beim nächsten Speichern aus dem Yjs-Dokument überschrieben | Titel nur im Yjs-Dokument ändern (`Y.Text` „title“): im Editor oder über den internen Aufruf an den Collab-Server (`POST /api/v1/pages/:id/title`) |

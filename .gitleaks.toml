@@ -1,0 +1,31 @@
+# Secret-Scanning mit gitleaks (CI-Job „secrets“ in .gitlab-ci.yml, CLAUDE.md Abschnitt 14).
+# Es gelten alle Standardregeln von gitleaks. Ausgenommen sind nur die bewusst öffentlichen
+# Testwerte für den eigenen Rechner (.env.example, compose.yaml, local_login_roles.sql,
+# .gitlab-ci.yml, docs/LOCAL_SETUP.md). Geprüft wird der gefundene Wert selbst (regexTarget
+# „secret“), nicht die Zeile drumherum:
+#   - Werte, die mit „lokal“ beginnen oder einen Teil „-lokal“ bzw. „_lokal“ haben, z. B.
+#     api-lokal, NoteFieber-lokal-1, lokal-nur-zum-entwickeln-…; „lokal“ mitten in einem
+#     zufälligen Token (etwa …3kLokalQ9…) zählt nicht
+#   NoteFieberLokalMasterkey32Zeichn = Masterkey von Zitadel in compose.yaml (älterer Wert ohne „-“)
+#   6c6f6b616c…  = „lokal-nur-zum-entwickeln-garage!“ (S3-Geheimnis von Garage, in Hex)
+#   7270632d6e7572… = „rpc-nur-lokal-notefieber-garage!“ (RPC-Schlüssel von Garage, in Hex)
+#   GK6e6f74656669656265720001 = Schlüssel-ID von Garage („GK“, „notefieber“ in Hex, „0001“)
+# Neue lokale Testwerte immer mit „-lokal“ im Wert anlegen (z. B. „wiki-lokal“), dann greift die
+# Ausnahme. Echte Werte gehören nie ins Repository, auch nicht hier als Ausnahme.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Lokale Testwerte, absichtlich öffentlich"
+regexTarget = "secret"
+regexes = [
+  '''(?i)(?:^|[-_])lokal''',
+  '''NoteFieberLokalMasterkey32Zeichn''',
+  '''6c6f6b616c[0-9a-f]{54}''',
+  '''7270632d6e7572[0-9a-f]{50}''',
+  '''GK6e6f74656669656265720001''',
+]
+paths = [
+  '''pnpm-lock\.yaml$''',
+]

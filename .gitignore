@@ -13,3 +13,21 @@ node_modules/
 next-env.d.ts
 *.tsbuildinfo
 .pnpm-store/
+
+# Öffentliches Repository: nie Secrets oder echte Daten einchecken (CLAUDE.md, Abschnitt 14).
+# Echte Confluence-Exporte und daraus abgeleitete Fixtures liegen lokal z. B. unter
+# .local/confluence-exports/ (oben ignoriert) oder ganz außerhalb des Repositorys.
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+kubeconfig*
+*.kubeconfig
+.kube/
+*.sops.dec.*
+secrets/
+confluence-exports/

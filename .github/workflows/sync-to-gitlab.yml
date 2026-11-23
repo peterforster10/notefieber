@@ -1,30 +1,46 @@
-# Spiegelt main nach GitLab (gitlab.com/peterforster101/notefieber), dort läuft die CI
-# (.gitlab-ci.yml). Braucht das Secret GITLAB_TOKEN: Project Access Token in GitLab mit
-# Scope write_repository und einer Rolle, die auf main pushen darf (Maintainer).
-# Siehe docs/LOCAL_SETUP.md, „CI (GitLab)“.
+# Spiegelt jeden Branch und jeden Tag nach GitLab (gitlab.com/peterforster101/notefieber), dort
+# läuft die CI (.gitlab-ci.yml). So bekommt auch ein Branch (eigene Arbeit, Dependabot) vor dem
+# Merge seine Pipeline: Rote Pipeline = kein Merge (CLAUDE.md, Abschnitt 14).
+#
+# Braucht das Secret GITLAB_TOKEN: Project Access Token in GitLab mit Scope write_repository und
+# einer Rolle, die auf main pushen darf (Maintainer). Dasselbe Token zusätzlich als
+# Dependabot-Secret anlegen (Settings → Secrets and variables → Dependabot), sonst bekommen
+# Läufe, die Dependabot auslöst, kein Secret. Siehe docs/LOCAL_SETUP.md, „CI (GitLab)“.
+#
+# Das ist der einzige Workflow in GitHub Actions; Prüfungen gehören in .gitlab-ci.yml.
 name: Sync to GitLab
 
 on:
   push:
     branches:
-      - main
+      - "**"
+    # Tags auch einzeln, nicht nur zusammen mit einem Push auf main
+    tags:
+      - "**"
+  delete:
 
 # Vom GitHub-Token wird nur gelesen; gepusht wird mit GITLAB_TOKEN.
 permissions:
   contents: read
 
-# Pushes nacheinander spiegeln, damit GitLab nie einen älteren Stand bekommt.
+# Alles zu derselben Ref nacheinander spiegeln, damit GitLab nie einen älteren Stand bekommt und
+# Push und Löschen eines Branches sich nicht überholen. Dafür in beiden Fällen derselbe Schlüssel
+# aus Art und kurzem Namen: Beim Push stehen sie in github.ref_type/ref_name, beim Löschen in
+# github.event.ref_type/ref (dort meint github.ref den Standard-Branch, nicht den gelöschten).
 concurrency:
-  group: sync-to-gitlab
+  group: sync-to-gitlab-${{ github.event_name == 'delete' && github.event.ref_type || github.ref_type }}-${{ github.event_name == 'delete' && github.event.ref || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
   sync:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out GitHub repo
-        uses: actions/checkout@v7
+        # Auf den Commit festgelegt, nicht auf den Tag: Ein Tag lässt sich nachträglich umbiegen, und im
+        # selben Job steht GITLAB_TOKEN. Dependabot hebt Commit und Kommentar gemeinsam an.
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false   # GitHub-Token nicht in .git/config lassen
@@ -32,9 +48,35 @@ jobs:
       - name: Push to GitLab
         env:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-        # Ohne --force: Weicht GitLab einmal ab (etwa nach einem umgeschriebenen Verlauf),
-        # bricht der Push sichtbar ab, statt dort still etwas zu überschreiben.
+          REF_TYPE: ${{ github.ref_type }}
+          NAME: ${{ github.ref_name }}
+        # main und Tags ohne --force: Weicht GitLab einmal ab (etwa nach einem umgeschriebenen
+        # Verlauf oder einem verschobenen Tag), bricht der Push sichtbar ab, statt dort still etwas
+        # zu überschreiben. Andere Branches dürfen umgeschrieben werden (Rebase, Dependabot), dort
+        # spiegelt der Push mit --force.
         run: |
           git remote add gitlab "https://oauth2:${GITLAB_TOKEN}@gitlab.com/peterforster101/notefieber.git"
-          git push gitlab HEAD:refs/heads/main
-          git push gitlab --tags
+          if [ "$REF_TYPE" = "tag" ]; then
+            git push gitlab "refs/tags/${NAME}"
+          elif [ "$NAME" = "main" ]; then
+            git push gitlab "HEAD:refs/heads/main"
+            git push gitlab --tags
+          else
+            git push --force gitlab "HEAD:refs/heads/${NAME}"
+          fi
+
+  delete:
+    # Gelöschte Branches auch auf GitLab löschen (main ist dort geschützt und bleibt). Gelöschte
+    # Tags bleiben auf GitLab: Ein Tag markiert einen Stand und wird nicht weggeräumt.
+    if: github.event_name == 'delete' && github.event.ref_type == 'branch' && github.event.ref != 'main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Delete branch on GitLab
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          BRANCH: ${{ github.event.ref }}
+        run: |
+          git init -q .
+          git push "https://oauth2:${GITLAB_TOKEN}@gitlab.com/peterforster101/notefieber.git" --delete "refs/heads/${BRANCH}" \
+            || echo "Branch ${BRANCH} gab es auf GitLab nicht."
