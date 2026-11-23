@@ -34,6 +34,12 @@ const nextConfig: NextConfig = {
   env: collabUrl ? { NEXT_PUBLIC_COLLAB_URL: collabUrl } : {},
   // Frontend und API unter einer Adresse, wie später der Ingress (/ → web, /api → api).
   // So gilt das Sitzungs-Cookie für beide, und der Browser braucht kein CORS.
+  // Bilder nur von der eigenen Adresse (hochgeladen über /api/v1/files) und aus dem Browser selbst
+  // (data:, blob: beim Einfügen): Fremde Bild-Adressen lädt der Browser nicht, so gehen keine
+  // IP-Adressen der Lesenden an fremde Server (M2, E07). Weitere Regeln der CSP folgen mit E21.
+  async headers() {
+    return [{ source: '/:path*', headers: [{ key: 'Content-Security-Policy', value: "img-src 'self' data: blob:" }] }];
+  },
   async rewrites() {
     return [{ source: '/api/:path*', destination: `${apiInternalUrl}/api/:path*` }];
   },

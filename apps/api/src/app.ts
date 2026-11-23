@@ -12,9 +12,13 @@ import { sameOriginOnly } from './http/origin.ts';
 import { PositionError } from './positions.ts';
 import { invitesRouter } from './routes/invites.ts';
 import { createCollabClient } from './collab-client.ts';
+import { filesRouter } from './routes/files.ts';
+import { peopleRouter } from './routes/people.ts';
 import { spacesRouter } from './routes/spaces.ts';
+import { s3Store, type BlobStore } from './storage.ts';
 
-export function createApp(config: ApiConfig, db: pg.Pool, idp: Oidc) {
+/** `store`: Speicher für Dateien, ohne Angabe Garage aus den S3-Einstellungen (Tests: memoryStore) */
+export function createApp(config: ApiConfig, db: pg.Pool, idp: Oidc, store: BlobStore = s3Store(config)) {
   const app = express();
   app.disable('x-powered-by');
   app.use(express.json({ limit: '1mb' }));
@@ -48,6 +52,8 @@ export function createApp(config: ApiConfig, db: pg.Pool, idp: Oidc) {
 
   v1.use('/auth', authRouter(config, db, idp));
   v1.use(invitesRouter(config, db));
+  v1.use(filesRouter(config, db, store));
+  v1.use(peopleRouter(db));
   v1.use(spacesRouter(db, createCollabClient(config.COLLAB_INTERNAL_URL, config.COLLAB_INTERNAL_SECRET)));
 
   app.use('/api/v1', v1);
@@ -58,6 +64,11 @@ export function createApp(config: ApiConfig, db: pg.Pool, idp: Oidc) {
 
   // Express 5 leitet Fehler aus async-Handlern hierher weiter.
   const onError: ErrorRequestHandler = (err, _req, res, _next) => {
+    // Zu großer Body (express.json, express.raw beim Hochladen)
+    if ((err as { type?: string }).type === 'entity.too.large') {
+      res.status(413).json({ error: 'too_large', message: 'Datei oder Anfrage zu groß' });
+      return;
+    }
     if (err instanceof PositionError) {
       res.status(400).json({ error: 'invalid_request', message: err.message });
       return;

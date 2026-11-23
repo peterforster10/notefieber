@@ -377,7 +377,7 @@ Erwartet beim ersten Start: `Garage: … Schlüssel … importiert`, `Garage: Bu
 
 ### Werte für die Apps
 
-Nur lokal; dieselben Werte stehen in der [`.env.example`](../.env.example).
+Nur lokal; dieselben Werte stehen in der [`.env.example`](../.env.example). Die API legt dort Bilder aus dem Editor ab ([`storage.ts`](../apps/api/src/storage.ts), [`routes/files.ts`](../apps/api/src/routes/files.ts)); der Browser spricht Garage nie direkt an. Dazu gehören zwei Einstellungen der API: `UPLOAD_MAX_BYTES` (Standard 10 MB) und `FILES_REQUIRE_SCAN` (Standard `true`: nur auf Viren geprüfte Dateien ausliefern). Bis der Virenscan da ist (M3), steht lokal `FILES_REQUIRE_SCAN=false`; fehlt die Zeile in der eigenen `.env`, bleiben Bilder im Editor leer („wird geprüft“).
 
 | Einstellung | Wert |
 |---|---|
@@ -619,7 +619,7 @@ pnpm install
 cp .env.example .env
 ```
 
-Die [`.env.example`](../.env.example) passt ohne Änderung zur lokalen Umgebung. Die `.env` liest auch `docker compose` (für seine eigenen Variablen); sie kommt nie ins Repository. Kommen in der `.env.example` neue Einstellungen dazu (zuletzt am 8. November 2026 für den Login), die `.env` neu kopieren oder die neuen Zeilen übernehmen. Die Werte für den Login (`OIDC_*`) liest die API zusätzlich aus `.local/zitadel.env`.
+Die [`.env.example`](../.env.example) passt ohne Änderung zur lokalen Umgebung. Die `.env` liest auch `docker compose` (für seine eigenen Variablen); sie kommt nie ins Repository. Kommen in der `.env.example` neue Einstellungen dazu (zuletzt am 23. November 2026: `UPLOAD_MAX_BYTES` und `FILES_REQUIRE_SCAN=false` für Bilder), die `.env` neu kopieren oder die neuen Zeilen übernehmen. Die Werte für den Login (`OIDC_*`) liest die API zusätzlich aus `.local/zitadel.env`.
 
 **Login-Rollen der Apps:** Jede App verbindet sich mit einer eigenen Login-Rolle, nie als `wiki_owner` oder `postgres`; sie prüft das beim Start und bricht sonst mit `Datenbank: Datenbankrolle … ist Superuser oder Eigentümer` bzw. `… muss Mitglied von … sein` ab. Die Rollen `wiki_api`, `wiki_collab` und `wiki_jobs` legt [`local_login_roles.sql`](../database/scripts/local_login_roles.sql) beim ersten Start mit an, mit den lokalen Passwörtern aus der `.env.example`. Für eine Datenbank aus der Zeit davor einmal von Hand (ein zweiter Lauf schadet nicht):
 
@@ -705,9 +705,23 @@ Die API dazu (alle nur mit Sitzung):
 | `POST /api/v1/pages/:id/move` | verschieben: `parentId`, dazu `afterId` oder `beforeId` (sonst ans Ende) | `app.move_page` |
 | `DELETE /api/v1/pages/:id` | in den Papierkorb, mit Unterseiten | `app.trash_page` |
 | `POST /api/v1/pages/:id/restore` | aus dem Papierkorb zurück | `app.restore_page` |
+| `GET /api/v1/pages/search?q=&space=` | Seiten nach Titel für Seitenlinks („[“ im Editor): höchstens 10, nur lesbare, ohne Papierkorb und archivierte Spaces, Seiten aus `space` zuerst; ohne `q` die zuletzt geänderten in `space` | – (RLS, `pg_trgm`) |
+| `POST /api/v1/pages/lookup` | `ids` (1–100): Titel, Space und `trashed` der lesbaren Seiten; nicht lesbare fehlen | – (RLS) |
+| `GET /api/v1/people/search?q=&space=` | Personen für Erwähnungen („@“ im Editor): höchstens 10, ohne Deaktivierte, mit `space` nur Mitglieder seines Workspaces; Namen, die mit `q` beginnen, zuerst | – (RLS auf `users`, `workspace_members`) |
+| `POST /api/v1/people/lookup` | `ids` (1–100): Namen und `deactivated` der sichtbaren Personen | – (RLS) |
+| `POST /api/v1/pages/:id/files` | Bild hochladen: roher Body, Name im Header `X-File-Name` (URL-kodiert); PNG, JPEG, GIF, WebP bis `UPLOAD_MAX_BYTES` (sonst `415` bzw. `413`); nur Bearbeitende, nicht im Papierkorb | Zeile in `files` (Regel `write_insert`), Objekt in Garage |
+| `GET /api/v1/files/:id` | Datei ansehen; ohne Leserecht auf die Seite `404`, mit `FILES_REQUIRE_SCAN` ungeprüft `409` | – (Leseregel auf `files`) |
 | `POST /api/v1/pages/:id/title` | umbenennen: `title` (Leerraum außen fällt weg, danach 1 bis 255 Zeichen wie beim Anlegen, sonst `400`); nur Bearbeitende, nicht im Papierkorb | – (`app.page_role`, dann interner Aufruf an den Collab-Server, der `app.store_ydoc` schreibt) |
 
 Rechte prüft die Datenbank: Seiten, die die Person nicht sehen darf, fehlen im Baum, und was sie nicht ändern darf, lehnen die Funktionen ab (`403`; fachliche Regeln wie „nicht unter die eigene Unterseite“ oder „Startseite nicht löschen“ mit `409` und Meldung). Positionen rechnet die API mit dem Paket `fractional-indexing` aus den sichtbaren Nachbarn ([`positions.ts`](../apps/api/src/positions.ts)); dieselben Schlüssel erzeugt `app.next_position` in der Datenbank.
+
+### Editor und Blöcke
+
+Eine Seite öffnen und in den Text klicken: „/“ zeigt alle Blöcke (Überschriften, Listen, Tabelle, Code, Callout, Bild …), „[“ sucht eine Seite zum Verlinken, „@“ eine Person zum Erwähnen ([USE_CASES](USE_CASES.md), UC-31 bis UC-37). Schema und Darstellung: [`packages/editor-schema`](../packages/editor-schema/src/index.ts) (gemeinsam mit Worker und Import), [`apps/web/src/components/editor/`](../apps/web/src/components/editor/) (React-Darstellung von Callout, Seitenlink, Erwähnung und Inhaltsverzeichnis, Menüs). Bilder landen über die API in Garage ([Abschnitt 5](#werte-für-die-apps)); dafür muss `FILES_REQUIRE_SCAN=false` in der `.env` stehen, solange es den Virenscan nicht gibt. Die Verlinkungen trägt der Worker etwa 30 s nach der letzten Änderung in `page_links` ein (zum Ausprobieren `WORKER_DERIVE_REST_SECONDS=5`):
+
+```bash
+docker exec nf-pg18 psql -U postgres -d wiki -c "SELECT f.title AS von, t.title AS nach FROM page_links l JOIN pages f ON f.id = l.from_page_id JOIN pages t ON t.id = l.to_page_id"
+```
 
 ### Einladungen
 
@@ -743,7 +757,7 @@ Nach etwa 20 Sekunden (`docker logs nf-pg18-apitest` zeigt `Testdaten eingespiel
 API_TEST_DATABASE_URL=postgres://wiki_api:api-lokal@localhost:55433/wiki WORKER_TEST_DATABASE_URL=postgres://wiki_jobs:jobs-lokal@localhost:55433/wiki COLLAB_TEST_DATABASE_URL=postgres://wiki_collab:collab-lokal@localhost:55433/wiki pnpm test:db
 ```
 
-Erwartet: API mit Worker `pass 22`, Collab-Server `pass 15`, jeweils `fail 0` (Spaces und Seitenbaum, auch Ebene für Ebene und mit Seiten unter unsichtbaren, Space umbenennen und archivieren, Einladungen, Annehmen beim Login mit erfundenen Identitäten statt Zitadel; beim Worker Testdaten zu Yjs, Ableiten nach der Ruhezeit, Weiterbearbeiten während des Ableitens; beim Collab-Server Ablehnungen, gemeinsames Bearbeiten mit lesender und schreibender Verbindung, Titel neuer Seiten beim Wiederöffnen mit lokaler Kopie, Umbenennen über den internen Aufruf (auch wenn die Seite dazwischen in den Papierkorb kommt), Seiten aus BlockNote-JSON, Papierkorb; Rechteentzug, Papierkorb und Abmelden bei offenen Verbindungen, regelmäßige Prüfung, Abriss der LISTEN-Verbindung). Die Collab-Tests starten einen eigenen Server auf einem freien Port und brauchen beide Verbindungen: `COLLAB_TEST_DATABASE_URL` für den Server, `API_TEST_DATABASE_URL` für Sitzungen und Seiten. Danach `docker rm -f nf-pg18-apitest`. Ohne `API_TEST_DATABASE_URL` überspringt `pnpm test:db` die Tests mit einem Hinweis. (`$(pwd -W)` ist der Pfad in Git Bash; unter macOS und Linux `$(pwd)`.)
+Erwartet: API mit Worker `pass 33`, Collab-Server `pass 15`, jeweils `fail 0` (Spaces und Seitenbaum, auch Ebene für Ebene und mit Seiten unter unsichtbaren, Space umbenennen und archivieren, Titelsuche und Lookup für Seitenlinks, Personen für Erwähnungen, Bilder hochladen und ansehen (im Test im RAM statt in Garage), Einladungen, Annehmen beim Login mit erfundenen Identitäten statt Zitadel; beim Worker Testdaten zu Yjs, Ableiten nach der Ruhezeit, Weiterbearbeiten während des Ableitens, Verlinkungen in `page_links`; beim Collab-Server Ablehnungen, gemeinsames Bearbeiten mit lesender und schreibender Verbindung, Titel neuer Seiten beim Wiederöffnen mit lokaler Kopie, Umbenennen über den internen Aufruf (auch wenn die Seite dazwischen in den Papierkorb kommt), Seiten aus BlockNote-JSON, Papierkorb; Rechteentzug, Papierkorb und Abmelden bei offenen Verbindungen, regelmäßige Prüfung, Abriss der LISTEN-Verbindung). Die Collab-Tests starten einen eigenen Server auf einem freien Port und brauchen beide Verbindungen: `COLLAB_TEST_DATABASE_URL` für den Server, `API_TEST_DATABASE_URL` für Sitzungen und Seiten. Danach `docker rm -f nf-pg18-apitest`. Ohne `API_TEST_DATABASE_URL` überspringt `pnpm test:db` die Tests mit einem Hinweis. (`$(pwd -W)` ist der Pfad in Git Bash; unter macOS und Linux `$(pwd)`.)
 
 ### Lasttest des Collab-Servers
 
@@ -879,6 +893,9 @@ Ohne `-v` bleiben die Volumes (`notefieber-pgdata` mit den Datenbanken `wiki` un
 | `Garage: Schlüssel nicht importiert: … KeyAlreadyExists` mit anderem Geheimnis | Ein Schlüssel mit dieser ID existierte schon mit anderem Geheimnis (z. B. nach einer Änderung in `.env`). Neue ID wählen oder mit `docker compose down -v` neu anfangen. |
 | S3 antwortet `SignatureDoesNotMatch` | Region nicht `garage`, falsches Geheimnis, oder der Client nutzt den virtuellen Host-Stil: `forcePathStyle: true` setzen. |
 | S3 antwortet `403` bzw. `AccessDenied` | Ohne oder mit falschem Schlüssel angefragt. [Werte für die Apps](#werte-für-die-apps) prüfen. |
+| Bild im Editor bleibt leer, `GET /api/v1/files/…` antwortet `409` `scan_pending` | `FILES_REQUIRE_SCAN` fehlt in der `.env` (Standard `true`), den Virenscan gibt es aber erst mit M3. `FILES_REQUIRE_SCAN=false` eintragen und die API neu starten. |
+| Hochladen scheitert, die API meldet `ECONNREFUSED` oder `NoSuchBucket` | Garage läuft nicht oder der Bucket fehlt: `docker compose up -d --wait`, sonst `docker compose logs garage-init`. |
+| Hochladen antwortet `415` | Kein PNG, JPEG, GIF oder WebP (der Typ zählt nach den ersten Bytes, nicht nach der Endung). SVG ist absichtlich nicht erlaubt. |
 
 ### Zitadel
 
@@ -913,7 +930,7 @@ Ohne `-v` bleiben die Volumes (`notefieber-pgdata` mit den Datenbanken `wiki` un
 
 Mit den nächsten Schritten aus der `CLAUDE.md` (Abschnitt 13) und Stufe 1 der [ROADMAP](ROADMAP.md) wächst die lokale Umgebung:
 
-- **Fachlogik in den Apps:** Login über OIDC in der API (E03), Spaces und Seitenbaum per API (M0), Hocuspocus mit `onAuthenticate`, `onLoadDocument` und `onStoreDocument` (E04), Aufgaben im Worker mit pg-boss. Die Zitadel-Werte lesen die Apps dann aus [`.local/zitadel.env`](#werte-für-die-apps-1).
+- **Fachlogik in den Apps:** Aufgaben im Worker mit pg-boss (M2), Virenscan mit ClamAV als weiterer Container (M3, danach `FILES_REQUIRE_SCAN=true` auch lokal), Mailpit für E-Mails (M2). Login, Spaces und Seitenbaum, Collab-Server und Bilder in Garage sind schon da ([Abschnitt 7](#7-apps-nodejs)).
 - **Container-Images** für die Apps (Next.js als `output: standalone`) mit den K3s-Manifesten.
 - Weitere Quellen für Gruppen: SCIM (E17) und ein Gruppen-Claim im Token, etwa aus Entra ID (E03). Bis dahin gibt es Gruppen nur im Wiki ([Abschnitt 6](#wie-zitadel-und-das-datenmodell-zusammenpassen)).
 - **k3d** erst, wenn die K3s-Manifeste entstehen (`CLAUDE.md`, Abschnitt 13, Schritt 3): Dann lassen sie sich lokal prüfen. Für die tägliche Arbeit bleibt Compose.

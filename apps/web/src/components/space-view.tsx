@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { invalidatePageLinks } from '@/lib/page-links';
 import { pageIdFromSlug, pagePath, spacePath, spaceSettingsPath } from '@notefieber/shared';
 import { LoginForm, logout } from '@/app/account';
 import {
@@ -207,7 +208,7 @@ function useRefreshAfterTitleChange(spaceKey: string | undefined) {
       Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.tree(spaceKey) }),
         queryClient.invalidateQueries({ queryKey: queryKeys.pages }),
-      ]);
+      ]).then(invalidatePageLinks);
     timers.current = [setTimeout(refresh, 3_000), setTimeout(refresh, 11_000)];
   }, [queryClient, spaceKey]);
 }
@@ -225,6 +226,7 @@ function useRefreshAccess(spaceKey: string | undefined) {
       queryClient.invalidateQueries({ queryKey: queryKeys.tree(spaceKey) }),
       queryClient.invalidateQueries({ queryKey: queryKeys.trash(spaceKey) }),
     ]);
+    invalidatePageLinks();
   }, [queryClient, spaceKey]);
 }
 
@@ -264,6 +266,7 @@ function PageView({ id, canonicalize }: { id: string; canonicalize: boolean }) {
         <PageEditor
           key={p.id}
           pageId={p.id}
+          spaceKey={p.spaceKey}
           user={{ id: me.data.id, name: me.data.displayName }}
           mayEdit={canEdit(p.role)}
           trashed={p.trashed}

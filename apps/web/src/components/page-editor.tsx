@@ -5,24 +5,25 @@
 // Sitzungs-Cookie, das der Browser beim WebSocket-Handshake mitschickt; die Rolle entscheidet der
 // Collab-Server (lesend oder schreibend). Titel im Y.Text "title", Inhalt im Y.XmlFragment
 // "content", beides aus packages/editor-schema, damit Worker und Import dasselbe sehen.
+// Blöcke (M2, E07): Schema aus editor/schema.tsx (gemeinsames Schema, Callout und Seitenlink mit
+// React-Darstellung), Menüs aus editor/menus.tsx, Bilder über die API (POST /pages/:id/files),
+// Code mit Hervorhebung (@blocknote/code-block, nur Darstellung).
 // Nur im Browser geladen (next/dynamic mit ssr: false, siehe space-view.tsx).
 import '@blocknote/mantine/style.css';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useRouter } from 'next/navigation';
 import * as Y from 'yjs';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import { de } from '@blocknote/core/locales';
 import { withCollaboration } from '@blocknote/core/yjs';
+import { syntaxHighlighter } from '@blocknote/code-block';
 import { useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
+import { ApiError } from '@/lib/api';
 import { clearLocalCopy, closeLocalCopy, openLocalCopy } from '@/lib/local-copies';
-import {
-  CONTENT_FRAGMENT,
-  TITLE_MAX_LENGTH,
-  TITLE_TEXT,
-  documentName,
-  schema,
-  setTitle,
-} from '@notefieber/editor-schema';
+import { CONTENT_FRAGMENT, TITLE_MAX_LENGTH, TITLE_TEXT, documentName, setTitle } from '@notefieber/editor-schema';
+import { EditorMenus } from './editor/menus';
+import { browserSchema, setPageLinkNavigator } from './editor/schema';
 
 export interface EditorUser {
   id: string;
@@ -63,8 +64,22 @@ function deniedText(reason: string, before: boolean): string {
   return 'Der Editor konnte nicht verbunden werden.';
 }
 
+/** Bild an die Seite hochladen (E07, E11); die Adresse kommt in den Bild-Block */
+async function uploadImage(pageId: string, file: File): Promise<string> {
+  const res = await fetch(`/api/v1/pages/${pageId}/files`, {
+    method: 'POST',
+    headers: { 'content-type': file.type || 'application/octet-stream', 'x-file-name': encodeURIComponent(file.name) },
+    body: file,
+  });
+  const data = (await res.json().catch(() => undefined)) as { url?: string; message?: string } | undefined;
+  if (!res.ok || !data?.url) throw new ApiError(res.status, data?.message ?? `Fehler ${res.status}`);
+  return data.url;
+}
+
 export function PageEditor(props: {
   pageId: string;
+  /** Space der Seite: die Seitensuche hinter „[“ zeigt seine Seiten zuerst */
+  spaceKey: string;
   user: EditorUser;
   /** Darf die Person laut API bearbeiten (Rolle editor oder admin)? Der Collab-Server entscheidet zusätzlich. */
   mayEdit: boolean;
@@ -83,6 +98,8 @@ export function PageEditor(props: {
   onRestore?: () => Promise<unknown>;
 }) {
   const { pageId, onAccessChange } = props;
+  const router = useRouter();
+  useEffect(() => setPageLinkNavigator((href) => router.push(href)), [router]);
   const userId = props.user.id;
   const [conn, setConn] = useState<Connection>();
   const [status, setStatus] = useState<Status>('connecting');
@@ -166,6 +183,8 @@ export function PageEditor(props: {
   return (
     <CollabEditor
       key={pageId}
+      pageId={pageId}
+      spaceKey={props.spaceKey}
       conn={conn}
       user={props.user}
       editable={editable}
@@ -217,6 +236,8 @@ function TrashNotice({ canRestore, onRestore }: { canRestore: boolean; onRestore
 }
 
 function CollabEditor({
+  pageId,
+  spaceKey,
   conn,
   user,
   editable,
@@ -224,6 +245,8 @@ function CollabEditor({
   onTitleChange,
   titleAddon,
 }: {
+  pageId: string;
+  spaceKey: string;
   conn: Connection;
   user: EditorUser;
   editable: boolean;
@@ -235,8 +258,10 @@ function CollabEditor({
   const color = colorFor(user.id);
   const editor = useCreateBlockNote(
     withCollaboration({
-      schema,
+      schema: browserSchema,
       dictionary: de,
+      extensions: [syntaxHighlighter],
+      uploadFile: (file: File) => uploadImage(pageId, file),
       collaboration: {
         provider: { awareness: provider.awareness ?? undefined },
         fragment: doc.getXmlFragment(CONTENT_FRAGMENT),
@@ -244,7 +269,7 @@ function CollabEditor({
         showCursorLabels: 'activity',
       },
     }),
-    [doc, provider],
+    [doc, provider, pageId],
   );
 
   // Anwesenheit: wer die Seite offen hat, auch Lesende (E04-02). Die eigene ID für die Liste.
@@ -275,7 +300,9 @@ function CollabEditor({
         <Presence provider={provider} selfId={user.id} />
       </div>
       {notice && <p className="nf-notice">{notice}</p>}
-      <BlockNoteView editor={editor} editable={editable} theme="light" />
+      <BlockNoteView editor={editor} editable={editable} theme="light" slashMenu={false} filePanel={false}>
+        <EditorMenus editor={editor} spaceKey={spaceKey} />
+      </BlockNoteView>
     </div>
   );
 }

@@ -85,3 +85,47 @@ test('setTitle: kleinste Änderung, gleichzeitiges Tippen bleibt erhalten, gekü
   setTitle(a.getText('title'), 'T'.repeat(255));
   assert.deepEqual(Y.encodeStateVector(a), before, 'gleicher Titel ändert nichts');
 });
+
+test('pageLinkIds: aus Absätzen, Links, Tabellen und Kindern, ohne Doppelte und ungültige IDs', async () => {
+  const { pageLinkIds } = await import('./index.ts');
+  const a = '019a5b3c-0000-7000-8000-00000000000a';
+  const b = '019a5b3c-0000-7000-8000-00000000000b';
+  const link = (pageId: string) => ({ type: 'pageLink', props: { pageId } });
+  const blocks = [
+    { type: 'paragraph', content: [link(a), link(a.toUpperCase()), link('kaputt'), link('')], children: [] },
+    {
+      type: 'table',
+      content: { type: 'tableContent', rows: [{ cells: [{ type: 'tableCell', content: [link(b)] }, [link(a)]] }] },
+    },
+    {
+      type: 'callout',
+      content: [],
+      children: [{ type: 'paragraph', content: [{ type: 'link', content: [link(b)] }] }],
+    },
+    null,
+  ];
+  assert.deepEqual(pageLinkIds(blocks).sort(), [a, b]);
+  assert.deepEqual(pageLinkIds([]), []);
+});
+
+test('mentionIds: Personen aus Erwähnungen, getrennt von Seitenlinks', async () => {
+  const { mentionIds, pageLinkIds } = await import('./index.ts');
+  const p = '019a5b3c-0000-7000-8000-0000000000aa';
+  const u = '019a5b3c-0000-7000-8000-0000000000bb';
+  const blocks = [
+    {
+      type: 'paragraph',
+      content: [
+        { type: 'mention', props: { userId: u } },
+        { type: 'mention', props: { userId: 'kaputt' } },
+        { type: 'pageLink', props: { pageId: p } },
+      ],
+    },
+    {
+      type: 'table',
+      content: { type: 'tableContent', rows: [{ cells: [[{ type: 'mention', props: { userId: u } }]] }] },
+    },
+  ];
+  assert.deepEqual(mentionIds(blocks), [u]);
+  assert.deepEqual(pageLinkIds(blocks), [p]);
+});

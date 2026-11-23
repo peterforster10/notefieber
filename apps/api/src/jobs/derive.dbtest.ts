@@ -127,3 +127,40 @@ test('zwischen Lesen und Speichern weiterbearbeitet: bleibt veraltet, nichts üb
   const [after] = await q<{ plain_text: string }>('SELECT plain_text FROM page_contents WHERE page_id = $1', [page]);
   assert.equal(after?.plain_text, 'Neuer Stand');
 });
+
+test(
+  'Seitenlinks im Inhalt: page_links folgt dem Inhalt, fremde und unbekannte Ziele fallen weg',
+  { skip },
+  async () => {
+    const target = await newPage('Worker: Ziel');
+    const page = await newPage('Worker: Mit Link');
+    const nordlicht = await a().tenantId('nordlicht');
+    const [foreign] = await withContext(
+      worker,
+      { tenantId: nordlicht },
+      async (c) => (await c.query<{ id: string }>('SELECT id FROM pages LIMIT 1')).rows,
+    );
+    assert.ok(foreign, 'keine Seite in nordlicht');
+    const link = (pageId: string) => ({ type: 'pageLink', props: { pageId } });
+    const store = async (content: unknown[]) => {
+      const state = initialYDocState([{ type: 'paragraph', content }], 'Worker: Mit Link');
+      await q('SELECT app.store_ydoc($1, $2, $3, $4::uuid[])', [
+        page,
+        Buffer.from(state),
+        'Worker: Mit Link',
+        [lukasId],
+      ]);
+      await deriveOnce(worker, { restSeconds: 0, batch: 1000 });
+    };
+    const links = async () =>
+      (await q<{ to_page_id: string }>('SELECT to_page_id FROM page_links WHERE from_page_id = $1', [page])).map(
+        (r) => r.to_page_id,
+      );
+
+    await store([link(target), link(foreign.id), link('019a5b3c-0000-7000-8000-0000000000ff'), link(page)]);
+    assert.deepEqual(await links(), [target]);
+
+    await store([{ type: 'text', text: 'ohne Link', styles: {} }]);
+    assert.deepEqual(await links(), [], 'entfernter Link bleibt in page_links');
+  },
+);

@@ -40,6 +40,25 @@ export function apiConfig() {
       COLLAB_INTERNAL_URL: z.url().default('http://127.0.0.1:1235'),
       /** Geteiltes Geheimnis, dasselbe wie im Collab-Server; ohne geht Umbenennen nicht (503) */
       COLLAB_INTERNAL_SECRET: z.string().min(32, 'COLLAB_INTERNAL_SECRET kürzer als 32 Zeichen').optional(),
+
+      // Dateien in Garage (S3), nur über die API (storage.ts, routes/files.ts)
+      S3_ENDPOINT: z.url().default('http://localhost:3900'),
+      S3_REGION: z.string().min(1).default('garage'),
+      S3_BUCKET: z.string().min(1).default('wiki'),
+      S3_ACCESS_KEY_ID: z.string().default(''),
+      S3_SECRET_ACCESS_KEY: z.string().default(''),
+      S3_FORCE_PATH_STYLE: bool.default(true),
+      /** Größte Datei beim Hochladen in Bytes (Standard 10 MB; Kontingente: OPEN_QUESTIONS.md, Frage 7) */
+      UPLOAD_MAX_BYTES: z.coerce
+        .number()
+        .int()
+        .min(1)
+        .default(10 * 1024 * 1024),
+      /**
+       * Nur geprüfte Dateien ausliefern (scan_status clean). Der Virenscan kommt mit M3; bis dahin
+       * lokal false, dann liefert die API auch ungeprüfte Bilder aus (nur die erlaubten Bildtypen).
+       */
+      FILES_REQUIRE_SCAN: bool.default(true),
     })
     .parse(process.env);
   return { ...c, OIDC_REDIRECT_URI: c.OIDC_REDIRECT_URI ?? new URL('/api/v1/auth/callback', c.PUBLIC_URL).href };

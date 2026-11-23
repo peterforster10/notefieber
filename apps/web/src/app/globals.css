@@ -442,3 +442,129 @@ textarea.nf-input {
   padding-inline: 0;
   font-family: 'IBM Plex Sans', system-ui, sans-serif;
 }
+
+/* Blöcke im Editor (M2, E07): Callout und Seitenlink, Farben aus dem Designsystem */
+.nf-callout {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border-left: 4px solid var(--nf-callout-fg);
+  border-radius: 4px;
+  background: var(--nf-callout-bg);
+  --nf-callout-fg: var(--nf-accent);
+  --nf-callout-bg: #e8effc;
+}
+.nf-callout[data-variant='note'] {
+  --nf-callout-fg: #5b6675;
+  --nf-callout-bg: #f1f3f6;
+}
+.nf-callout[data-variant='success'] {
+  --nf-callout-fg: var(--nf-done-fg);
+  --nf-callout-bg: var(--nf-done-bg);
+}
+.nf-callout[data-variant='warning'] {
+  --nf-callout-fg: var(--nf-attention);
+  --nf-callout-bg: #fdf0e8;
+}
+.nf-callout[data-variant='error'] {
+  --nf-callout-fg: #b42318;
+  --nf-callout-bg: #fdecea;
+}
+.nf-callout-icon {
+  flex: none;
+  color: var(--nf-callout-fg);
+  font-weight: 600;
+  user-select: none;
+}
+.nf-callout-icon select {
+  max-width: 7.5rem;
+  padding: 0 0.2rem;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--nf-callout-fg);
+  font: inherit;
+  font-size: 0.85em;
+  cursor: pointer;
+}
+.nf-callout-icon select:hover,
+.nf-callout-icon select:focus-visible {
+  border-color: var(--nf-callout-fg);
+}
+.nf-callout-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.nf-page-link {
+  padding: 0 0.2rem;
+  border-radius: 3px;
+  background: #e8effc;
+  color: var(--nf-accent);
+  text-decoration: none;
+  cursor: pointer;
+}
+.nf-page-link:hover {
+  text-decoration: underline;
+}
+.nf-page-link-missing,
+.nf-page-link-loading {
+  background: #f1f3f6;
+  color: var(--nf-muted);
+  cursor: default;
+}
+.nf-page-link-trashed {
+  text-decoration: line-through;
+}
+
+/* Erwähnung und Inhaltsverzeichnis (E07) */
+.nf-mention {
+  padding: 0 0.2rem;
+  border-radius: 3px;
+  background: var(--nf-done-bg);
+  color: var(--nf-done-fg);
+  font-weight: 500;
+}
+.nf-mention-missing,
+.nf-mention-loading,
+.nf-mention-deactivated {
+  background: #f1f3f6;
+  color: var(--nf-muted);
+  font-weight: 400;
+}
+.nf-mention-deactivated {
+  text-decoration: line-through;
+}
+.nf-toc {
+  width: 100%;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--nf-border);
+  border-radius: 4px;
+  user-select: none;
+}
+.nf-toc-title {
+  margin: 0 0 0.3rem;
+  color: var(--nf-muted);
+  font-size: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.nf-toc ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.nf-toc li {
+  margin: 0.15rem 0;
+}
+.nf-toc a {
+  color: var(--nf-accent);
+  text-decoration: none;
+}
+.nf-toc a:hover,
+.nf-toc a:focus-visible {
+  text-decoration: underline;
+}

@@ -73,24 +73,34 @@ Was fertig heißt, sagen die User Stories E04-01 bis E04-08 in [EPICS](EPICS.md)
 **Gate:** Zwei Personen bearbeiten gleichzeitig, nichts geht verloren; die Abnahmekriterien von E04-01 bis E04-08 sind durch Tests oder eine Prüfung im Browser belegt (danach in `docs/USE_CASES.md`). **Lokal erreicht am 19. November 2026** (Tests in `apps/collab/src/*.dbtest.ts`, Lasttest, Prüfungen im Browser in [USE_CASES](USE_CASES.md), UC-19 bis UC-27).
 
 ### M2 – Wiki-Grundfunktionen
-Epics: E05, E06, E07, E08, E15, dazu der Mail-Versand aus E01 und E02
+Epics: E05, E06, E07, E08, E15, dazu der Mail-Versand aus E01 und E02 und das Profil aus E02
 - [x] Spaces mit Startseite, Seitenbaum mit Drag & Drop; der Baum lädt ebenenweise statt aller Seiten auf einmal (A-01) (22. November 2026: `app.tree_level` mit Migration `0014` und Test 56, gemessen mit `schema_test/tree_load_test.sh`: 10.101 Seiten, 2–42 ms pro Ebene, auch ohne aktuelle Statistik, statt 2,7 s für den flachen Baum; Seiten unter unsichtbaren stehen unter der nächsten sichtbaren; Drag & Drop nativ mit HTML5, Knöpfe bleiben; Space umbenennen, beschreiben, archivieren und zurückholen; im Browser geprüft, [USE_CASES](USE_CASES.md) UC-28 bis UC-30)
-- [ ] Blöcke: Überschriften, Listen, Tabellen, Code, Bilder, Callouts, Seitenlinks
-- [ ] Versionen anzeigen, vergleichen, wiederherstellen; Papierkorb
-- [ ] Web-Client nach UI-Entwurf
+- [x] Blöcke: Überschriften, Listen, Tabellen, Code, Bilder, Callouts, Seitenlinks (23. November 2026: Schema in `packages/editor-schema` ohne Datei-, Video- und Audio-Block, dazu `callout` und der Inline-Inhalt `pageLink` nur mit Seiten-ID, Rundlauf-Tests für jede Blockart; Code mit Sprachauswahl und Hervorhebung über `@blocknote/code-block`; Bilder über die API in Garage, `POST /pages/:id/files`, `GET /files/:id`, Tests `files.dbtest.ts`; Seitenlinks über „[“ mit Titelsuche `GET /pages/search` und Titeln aus `POST /pages/lookup`; Worker pflegt `page_links`; fremde Bild-Adressen per CSP gesperrt; im Browser geprüft, [USE_CASES](USE_CASES.md) UC-31 bis UC-35)
+- [x] Erwähnungen von Personen und Inhaltsverzeichnis (restlicher Umfang von E07) (23. November 2026: Inline-Inhalt `mention` nur mit Personen-ID, Namen aus `POST /people/lookup`, Suche hinter „@“ über `GET /people/search` (Mitglieder des Workspaces, Gäste finden nur sich selbst), Tests `people.dbtest.ts`; Block `toc`, den der Browser aus den Überschriften baut und bei jeder Änderung nachzieht; `mentionIds` für die Benachrichtigungen in E16; im Browser geprüft, [USE_CASES](USE_CASES.md) UC-36 und UC-37)
+- [ ] Worker-Aufträge mit pg-boss (Grundlage für die Versionen und das endgültige Löschen; dazu die Punkte „Mit M2“ in [TODOS](TODOS.md))
+- [ ] Versionen (E08): automatische Version nach 10 Minuten Ruhe (Worker), manuelle Version (`app.save_version`), Versionen mit Autoren anzeigen, zwei Versionen vergleichen, wiederherstellen als neue Version über den internen Aufruf an den Collab-Server (`restored_from`); prüfen, dass alle Blöcke aus E07 Speichern, Version und Wiederherstellen ohne Verlust überstehen
+- [ ] Papierkorb (E08): endgültiges Löschen nach 30 Tagen durch den Worker, mit den Objekten der Bilder in Garage
+- [ ] Zuletzt besuchte Seiten (E06)
+- [ ] Profil (E02): Name, Profilbild, Sprache, Zeitzone; die Sprache steuert die Oberfläche
+- [ ] Oberfläche auf Deutsch und Englisch (E15, Definition of Done in [EPICS](EPICS.md)): Übersetzung einbauen, solange es wenig Text gibt, alle bisherigen Texte übersetzen (auch BlockNote, Callout-Arten, Fehlermeldungen der API, die die Oberfläche zeigt); ab hier jede Story in beiden Sprachen
+- [ ] Web-Client nach UI-Entwurf (E15, `prototype/`): Designsystem (IBM Plex Sans/Mono, Farben aus `CLAUDE.md` Abschnitt 9), Kopfbereich mit Brotkrume, Avataren, Schloss und den Knöpfen „Teilen und Rechte“, „Versionen“, „Exportieren“; Tastaturbedienung, WCAG 2.2 AA (Kontraste geprüft), bis Tablet nutzbar; eine Seite mit 200 Blöcken in unter 2 s bearbeitbar (gemessen)
 - [ ] E-Mail-Versand lokal: Mailpit in `compose.yaml` (fängt alle Mails ab, Ansicht unter `http://localhost:8025`), SMTP über eine generische Einstellung (Nodemailer); Einladungsmail direkt aus der API beim Anlegen (das Token liegt nur im Speicher, der Link bleibt als Rückfall); Zitadel nutzt denselben SMTP-Server (Passwort vergessen, E-Mail bestätigen)
 - [ ] **Ab hier selbst nutzen**, z. B. für die eigene Projektdokumentation
 
 ### M3 – Rechte, Suche, Kommentare (MVP ohne Import)
-Epics: E09, E10, E11, E12, E14, dazu aus E02 die Gruppenpflege (aus M0 verschoben)
-- [ ] Rollen und Vererbung, Vererbung kappen, Gruppen, „Alle im Workspace“
+Epics: E09, E10, E11, E12, E14, dazu aus E02 die Gruppenpflege (aus M0 verschoben) und die Mitgliederverwaltung, aus E06 die Rückverweise, aus E19 ein Webhook
+- [ ] Rollen und Vererbung, Vererbung kappen, Gruppen, „Alle im Workspace“; Rechte-Dialog mit „Erbt Rechte von …“ (E09)
+- [ ] Rechte wiederherstellen durch Organisations-Admins, wenn kein Admin mehr erreichbar ist, mit Eintrag im Audit-Log (E09)
+- [ ] Mitglieder eines Workspaces verwalten: Rolle ändern, entfernen, Person deaktivieren (E02; die Datenbank kann es schon)
 - [ ] Gruppen im Wiki pflegen: API und Oberfläche für Organisations-Admins (anlegen, umbenennen, Mitglieder). Aus M0 hierher verschoben; die Datenbank kann es schon, Rechte über Gruppen wirken bereits (Testdaten)
 - [ ] „Ansehen als …“ für Space-Admins (Prüfwerkzeug für den Import)
 - [ ] Kommentare an Textstellen und Seiten
-- [ ] Dateien mit Virenscan und Vorschau
-- [ ] Sichtbarkeit für Listen mengenbasiert (Seitenbaum, Suche, „Ansehen als …“, Rückverweise): Ränge pro Space und Person einmal berechnen statt `page_rank` pro Zeile, durch einen Test gegen `page_rank` abgesichert (A-01)
-- [ ] Volltextsuche, Rechte in jedem Lesepfad; Deutsch und Englisch (zwei Sprachkonfigurationen oder `simple` mit Trigrammen, A-10)
-- [ ] Export als Markdown + Anhänge (ZIP)
+- [ ] Dateien mit Virenscan und Vorschau; dann `FILES_REQUIRE_SCAN` überall an (lokal bis dahin `false`), Anhänge als Datei-Block, „wird geprüft“ und „blockiert“ am Bild anzeigen
+- [ ] Sichtbarkeit für Listen mengenbasiert (Seitenbaum, Suche, Titelsuche für Seitenlinks `GET /pages/search`, „Ansehen als …“, Rückverweise): Ränge pro Space und Person einmal berechnen statt `page_rank` pro Zeile, durch einen Test gegen `page_rank` abgesichert (A-01)
+- [ ] Volltextsuche, Rechte in jedem Lesepfad; Deutsch und Englisch (zwei Sprachkonfigurationen oder `simple` mit Trigrammen, A-10); Filter nach Space, Autor und Zeitraum; Schnellsuche nach Titeln beim Tippen (E12, baut auf `GET /pages/search` auf)
+- [ ] Rückverweise „Wer verlinkt hierher?“ an der Seite, aus `page_links` (E06)
+- [ ] Export einer Seite, eines Teilbaums oder eines Spaces als Markdown + BlockNote-JSON + Anhänge (ZIP), nur was die Person lesen darf (E14). BlockNote-JSON ist das verlustfreie Format für Re-Import und Editorwechsel
+- [ ] Ein Webhook (E19, Teil des MVP laut `CLAUDE.md` Abschnitt 5): ausgewählte Ereignisse aus der Outbox an eine Adresse pro Mandant, mit Signatur
 - [ ] Audit-Log
 
 **Gate:** Kein Lesepfad (Baum, Suche, Links, Kommentare, Export, Dateien) zeigt Seiten ohne Leserecht. Durch Tests abgesichert. Ein Space mit 10.000 Seiten lädt seinen Seitenbaum in unter einer Sekunde (Lastprüfung, A-01).
@@ -119,7 +129,12 @@ Epic: E13
 Infrastruktur: Hostinger-VPS (KVM 4, 16 GB), Standort in der EU (nicht Großbritannien), **ausschließlich für Wiki und TalkFieber**. Wird hier zum ersten Mal gemietet und später von TalkFieber mitgenutzt.
 
 ### M5 – Pilot
-Epics: E01 (VPS), E22 (einfach)
+Epics: E01 (VPS), E22 (einfach), dazu aus E02 das Anlegen von Mandanten und aus E03 Zwei-Faktor
+- [ ] Container-Images für `web`, `api`/`worker` und `collab`, K3s-Manifeste (Kustomize), lokal mit k3d geprüft; Migrationen als eigener Job vor dem Ausrollen (`CLAUDE.md` Abschnitt 11) (E01)
+- [ ] Ausrollen aus der CI auf GitLab nach `staging` bei jedem Merge, Freigabe für `pilot`; Secrets mit SOPS oder Sealed Secrets (E01)
+- [ ] Mandanten für Pilotkunden anlegen: Admin-Skript über `app.create_tenant` mit Organisation in Zitadel; Selbstregistrierung erst in Stufe 3 (E02)
+- [ ] Zwei-Faktor und Passkeys in Zitadel einschalten, „Alle Sitzungen beenden“ im Profil (E03)
+- [ ] Einfacher Einstieg für Pilotnutzer (E22): erster Space, Einladungen, kurze Einführung „Was heißt hier wie?“ für Confluence-Umsteiger
 - [ ] VPS mieten, K3s mit denselben Manifesten wie lokal, Namespaces `staging` und `pilot`
 - [ ] Firewall: nur 80, 443 und SSH mit Schlüssel. Kubernetes-API nicht öffentlich.
 - [ ] CloudNativePG mit laufenden Backups zu einem S3-Speicher bei einem anderen Anbieter, Garage-Buckets ebenfalls. **Wiederherstellung getestet.**
@@ -150,10 +165,11 @@ Infrastruktur: Umzug zu einem zertifizierten EU-Anbieter, gemeinsam mit TalkFieb
 | Bereich | Epics |
 |---|---|
 | Administration, Aufbewahrung, Audit-Ansicht, SCIM, DSGVO | E17 |
+| Organisation selbst registrieren (mit Plan und Abrechnung) | E02, E20 |
 | SSO voll (OIDC, SAML, Entra ID) | E03 |
 | Benachrichtigungen, Beobachten, Erwähnungen | E16 |
 | Gäste und Freigaben nach außen | E18 |
-| Webhooks, REST-API, Einbettungen | E19 |
+| Weitere Webhooks, REST-API mit Tokens, Einbettungen | E19 |
 | Vorlagen und Seiteneigenschaften | E25 |
 | Pläne und Abrechnung über einen EU-Zahlungsanbieter | E20 |
 | Sicherheit: Penetrationstest, Vorbereitung ISO 27001 | E21 |

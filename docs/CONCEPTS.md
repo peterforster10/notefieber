@@ -143,7 +143,10 @@ Viele Kunden und Pilotnutzer kommen von Confluence. Diese Tabelle hilft beim Üb
 | Inline-Kommentar | Kommentar an einer Textstelle | |
 | Anhänge | Dateien in Garage | |
 | Papierkorb | Papierkorb | Endgültig gelöscht nach 30 Tagen |
-| Makro „Info“, „Hinweis“, „Warnung“ | Callout-Block | |
+| Makro „Info“, „Hinweis“, „Warnung“ (Panels) | Callout-Block | Arten Info, Hinweis, Erfolg, Warnung, Fehler |
+| Erwähnung (`@` im Editor) | Erwähnung | Speichert nur die Personen-ID; Benachrichtigung mit E16 |
+| Link auf eine Seite (`[` im Editor) | Seitenlink | Speichert nur die Seiten-ID, bleibt nach Umbenennen und Verschieben gültig |
+| Codeblock-Makro | Code-Block mit Sprache | Hervorhebung nur in der Darstellung |
 | Makro „Inhaltsverzeichnis“ | Inhaltsverzeichnis-Block | |
 | Makro „Jira-Vorgänge“ | Platzhalter mit Link | Später Jira-Verweise (E19) |
 | Seiteneigenschaften, Labels, Vorlagen | später | Epic E25 |
@@ -317,6 +320,17 @@ Wichtig dabei:
 - Der Collab-Server speichert nur den Yjs-Zustand und den Titel, damit der häufige Speichervorgang klein bleibt. Das **BlockNote-JSON** (dieselben Blöcke als lesbares JSON, für Export, Import und einen späteren Editorwechsel) und den **Klartext** für Suche (und später KI) leitet der **Worker** ab, wenn die Seite etwa 30 s ruht. Die Yjs-Daten selbst sind binär, an BlockNote und ProseMirror gebunden und für alles andere unbrauchbar. Das Schema des Editors liegt in einem gemeinsamen Paket (`packages/editor-schema`), damit Browser, Worker und Import dieselben Blöcke kennen.
 - **Änderungen von der Serverseite** (Version wiederherstellen, Seite aus der Seitenleiste umbenennen, Nacharbeiten nach dem Import) schickt die API über einen internen Aufruf an den Collab-Server. Er ändert das Dokument selbst (Hocuspocus `openDirectConnection`), sodass alle offenen Browser es sofort sehen.
 
+### Blöcke und Seitenlinks
+
+Der Editor kennt die Blöcke von BlockNote: Überschriften, Listen (auch Aufgaben und aufklappbare), Zitat, Tabelle, Code, Trennlinie und Bild. Dazu kommen zwei eigene, beide im gemeinsamen Paket `packages/editor-schema`, damit Worker, Import und Export sie genauso kennen wie der Browser:
+
+- **Callout:** ein hervorgehobener Kasten mit einer Art (Info, Hinweis, Erfolg, Warnung, Fehler), der Ersatz für die Panels in Confluence.
+- **Seitenlink:** ein Link auf eine andere Seite, eingefügt mit „[“ und einer Suche nach Titeln. Im Dokument steht **nur die ID der Zielseite**, kein Titel. Den Titel holt der Browser beim Anzeigen über die API, die dabei die Rechte prüft. So stimmt er nach dem Umbenennen, der Link führt nach dem Verschieben weiter zur Seite, und wer die Zielseite nicht lesen darf, sieht nur „Seite nicht verfügbar“, nie ihren Titel. Beim Ableiten schreibt der Worker die Ziele in `page_links`; daraus werden später die Rückverweise („Wer verlinkt hierher?“).
+- **Erwähnung:** „@Name“, eingefügt mit „@“ und einer Suche unter den Mitgliedern des Workspaces. Auch hier steht nur die ID der Person im Dokument; den Namen zeigt die Oberfläche nur, wenn man die Person sehen darf (Gäste sehen keine anderen Personen und lesen „@Unbekannt“). Benachrichtigungen kommen mit E16.
+- **Inhaltsverzeichnis:** ein Block ohne eigenen Inhalt. Die Liste der Überschriften baut die Oberfläche beim Anzeigen und hält sie bei jeder Änderung aktuell; Export und Import behandeln ihn wie das Confluence-Makro.
+
+Datei-, Video- und Audio-Blöcke gibt es noch nicht: Anhänge kommen mit dem Virenscan (M3). **Bilder** gehören zur Seite, liegen in Garage und gehen nur über die API hinaus ([Abschnitt 8](#8-dateien)). Bilder von fremden Adressen lädt der Browser nicht (Content Security Policy): Sonst erführe ein fremder Server bei jedem Lesen, wer die Seite gerade öffnet.
+
 ### Kein echter Offline-Modus
 
 Kurze Funklöcher überbrückt Yjs von selbst. Stundenlang offline arbeiten und danach zusammenführen ist im MVP nicht vorgesehen, weil sich zwischendurch Rechte geändert haben könnten.
@@ -370,20 +384,21 @@ Eine Seite wird **mit ihrem ganzen Teilbaum** verschoben (`app.move_page`), auch
 
 Anhänge und Bilder liegen nicht in der Datenbank, sondern in **Garage**, einem S3-kompatiblen Speicher. In der Datenbank steht nur ein Eintrag in `files` mit Name, Typ, Größe, Prüfstatus und dem Schlüssel des Objekts in Garage (`storage_key`).
 
+Garage ist nur im Cluster erreichbar. Der Browser spricht nie direkt mit Garage, sondern immer mit der API (entschieden am 23. November 2026, statt signierter URLs): So prüft jede einzelne Anfrage das Leserecht, und eine weitergeleitete Adresse nützt niemandem ohne Recht.
+
 ### Hochladen
 
-1. Der Browser meldet bei der API einen Upload an: Seite, Dateiname, Größe, Typ.
-2. Die API prüft das Größenlimit (Wert noch festzulegen).
-3. Die API legt den Eintrag in `files` an (`scan_status = 'pending'`, zufälliger `storage_key`). Die Datenbank prüft dabei selbst: im eigenen Namen, ungeprüft, und an einer Seite nur mit **Bearbeitungsrecht**. Dann gibt die API eine **signierte Upload-URL** zurück, die nur wenige Minuten gilt.
-4. Der Browser lädt die Datei **direkt in Garage**. Die API muss die Bytes nicht durchreichen.
-5. Der Worker prüft die Datei auf Viren (z. B. mit ClamAV) und setzt `scan_status` auf `clean`, `infected` oder `error`.
+1. Der Browser schickt die Datei an `POST /api/v1/pages/<seite>/files` (der Name steht im Header `X-File-Name`). Seit M2 sind das Bilder aus dem Editor.
+2. Die API prüft zuerst, dass die Person die Seite **bearbeiten** darf und sie nicht im Papierkorb liegt, dann die Größe (`UPLOAD_MAX_BYTES`, Standard 10 MB) und den **Typ an den ersten Bytes**, nicht am Dateinamen. Erlaubt sind PNG, JPEG, GIF und WebP; SVG nie, weil es Skripte enthalten kann.
+3. Die API legt das Objekt in Garage ab (`t/<mandant>/files/<id>`) und dann den Eintrag in `files` (`scan_status = 'pending'`). Die Datenbank prüft dabei noch einmal selbst: im eigenen Namen, ungeprüft, und an einer Seite nur mit **Bearbeitungsrecht**. Scheitert der Eintrag, löscht die API das Objekt wieder.
+4. Der Worker prüft die Datei auf Viren (ClamAV, kommt mit M3) und setzt `scan_status` auf `clean`, `infected` oder `error`.
 
 ### Herunterladen und anzeigen
 
-- Nur Dateien mit `clean` werden ausgeliefert. Blockierte Dateien erscheinen gekennzeichnet.
-- Die API prüft das **Leserecht** auf die Seite. Die Datenbank tut es zusätzlich: Ein Eintrag in `files` ist nur sichtbar, wenn die Seite sichtbar ist.
-- Dann stellt die API eine **signierte Download-URL** aus, die nur kurz gilt. Eine erratene oder weitergeleitete URL nützt nach Ablauf nichts.
-- *Empfehlung:* Dateien, die der Browser ausführen könnte (HTML, SVG), immer als Download ausliefern (`Content-Disposition: attachment`) und `X-Content-Type-Options: nosniff` setzen. Sonst könnte eine hochgeladene Datei Skripte im Namen anderer ausführen.
+- `GET /api/v1/files/<id>` liest den Eintrag mit den Rechten der Person: Er ist nur sichtbar, wenn die Seite sichtbar ist. Sonst antwortet die API mit `404`, wie bei einer Datei, die es nicht gibt; erratene Adressen nützen also nichts.
+- Nur Dateien mit `clean` werden ausgeliefert (`FILES_REQUIRE_SCAN=true`, Standard), `pending` mit „wird geprüft“ (`409`), `infected` blockiert (`403`). Bis der Virenscan da ist (M3), steht lokal `FILES_REQUIRE_SCAN=false`: Dann gehen auch ungeprüfte Bilder hinaus, aber nur die vier Bildtypen, deren Typ die API selbst erkannt hat.
+- Bilder gehen mit `Content-Disposition: inline` hinaus, alles andere als Download (`attachment`); dazu immer `X-Content-Type-Options: nosniff` und `Content-Security-Policy: default-src 'none'; sandbox`. So kann eine hochgeladene Datei keine Skripte im Namen anderer ausführen.
+- Der Editor lädt Bilder nur von der eigenen Adresse (CSP `img-src 'self' data: blob:`); fremde Bild-Adressen, etwa aus einer kopierten Webseite, bleiben leer.
 
 ### Sonderfälle
 
@@ -641,7 +656,7 @@ Struktur und Rechte sind klassische Anfragen („gib mir den Seitenbaum“, „�
 
 ### Dateien
 
-Anhänge und Bilder liegen nicht in der Datenbank, sondern in **Garage**, einem S3-kompatiblen Speicher. Hoch- und heruntergeladen wird direkt dort, über **signierte, kurzlebige URLs**, die die API erst nach der Rechteprüfung ausstellt. Eine erratene URL nützt nichts. Details in [Abschnitt 8](#8-dateien).
+Anhänge und Bilder liegen nicht in der Datenbank, sondern in **Garage**, einem S3-kompatiblen Speicher. Hoch- und heruntergeladen wird **über die API**, die bei jeder Anfrage das Recht auf die Seite prüft; Garage selbst ist nur im Cluster erreichbar. Eine erratene Adresse nützt nichts. Details in [Abschnitt 8](#8-dateien).
 
 ---
 

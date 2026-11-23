@@ -13,6 +13,8 @@
 //   GET    /spaces/:key/pages?parent=     eine Ebene des Seitenbaums (ohne parent: oberste Ebene)
 //   GET    /spaces/:key/trash             Papierkorb (die gemeinsam gelöschten Wurzeln)
 //   POST   /spaces/:key/pages             Seite anlegen
+//   GET    /pages/search?q=&space=        Seiten nach Titel (Seitenlinks, höchstens 10)
+//   POST   /pages/lookup                  Titel zu Seiten-IDs (Seitenlinks), nur lesbare
 //   GET    /pages/:id                     Seite mit Brotkrume
 //   POST   /pages/:id/move                verschieben (Elternseite, Nachbar davor/dahinter)
 //   DELETE /pages/:id                     in den Papierkorb
@@ -134,6 +136,18 @@ async function siblings(tx: Tx, spaceId: string, parentId: string | null, except
 }
 
 const renameBody = z.object({ title: titleInput });
+
+const searchQuery = z.object({
+  q: z.string().trim().max(255).optional(),
+  space: spaceKey.optional(),
+});
+const lookupBody = z.object({ ids: z.array(idSchema).min(1).max(100) });
+
+interface SearchRow {
+  id: string;
+  title: string;
+  space_key: string;
+}
 
 export function spacesRouter(db: pg.Pool, collab?: CollabClient) {
   const router = express.Router();
@@ -324,6 +338,61 @@ export function spacesRouter(db: pg.Pool, collab?: CollabClient) {
         return rows[0]!.id;
       });
       res.status(201).json({ id });
+    }),
+  );
+
+  // Titelsuche für Seitenlinks („[“ im Editor) und später die Schnellsuche (E07, E12). Rechte über
+  // die Leseregel auf pages; die rechnet app.page_rank pro Treffer, deshalb höchstens 10 und
+  // mengenbasiert mit der Suche in M3 (ARCHITECTURE_REVIEW.md, A-01). Ohne Suchtext: zuletzt
+  // geänderte Seiten im angegebenen Space.
+  router.get(
+    '/pages/search',
+    handle(async (req, res) => {
+      const query = searchQuery.parse(req.query);
+      const rows = await tx(res, async (t) => {
+        if (!query.q) {
+          if (!query.space) return [];
+          return (
+            await t.query<SearchRow>(
+              `SELECT p.id, p.title, s.key AS space_key FROM pages p JOIN spaces s ON s.id = p.space_id
+               WHERE s.key = $1 AND s.archived_at IS NULL AND p.deleted_at IS NULL
+               ORDER BY p.updated_at DESC, p.id LIMIT 10`,
+              [query.space],
+            )
+          ).rows;
+        }
+        const pattern = `%${query.q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+        return (
+          await t.query<SearchRow>(
+            `SELECT p.id, p.title, s.key AS space_key FROM pages p JOIN spaces s ON s.id = p.space_id
+             WHERE p.title ILIKE $1 AND s.archived_at IS NULL AND p.deleted_at IS NULL
+             ORDER BY (s.key = $3) DESC, similarity(p.title, $2) DESC, p.title, p.id LIMIT 10`,
+            [pattern, query.q, query.space ?? null],
+          )
+        ).rows;
+      });
+      res.json(rows.map((r) => ({ id: r.id, title: r.title, spaceKey: r.space_key })));
+    }),
+  );
+
+  // Titel verlinkter Seiten (Seitenlinks speichern nur die ID). Nicht lesbare und endgültig
+  // gelöschte Seiten fehlen einfach, ohne Unterschied: Das verrät nichts über sie.
+  router.post(
+    '/pages/lookup',
+    handle(async (req, res) => {
+      const { ids } = lookupBody.parse(req.body);
+      const rows = await tx(
+        res,
+        async (t) =>
+          (
+            await t.query<SearchRow & { deleted_at: Date | null }>(
+              `SELECT p.id, p.title, s.key AS space_key, p.deleted_at FROM pages p JOIN spaces s ON s.id = p.space_id
+               WHERE p.id = ANY($1::uuid[])`,
+              [ids],
+            )
+          ).rows,
+      );
+      res.json(rows.map((r) => ({ id: r.id, title: r.title, spaceKey: r.space_key, trashed: r.deleted_at !== null })));
     }),
   );
 

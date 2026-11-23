@@ -2,7 +2,7 @@
 
 Eine europäische Alternative zu Confluence, entwickelt und gehostet in der EU. Zielgruppe sind vor allem Organisationen auf Confluence Data Center, das am 28. März 2029 schreibgeschützt wird. Schwesterprojekt von **TalkFieber** (Team-Chat); beide teilen Login, Mandantenmodell und Cluster.
 
-**Stand:** Meilenstein M0 abgeschlossen: Datenbankschema mit Migrationen und Tests, lokale Umgebung und CI, Login über Zitadel, Spaces und Seitenbaum, Einladungen. M1 abgeschlossen: Editor mit gemeinsamem Bearbeiten (BlockNote, Collab-Server, Worker für abgeleiteten Inhalt und Suchindex); Rechte, Papierkorb und Abmelden wirken sofort auch auf offene Editoren; Umbenennen geht auch aus der Seitenleiste, und Änderungen aus einem Funkloch überstehen ein Neuladen (lokale Kopie in IndexedDB); der erste Lasttest (50 gleichzeitig Bearbeitende) lief ohne Datenverlust. Damit ist M1 lokal abgeschlossen. M2 begonnen: Der Seitenbaum lädt Ebene für Ebene (auch bei 10.000 Seiten schnell), Seiten lassen sich per Drag & Drop verschieben, Spaces umbenennen und archivieren. Was sich schon klicken lässt, steht in [docs/USE_CASES.md](docs/USE_CASES.md). UI-Prototyp vorhanden.
+**Stand:** Meilenstein M0 abgeschlossen: Datenbankschema mit Migrationen und Tests, lokale Umgebung und CI, Login über Zitadel, Spaces und Seitenbaum, Einladungen. M1 abgeschlossen: Editor mit gemeinsamem Bearbeiten (BlockNote, Collab-Server, Worker für abgeleiteten Inhalt und Suchindex); Rechte, Papierkorb und Abmelden wirken sofort auch auf offene Editoren; Umbenennen geht auch aus der Seitenleiste, und Änderungen aus einem Funkloch überstehen ein Neuladen (lokale Kopie in IndexedDB); der erste Lasttest (50 gleichzeitig Bearbeitende) lief ohne Datenverlust. Damit ist M1 lokal abgeschlossen. M2 begonnen: Der Seitenbaum lädt Ebene für Ebene (auch bei 10.000 Seiten schnell), Seiten lassen sich per Drag & Drop verschieben, Spaces umbenennen und archivieren; der Editor hat Überschriften, Listen, Tabellen, Code mit Hervorhebung, Callouts, Bilder (in Garage, über die API) Seitenlinks, die nach Umbenennen und Verschieben gültig bleiben, Erwähnungen von Personen und ein Inhaltsverzeichnis. Was sich schon klicken lässt, steht in [docs/USE_CASES.md](docs/USE_CASES.md). UI-Prototyp vorhanden.
 
 ## Dokumente
 
@@ -84,7 +84,7 @@ apps/
   collab/     Hocuspocus-Server
 packages/
   shared/     Typen, Zod-Schemas, Rollen, Ereignisse
-  editor-schema/  BlockNote-Schema, Aufbau des Yjs-Dokuments, Umwandlung Yjs ↔ BlockNote-JSON
+  editor-schema/  BlockNote-Schema (Blöcke, Callout, Seitenlink, Erwähnung, Inhaltsverzeichnis), Aufbau des Yjs-Dokuments, Umwandlung Yjs ↔ BlockNote-JSON
 scripts/      Hilfsskripte (Lizenzprüfung)
 database/
   scripts/    Rollen, Schema (schema/), Migrationen (migrations/), Tests (schema_test/)

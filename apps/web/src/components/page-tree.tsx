@@ -32,6 +32,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { invalidatePageLinks } from '@/lib/page-links';
 import { pagePath, spacePath } from '@notefieber/shared';
 import { api, canEdit, queryKeys, usePage, useTreeLevel, type Space, type TreePage } from '@/lib/api';
 import { loadExpanded, saveExpanded } from '@/lib/sidebar-state';
@@ -128,7 +129,7 @@ export function PageTree({ space, selectedId }: { space: Space; selectedId?: str
       queryClient.invalidateQueries({ queryKey: queryKeys.tree(space.key) }),
       queryClient.invalidateQueries({ queryKey: queryKeys.trash(space.key) }),
       queryClient.invalidateQueries({ queryKey: queryKeys.pages }),
-    ]);
+    ]).then(invalidatePageLinks);
   const onError = (err: Error) => setError(err.message);
 
   const moveMutation = useMutation({

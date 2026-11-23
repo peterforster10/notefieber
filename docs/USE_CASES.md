@@ -1,9 +1,9 @@
 # Use Cases in der Oberfläche
 
-Was sich im Frontend schon durchklicken lässt. **Stand: 22. November 2026** (M0 abgeschlossen,
+Was sich im Frontend schon durchklicken lässt. **Stand: 23. November 2026** (M0 abgeschlossen,
 M1 mit Editor, gemeinsamem Bearbeiten, Rechten, die auch für offene Editoren sofort gelten,
 Umbenennen aus der Seitenleiste und lokalen Kopien für Funklöcher; M2 mit Seitenbaum, der
-ebenenweise lädt, Drag & Drop und Space-Einstellungen). Wird nachgeführt, sobald ein neuer Ablauf in der Oberfläche dazukommt; was es
+ebenenweise lädt, Drag & Drop und Space-Einstellungen sowie den Blöcken im Editor: Callouts, Bilder, Code, Tabellen, Seitenlinks, Erwähnungen, Inhaltsverzeichnis). Wird nachgeführt, sobald ein neuer Ablauf in der Oberfläche dazukommt; was es
 nur in Datenbank oder API gibt, steht unten unter „Noch nicht in der Oberfläche“.
 
 **Spalte „Geprüft“:** *Browser* = am 12. November 2026 von Hand gegen die lokale Umgebung
@@ -60,6 +60,13 @@ in `compose.yaml` (`NF_TEST_PASSWORD`).
 | UC-28 | Seite per Drag & Drop verschieben | Bearbeitende | Browser (22. November 2026; Ziehen per Skript ausgelöst, weil die Testautomatik kein natives Ziehen kann) |
 | UC-29 | Space umbenennen und beschreiben | Space-Admins | Browser (22. November 2026) |
 | UC-30 | Space archivieren und zurückholen | Space-Admins, Organisations-Admins | Browser (22. November 2026, Peter als Organisations-Admin in „Vertrieb“) |
+| UC-31 | Blöcke einfügen (Überschriften, Listen, Tabellen, Code) | Bearbeitende | Browser (23. November 2026, /-Menü und Markdown-Kürzel, Code mit SQL-Hervorhebung, Tabelle) |
+| UC-32 | Callout setzen und Art wählen | Bearbeitende | Browser (23. November 2026, Art per Tastatur gewechselt; Lesende sehen nur das Symbol) |
+| UC-33 | Bild einfügen | Bearbeitende; sehen: alle mit Leserecht | Browser (23. November 2026, per Einfügen aus der Zwischenablage; Leser Max sieht es; fremde Bild-Adresse von der CSP blockiert) |
+| UC-34 | Seite verlinken | Bearbeitende | Browser (23. November 2026, „[“ im Absatz und in einer Tabellenzelle) |
+| UC-36 | Person erwähnen | Bearbeitende; sehen: alle mit Leserecht | Browser (23. November 2026, „@“ im Absatz; Gast Elena sieht auf „Kampagne Frühjahr“ nur „@Unbekannt“ und findet nur sich selbst) |
+| UC-37 | Inhaltsverzeichnis einfügen | Bearbeitende | Browser (23. November 2026, zieht neue Überschriften sofort nach, Unterüberschriften eingerückt, Sprung zur Überschrift) |
+| UC-35 | Seitenlink bleibt gültig und verrät nichts | alle | Browser (23. November 2026, Ziel umbenannt und verschoben; Max sieht bei „Personalplanung 2027“ nur „Seite nicht verfügbar“) |
 
 ## Anmelden und Abmelden
 
@@ -338,6 +345,64 @@ nur noch lesen (UC-13), offene Editoren werden schreibgeschützt. „Space zurü
 bisherigen Rechte wieder her. Erlaubt für Admins des Spaces und Organisations-Admins, die den
 Space sehen.
 
+## Blöcke im Editor (M2)
+
+### UC-31 Blöcke einfügen
+
+„/“ öffnet das Menü mit allen Blöcken: Überschriften, Listen (Aufzählung, nummeriert, Aufgaben,
+aufklappbar), Zitat, Callout, Link auf Seite, Tabelle, Code, Trennlinie, Bild. Tippen filtert
+(„/tab“). Markdown-Kürzel gehen auch: `## ` für eine Überschrift, `- ` für eine Liste,
+`[] ` für eine Aufgabe, ``` und Enter für Code. Im Code-Block wählt man oben die Sprache
+(SQL, TypeScript, Shell …); die Hervorhebung ist reine Darstellung, gespeichert wird nur der Name
+der Sprache.
+
+### UC-32 Callout setzen
+
+„/callout“ (auch „/hinweis“, „/warnung“) fügt einen Kasten ein. Links steht die Art: Info,
+Hinweis, Erfolg, Warnung, Fehler; Bearbeitende wechseln sie über die Auswahl (auch mit Tab und
+Pfeiltasten), Lesende sehen nur das Symbol. Entspricht den Panels in Confluence.
+
+### UC-33 Bild einfügen
+
+„/bild“ und „Hochladen“, oder ein Bild einfach einfügen bzw. hineinziehen. Erlaubt sind PNG,
+JPEG, GIF und WebP bis 10 MB (`UPLOAD_MAX_BYTES`); die API prüft den Typ an den ersten Bytes, nicht
+am Dateinamen. Das Bild liegt in Garage und gehört zur Seite: Sehen kann es nur, wer die Seite
+lesen darf (`GET /api/v1/files/<id>`, sonst `404`). Bilder von fremden Adressen (z. B. aus
+einer kopierten Webseite) lädt der Browser nicht; es gibt deshalb keinen Reiter „URL einbetten“.
+Bis zum Virenscan (M3) muss lokal `FILES_REQUIRE_SCAN=false` in der `.env` stehen, sonst
+antwortet die API für jedes Bild mit „wird geprüft“ (`409`), und es bleibt leer.
+
+### UC-34 Seite verlinken
+
+„[“ tippen (wie in Confluence) oder „/link auf seite“: Es öffnet sich eine Suche nach
+Seitentiteln, Seiten des eigenen Spaces zuerst, andere mit Space-Schlüssel dahinter. Enter fügt
+den Link ein. Gefunden wird nur, was man lesen darf; Seiten im Papierkorb und in archivierten
+Spaces nicht. Klick auf den Link öffnet die Seite (Strg-Klick in neuem Tab).
+
+### UC-35 Seitenlink bleibt gültig und verrät nichts
+
+Der Link speichert nur die ID der Zielseite, den Titel holt der Browser jedes Mal neu
+(`POST /api/v1/pages/lookup`). Nach Umbenennen oder Verschieben zeigt er den neuen Titel und
+führt weiter zur Seite. Wer die Zielseite nicht lesen darf (oder wenn sie endgültig gelöscht ist),
+sieht nur „Seite nicht verfügbar“, nie den Titel. Liegt sie im Papierkorb, ist der Link
+durchgestrichen. Etwa 30 s nach der letzten Änderung trägt der Worker die Links in
+`page_links` ein (für Rückverweise, M3).
+
+### UC-36 Person erwähnen
+
+„@“ tippen oder „/person erwähnen“: Es öffnet sich eine Suche nach Personen im Workspace des
+Spaces (Name oder E-Mail), Enter fügt „@Name“ ein. Gespeichert wird nur die ID der Person; der
+Name kommt beim Anzeigen aus `POST /api/v1/people/lookup`, ändert er sich, stimmt er überall.
+Wer die Person nicht sehen darf (Gäste sehen nur sich selbst), liest „@Unbekannt“; deaktivierte
+Personen sind durchgestrichen. Eine Benachrichtigung an die erwähnte Person gibt es erst mit E16.
+
+### UC-37 Inhaltsverzeichnis einfügen
+
+„/inhalt“ fügt ein Inhaltsverzeichnis ein. Es listet alle Überschriften der Seite, Unterüberschriften
+eingerückt, und zieht neue oder geänderte Überschriften sofort nach, auch die von anderen. Klick
+springt zur Überschrift. Gespeichert wird nur der Block, nicht die Liste (wie das Makro in
+Confluence).
+
 ## Noch nicht in der Oberfläche
 
 Teils in Datenbank oder API schon vorhanden, aber noch nicht klickbar:
@@ -345,10 +410,14 @@ Teils in Datenbank oder API schon vorhanden, aber noch nicht klickbar:
 | Was | Wann | Stand dahinter |
 |---|---|---|
 | Versionen ansehen und wiederherstellen | M2 | Datenbank fertig (`page_versions`, `save_version`) |
+| Profil (Name, Bild, Sprache, Zeitzone), Oberfläche auf Englisch | M2 | Spalten in `users` (`display_name`, `locale`, `time_zone`, `avatar_file_id`) |
+| Zuletzt besuchte Seiten | M2 | – |
+| Anhänge (Dateien außer Bildern), Virenscan | M3 | Tabelle `files` mit `scan_status`; mit `FILES_REQUIRE_SCAN` liefert die API nur geprüfte Dateien aus |
+| Rückverweise („Wer verlinkt hierher?“) | M3 | Worker pflegt `page_links` |
 | Kommentare | M3 | Datenbank fertig (`add_comment` …) |
 | Rechte-Dialog, eigene Rechte für eine Seite, Gruppen pflegen | M3 | Datenbank fertig (`set_grant`, `set_page_inheritance`, `create_group` …) |
 | „Ansehen als …“ | M3 | Datenbank fertig (`app.view_as`) |
 | Suche | M3 | Worker pflegt `page_search` (nach etwa 30 s Ruhe), Abfrage fehlt |
-| Mitglieder eines Workspaces verwalten (Rolle ändern, entfernen) | offen | Datenbank fertig (`set_workspace_member_role`, `remove_workspace_member`) |
+| Mitglieder eines Workspaces verwalten (Rolle ändern, entfernen) | M3 | Datenbank fertig (`set_workspace_member_role`, `remove_workspace_member`) |
 | Confluence-Import, Export | M4 | Datenbank vorbereitet (`imports`, `start_import`) |
 | Audit-Log, Admin-Konsole | später (E17) | Datenbank schreibt das Audit-Log schon |

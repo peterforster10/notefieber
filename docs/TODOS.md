@@ -34,5 +34,17 @@ Bestehenden.
   (CloudNativePG) dasselbe für `postgres`, `zitadel` und später `chat`, damit sich die
   Login-Rollen der Apps nur mit ihrer eigenen Datenbank verbinden können
 
+## Aus M2, Schritt 2 (Blöcke)
+
+- [ ] **Verwaiste Bilder:** Wird ein Bild aus dem Dokument gelöscht, bleiben Zeile in `files` und
+  Objekt in Garage. Mit pg-boss ein Job, der Dateien ohne Verweis im aktuellen Inhalt und in
+  keiner Version nach einer Frist löscht (`deleted_at`, danach das Objekt in Garage)
+- [ ] **Bild auf eine andere Seite kopiert:** Der Bild-Block zeigt weiter auf die Datei der
+  Ursprungsseite und ist nur für Personen sichtbar, die diese lesen dürfen. Beim Einfügen auf
+  einer anderen Seite kopieren (neue Zeile in `files`, gleiches Objekt oder Kopie)
+- [ ] **Englische Texte:** Callout-Arten, „Link auf Seite“, „Seite nicht verfügbar“ und die übrige
+  Oberfläche gibt es nur auf Deutsch (Definition of Done in `EPICS.md`: Deutsch und Englisch);
+  mit der Übersetzung der Oberfläche in M2 (`ROADMAP.md`)
+
 ## Klein, jederzeit
 

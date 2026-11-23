@@ -3,10 +3,12 @@
 // veraltet. Ruht sie, leitet der Worker BlockNote-JSON und Klartext ab (app.store_derived; die
 // Datenbank pflegt dabei page_search und meldet page.updated). Seiten, die nur BlockNote-JSON haben
 // (Testdaten, später der Import), bekommen hier ihren ersten Yjs-Zustand (app.store_initial_ydoc),
-// damit der Collab-Server beim Öffnen nicht selbst umwandeln muss.
+// damit der Collab-Server beim Öffnen nicht selbst umwandeln muss. Beim Ableiten pflegt er auch
+// die Verlinkungen (page_links) aus den Seitenlinks im Inhalt.
 // Polling statt Queue (entschieden für M1): app.pages_to_derive sieht alle Mandanten, gibt aber nur
 // IDs heraus; gelesen und geschrieben wird danach im Mandanten der Seite. pg-boss kommt mit M2.
 import type pg from 'pg';
+import { pageLinkIds } from '@notefieber/editor-schema';
 import { deriveContent, initialYDocState } from '@notefieber/editor-schema/server';
 import { withContext } from '../db.ts';
 
@@ -48,7 +50,11 @@ export async function derivePage(db: pg.Pool, tenantId: string, pageId: string, 
       JSON.stringify(blocks),
       plainText,
     ]);
-    return s.rows[0]?.ok ? 'derived' : 'changed';
+    if (!s.rows[0]?.ok) return 'changed';
+    // Verlinkungen für Rückverweise (E06) in derselben Transaktion; Ziele in anderen Mandanten
+    // oder unbekannte IDs lässt app.replace_page_links weg
+    await c.query('SELECT app.replace_page_links($1, $2::uuid[])', [pageId, pageLinkIds(blocks)]);
+    return 'derived';
   });
 }
 

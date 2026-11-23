@@ -38,7 +38,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Tests vorliegen.
 - Mandantentrennung und Leserechte geprüft sind (RLS und `app.page_rank`).
 - Die Oberfläche mit der Tastatur bedienbar ist.
-- Die Texte auf Deutsch und Englisch vorhanden sind.
+- Die Texte auf Deutsch und Englisch vorhanden sind. (Gilt ab der Übersetzung der Oberfläche in M2; was davor entstand, wird dabei nachgezogen.)
 
 ---
 
@@ -77,12 +77,12 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 **Ziel:** Eine Organisation registriert sich, lädt ihr Team ein, und legt Gruppen an, über die sie Rechte vergibt.
 
 **Umfang:**
-- Mandant mit erstem Workspace und Organisations-Admin in einer Transaktion (`app.create_tenant`), optional mit der ID aus TalkFieber
+- Mandant mit erstem Workspace und Organisations-Admin in einer Transaktion (`app.create_tenant`), optional mit der ID aus TalkFieber. Für den Pilot über ein Admin-Skript (M5), Selbstregistrierung erst in Stufe 3 mit E20
 - Einladung per Link, Rollen owner, admin, member, guest pro Workspace (fertig, M0)
 - Einladung per E-Mail: Die API schickt die Mail beim Anlegen selbst, weil das Token nur in diesem Moment im Klartext vorliegt (in der Datenbank nur sein Hash); schlägt der Versand fehl, bleibt der Link zum Weitergeben. Texte auf Deutsch und Englisch
-- Profil mit Name, Bild, Sprache, Zeitzone
+- Profil mit Name, Bild, Sprache, Zeitzone (M2; die Sprache steuert die Oberfläche)
 - Gruppen im Wiki anlegen und pflegen, nur Organisations-Admins (`app.create_group`, `app.add_group_member` …). Datenbank fertig; API und Oberfläche kommen mit E09 in M3, zusammen mit dem Rechte-Dialog. Zitadel hat keine Gruppen; SCIM (E17) und ein Gruppen-Claim im Token (E03) kommen später als Quellen dazu
-- Personen deaktivieren, aus Workspaces entfernen (persönliche Rechte fallen weg)
+- Personen deaktivieren, aus Workspaces entfernen (persönliche Rechte fallen weg); Datenbank fertig, Oberfläche in M3
 
 **Nicht enthalten:** SCIM (E17), Login über mehrere Mandanten.
 
@@ -105,7 +105,8 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Zitadel als Login-Dienst, gemeinsam mit TalkFieber (eine Organisation pro Mandant)
 - Die App spricht nur generisches OIDC; Zitadel-Claims (Mandant, Person) liest die API an einer Stelle mit einstellbaren Claim-Namen
 - Später: Gruppen aus einem Gruppen-Claim im Token übernehmen (Quelle `idp`, `app.sync_user_groups`), z. B. bei Entra ID. Die Funktion ist derzeit nur für `wiki_worker` ausführbar (REVIEW.md, R-02); dann entscheiden, wer sie mit dem geprüften Claim aufruft (Worker-Auftrag aus dem Login oder eine eigene Datenbankrolle nur für den Login)
-- E-Mail und Passwort, Magic Link, Passkeys, Zwei-Faktor
+- E-Mail und Passwort, Magic Link, Passkeys, Zwei-Faktor (in Zitadel; Zwei-Faktor und Passkeys vor dem Pilot, M5)
+- Alle eigenen Sitzungen beenden (M5)
 - Anmeldung am Collab-Server über das Sitzungs-Cookie beim WebSocket-Handshake, ohne eigenes Token (siehe E04)
 - SSO über OIDC und SAML, insbesondere Entra ID (Stufe 1 und 2 als Pilotfunktion, Stufe 3 voll)
 
@@ -220,8 +221,8 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Seiten anlegen, Unterseiten, Reihenfolge per Fractional Index
 - Verschieben und Umsortieren per Drag & Drop mit ganzem Teilbaum (`app.move_page`)
 - Wer eine Seite aus einem Bereich mit eigenen Rechten herausschiebt, muss dort Admin sein
-- Brotkrume, zuletzt besuchte Seiten
-- Rückverweise („Wer verlinkt hierher?“) über `page_links`
+- Brotkrume, zuletzt besuchte Seiten (M2)
+- Rückverweise („Wer verlinkt hierher?“) über `page_links` (der Worker füllt sie seit M2, Anzeige in M3)
 
 **Nicht enthalten:** Verschieben zwischen Spaces (später, wegen Rechten).
 
@@ -243,7 +244,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - BlockNote: Überschriften, Listen, Aufgaben, Tabellen, Code, Zitate, Callouts
 - Bilder und Dateien einfügen (mit E11)
 - Links auf andere Seiten mit Suche beim Tippen
-- Erwähnungen von Personen (Benachrichtigung erst mit E16)
+- Erwähnungen von Personen (Benachrichtigung erst mit E16; die Personen-IDs liefert `mentionIds` aus `packages/editor-schema`)
 - Inhaltsverzeichnis, Tastenkürzel, Markdown-Kürzel
 
 **Nicht enthalten:** mehrspaltige Layouts und BlockNote-XL-Pakete (offene Entscheidung), Datenbanken (E29).
@@ -335,10 +336,11 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 **Ziel:** Anhänge und Bilder sind sicher abgelegt und nur für Berechtigte abrufbar.
 
 **Umfang:**
-- Hochladen direkt in Garage über signierte URLs
-- Virenscan vor der Freigabe, Vorschau für Bilder und PDFs
+- Hoch- und Herunterladen über die API, die bei jeder Anfrage das Leserecht prüft; Garage bleibt nur im Cluster (entschieden 23. November 2026 statt signierter URLs, `CLAUDE.md` Abschnitt 3). Für große Import-Archive (E13) neu entscheiden
+- Typ an den ersten Bytes prüfen; nur Bilder werden im Browser angezeigt, alles andere als Download
+- Virenscan vor der Freigabe (`FILES_REQUIRE_SCAN`), Vorschau für Bilder und PDFs
 - Anhänge-Liste pro Seite
-- Download nur über kurzlebige, signierte URLs nach Rechteprüfung
+- Bilder im Editor (E07): seit M2, nur PNG, JPEG, GIF, WebP; bis zum Virenscan lokal ungeprüft ausgeliefert
 
 **Nicht enthalten:** Office-Bearbeitung (E31), Suche im Dateiinhalt.
 
@@ -429,7 +431,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Next.js als reine Oberfläche, Daten nur über die API
 - Seitenleiste mit Space-Umschalter und Seitenbaum, Kopfbereich mit Brotkrume und Anwesenheit, Kommentarspalte
 - Designsystem gemeinsam mit TalkFieber (IBM Plex, Farben aus der TalkFieber-`CLAUDE.md`)
-- Tastaturbedienung, WCAG 2.2 AA, Deutsch und Englisch, responsiv bis Tablet
+- Tastaturbedienung, WCAG 2.2 AA, Deutsch und Englisch (Übersetzung ab M2), responsiv bis Tablet
 
 **Nicht enthalten:** Mobile-Apps (E30).
 
@@ -486,6 +488,8 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 **Ziel:** Das Wiki fügt sich in bestehende Werkzeuge ein.
 
 **Umfang:** öffentliche REST-API mit eingeschränkten Tokens · Webhooks · Einbettungen (Video, Diagramme, Git-Repos) · Jira-Verweise als Ersatz für das Jira-Makro · Kalender.
+
+**Vorgezogen ins MVP (M3):** ein Webhook pro Mandant für ausgewählte Ereignisse aus der Outbox (`CLAUDE.md` Abschnitt 5).
 
 **Abnahmekriterien:** API-Tokens halten sich an dieselben Rechte wie Personen und lassen sich widerrufen.
 

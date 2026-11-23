@@ -121,8 +121,9 @@ geplant. Das ist nötig für die Kosten auf dem VPS (16 GB RAM, begrenzter Speic
 Pläne in E20.
 
 **Offene Fragen:**
-- Welche Grenzen: Speicher für Dateien, Größe pro Upload (heute nur 50 MB pro Yjs-Dokument),
-  Anzahl Personen, Anzahl Spaces?
+- Welche Grenzen: Speicher für Dateien, Größe pro Upload (heute 50 MB pro Yjs-Dokument und
+  10 MB pro Bild, `UPLOAD_MAX_BYTES` der API, seit 23. November 2026), Anzahl Personen, Anzahl
+  Spaces?
 - Wo prüfen: in der Datenbank (Funktionen) oder in der API; Anzeige für Organisations-Admins.
 - Was passiert beim Überschreiten: nur noch lesen, Warnung, Upgrade?
 - Kapazität des VPS: Der Virenscan mit ClamAV braucht etwa 1 bis 1,5 GB RAM und fehlt in der

@@ -324,7 +324,7 @@ Welche Seite auf welche verlinkt, für Rückverweise und kaputte Links.
 |---|---|---|
 | `from_page_id`, `to_page_id` | uuid | Primärschlüssel. Ziel im selben Mandanten. |
 
-- **Schreiben:** `app.replace_page_links` (Worker, nach dem Speichern) ersetzt alle Links einer Seite.
+- **Schreiben:** `app.replace_page_links` (Worker, nach dem Speichern) ersetzt alle Links einer Seite. Der Worker ruft sie beim Ableiten auf (`apps/api/src/jobs/derive.ts`, in derselben Transaktion wie `app.store_derived`), mit den Seiten-IDs aller Seitenlinks (`pageLink`) im Inhalt.
 - **Lesen:** nur wenn **beide** Seiten lesbar sind; sonst würde ein Rückverweis den Titel einer eingeschränkten Seite verraten.
 
 ---
@@ -386,6 +386,7 @@ Metadaten zu Dateien. Der Inhalt liegt in Garage (S3), Bucket `wiki`.
 | `deleted_at` | timestamptz | Gelöscht (die Zeile bleibt). |
 
 - **Schreiben:** `wiki_app` legt beim Hochladen an: im eigenen Namen, mit `scan_status = pending`, an einer Seite nur als editor. Löschen (`deleted_at`) dürfen Hochladende und Editoren der Seite. Alles andere der Worker.
+- **In der API** (seit M2): `POST /api/v1/pages/:id/files` erzeugt die ID vorher (`uuidv7()`), legt das Objekt unter `storage_key = t/<mandant>/files/<id>` in Garage und fügt dann die Zeile ein; `mime` ist der an den ersten Bytes erkannte Typ (PNG, JPEG, GIF, WebP), nicht der des Browsers. `GET /api/v1/files/:id` liest die Zeile mit der Leseregel und liefert mit `FILES_REQUIRE_SCAN` nur `clean` aus. Der Bild-Block im Inhalt verweist mit der Adresse `/api/v1/files/<id>` auf die Zeile, nicht über einen Fremdschlüssel.
 - **Lesen:** Anhänge lesbarer Seiten, eigene Uploads und Profilbilder (nur Dateien ohne Seite, die jemand als Profilbild eingetragen hat).
 
 ---

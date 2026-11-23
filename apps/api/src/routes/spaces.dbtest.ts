@@ -250,3 +250,60 @@ test('Space umbenennen und archivieren', { skip }, async () => {
   assert.equal(r.body.archived, false);
   assert.equal(r.body.role, 'admin');
 });
+
+type Hit = { id: string; title: string; spaceKey: string };
+const search = async (cookie: string, q: string, space?: string) => {
+  const params = new URLSearchParams({ q, ...(space ? { space } : {}) });
+  const r = await a().call(cookie, 'GET', `/pages/search?${params}`);
+  assert.equal(r.status, 200, JSON.stringify(r.body));
+  return r.body as Hit[];
+};
+
+test(
+  'Titelsuche für Seitenlinks: nur lesbare Seiten, ohne Papierkorb, Archiv und fremde Mandanten',
+  { skip },
+  async () => {
+    assert.deepEqual(
+      (await search(lukas, 'personalplan')).map((h) => [h.title, h.spaceKey]),
+      [['Personalplanung 2027', 'ENTW']],
+    );
+    assert.deepEqual(await search(max, 'personalplan'), [], 'Max findet die eingeschränkte Seite');
+    assert.deepEqual(await search(peter, 'Alte Notizen'), [], 'Seite im Papierkorb gefunden');
+    assert.deepEqual(await search(peter, 'Telefonliste'), [], 'Seite im archivierten Space gefunden');
+    assert.deepEqual(await search(peter, 'Handbuch'), [], 'Seite aus Nordlicht gefunden');
+    // LIKE-Zeichen sind nur Text
+    assert.deepEqual(await search(peter, '%'), []);
+    // Ohne Suchtext: zuletzt geänderte Seiten des Spaces, höchstens 10
+    const recent = await search(peter, '', 'entw');
+    assert.ok(recent.length > 0 && recent.length <= 10);
+    assert.ok(recent.every((h) => h.spaceKey === 'ENTW'));
+    assert.deepEqual(await search(peter, ''), []);
+    assert.equal((await a().call(peter, 'GET', '/pages/search?space=x')).status, 400);
+    assert.equal((await a().call(null, 'GET', '/pages/search?q=a')).status, 401);
+  },
+);
+
+test('Titel zu Seitenlinks: nur lesbare Seiten, Papierkorb gekennzeichnet, höchstens 100', { skip }, async () => {
+  const [plan] = await search(lukas, 'Personalplanung 2027');
+  const [release] = await search(peter, 'Release-Prozess');
+  assert.ok(plan && release);
+  const lookup = async (cookie: string, ids: string[]) => {
+    const r = await a().call(cookie, 'POST', '/pages/lookup', { ids });
+    assert.equal(r.status, 200, JSON.stringify(r.body));
+    return (r.body as { title: string; trashed: boolean }[]).map((p) => p.title).sort();
+  };
+  const unknown = '019a5b3c-0000-7000-8000-0000000000ff';
+  assert.deepEqual(await lookup(lukas, [plan.id, release.id, unknown]), ['Personalplanung 2027', 'Release-Prozess']);
+  assert.deepEqual(await lookup(max, [plan.id, release.id]), ['Release-Prozess'], 'Max sieht den Titel');
+
+  // Papierkorb: für Lesende weiter lesbar, aber gekennzeichnet
+  const notes = (await a().call(peter, 'GET', '/spaces/ENTW/trash')).body as { id: string; title: string }[];
+  const trashed = notes.find((n) => n.title === 'Alte Notizen');
+  assert.ok(trashed);
+  const r = await a().call(peter, 'POST', '/pages/lookup', { ids: [trashed.id] });
+  assert.deepEqual(r.body, [{ id: trashed.id, title: 'Alte Notizen', spaceKey: 'ENTW', trashed: true }]);
+
+  assert.equal((await a().call(peter, 'POST', '/pages/lookup', { ids: [] })).status, 400);
+  assert.equal((await a().call(peter, 'POST', '/pages/lookup', { ids: Array(101).fill(unknown) })).status, 400);
+  assert.equal((await a().call(peter, 'POST', '/pages/lookup', { ids: ['kaputt'] })).status, 400);
+});

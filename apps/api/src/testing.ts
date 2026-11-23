@@ -12,12 +12,15 @@ import { createOidc } from './auth/oidc.ts';
 import { SESSION_COOKIE, hashToken, newSessionToken } from './auth/session.ts';
 import { apiConfig } from './config.ts';
 import { withContext } from './db.ts';
+import { memoryStore } from './storage.ts';
 
 export const PUBLIC_URL = 'http://localhost:3000';
 
 export interface TestApp {
   /** Verbindung als wiki_api, z. B. für Bausteine wie resolveAccount */
   db: pg.Pool;
+  /** Dateien im RAM statt in Garage */
+  store: ReturnType<typeof memoryStore>;
   /** Adresse der API im Test, z. B. http://127.0.0.1:51234/api/v1 */
   base: string;
   /** ID eines Mandanten aus seed.sql */
@@ -29,10 +32,18 @@ export interface TestApp {
   sessionFor(email: string, tenant?: string, subject?: string): Promise<string>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- JSON der API, in Tests bewusst lose getypt
   call(cookie: string | null, method: string, path: string, body?: unknown): Promise<{ status: number; body: any }>;
+  /** Rohe Anfrage (Hochladen, Herunterladen), mit Origin und Cookie wie call */
+  fetch(
+    cookie: string | null,
+    method: string,
+    path: string,
+    init?: { body?: Uint8Array; headers?: Record<string, string> },
+  ): Promise<globalThis.Response>;
   close(): Promise<void>;
 }
 
-export async function startTestApp(): Promise<TestApp | undefined> {
+/** `env`: zusätzliche Einstellungen, z. B. { FILES_REQUIRE_SCAN: 'true' } */
+export async function startTestApp(options: { env?: Record<string, string> } = {}): Promise<TestApp | undefined> {
   const url = process.env.API_TEST_DATABASE_URL;
   if (!url) return undefined;
   Object.assign(process.env, {
@@ -43,11 +54,15 @@ export async function startTestApp(): Promise<TestApp | undefined> {
     OIDC_CLIENT_SECRET: 'test',
     AUTH_COOKIE_SECRET: 'test-'.repeat(8),
     COOKIE_SECURE: 'false',
+    FILES_REQUIRE_SCAN: 'false',
+    UPLOAD_MAX_BYTES: String(1024 * 1024),
+    ...options.env,
   });
   const config = apiConfig();
   const db = new pg.Pool({ connectionString: url, max: 5 });
   await assertDbRole(db, 'wiki_app');
-  const server = createApp(config, db, createOidc(config)).listen(0, '127.0.0.1');
+  const store = memoryStore();
+  const server = createApp(config, db, createOidc(config), store).listen(0, '127.0.0.1');
   await once(server, 'listening');
   const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api/v1`;
 
@@ -59,6 +74,7 @@ export async function startTestApp(): Promise<TestApp | undefined> {
 
   return {
     db,
+    store,
     base,
     tenantId,
     async sessionFor(email, tenant = 'alpenwerk', subject = `user-${email.split('@')[0]!.replaceAll('.', '-')}`) {
@@ -90,6 +106,13 @@ export async function startTestApp(): Promise<TestApp | undefined> {
       });
       const text = await res.text();
       return { status: res.status, body: text ? JSON.parse(text) : undefined };
+    },
+    fetch(cookie, method, path, init = {}) {
+      return fetch(base + path, {
+        method,
+        headers: { origin: PUBLIC_URL, ...(cookie ? { cookie } : {}), ...init.headers },
+        body: init.body,
+      });
     },
     async close() {
       server.close();
