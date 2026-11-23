@@ -51,10 +51,6 @@ Bestehenden.
 Umgestellt sind `LICENSE` (AGPL-3.0-only), Lizenzprüfung, `SECURITY.md`, `.gitignore`, CI-Job
 `secrets`, Dependabot und der Spiegel aller Branches (`CLAUDE.md`, Abschnitt 14). Offen:
 
-- [ ] **Einstellungen auf GitHub (nur Peter), bevor das Repository öffentlich wird:** „Private
-  vulnerability reporting“ an (darauf verweist `SECURITY.md`), Secret Scanning mit Push
-  Protection, Dependabot Alerts und Security Updates, `GITLAB_TOKEN` zusätzlich als
-  Dependabot-Secret, Schutzregel für `main` (kein Force-Push, kein Löschen)
 - [ ] **`minimatch` (mittel, GHSA-g3hv-75wg-m249):** nur in Werkzeugen über `typescript-eslint`,
   deshalb lässt `audit` sie durch (Werkzeuge erst ab `high`). Verschwindet mit dem nächsten
   Update von `typescript-eslint`; sonst mit `pnpm audit --fix` (Override) beheben
