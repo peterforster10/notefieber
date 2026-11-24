@@ -6,7 +6,7 @@
 // (space-settings.tsx, /s/<schlüssel>/settings). Das Gerüst mit Schublade kommt aus app-shell.tsx.
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useParams, usePathname, useRouter } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
@@ -24,17 +24,20 @@ import {
   useSpaces,
   useTrash,
   type Space,
+  type TreePage,
 } from '@/lib/api';
 import { useErrorText } from '@/lib/errors';
 import { AppShell, Main, SidebarTop, Topbar } from './app-shell';
-import { LockIcon, SettingsIcon, SignOutIcon, TrashIcon, UpDownIcon } from './icons';
+import { LockIcon, RestoreIcon, SettingsIcon, SignOutIcon, TrashIcon, UpDownIcon } from './icons';
 import { MenuButton } from './menu';
+import { PageByline } from './page-byline';
 import { PageDialogs, PageHeader, type PageDialog } from './page-header';
 import { PageTree } from './page-tree';
 import type { PersonState } from './presence';
 import { SidebarFoot } from './sidebar-foot';
 import { SpaceSettings } from './space-settings';
 import { loadTrashOpen, saveTrashOpen } from '@/lib/sidebar-state';
+import { useDocumentTitle } from '@/lib/document-title';
 
 function EditorLoading() {
   const t = useTranslations('space');
@@ -71,39 +74,33 @@ export function SpaceView({ view = 'page' }: { view?: 'page' | 'settings' }) {
   // Adresse /s/entw/p/<titel>-<kurze id>: zählt nur die ID (siehe packages/shared/src/urls.ts)
   const pageId = params.slug ? (pageIdFromSlug(decodeURIComponent(params.slug)) ?? 'ungueltig') : undefined;
   return (
-    <SignedInSpace
-      spaceKey={key}
-      pageId={pageId}
-      view={view}
-      tenantName={me.data.tenant.name}
-      user={{ id: me.data.id, name: me.data.displayName }}
-    />
+    <SignedInSpace spaceKey={key} pageId={pageId} view={view} user={{ id: me.data.id, name: me.data.displayName }} />
   );
 }
 
 /**
- * Auf die gültige Adresse umleiten, ohne neuen Eintrag im Verlauf: Space-Schlüssel klein,
- * Seitentitel aktuell (alte Links mit altem Titel funktionieren, die Adresse wird nachgezogen).
+ * Die gültige Adresse in die Adresszeile schreiben, ohne neuen Eintrag im Verlauf: Space-Schlüssel
+ * klein, Seitentitel aktuell (alte Links mit altem Titel funktionieren, die Adresse wird nachgezogen).
+ * Nur in der Adresszeile (history.replaceState, das Next.js mitbekommt), nicht als Navigation: Ein
+ * router.replace auf einen anderen Titel in der Adresse baute die Seite samt Editor neu auf, und wer
+ * gerade den Titel schrieb, verlor den Cursor.
  */
 function useCanonicalPath(path: string | undefined) {
   const pathname = usePathname();
-  const router = useRouter();
   useEffect(() => {
-    if (path && pathname !== path) router.replace(path);
-  }, [path, pathname, router]);
+    if (path && pathname !== path) window.history.replaceState(null, '', path);
+  }, [path, pathname]);
 }
 
 function SignedInSpace({
   spaceKey,
   pageId,
   view,
-  tenantName,
   user,
 }: {
   spaceKey: string;
   pageId?: string;
   view: 'page' | 'settings';
-  tenantName: string;
   user: { id: string; name: string };
 }) {
   const t = useTranslations('space');
@@ -114,24 +111,26 @@ function SignedInSpace({
   const space = useSpace(spaceKey);
   const canonical = space.data && (view === 'settings' ? spaceSettingsPath(space.data.key) : spacePath(space.data.key));
   useCanonicalPath(!pageId ? canonical : undefined);
+  // Tab-Titel: Einstellungen tragen den Namen des Spaces; Seiten setzen ihren Titel selbst (PageView)
+  useDocumentTitle(view === 'settings' ? space.data?.name : undefined);
 
   if (space.isError) {
     const notFound = space.error instanceof ApiError && [400, 404].includes(space.error.status);
     return (
-      <Shell brand={tenantName}>
+      <Shell>
         <p role="alert">{notFound ? t('notFound') : errorText(space.error)}</p>
         <Link href="/">{common('toHome')}</Link>
       </Shell>
     );
   }
-  if (!space.data) return <Shell brand={tenantName}>{common('loading')}</Shell>;
+  if (!space.data) return <Shell>{common('loading')}</Shell>;
   const selected = view === 'settings' ? undefined : (pageId ?? space.data.homePageId ?? undefined);
 
   return (
     <AppShell
       sidebar={
         <>
-          <SidebarTop brand={tenantName} />
+          <SidebarTop />
           <SpaceSwitcher current={space.data} />
           <PageTree key={space.data.id} space={space.data} selectedId={selected} />
           <SidebarFoot>
@@ -279,8 +278,15 @@ function Trash({ space }: { space: Space }) {
           <li key={p.id}>
             <span>{p.title || common('untitled')}</span>
             {canEdit(space.role) && (
-              <button type="button" className="nf-link-button" onClick={() => restore.mutate(p.id)}>
-                {t('restore')}
+              <button
+                type="button"
+                className="nf-icon-button"
+                aria-label={t('restorePage', { title: p.title || common('untitled') })}
+                title={t('restore')}
+                disabled={restore.isPending}
+                onClick={() => restore.mutate(p.id)}
+              >
+                <RestoreIcon />
               </button>
             )}
           </li>
@@ -291,24 +297,33 @@ function Trash({ space }: { space: Space }) {
 }
 
 /**
- * Nach einer Titeländerung im Editor Seitenbaum, Brotkrume und Adresse nachziehen (E04-08: spätestens
- * nach 10 s). Den Titel in pages.title schreibt der Collab-Server entprellt (ca. 2 s, spätestens 10 s);
- * deshalb zweimal nachfragen, kurz danach und nach der längsten Wartezeit.
+ * Titeländerung im Editor, eigene oder von anderen (kommt über Yjs): sofort im Seitenbaum (Zwischenspeicher
+ * aller geladenen Ebenen) und über `onLive` in der Brotkrume zeigen, nicht erst, wenn die API ihn kennt.
+ * Den Titel in pages.title schreibt der Collab-Server entprellt (ca. 2 s, spätestens 10 s); 3 s und
+ * 11 s nach der letzten Änderung gleichen Baum, Seite, Adresse und Seitenlinks deshalb mit der API ab
+ * (E04-08). Die Adresse zieht erst dann nach, damit sie nicht bei jedem Tastendruck wechselt.
  */
-function useRefreshAfterTitleChange(spaceKey: string | undefined) {
+function useTitleChange(spaceKey: string | undefined, pageId: string, onLive: (title: string) => void) {
   const queryClient = useQueryClient();
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
-  return useCallback(() => {
-    if (!spaceKey) return;
-    timers.current.forEach(clearTimeout);
-    const refresh = () =>
-      Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.tree(spaceKey) }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.pages }),
-      ]).then(invalidatePageLinks);
-    timers.current = [setTimeout(refresh, 3_000), setTimeout(refresh, 11_000)];
-  }, [queryClient, spaceKey]);
+  return useCallback(
+    (title: string) => {
+      onLive(title);
+      if (!spaceKey) return;
+      queryClient.setQueriesData<TreePage[]>({ queryKey: queryKeys.tree(spaceKey) }, (old) =>
+        old?.some((p) => p.id === pageId) ? old.map((p) => (p.id === pageId ? { ...p, title } : p)) : old,
+      );
+      timers.current.forEach(clearTimeout);
+      const refresh = () =>
+        Promise.all([
+          queryClient.invalidateQueries({ queryKey: queryKeys.tree(spaceKey) }),
+          queryClient.invalidateQueries({ queryKey: queryKeys.pages }),
+        ]).then(invalidatePageLinks);
+      timers.current = [setTimeout(refresh, 3_000), setTimeout(refresh, 11_000)];
+    },
+    [queryClient, spaceKey, pageId, onLive],
+  );
 }
 
 /**
@@ -341,12 +356,13 @@ function PageView({
 }) {
   const t = useTranslations('space');
   const common = useTranslations('common');
-  const roles = useTranslations('roles');
   const page = usePage(id);
   const [people, setPeople] = useState<PersonState[]>([]);
   const [dialog, setDialog] = useState<PageDialog | null>(null);
+  // Titel, wie er gerade im Editor steht (Yjs); bis zur ersten Änderung der aus der API
+  const [liveTitle, setLiveTitle] = useState<string>();
   useCanonicalPath(page.data && canonicalize ? pagePath(page.data.spaceKey, page.data) : undefined);
-  const onTitleChange = useRefreshAfterTitleChange(page.data?.spaceKey);
+  const onTitleChange = useTitleChange(page.data?.spaceKey, id, setLiveTitle);
   const refreshAccess = useRefreshAccess(page.data?.spaceKey);
   // Aus dem Papierkorb holen; danach meldet der Collab-Server die Verbindung schreibend neu an
   const restore = useCallback(async () => {
@@ -354,6 +370,9 @@ function PageView({
     await refreshAccess();
   }, [id, refreshAccess]);
   const closeDialog = useCallback(() => setDialog(null), []);
+  // Tab-Titel: der Titel der Seite (beim Tippen mit), auf der Startseite des Spaces (/s/entw) sein Name
+  const shownTitle = liveTitle ?? page.data?.title;
+  useDocumentTitle(canonicalize ? (page.data ? shownTitle || common('untitled') : undefined) : spaceName);
 
   if (page.isPending)
     return (
@@ -376,19 +395,14 @@ function PageView({
       </>
     );
   }
-  const p = page.data;
+  const p = liveTitle === undefined ? page.data : { ...page.data, title: liveTitle };
   const chip = p.restricted ? (
     <span className="nf-restricted-chip" title={common('restricted')}>
       <LockIcon size={13} />
       {common('restrictedChip')}
     </span>
   ) : null;
-  const meta = (
-    <p className="nf-page-meta">
-      {t('yourRole', { role: p.role ? roles(p.role) : '–' })}
-      {p.trashed ? t('inTrash') : ''}
-    </p>
-  );
+  const meta = <PageByline page={p} />;
   return (
     <>
       <PageHeader page={p} people={people} selfId={user.id} onOpen={setDialog} />
@@ -416,12 +430,12 @@ function PageView({
   );
 }
 
-function Shell({ brand = 'NoteFieber', children }: { brand?: string; children: ReactNode }) {
+function Shell({ children }: { children: ReactNode }) {
   return (
     <AppShell
       sidebar={
         <>
-          <SidebarTop brand={brand} />
+          <SidebarTop />
           <SidebarFoot />
         </>
       }

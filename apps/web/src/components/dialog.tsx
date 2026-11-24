@@ -47,6 +47,8 @@ export function Dialog({
         // Klick auf den Hintergrund: Ziel ist das <dialog> selbst, nicht sein Inhalt
         if (e.target === e.currentTarget) onClose();
       }}
+      // Esc schließt nur den Dialog, nicht auch noch die Schublade, in der er geöffnet wurde
+      onKeyDown={(e) => e.key === 'Escape' && e.stopPropagation()}
     >
       {open && (
         <>
@@ -81,5 +83,55 @@ export function Dialog({
         </>
       )}
     </dialog>
+  );
+}
+
+/**
+ * Rückfrage vor einer Aktion (statt window.confirm): Titel als Frage, ein Satz dazu, „Abbrechen“ und
+ * die Aktion. Der Fokus steht zuerst auf „Abbrechen“, damit Enter nichts aus Versehen auslöst.
+ */
+export function ConfirmDialog({
+  open,
+  title,
+  message,
+  confirmLabel,
+  tone = 'danger',
+  busy = false,
+  onConfirm,
+  onCancel,
+}: {
+  open: boolean;
+  title: ReactNode;
+  message?: ReactNode;
+  confirmLabel: string;
+  /** danger: Löschen und Ähnliches (rot); attention: folgenreich, aber umkehrbar (orange) */
+  tone?: 'danger' | 'attention';
+  busy?: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const common = useTranslations('common');
+  const cancel = useRef<HTMLButtonElement>(null);
+  // Nach showModal() (Effekt im Dialog, läuft vorher) auf „Abbrechen“
+  useEffect(() => {
+    if (open) cancel.current?.focus();
+  }, [open]);
+  return (
+    <Dialog
+      open={open}
+      onClose={onCancel}
+      title={title}
+      description={message}
+      footer={
+        <>
+          <button ref={cancel} type="button" className="nf-btn" onClick={onCancel}>
+            {common('cancel')}
+          </button>
+          <button type="button" className={`nf-btn nf-btn-${tone}`} disabled={busy} onClick={onConfirm}>
+            {confirmLabel}
+          </button>
+        </>
+      }
+    />
   );
 }

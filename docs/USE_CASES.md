@@ -51,7 +51,7 @@ in `compose.yaml` (`NF_TEST_PASSWORD`).
 | UC-19 | Seite bearbeiten | Bearbeitende | Browser (19. November 2026) |
 | UC-20 | Gemeinsam bearbeiten, sehen wer da ist | alle mit Leserecht | Browser (19. November 2026, Lukas und Max in getrennten Browsern; Cursor mit Namen: Code) |
 | UC-21 | Live lesen, ohne zu schreiben | Lesende, Kommentierende | Browser (19. November 2026) |
-| UC-22 | Titel im Editor ändern | Bearbeitende | Browser (19. November 2026; Enter im Titel: 23. November 2026) |
+| UC-22 | Titel im Editor ändern | Bearbeitende | Browser (19. November 2026; Enter im Titel: 23. November 2026; Baum und Brotkrume beim Tippen, Cursor bleibt beim Nachziehen der Adresse: 24. November 2026) |
 | UC-23 | Recht verlieren, während die Seite offen ist | alle | Browser (19. November 2026, Max verliert den Zugang zu „Release-Prozess“) |
 | UC-24 | Seite im Papierkorb, während jemand schreibt | Bearbeitende | Browser (19. November 2026, mit „Wiederherstellen“) |
 | UC-25 | Abmelden schließt Editoren in anderen Tabs | alle | Browser (19. November 2026, zwei Tabs) |
@@ -124,7 +124,7 @@ jede nur in „Alpenwerk“.
 
 ### UC-06 Space wechseln
 
-Oben in der Seitenleiste die Karte des Spaces (Kürzel, Name, Schlüssel) anklicken: Das Menü listet alle Spaces, dazu „Alle Spaces“. Über den Namen des Mandanten ganz oben geht es zurück zur Startseite.
+Oben in der Seitenleiste die Karte des Spaces (Kürzel, Name, Schlüssel) anklicken: Das Menü listet alle Spaces, dazu „Alle Spaces“. Über das Logo „NoteFieber“ ganz oben (darunter klein der Mandant) geht es zurück zur Startseite.
 
 ## Seiten und Seitenbaum
 
@@ -132,8 +132,8 @@ Oben in der Seitenleiste die Karte des Spaces (Kürzel, Name, Schlüssel) anklic
 
 Ein Klick im Seitenbaum öffnet die Seite. Ohne Auswahl zeigt ein Space seine Startseite
 (eigener Eintrag „Startseite“ über dem Baum). Angezeigt werden im Kopfbereich die Brotkrume (nur Seiten, die die
-Person sehen darf), über dem Titel der Hinweis „Eingeschränkt“ bei Seiten mit eigenen Rechten und unter dem Titel die eigene Rolle (Lesen,
-Kommentieren, Bearbeiten, Admin; UC-39). Darunter der Editor mit dem Inhalt (UC-19 bis UC-22).
+Person sehen darf), über dem Titel der Hinweis „Eingeschränkt“ bei Seiten mit eigenen Rechten und unter dem Titel die Byline: Kürzel und Name der Person, die die Seite angelegt hat („Von Peter Forster“), wann und von wem sie zuletzt bearbeitet wurde, und die eigene Rolle (Lesen,
+Kommentieren, Bearbeiten, Admin; UC-39). Darunter der Editor mit dem Inhalt (UC-19 bis UC-22). Der Browser-Tab heißt wie die Seite („Architektur · NoteFieber“, beim Umbenennen gleich mit), auf der Startseite eines Spaces und in seinen Einstellungen wie der Space („Entwicklung · NoteFieber“), sonst „NoteFieber“.
 
 ### UC-08 Seitenbaum auf- und zuklappen
 
@@ -149,8 +149,7 @@ nur die oberste Ebene und die Unterseiten der Startseite, jede weitere erst beim
 - „+“ neben der Überschrift „Seiten“: neue Unterseite der Startseite.
 - „+“ an einer Seite (erscheint beim Darüberfahren, per Tastatur und auf Touch-Geräten an der ausgewählten Seite): neue Unterseite dieser Seite.
 
-Titel eingeben, „Anlegen“ (oder Escape zum Abbrechen). Die Seite steht am Ende der Geschwister
-und öffnet sich sofort.
+Die Seite entsteht sofort ohne Titel („Ohne Titel“) und öffnet sich, der Cursor steht im leeren Titel: einfach lostippen, Enter springt in den Inhalt. Baum und Brotkrume zeigen den Titel schon beim Tippen, die Adresse folgt wenige Sekunden später (UC-22). Sie steht am Ende der Geschwister.
 
 ### UC-10 Seite verschieben
 
@@ -170,16 +169,16 @@ Elternseite.
 
 ### UC-11 Seite in den Papierkorb legen
 
-„In den Papierkorb“ im Menü „⋯“ der Seite (oder Entf auf der Zeile), Rückfrage mit Titel (und „alle Unterseiten“, falls es welche gibt) bestätigen. Die
+„In den Papierkorb“ im Menü „⋯“ der Seite (oder Entf auf der Zeile), im Dialog mit Titel (und „alle Unterseiten“, falls es welche gibt) „In den Papierkorb“ bestätigen; der Fokus steht zuerst auf „Abbrechen“, Esc bricht ab. Die
 Seite verschwindet samt Unterseiten aus dem Baum; war sie geöffnet, geht es zur Startseite. Die
 Startseite selbst lässt sich nicht löschen, ebenso wenig eine Seite, unter der Seiten liegen,
 die die Person nicht bearbeiten darf.
 
 ### UC-12 Seite aus dem Papierkorb wiederherstellen
 
-„Papierkorb (n)“ unten in der Seitenleiste aufklappen, bei der Seite „Wiederherstellen“. Sie
-kommt mit allen Seiten zurück, die mit ihr gelöscht wurden, an ihre alte Stelle. Den Knopf
-sehen nur Bearbeitende; Lesende sehen die Liste ohne Knopf. Endgültig löschen gibt es bewusst
+„Papierkorb (n)“ unten in der Seitenleiste aufklappen, bei der Seite das Symbol „Wiederherstellen“ (Pfeil zurück) rechts daneben. Sie
+kommt mit allen Seiten zurück, die mit ihr gelöscht wurden, an ihre alte Stelle. Das Symbol
+sehen nur Bearbeitende; Lesende sehen die Liste ohne. Endgültig löschen gibt es bewusst
 nicht in der Oberfläche (das macht später der Worker nach 30 Tagen).
 
 ### UC-13 Archivierten Space lesen
@@ -268,8 +267,9 @@ auch für Bearbeitende nur lesbar (UC-24).
 ### UC-22 Titel im Editor ändern
 
 Der Titel ist ein Eingabefeld über dem Inhalt (höchstens 255 Zeichen). Andere sehen die
-Änderung sofort; Seitenbaum, Brotkrume und Adresse (`/s/…/p/<titel>-<id>`) ziehen nach
-spätestens 10 s nach. Umbenennen geht auch aus der Seitenleiste (UC-26). Enter im Titel fügt oben im
+Änderung sofort. Seitenbaum und Brotkrume zeigen den neuen Titel schon beim Tippen, auch bei allen,
+die die Seite gerade offen haben; die Adresse (`/s/…/p/<titel>-<id>`) zieht wenige Sekunden nach der
+letzten Änderung nach (spätestens 10 s), ohne dass der Cursor den Titel verlässt. Umbenennen geht auch aus der Seitenleiste (UC-26). Enter im Titel fügt oben im
 Inhalt eine neue, leere Zeile ein und setzt den Cursor hinein; ist die erste Zeile schon leer
 (neue Seite), springt der Cursor nur dorthin. Der Titel selbst bleibt dabei unverändert.
 
@@ -347,7 +347,7 @@ Organisations-Admins ohne Admin-Recht im Space sehen die Felder nur zum Lesen.
 
 ### UC-30 Space archivieren und zurückholen
 
-In den Einstellungen „Space archivieren“, Rückfrage bestätigen. Danach können alle den Space
+In den Einstellungen „Space archivieren“, im Dialog „„Name“ archivieren?“ bestätigen. Danach können alle den Space
 nur noch lesen (UC-13), offene Editoren werden schreibgeschützt. „Space zurückholen“ stellt die
 bisherigen Rechte wieder her. Erlaubt für Admins des Spaces und Organisations-Admins, die den
 Space sehen.
@@ -359,7 +359,7 @@ Space sehen.
 „/“ öffnet das Menü mit allen Blöcken: Überschriften, Listen (Aufzählung, nummeriert, Aufgaben,
 aufklappbar), Zitat, Callout, Link auf Seite, Tabelle, Code, Trennlinie, Bild. Tippen filtert
 („/tab“). Markdown-Kürzel gehen auch: `## ` für eine Überschrift, `- ` für eine Liste,
-`[] ` für eine Aufgabe, ``` und Enter für Code. Im Code-Block wählt man oben die Sprache
+`[] ` für eine Aufgabe, ``` und Enter für Code. In Listen und Aufgaben macht Enter einen neuen Punkt, Enter auf einem leeren Punkt beendet die Liste; im Code-Block gibt Enter eine neue Zeile. Aufgaben haben ein eigenes Kästchen, erledigte stehen gedämpft und durchgestrichen da. Im Code-Block wählt man oben die Sprache
 (SQL, TypeScript, Shell …); die Hervorhebung ist reine Darstellung, gespeichert wird nur der Name
 der Sprache.
 
@@ -429,7 +429,7 @@ Aufbau nach dem UI-Entwurf in `prototype/pages/Main.dc.html`, abweichend davon m
 
 ### UC-39 Kopfbereich einer Seite
 
-Oben links die Brotkrume (Vorfahren, die man lesen darf, dann die Seite selbst; lange Titel werden gekürzt), rechts die Avatare aller, die die Seite gerade offen haben, dann „Versionen“, „Exportieren“ und „Teilen und Rechte“. Seiten mit eigenen Rechten tragen über dem Titel den Hinweis „Eingeschränkt“ mit Schloss, darunter steht die eigene Rolle. Die drei Knöpfe öffnen vorerst einen Dialog, der sagt, was dort kommt (Versionen mit E08, Rechte-Dialog in M3, Export mit E14); „Teilen und Rechte“ zeigt schon, ob die Seite eigene Rechte hat oder sie erbt, und die eigene Rolle. Dialoge schließen mit Esc, „Schließen“ oder einem Klick daneben, der Fokus geht zurück zum Knopf. Unter 1200 px zeigen „Versionen“ und „Exportieren“ nur ihr Icon.
+Oben links die Brotkrume (Vorfahren, die man lesen darf, dann die Seite selbst; lange Titel werden gekürzt), rechts die Avatare aller, die die Seite gerade offen haben, dann „Versionen“, „Exportieren“ und „Teilen und Rechte“. Seiten mit eigenen Rechten tragen über dem Titel den Hinweis „Eingeschränkt“ mit Schloss. Unter dem Titel steht die Byline: Kürzel und „Von …“ für die Person, die die Seite angelegt hat, „Zuletzt bearbeitet von … vor 5 Minuten“ (ab einer Woche mit Datum, genaue Zeit beim Darüberfahren) und die eigene Rolle. Wen man nicht sehen darf, dessen Name fehlt: Gast Elena sieht bei „Kampagne Frühjahr“ nur „Zuletzt bearbeitet vor …“. Die drei Knöpfe öffnen vorerst einen Dialog, der sagt, was dort kommt (Versionen mit E08, Rechte-Dialog in M3, Export mit E14); „Teilen und Rechte“ zeigt schon, ob die Seite eigene Rechte hat oder sie erbt, und die eigene Rolle. Dialoge schließen mit Esc, „Schließen“ oder einem Klick daneben, der Fokus geht zurück zum Knopf. Unter 1200 px zeigen „Versionen“ und „Exportieren“ nur ihr Icon.
 
 ### UC-40 Nur mit der Tastatur arbeiten
 

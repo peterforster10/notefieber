@@ -10,10 +10,11 @@ import { createReactBlockSpec, createReactInlineContentSpec } from '@blocknote/r
 import { pagePath } from '@notefieber/shared';
 import {
   CALLOUT_VARIANTS,
+  blockSpecs as sharedBlockSpecs,
   calloutConfig,
+  inlineContentSpecs as sharedInlineContentSpecs,
   mentionConfig,
   pageLinkConfig,
-  schema as sharedSchema,
   tocConfig,
   type CalloutVariant,
 } from '@notefieber/editor-schema';
@@ -247,9 +248,10 @@ const Toc = createReactBlockSpec(tocConfig, {
   render: ({ editor }) => <TableOfContents editor={editor} />,
 });
 
+// Aus den rohen Blöcken des gemeinsamen Schemas, nicht aus sharedSchema.blockSpecs: Sonst gehen die
+// Tastatur-Regeln verloren (Enter in Listen und im Code-Block, packages/editor-schema)
 export const browserSchema = BlockNoteSchema.create({
-  blockSpecs: { ...sharedSchema.blockSpecs, callout: Callout(), toc: Toc() },
-  inlineContentSpecs: { ...sharedSchema.inlineContentSpecs, pageLink: PageLink, mention: Mention },
-  styleSpecs: sharedSchema.styleSpecs,
+  blockSpecs: { ...sharedBlockSpecs, callout: Callout(), toc: Toc() },
+  inlineContentSpecs: { ...sharedInlineContentSpecs, pageLink: PageLink, mention: Mention },
 });
 export type BrowserSchema = typeof browserSchema;

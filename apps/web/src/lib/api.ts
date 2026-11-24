@@ -100,6 +100,12 @@ export interface PageDetails {
   trashed: boolean;
   role: Role | null;
   breadcrumb: { id: string; title: string }[];
+  /** Wer die Seite angelegt hat; null, wenn die Person für einen nicht sichtbar ist (z. B. als Gast) */
+  author: { id: string; name: string } | null;
+  createdAt: string;
+  /** Wer zuletzt bearbeitet hat (null wie bei author) und wann */
+  updatedBy: { id: string; name: string } | null;
+  updatedAt: string;
 }
 export interface TrashedPage {
   id: string;

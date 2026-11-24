@@ -107,7 +107,8 @@
     "archivedSpace": "{name} (archived)",
     "allSpaces": "All spaces",
     "spaceKey": "Space · {key}",
-    "spaceActions": "Actions for {name}"
+    "spaceActions": "Actions for {name}",
+    "restorePage": "Restore “{title}”"
   },
   "settings": {
     "title": "Settings",
@@ -122,13 +123,13 @@
     "unarchive": "Unarchive space",
     "archiveText": "An archived space stays visible, but nobody can edit it anymore.",
     "archive": "Archive space",
-    "archiveConfirm": "Archive “{name}”? Afterwards everyone can only read it."
+    "archiveConfirm": "Afterwards everyone can only read it. You can bring it back here in the settings at any time.",
+    "archiveConfirmTitle": "Archive “{name}”?"
   },
   "tree": {
     "label": "Page tree",
     "pagesIn": "Pages in {space}",
     "newPage": "New page",
-    "newPageTitle": "Title of the new page",
     "titlePlaceholder": "Title",
     "newTitle": "New title",
     "loadError": "The page tree cannot be loaded right now.",
@@ -147,7 +148,8 @@
     "confirmTrashWithChildren": "Move “{title}” and all subpages to the trash?",
     "heading": "Pages",
     "actionsFor": "Actions for {title}",
-    "deleteKey": "Del"
+    "deleteKey": "Del",
+    "trashHint": "You can restore it from the trash at the bottom of the sidebar."
   },
   "editor": {
     "forbidden": "No access to this page.",
@@ -253,5 +255,11 @@
     "versionsSoon": "Soon this will list every version of this page with everyone who wrote on it. You will be able to compare two versions and restore an old one.",
     "exportTitle": "Export “{title}”",
     "exportSoon": "Soon you will be able to download the page here as Markdown, as BlockNote JSON or as a ZIP with all images."
+  },
+  "byline": {
+    "by": "By {name}",
+    "lastEditedBy": "Last edited by {name} {when}",
+    "lastEdited": "Last edited {when}",
+    "onDate": "on {date}"
   }
 }

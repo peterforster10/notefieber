@@ -8,7 +8,7 @@ export default function Page() {
     <AppShell
       sidebar={
         <>
-          <SidebarTop brand="NoteFieber" />
+          <SidebarTop />
           <SidebarFoot />
         </>
       }

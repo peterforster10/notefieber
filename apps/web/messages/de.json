@@ -107,7 +107,8 @@
     "archivedSpace": "{name} (archiviert)",
     "allSpaces": "Alle Spaces",
     "spaceKey": "Space · {key}",
-    "spaceActions": "Aktionen für {name}"
+    "spaceActions": "Aktionen für {name}",
+    "restorePage": "„{title}“ wiederherstellen"
   },
   "settings": {
     "title": "Einstellungen",
@@ -122,13 +123,13 @@
     "unarchive": "Space zurückholen",
     "archiveText": "Ein archivierter Space bleibt sichtbar, lässt sich aber von niemandem mehr bearbeiten.",
     "archive": "Space archivieren",
-    "archiveConfirm": "„{name}“ archivieren? Danach können ihn alle nur noch lesen."
+    "archiveConfirm": "Danach können ihn alle nur noch lesen. Zurückholen geht jederzeit hier in den Einstellungen.",
+    "archiveConfirmTitle": "„{name}“ archivieren?"
   },
   "tree": {
     "label": "Seitenbaum",
     "pagesIn": "Seiten in {space}",
     "newPage": "Neue Seite",
-    "newPageTitle": "Titel der neuen Seite",
     "titlePlaceholder": "Titel",
     "newTitle": "Neuer Titel",
     "loadError": "Der Seitenbaum lässt sich gerade nicht laden.",
@@ -147,7 +148,8 @@
     "confirmTrashWithChildren": "„{title}“ und alle Unterseiten in den Papierkorb?",
     "heading": "Seiten",
     "actionsFor": "Aktionen für {title}",
-    "deleteKey": "Entf"
+    "deleteKey": "Entf",
+    "trashHint": "Aus dem Papierkorb unten in der Seitenleiste lässt sie sich wiederherstellen."
   },
   "editor": {
     "forbidden": "Kein Zugriff auf diese Seite.",
@@ -253,5 +255,11 @@
     "versionsSoon": "Bald stehen hier alle Versionen dieser Seite mit allen, die daran geschrieben haben. Zwei Versionen lassen sich vergleichen, eine alte wiederherstellen.",
     "exportTitle": "„{title}“ exportieren",
     "exportSoon": "Bald lässt sich die Seite hier als Markdown, als BlockNote-JSON oder als ZIP mit allen Bildern herunterladen."
+  },
+  "byline": {
+    "by": "Von {name}",
+    "lastEditedBy": "Zuletzt bearbeitet von {name} {when}",
+    "lastEdited": "Zuletzt bearbeitet {when}",
+    "onDate": "am {date}"
   }
 }

@@ -20,6 +20,8 @@ import {
   type RefObject,
 } from 'react';
 import { useTranslations } from 'next-intl';
+import { APP_NAME } from '@/lib/document-title';
+import { useMe } from '@/lib/api';
 import { CloseIcon, MenuIcon } from './icons';
 
 const NARROW = '(max-width: 1023.98px)';
@@ -101,14 +103,19 @@ export function AppShell({ sidebar, children }: { sidebar: ReactNode; children: 
   );
 }
 
-/** Oben in der Seitenleiste: Name des Mandanten (zur Übersicht) und in der Schublade „Schließen“ */
-export function SidebarTop({ brand }: { brand: string }) {
+/**
+ * Oben in der Seitenleiste: immer das Logo „NoteFieber“ (zur Übersicht), angemeldet darunter klein der
+ * Name des Mandanten; in der Schublade dazu „Schließen“
+ */
+export function SidebarTop() {
   const t = useTranslations('shell');
   const drawer = useContext(DrawerContext);
+  const me = useMe();
   return (
     <div className="nf-sidebar-top">
       <Link href="/" className="nf-brand">
-        {brand}
+        <span className="nf-logo">{APP_NAME}</span>
+        {me.data && <span className="nf-tenant">{me.data.tenant.name}</span>}
       </Link>
       <button
         type="button"

@@ -153,17 +153,23 @@ const tocSpec = createBlockSpec(tocConfig, {
   parse: (el) => (el.classList.contains('nf-toc') ? {} : undefined),
 });
 
-const { file: _file, video: _video, audio: _audio, ...blockSpecs } = defaultBlockSpecs;
+const { file: _file, video: _video, audio: _audio, ...standardBlockSpecs } = defaultBlockSpecs;
 
-export const schema = BlockNoteSchema.create({
-  blockSpecs: {
-    ...blockSpecs,
-    codeBlock: createCodeBlockSpec({ defaultLanguage: 'text', supportedLanguages: CODE_LANGUAGES }),
-    callout: calloutSpec(),
-    toc: tocSpec(),
-  },
-  inlineContentSpecs: { ...defaultInlineContentSpecs, pageLink: pageLinkSpec, mention: mentionSpec },
-});
+/**
+ * Die Blöcke vor BlockNoteSchema.create. Wer ein eigenes Schema baut (der Browser mit React-Darstellung,
+ * apps/web/src/components/editor/schema.tsx), nimmt diese, nicht schema.blockSpecs: BlockNote
+ * verarbeitet die Tastatur-Regeln (experimental_keyboard) beim Erzeugen, ein zweites create aus
+ * schema.blockSpecs verliert sie. Dann gab Enter in einer Liste einen Absatz statt eines neuen Punkts.
+ */
+export const blockSpecs = {
+  ...standardBlockSpecs,
+  codeBlock: createCodeBlockSpec({ defaultLanguage: 'text', supportedLanguages: CODE_LANGUAGES }),
+  callout: calloutSpec(),
+  toc: tocSpec(),
+};
+export const inlineContentSpecs = { ...defaultInlineContentSpecs, pageLink: pageLinkSpec, mention: mentionSpec };
+
+export const schema = BlockNoteSchema.create({ blockSpecs, inlineContentSpecs });
 export type EditorSchema = typeof schema;
 export type EditorBlock = Block<
   EditorSchema['blockSchema'],

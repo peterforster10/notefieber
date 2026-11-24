@@ -25,6 +25,7 @@ import { useErrorText } from '@/lib/errors';
 import type { Locale } from '@/i18n/locales';
 import { clearLocalCopy, closeLocalCopy, openLocalCopy } from '@/lib/local-copies';
 import { colorFor } from '@/lib/person-color';
+import { forgetNewPage, isNewPage } from '@/lib/new-page';
 import { CONTENT_FRAGMENT, TITLE_MAX_LENGTH, TITLE_TEXT, documentName, setTitle } from '@notefieber/editor-schema';
 import { EditorMenus } from './editor/menus';
 import { usePresence, type PersonState } from './presence';
@@ -344,6 +345,12 @@ function CollabEditor({
     };
   }, [provider, user.id, user.name, color]);
 
+  // Gerade über „+“ angelegt: Cursor in den leeren Titel (lib/new-page.ts), nur beim ersten Öffnen
+  const [titleFirst] = useState(() => isNewPage(pageId));
+  useEffect(() => {
+    if (titleFirst) forgetNewPage(pageId);
+  }, [titleFirst, pageId]);
+
   // Liste der Anwesenden an den Kopfbereich; beim Verlassen (andere Seite, kein Zugriff mehr) leeren
   const people = usePresence(provider, user.id);
   const presenceChanged = useRef(onPresence);
@@ -371,7 +378,13 @@ function CollabEditor({
   return (
     <div className="nf-editor">
       {beforeTitle}
-      <TitleField text={doc.getText(TITLE_TEXT)} editable={editable} onChange={onTitleChange} onEnter={startWriting} />
+      <TitleField
+        text={doc.getText(TITLE_TEXT)}
+        editable={editable}
+        autoFocus={titleFirst}
+        onChange={onTitleChange}
+        onEnter={startWriting}
+      />
       {afterTitle}
       {notice && (
         <p className="nf-notice" role="status">
@@ -398,11 +411,14 @@ function useYText(text: Y.Text): string {
 function TitleField({
   text,
   editable,
+  autoFocus,
   onChange,
   onEnter,
 }: {
   text: Y.Text;
   editable: boolean;
+  /** Cursor gleich in den Titel (neue Seite über „+“) */
+  autoFocus?: boolean;
   onChange?: (title: string) => void;
   /** Enter im Titel: weiter in den Inhalt */
   onEnter?: () => void;
@@ -425,6 +441,7 @@ function TitleField({
       <input
         aria-label={t('titleLabel')}
         className="nf-title-input"
+        autoFocus={autoFocus}
         value={title}
         maxLength={TITLE_MAX_LENGTH}
         placeholder={common('untitled')}

@@ -22,6 +22,9 @@
 // springt zur Elternseite, Pos1/Ende an den Anfang bzw. ans Ende, Enter öffnet die Seite. F2 benennt
 // um, Entf legt in den Papierkorb. Tab führt von der Zeile zu „Neue Unterseite“ und ihrem Menü.
 //
+// Neue Seite: „+“ (neben „Seiten“ unter der Startseite, an einer Zeile darunter) legt sie sofort
+// ohne Titel an und öffnet sie; der Editor setzt den Cursor in den leeren Titel (lib/new-page.ts).
+//
 // Umbenennen geht über die API, die den Collab-Server bittet, den Titel im Yjs-Dokument zu
 // ändern (E04-08): Wer die Seite gerade offen hat, sieht den neuen Titel sofort.
 import Link from 'next/link';
@@ -45,6 +48,7 @@ import { pagePath, spacePath } from '@notefieber/shared';
 import { api, canEdit, queryKeys, usePage, useTreeLevel, type Space, type TreePage } from '@/lib/api';
 import { useErrorText } from '@/lib/errors';
 import { loadExpanded, saveExpanded } from '@/lib/sidebar-state';
+import { markNewPage } from '@/lib/new-page';
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -59,6 +63,7 @@ import {
   PlusIcon,
   TrashIcon,
 } from './icons';
+import { ConfirmDialog } from './dialog';
 import { MenuButton } from './menu';
 
 type MoveBody = { parentId: string | null; afterId?: string; beforeId?: string };
@@ -93,10 +98,9 @@ interface Tree {
   setRenaming(id: string | null): void;
   renamePending: boolean;
   rename(id: string, title: string): void;
-  creatingUnder: string | null;
-  setCreatingUnder(id: string | null): void;
   createPending: boolean;
-  create(parentId: string | null, title: string): void;
+  /** Neue Seite ohne Titel anlegen und öffnen */
+  create(parentId: string | null): void;
   move(item: Item, body: MoveBody): void;
   trash(item: Item): void;
   dragging: Item | null;
@@ -118,8 +122,9 @@ export function PageTree({ space, selectedId }: { space: Space; selectedId?: str
   const headingId = useId();
   const treeRef = useRef<HTMLUListElement>(null);
   const [error, setError] = useState<string | null>(null);
-  const [creatingUnder, setCreatingUnder] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
+  // Seite, für die die Rückfrage „In den Papierkorb?“ offen ist
+  const [confirmTrash, setConfirmTrash] = useState<Item | null>(null);
   const [dragging, setDragging] = useState<Item | null>(null);
   const [drop, setDrop] = useState<{ id: string; zone: Zone } | null>(null);
   const homeId = space.homePageId;
@@ -231,14 +236,14 @@ export function PageTree({ space, selectedId }: { space: Space; selectedId?: str
     onError,
   });
   const createMutation = useMutation({
-    mutationFn: (v: { parentId: string | null; title: string }) =>
-      api<{ id: string }>(`/spaces/${space.key}/pages`, { method: 'POST', body: v }),
+    mutationFn: (v: { parentId: string | null }) =>
+      api<{ id: string }>(`/spaces/${space.key}/pages`, { method: 'POST', body: { parentId: v.parentId, title: '' } }),
     onMutate: () => setError(null),
     onSuccess: async ({ id }, v) => {
-      setCreatingUnder(null);
+      markNewPage(id);
       if (v.parentId) expand(v.parentId);
       await refresh();
-      router.push(pagePath(space.key, { id, title: v.title }));
+      router.push(pagePath(space.key, { id, title: '' }));
     },
     onError,
   });
@@ -312,6 +317,17 @@ export function PageTree({ space, selectedId }: { space: Space; selectedId?: str
     e.preventDefault();
   }
 
+  // Nach der Rückfrage zurück in den Baum: auf die Seite (Abbrechen) oder die aktive Zeile. Der Knopf
+  // „⋯“, der den Dialog geöffnet hat, ist dann schon wieder unsichtbar und kann den Fokus nicht nehmen.
+  function closeConfirmTrash(pageId: string | undefined) {
+    setConfirmTrash(null);
+    requestAnimationFrame(() => {
+      const tree = treeRef.current;
+      const row = pageId ? tree?.querySelector<HTMLElement>(`[data-tree-link][data-id="${pageId}"]`) : null;
+      (row ?? tree?.querySelector<HTMLElement>('[data-tree-link][tabindex="0"]'))?.focus();
+    });
+  }
+
   const tree: Tree = {
     space,
     homeId,
@@ -326,16 +342,10 @@ export function PageTree({ space, selectedId }: { space: Space; selectedId?: str
     setRenaming,
     renamePending: renameMutation.isPending,
     rename: (id, title) => renameMutation.mutate({ id, title }),
-    creatingUnder,
-    setCreatingUnder,
     createPending: createMutation.isPending,
-    create: (parentId, title) => createMutation.mutate({ parentId, title }),
+    create: (parentId) => createMutation.mutate({ parentId }),
     move: (item, body) => moveMutation.mutate({ item, body }),
-    trash: (item) => {
-      const title = item.page.title || common('untitled');
-      const msg = item.page.hasChildren ? t('confirmTrashWithChildren', { title }) : t('confirmTrash', { title });
-      if (window.confirm(msg)) trashMutation.mutate(item.page.id);
-    },
+    trash: (item) => setConfirmTrash(item),
     dragging,
     setDragging,
     drop,
@@ -369,24 +379,13 @@ export function PageTree({ space, selectedId }: { space: Space; selectedId?: str
               className="nf-icon-button"
               aria-label={t('newPage')}
               title={t('newPage')}
-              onClick={() => setCreatingUnder(homeId ?? 'root')}
+              disabled={createMutation.isPending}
+              onClick={() => createMutation.mutate({ parentId: homeId })}
             >
               <PlusIcon />
             </button>
           )}
         </div>
-        {/* Die Startseite steht nicht im Baum: Das Formular für Seiten unter ihr kommt hierher */}
-        {(creatingUnder === 'root' || (creatingUnder !== null && creatingUnder === homeId)) && (
-          <TitleForm
-            label={t('newPageTitle')}
-            submitText={common('create')}
-            busy={createMutation.isPending}
-            onCancel={() => setCreatingUnder(null)}
-            onSubmit={(title) =>
-              createMutation.mutate({ parentId: creatingUnder === 'root' ? null : creatingUnder, title })
-            }
-          />
-        )}
         {error && (
           <p role="alert" className="nf-alert">
             {error}
@@ -414,6 +413,23 @@ export function PageTree({ space, selectedId }: { space: Space; selectedId?: str
           </ul>
         )}
       </div>
+      <ConfirmDialog
+        open={!!confirmTrash}
+        title={
+          confirmTrash &&
+          t(confirmTrash.page.hasChildren ? 'confirmTrashWithChildren' : 'confirmTrash', {
+            title: confirmTrash.page.title || common('untitled'),
+          })
+        }
+        message={t('trashHint')}
+        confirmLabel={t('trash')}
+        busy={trashMutation.isPending}
+        onCancel={() => closeConfirmTrash(confirmTrash?.page.id)}
+        onConfirm={() => {
+          if (confirmTrash) trashMutation.mutate(confirmTrash.page.id);
+          closeConfirmTrash(undefined);
+        }}
+      />
     </TreeContext.Provider>
   );
 }
@@ -681,7 +697,12 @@ function TreeItem({
         </Link>
         {editable && (
           <span className="nf-actions">
-            <IconButton label={tr('newSubpage')} tabIndex={tab} onClick={() => t.setCreatingUnder(p.id)}>
+            <IconButton
+              label={tr('newSubpage')}
+              tabIndex={tab}
+              disabled={t.createPending}
+              onClick={() => t.create(p.id)}
+            >
               <PlusIcon size={14} />
             </IconButton>
             <MenuButton
@@ -764,24 +785,12 @@ function TreeItem({
           onSubmit={(value) => (value === p.title ? t.setRenaming(null) : t.rename(p.id, value))}
         />
       )}
-      {t.creatingUnder === p.id && (
-        <TitleForm
-          label={tr('newPageTitle')}
-          submitText={common('create')}
-          busy={t.createPending}
-          onCancel={() => {
-            t.setCreatingUnder(null);
-            backToRow();
-          }}
-          onSubmit={(value) => t.create(p.id, value)}
-        />
-      )}
       {open && <ChildLevel parent={item} depth={depth + 1} />}
     </li>
   );
 }
 
-/** Titel eingeben: neue Seite oder umbenennen */
+/** Neuen Titel eingeben (Umbenennen aus der Seitenleiste) */
 function TitleForm({
   initial = '',
   label,

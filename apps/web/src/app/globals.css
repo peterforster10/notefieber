@@ -18,6 +18,9 @@
   --nf-control-border: #d5dae1;
   --nf-input-border: #7d8796;
   --nf-code-bg: #f0f2f5;
+  /* Platzhalter im Editor („Text eingeben …“, Text: 4,5:1) und Icons links am Block (+, Ziehpunkt: 3:1) */
+  --nf-placeholder: #6e7783;
+  --nf-editor-icons: #7d8692;
 
   /* Akzent und Zustände */
   --nf-accent: #1f5fd6;
@@ -47,7 +50,7 @@
   --nf-backdrop: rgba(15, 37, 55, 0.45);
   --nf-shadow-pop: 0 8px 24px rgba(15, 37, 55, 0.16);
   --nf-shadow-dialog: 0 24px 64px rgba(15, 37, 55, 0.28);
-  --nf-sidebar-width: 272px;
+  --nf-sidebar-width: 320px;
 }
 
 * {
@@ -86,7 +89,8 @@ kbd {
   font-family: var(--nf-font-mono);
 }
 
-code {
+/* Nur Code im Fließtext; Code in einem Code-Block (<pre><code>) bringt seinen Hintergrund selbst mit */
+:not(pre) > code {
   font-size: 0.88em;
   background: var(--nf-code-bg);
   padding: 1px 5px;
@@ -181,10 +185,11 @@ svg.nf-icon {
   display: flex;
   flex-direction: column;
 }
+/* Seitlich Platz für das Menü links am Block (BlockNote: + und Ziehpunkt, etwa 50 px) */
 .nf-main {
   flex: 1;
   min-width: 0;
-  padding: 40px 32px 72px;
+  padding: 40px 56px 72px;
 }
 .nf-main:focus {
   outline: none;
@@ -199,14 +204,27 @@ svg.nf-icon {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  min-height: 40px;
-  padding: 0 4px 0 10px;
+  min-height: 44px;
+  padding: 2px 4px 2px 10px;
 }
+/* Logo „NoteFieber“, darunter klein der Mandant (app-shell.tsx, SidebarTop) */
 .nf-brand {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
   color: var(--nf-sidebar-text);
-  font-size: 15px;
-  font-weight: 600;
   text-decoration: none;
+}
+.nf-logo {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+.nf-tenant {
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--nf-sidebar-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -544,8 +562,10 @@ button.nf-drawer-open {
 .nf-trash li {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 8px;
-  padding: 3px 4px 3px 0;
+  min-height: 32px;
+  padding: 0 4px 0 0;
 }
 .nf-trash li span {
   min-width: 0;
@@ -814,6 +834,25 @@ button.nf-drawer-open {
   width: 38px;
   padding: 0;
 }
+/* Bestätigen in Rückfragen (ConfirmDialog): Löschen rot, Archivieren orange */
+.nf-btn-danger,
+.nf-btn-attention {
+  border-color: transparent;
+  color: var(--nf-on-accent);
+  font-weight: 500;
+}
+.nf-btn-danger {
+  background: var(--nf-danger);
+}
+.nf-btn-danger:hover {
+  background: #912018;
+}
+.nf-btn-attention {
+  background: var(--nf-attention);
+}
+.nf-btn-attention:hover {
+  background: var(--nf-restricted-fg);
+}
 
 /* Anwesenheit: Avatare aller, die die Seite offen haben */
 .nf-presence {
@@ -852,10 +891,37 @@ button.nf-drawer-open {
   font-size: 12px;
   font-weight: 500;
 }
+/* Byline unter dem Titel: Autor mit Kürzel, zuletzt bearbeitet, eigene Rolle (page-byline.tsx) */
 .nf-page-meta {
-  margin: 0 0 28px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 0;
+  margin: 14px 0 28px;
   font-size: 13px;
   color: var(--nf-muted);
+}
+.nf-page-meta > * + *::before {
+  content: '·';
+  margin: 0 8px;
+}
+.nf-byline-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--nf-text);
+}
+.nf-byline-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 9px;
+  letter-spacing: 0.02em;
+  font-weight: 600;
 }
 .nf-title {
   margin: 8px 0 6px;
@@ -903,9 +969,63 @@ button.nf-drawer-open {
 .nf-editor .bn-container {
   --bn-font-family: var(--nf-font-sans);
 }
+/* BlockNote zeigt Platzhalter und die Icons links am Block (+, Ziehpunkt) in #cfcfcf (1,6:1); hier
+   dunkler, damit beides WCAG 2.2 AA erreicht. Gesetzt auf .bn-root wie bei BlockNote, aber spezifischer */
+.nf-editor .bn-root.bn-container {
+  --bn-colors-side-menu: var(--nf-editor-icons);
+}
+.nf-editor .bn-editor .bn-block-content:has(.ProseMirror-trailingBreak:only-child)::after {
+  color: var(--nf-placeholder);
+}
 .nf-editor .bn-editor code,
 .nf-editor .bn-editor pre {
   font-family: var(--nf-font-mono);
+}
+/* Listenpunkte enger als Absätze (BlockNote gibt jedem Block 3 px oben und unten) */
+.nf-editor .bn-block-content[data-content-type='bulletListItem'],
+.nf-editor .bn-block-content[data-content-type='numberedListItem'],
+.nf-editor .bn-block-content[data-content-type='checkListItem'],
+.nf-editor .bn-block-content[data-content-type='toggleListItem'] {
+  padding-block: 1px;
+}
+/* Aufgaben: eigenes Kästchen statt der Checkbox des Browsers, abgehakt in Akzent mit weißem Haken */
+.nf-editor .bn-block-content[data-content-type='checkListItem'] input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  top: 3px;
+  width: 18px;
+  height: 18px;
+  margin: 0 10px 0 2px;
+  flex: none;
+  border: 1.5px solid var(--nf-input-border);
+  border-radius: 5px;
+  background: var(--nf-bg) center / 14px 14px no-repeat;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+.nf-editor .bn-block-content[data-content-type='checkListItem'] input[type='checkbox']:hover {
+  border-color: var(--nf-accent);
+}
+.nf-editor .bn-block-content[data-content-type='checkListItem'] input[type='checkbox']:checked {
+  border-color: var(--nf-accent);
+  background-color: var(--nf-accent);
+  background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Cpath d=%22M4 8.5l2.6 2.6L12 5.5%22 fill=%22none%22 stroke=%22white%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E');
+}
+.nf-editor .bn-block-content[data-content-type='checkListItem'] input[type='checkbox']:checked:hover {
+  border-color: var(--nf-accent-hover);
+  background-color: var(--nf-accent-hover);
+}
+.nf-editor .bn-block-content[data-content-type='checkListItem'] input[type='checkbox']:focus-visible {
+  outline: 2px solid var(--nf-focus);
+  outline-offset: 2px;
+}
+/* Erledigte Aufgaben gedämpft und durchgestrichen, wie im Prototyp */
+.nf-editor .bn-block-content[data-content-type='checkListItem'][data-checked='true'] .bn-inline-content {
+  color: var(--nf-muted);
+  text-decoration: line-through;
 }
 
 /* Blöcke im Editor (M2, E07): Callout und Seitenlink, Farben aus dem Designsystem */
@@ -1274,7 +1394,7 @@ textarea.nf-input {
     position: fixed;
     inset: 0 auto 0 0;
     z-index: 50;
-    width: min(320px, calc(100vw - 48px));
+    width: min(360px, calc(100vw - 48px));
     transform: translateX(-100%);
     visibility: hidden;
     transition:
@@ -1303,7 +1423,7 @@ textarea.nf-input {
     padding: 10px 20px;
   }
   .nf-main {
-    padding: 32px 24px 64px;
+    padding: 32px 48px 64px;
   }
 }
 

@@ -84,13 +84,15 @@ const createSpaceBody = z.object({
   workspaceAccess: z.enum(['viewer', 'commenter', 'editor']).nullable().default('viewer'),
 });
 
-// Titel beim Anlegen und Umbenennen: Leerraum außen fällt weg, danach 1 bis 255 Zeichen
-// (REVIEW_M1.md, R-24). Nur der Editor selbst lässt einen leeren Titel zu („Ohne Titel“).
+// Titel beim Umbenennen: Leerraum außen fällt weg, danach 1 bis 255 Zeichen (REVIEW_M1.md, R-24).
 const titleInput = pageTitleSchema.trim().min(1);
+// Beim Anlegen darf er fehlen oder leer sein: „+“ im Seitenbaum legt die Seite sofort an, den Titel
+// schreibt man danach im Editor (wie „Ohne Titel“ im Editor selbst, E15)
+const newPageTitle = pageTitleSchema.trim().default('');
 
 const createPageBody = z.object({
   parentId: idSchema.nullable(),
-  title: titleInput,
+  title: newPageTitle,
   /** Neue Seite direkt hinter diese Geschwisterseite; sonst ans Ende */
   afterId: idSchema.nullish(),
 });
@@ -409,10 +411,24 @@ export function spacesRouter(db: pg.Pool, collab?: CollabClient) {
           inherit_perms: boolean;
           deleted_at: Date | null;
           role: SpaceRole | null;
+          created_at: Date;
+          updated_at: Date;
+          author_id: string | null;
+          author_name: string | null;
+          editor_id: string | null;
+          editor_name: string | null;
         }>(
+          // Autor und wer zuletzt bearbeitet hat (store_ydoc setzt updated_by) über die Leseregel auf
+          // users: Wen die Person nicht sehen darf (Gäste sehen nur sich selbst), der fehlt (NULL),
+          // wie bei den Erwähnungen (people.ts)
           `SELECT p.id, s.key AS space_key, p.parent_id, p.title, p.inherit_perms, p.deleted_at,
-                  app.page_role(p.id) AS role
-           FROM pages p JOIN spaces s ON s.id = p.space_id WHERE p.id = $1`,
+                  app.page_role(p.id) AS role, p.created_at, p.updated_at,
+                  a.id AS author_id, a.display_name AS author_name,
+                  e.id AS editor_id, e.display_name AS editor_name
+           FROM pages p JOIN spaces s ON s.id = p.space_id
+           LEFT JOIN users a ON a.id = p.created_by
+           LEFT JOIN users e ON e.id = p.updated_by
+           WHERE p.id = $1`,
           [id],
         );
         const p = rows[0];
@@ -434,6 +450,10 @@ export function spacesRouter(db: pg.Pool, collab?: CollabClient) {
         trashed: page.p.deleted_at !== null,
         role: page.p.role,
         breadcrumb: page.breadcrumb,
+        author: page.p.author_id ? { id: page.p.author_id, name: page.p.author_name } : null,
+        createdAt: page.p.created_at,
+        updatedBy: page.p.editor_id ? { id: page.p.editor_id, name: page.p.editor_name } : null,
+        updatedAt: page.p.updated_at,
       });
     }),
   );

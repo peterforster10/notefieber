@@ -11,7 +11,7 @@ export default async function Page({ params }: { params: Promise<{ token: string
     <AppShell
       sidebar={
         <>
-          <SidebarTop brand="NoteFieber" />
+          <SidebarTop />
           <SidebarFoot />
         </>
       }

@@ -85,6 +85,7 @@ export const SettingsIcon = svg(
     <circle cx="8" cy="8" r="4.25" />
   </>,
 );
+export const RestoreIcon = svg(<path d="M3.2 7.5a5 5 0 1 1 1.3 4.1M3 3.5v4h4" />);
 export const SignOutIcon = svg(<path d="M9.5 3H3.5v10h6M7 8h6.5M11 5.5L13.5 8 11 10.5" />);
 
 /** Drei Punkte (gefüllt, nicht als Linie) */

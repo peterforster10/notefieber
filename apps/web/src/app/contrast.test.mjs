@@ -54,6 +54,8 @@ const PAIRS = [
   ['nf-on-accent', 'nf-accent-hover', TEXT, 'Hauptknopf bei Hover'],
   ['nf-on-accent', 'nf-attention', TEXT, 'Knopf Archivieren'],
   ['nf-on-accent', 'nf-restricted-fg', TEXT, 'Knopf Archivieren bei Hover'],
+  ['nf-on-accent', 'nf-danger', TEXT, 'In den Papierkorb bestätigen'],
+  ['nf-on-accent', '#912018', TEXT, 'In den Papierkorb bestätigen, Hover'],
   ['nf-attention', 'nf-bg', TEXT, 'Fehlermeldungen'],
   ['nf-attention', 'nf-attention-soft', TEXT, 'Hinweis im Editor, Callout Warnung'],
   ['nf-restricted-fg', 'nf-restricted-bg', TEXT, 'Hinweis „Eingeschränkt“'],
@@ -63,6 +65,8 @@ const PAIRS = [
   ['nf-danger', 'nf-bg', TEXT, 'Menüeintrag Papierkorb'],
   ['nf-danger', 'nf-subtle', TEXT, 'Menüeintrag Papierkorb bei Hover'],
   ['nf-muted', 'nf-neutral-soft', TEXT, 'Callout Hinweis, Seitenlink nicht verfügbar'],
+  ['nf-placeholder', 'nf-bg', TEXT, 'Platzhalter im Editor (Text eingeben …)'],
+  ['nf-editor-icons', 'nf-bg', UI, 'Icons + und Ziehpunkt links am Block'],
   ['nf-accent', 'nf-accent-soft', TEXT, 'Callout Info'],
   ['#ffffff', 'nf-muted', TEXT, 'Avatar „+n“'],
 

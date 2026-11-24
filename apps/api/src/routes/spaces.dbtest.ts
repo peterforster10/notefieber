@@ -163,8 +163,24 @@ test('Eingaben werden geprüft', { skip }, async () => {
   assert.equal((await a().call(peter, 'GET', '/spaces/1abc')).status, 400);
   assert.equal((await a().call(peter, 'GET', '/spaces/GIBTSNICHT')).status, 404);
   assert.equal((await a().call(peter, 'GET', '/pages/keine-uuid')).status, 400);
-  const r = await a().call(peter, 'POST', '/spaces/ENTW/pages', { parentId: null, title: '' });
-  assert.equal(r.status, 400);
+  const tooLong = await a().call(peter, 'POST', '/spaces/ENTW/pages', { parentId: null, title: 'x'.repeat(256) });
+  assert.equal(tooLong.status, 400);
+});
+
+test('„+“ im Seitenbaum legt eine Seite ohne Titel an (der Titel kommt danach im Editor)', { skip }, async () => {
+  const key = `T${Date.now().toString(36).toUpperCase()}`;
+  const space = await a().call(peter, 'POST', '/spaces', { key, name: 'Ohne Titel' });
+  assert.equal(space.status, 201, JSON.stringify(space.body));
+  const home = space.body.homePageId as string;
+  for (const body of [{ parentId: home, title: '' }, { parentId: home, title: '   ' }, { parentId: home }]) {
+    const r = await a().call(peter, 'POST', `/spaces/${key}/pages`, body);
+    assert.equal(r.status, 201, `${JSON.stringify(body)}: ${JSON.stringify(r.body)}`);
+    const page = await a().call(peter, 'GET', `/pages/${r.body.id}`);
+    assert.equal(page.body.title, '');
+  }
+  // Umbenennen aus der Seitenleiste verlangt weiter einen Titel
+  const first = (await level(peter, key, home))[0]!;
+  assert.equal((await a().call(peter, 'POST', `/pages/${first.id}/title`, { title: '  ' })).status, 400);
 });
 
 test(
@@ -309,4 +325,25 @@ test('Titel zu Seitenlinks: nur lesbare Seiten, Papierkorb gekennzeichnet, höch
   assert.equal((await a().call(peter, 'POST', '/pages/lookup', { ids: [] })).status, 400);
   assert.equal((await a().call(peter, 'POST', '/pages/lookup', { ids: Array(101).fill(unknown) })).status, 400);
   assert.equal((await a().call(peter, 'POST', '/pages/lookup', { ids: ['kaputt'] })).status, 400);
+});
+
+test('Seite nennt Autor und wer zuletzt bearbeitet hat, nur wenn man die Person sehen darf', { skip }, async () => {
+  // „Kampagne Frühjahr“ (seed.sql): von Max angelegt, Gast Elena darf sie lesen, Max aber nicht sehen
+  const vert = (await a().call(peter, 'GET', '/spaces/VERT')).body as { homePageId: string };
+  const page = (await level(peter, 'VERT', vert.homePageId)).find((p) => p.title === 'Kampagne Frühjahr')!;
+  type Details = {
+    author: { id: string; name: string } | null;
+    updatedBy: { id: string; name: string } | null;
+    createdAt: string;
+    updatedAt: string;
+  };
+  const forPeter = (await a().call(peter, 'GET', `/pages/${page.id}`)).body as Details;
+  assert.equal(forPeter.author?.name, 'Max Mustermann');
+  assert.ok(forPeter.updatedBy, 'wer zuletzt bearbeitet hat, fehlt');
+  assert.ok(!Number.isNaN(Date.parse(forPeter.createdAt)) && !Number.isNaN(Date.parse(forPeter.updatedAt)));
+
+  const forElena = (await a().call(elena, 'GET', `/pages/${page.id}`)).body as Details;
+  assert.equal(forElena.author, null, 'Gast sieht den Namen des Autors');
+  assert.equal(forElena.updatedBy, null, 'Gast sieht, wer zuletzt bearbeitet hat');
+  assert.equal(forElena.updatedAt, forPeter.updatedAt, 'den Zeitpunkt sieht auch der Gast');
 });

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { blocksToPlainText, documentName, pageIdFromDocument, setTitle } from './index.ts';
+import { BlockNoteSchema } from '@blocknote/core';
+import { blockSpecs, blocksToPlainText, documentName, pageIdFromDocument, schema, setTitle } from './index.ts';
 
 const ID = '01a1bc1b-c003-7b51-b4d7-a9701a1a81d2';
 
@@ -128,4 +129,21 @@ test('mentionIds: Personen aus Erwähnungen, getrennt von Seitenlinks', async ()
   ];
   assert.deepEqual(mentionIds(blocks), [u]);
   assert.deepEqual(pageLinkIds(blocks), [p]);
+});
+
+test('Tastatur-Regeln bleiben, wenn der Browser aus blockSpecs ein eigenes Schema baut', () => {
+  // BlockNote verarbeitet experimental_keyboard beim Erzeugen eines Schemas; ein zweites create aus
+  // schema.blockSpecs verlor sie: Enter am Ende eines Listenpunkts gab einen Absatz statt eines Punkts
+  const browser = BlockNoteSchema.create({ blockSpecs: { ...blockSpecs } });
+  type Keyboard = { splitKeepsType: boolean; enter: string };
+  const kb = (s: { blockSpecs: unknown }, type: string) =>
+    (s.blockSpecs as Record<string, { implementation: { keyboard: (b: unknown) => Keyboard } }>)[
+      type
+    ]!.implementation.keyboard({ type, props: {}, content: [], children: [] });
+  for (const type of ['bulletListItem', 'numberedListItem', 'checkListItem']) {
+    assert.equal(kb(browser, type).splitKeepsType, true, type);
+    assert.equal(kb(schema, type).splitKeepsType, true, type);
+  }
+  assert.equal(kb(browser, 'paragraph').splitKeepsType, false);
+  assert.equal(kb(browser, 'codeBlock').enter, kb(schema, 'codeBlock').enter, 'Enter im Code-Block');
 });

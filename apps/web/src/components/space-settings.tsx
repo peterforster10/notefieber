@@ -9,6 +9,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { api, queryKeys, type Space } from '@/lib/api';
 import { useErrorText } from '@/lib/errors';
+import { ConfirmDialog } from './dialog';
 
 export function SpaceSettings({ space }: { space: Space }) {
   const t = useTranslations('settings');
@@ -18,6 +19,8 @@ export function SpaceSettings({ space }: { space: Space }) {
   const [name, setName] = useState(space.name);
   const [description, setDescription] = useState(space.description ?? '');
   const [saved, setSaved] = useState(false);
+  // Rückfrage vor dem Archivieren (statt window.confirm)
+  const [confirmArchive, setConfirmArchive] = useState(false);
   const editable = space.role === 'admin' && !space.archived;
 
   // Rolle und Archiv wirken auf Space-Liste, Baum (Knöpfe) und offene Seite (Editor)
@@ -120,14 +123,23 @@ export function SpaceSettings({ space }: { space: Space }) {
                 type="button"
                 className="nf-button nf-button-attention"
                 disabled={archive.isPending}
-                onClick={() => {
-                  if (window.confirm(t('archiveConfirm', { name: space.name }))) {
-                    archive.mutate(true);
-                  }
-                }}
+                onClick={() => setConfirmArchive(true)}
               >
                 {t('archive')}
               </button>
+              <ConfirmDialog
+                open={confirmArchive}
+                title={t('archiveConfirmTitle', { name: space.name })}
+                message={t('archiveConfirm', { name: space.name })}
+                confirmLabel={t('archive')}
+                tone="attention"
+                busy={archive.isPending}
+                onCancel={() => setConfirmArchive(false)}
+                onConfirm={() => {
+                  setConfirmArchive(false);
+                  archive.mutate(true);
+                }}
+              />
             </>
           )}
           {archive.isError && (
