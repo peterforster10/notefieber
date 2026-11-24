@@ -4,7 +4,16 @@ import { test } from 'node:test';
 import { isAllowed, isPackageException } from './check-licenses.mjs';
 
 test('einzelne Lizenzen: Freigabeliste und Aliase', () => {
-  for (const id of ['MIT', 'Apache-2.0', 'MPL-2.0', 'AGPL-3.0-only', 'GPL-3.0', 'Apache License 2.0', 'Apache 2.0']) {
+  for (const id of [
+    'MIT',
+    'Apache-2.0',
+    'MPL-2.0',
+    'AGPL-3.0-only',
+    'GPL-3.0',
+    'Apache License 2.0',
+    'Apache 2.0',
+    'OFL-1.1',
+  ]) {
     assert.equal(isAllowed(id), true, id);
   }
   for (const id of [

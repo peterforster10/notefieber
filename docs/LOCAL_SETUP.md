@@ -691,7 +691,7 @@ Erwartet: nur Zeilen mit `OK`, dann `Alle Prüfungen bestanden.` Beim ersten Lau
 
 ### Spaces und Seitenbaum
 
-Nach dem Anmelden zeigt `http://localhost:3000` die eigenen Spaces und „Neuer Space“. Ein Space öffnet sich unter `/spaces/<schlüssel>` (klein geschrieben, z. B. `/spaces/entw`; gespeichert und angezeigt wird `ENTW`), eine Seite unter `/spaces/entw/pages/<titel>-<kurze id>`, z. B. `/spaces/entw/pages/architektur-034uANlqQWodlcQ4FIOXYJ`. Die kurze ID ist die UUID der Seite in Base62 (22 Zeichen, [`urls.ts`](../packages/shared/src/urls.ts)); der Titel davor ist nur zum Lesen. Alte Links mit altem Titel oder großem Schlüssel funktionieren weiter, das Frontend zieht die Adresse dann nach. Die API selbst arbeitet mit UUIDs und nimmt Schlüssel in beiden Schreibweisen an. In der Seitenleiste: Space-Umschalter, „+ Neue Seite“ (unter der Startseite), der Eintrag „Startseite“, der Baum und der Papierkorb. Wie in Confluence steht die Startseite selbst nicht im Baum; der Baum beginnt mit ihren Unterseiten, „Ausrücken“ geht deshalb nur bis zu dieser obersten Ebene. Der Baum lädt ebenenweise: erst die oberste Ebene und die Unterseiten der Startseite, jede weitere Ebene beim Aufklappen. Seiten unter einer Seite, die die Person nicht sieht, stehen unter der nächsten sichtbaren (in den Testdaten sieht Max „Urlaubsplanung Vertrieb“ direkt unter „Betrieb“, weil die „Personalplanung 2027“ dazwischen für ihn unsichtbar ist). Seiten lassen sich per Drag & Drop verschieben (obere Kante davor, untere dahinter, Mitte hinein). Fährt man über eine Seite (oder springt mit der Tab-Taste hinein), erscheinen außerdem die Knöpfe: neue Unterseite, umbenennen, nach oben, nach unten, einrücken (unter die vorige Seite), ausrücken (hinter die Elternseite), in den Papierkorb. Wer nur liest, sieht keine Knöpfe. Admins finden unter dem Space-Umschalter „Einstellungen“ (`/spaces/<schlüssel>/settings`): Name, Beschreibung, archivieren und zurückholen.
+Nach dem Anmelden zeigt `http://localhost:3000` die eigenen Spaces und „Neuer Space“. Ein Space öffnet sich unter `/s/<schlüssel>` (klein geschrieben, z. B. `/s/entw`; gespeichert und angezeigt wird `ENTW`), eine Seite unter `/s/entw/p/<titel>-<kurze id>`, z. B. `/s/entw/p/architektur-034uANlqQWodlcQ4FIOXYJ`. Die früheren Adressen `/spaces/…/pages/…` leitet das Frontend dauerhaft dorthin um. Die kurze ID ist die UUID der Seite in Base62 (22 Zeichen, [`urls.ts`](../packages/shared/src/urls.ts)); der Titel davor ist nur zum Lesen. Alte Links mit altem Titel oder großem Schlüssel funktionieren weiter, das Frontend zieht die Adresse dann nach. Die API selbst arbeitet mit UUIDs und nimmt Schlüssel in beiden Schreibweisen an. In der Seitenleiste: Space-Umschalter, „Seiten“ mit „+“ (neue Seite unter der Startseite), der Eintrag „Startseite“, der Baum und der Papierkorb. Wie in Confluence steht die Startseite selbst nicht im Baum; der Baum beginnt mit ihren Unterseiten, „Ausrücken“ geht deshalb nur bis zu dieser obersten Ebene. Der Baum lädt ebenenweise: erst die oberste Ebene und die Unterseiten der Startseite, jede weitere Ebene beim Aufklappen. Seiten unter einer Seite, die die Person nicht sieht, stehen unter der nächsten sichtbaren (in den Testdaten sieht Max „Urlaubsplanung Vertrieb“ direkt unter „Betrieb“, weil die „Personalplanung 2027“ dazwischen für ihn unsichtbar ist). Seiten lassen sich per Drag & Drop verschieben (obere Kante davor, untere dahinter, Mitte hinein). Fährt man über eine Seite (oder springt mit der Tab-Taste hinein), erscheinen außerdem „+“ (neue Unterseite) und das Menü „⋯“: umbenennen (F2), nach oben, nach unten, einrücken (unter die vorige Seite), ausrücken (hinter die Elternseite), in den Papierkorb (Entf). Im Baum wandert man mit den Pfeiltasten (UC-40). Wer nur liest, sieht weder „+“ noch „⋯“. Admins finden im Space-Umschalter am Space unter „⋯“ die „Einstellungen“ (`/s/<schlüssel>/settings`): Name, Beschreibung, archivieren und zurückholen.
 
 Die API dazu (alle nur mit Sitzung):
 
@@ -795,13 +795,53 @@ PSQL="docker exec -i nf-pg18-apitest psql -U wiki_owner -d wiki" bash database/s
 
 Ziel unter 100 ms pro Ebene, Fehler über 1 s. Ergebnis am 22. November 2026 (Windows-Rechner, PostgreSQL im Docker-Container): 2–42 ms pro Ebene (oberste Ebene und Startseite mit 100 Seiten 23–42 ms, tiefere Ebenen 2–3 ms), mit und ohne `ANALYZE` gleich; der frühere flache Baum über die Leseregel brauchte 2,7 s. Nicht Teil von `ci.sh`.
 
+### Oberfläche messen und auf Barrierefreiheit prüfen (Playwright)
+
+[`apps/web/e2e/`](../apps/web/e2e) prüft zwei Abnahmekriterien aus E15 im Browser gegen die laufende lokale Umgebung (nicht in der CI, weil es den ganzen Stack braucht):
+
+- [`editor-200-blocks.spec.ts`](../apps/web/e2e/editor-200-blocks.spec.ts): legt in `ENTW` eine Seite an, fügt gemischte Blöcke ein (Überschriften, Absätze, Listen, Zitat, Code; zusammen 225 Blöcke), wartet auf das Speichern und lädt die Seite fünfmal neu. Gemessen wird vom Start der Navigation, bis ein getipptes Zeichen im Editor steht, dazu die Verzögerung beim Tippen. Fehler ab 2 s. Die Seite kommt danach in den Papierkorb.
+- [`a11y.spec.ts`](../apps/web/e2e/a11y.spec.ts): axe (WCAG 2.0, 2.1 und 2.2, A und AA) auf der Startseite, einer Seite mit eigenen Rechten, den Space-Einstellungen, in allen drei Dialogen und in der offenen Schublade, bei 1280 und 768 px Breite; dazu „Zum Inhalt springen“, der Seitenbaum mit Pfeiltasten und Esc in Dialog und Schublade.
+
+Angemeldet wird als Peter Forster über die Anmeldeseite von Zitadel (`NF_E2E_USER`, Passwort `NF_TEST_PASSWORD`). Als Browser entweder das Chromium von Playwright (einmalig `pnpm --filter @notefieber/web exec playwright install chromium`, lädt etwa 150 MB) oder ein installierter Browser mit `NF_E2E_CHANNEL=msedge` bzw. `chrome`.
+
+Barrierefreiheit gegen das laufende `pnpm dev:web`:
+
+```bash
+NF_E2E_CHANNEL=msedge pnpm --filter @notefieber/web e2e e2e/a11y.spec.ts
+```
+
+**Messen nur gegen einen Produktions-Build**: `next dev` übersetzt beim ersten Aufruf und misst sich damit selbst. Damit der eigene Build nicht mit den laufenden Apps kollidiert, laufen Frontend, API und Collab-Server auf eigenen Ports. Alle drei brauchen `PUBLIC_URL` passend zum Frontend, weil API und Collab-Server den `Origin` prüfen. Angemeldet wird trotzdem über Port 3000 (`NF_E2E_LOGIN_URL`), weil Zitadel nur diesen Rücksprung kennt; das Sitzungs-Cookie gilt für den Host, nicht den Port.
+
+```bash
+# einmal bauen (NEXT_PUBLIC_-Werte stehen danach fest im Bundle)
+cd apps/web && API_INTERNAL_URL=http://localhost:4100 NEXT_PUBLIC_COLLAB_URL=ws://localhost:1334 pnpm exec next build
+# drei Terminals
+cd apps/api && PUBLIC_URL=http://localhost:3100 API_PORT=4100 node --env-file-if-exists=../../.local/zitadel.env --env-file-if-exists=../../.env src/api.ts
+cd apps/collab && PUBLIC_URL=http://localhost:3100 COLLAB_PORT=1334 COLLAB_INTERNAL_PORT=1335 node --env-file-if-exists=../../.env src/collab.ts
+cd apps/web && API_INTERNAL_URL=http://localhost:4100 pnpm exec next start -p 3100
+# messen (pnpm dev:api und dev:web auf 3000/4000 müssen für den Login laufen)
+NF_E2E_CHANNEL=msedge NF_E2E_URL=http://localhost:3100 NF_E2E_LOGIN_URL=http://localhost:3000 pnpm --filter @notefieber/web e2e e2e/editor-200-blocks.spec.ts
+```
+
+Achtung: `next build` in `apps/web`, während dort `next dev` läuft, kann den Dev-Server durcheinanderbringen (siehe [Fehlerbehebung](#apps)).
+
+Ergebnis am 24. November 2026 (Windows-Rechner, Edge, Produktions-Build, alles lokal):
+
+| Messung | Wert |
+|---|---|
+| Seite mit 225 Blöcken bearbeitbar (Navigation bis getipptes Zeichen sichtbar) | Median 1.484 ms, Maximum 1.551 ms (5 Läufe: 1.551, 1.464, 1.424, 1.546, 1.484) |
+| Verzögerung beim Tippen in dieser Seite | Median 7 ms |
+| axe, WCAG 2.2 AA | keine Befunde (Desktop und Tablet, alle Dialoge, Schublade) |
+
+Grenzen: Die Läufe nutzen den Browser-Cache (wie im Alltag, wenn jemand die App schon offen hatte); ein ganz kalter erster Aufruf ist nicht gemessen. Server und Browser laufen auf demselben Rechner, ohne Netzlatenz.
+
 ### Prüfen wie in der CI
 
 ```bash
 pnpm check
 ```
 
-Das sind nacheinander: `pnpm lint` (ESLint, eine Konfiguration für alles in [`eslint.config.mjs`](../eslint.config.mjs), die Next.js-Regeln nur für `apps/web`), `pnpm format:check` (Prettier; `pnpm format` formatiert), `pnpm typecheck` (alle Pakete), `pnpm test` (Unit-Tests mit dem Test-Runner von Node, Dateien `*.test.ts`, `scripts/*.test.mjs` und `apps/web/messages/messages.test.mjs`, ohne Datenbank; darunter prüft `messages.test.mjs`, dass Deutsch und Englisch dieselben Schlüssel und Platzhalter haben, und `apps/api/src/http/errors.test.ts`, dass jede Meldung in `DB_RULES` genau so im Schema steht), `pnpm licenses:check`, `pnpm notices:check` und `pnpm build`. Der CI-Job `apps` in [`.gitlab-ci.yml`](../.gitlab-ci.yml) führt genau das aus, im Image `node:24.18.1`.
+Das sind nacheinander: `pnpm lint` (ESLint, eine Konfiguration für alles in [`eslint.config.mjs`](../eslint.config.mjs), die Next.js-Regeln nur für `apps/web`), `pnpm format:check` (Prettier; `pnpm format` formatiert), `pnpm typecheck` (alle Pakete), `pnpm test` (Unit-Tests mit dem Test-Runner von Node, Dateien `*.test.ts`, `scripts/*.test.mjs`, `apps/web/messages/messages.test.mjs` und `apps/web/src/**/*.test.mjs`, ohne Datenbank; darunter prüft `messages.test.mjs`, dass Deutsch und Englisch dieselben Schlüssel und Platzhalter haben, `apps/web/src/app/contrast.test.mjs`, dass alle Farbpaare des Designsystems WCAG 2.2 AA erreichen, und `apps/api/src/http/errors.test.ts`, dass jede Meldung in `DB_RULES` genau so im Schema steht), `pnpm licenses:check`, `pnpm notices:check` und `pnpm build`. Der CI-Job `apps` in [`.gitlab-ci.yml`](../.gitlab-ci.yml) führt genau das aus, im Image `node:24.18.1`.
 
 **Lizenzprüfung** ([`scripts/check-licenses.mjs`](../scripts/check-licenses.mjs)): Der eigene Code steht unter AGPL-3.0-only ([`LICENSE`](../LICENSE)), deshalb darf nur hinein, was damit verträglich ist. Das Skript arbeitet mit einer **Freigabeliste** von SPDX-Lizenzen (freizügige Lizenzen, MPL-2.0, LGPL, GPL-3.0, AGPL-3.0) und Ausnahmen für einzelne Pakete mit genau einer Lizenz (`caniuse-lite` mit CC-BY-4.0: nur Daten, kein Code). Sie wertet SPDX-Ausdrücke aus wie SPDX selbst: Klammern zuerst, `AND` bindet stärker als `OR`, `X WITH Ausnahme` zählt als eigene Lizenz, und was sich nicht lesen lässt, ist nicht erlaubt. Die Auswertung prüfen Tests in [`scripts/check-licenses.test.mjs`](../scripts/check-licenses.test.mjs), die `pnpm test` mitlaufen lässt (z. B. dass `GPL-2.0-only AND (MIT OR Apache-2.0)` abgelehnt wird). Alles andere ist ein Fehler, insbesondere GPL-2.0-only, CDDL, EPL-1.0, SSPL, BUSL/BSL, Commons Clause und unbekannte Lizenzen. Die BlockNote-XL-Pakete (GPL-3.0) sind im AGPL-Kern erlaubt, in künftigen proprietären Enterprise-Teilen nicht. Eine neue Lizenz oder Ausnahme kommt mit Begründung in das Skript.
 
@@ -932,6 +972,7 @@ Ohne `-v` bleiben die Volumes (`notefieber-pgdata` mit den Datenbanken `wiki` un
 | `EADDRINUSE` | Der Port ist belegt, meist läuft die App schon in einem anderen Terminal. Anderen Port in der `.env` setzen (`API_PORT`, `COLLAB_PORT`) oder die andere Instanz beenden. |
 | `ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX` oder `… only supported in strip-only mode` | Syntax, die Node nicht einfach wegstreichen kann (`enum`, `namespace`, Parameter-Properties). Umschreiben, z. B. `as const`-Objekte statt `enum`. |
 | `Cannot find module './…'` beim Start | Relativer Import ohne Endung. In den Node-Apps immer mit `.ts` importieren. |
+| `next dev` liefert nur noch 500, „… was instantiated … but the module factory is not available“ | Meist nach `next build` (auch über `pnpm check`) im selben Ordner, während `next dev` lief. `pnpm dev:web` neu starten. |
 
 ## 10. Was noch dazukommt
 

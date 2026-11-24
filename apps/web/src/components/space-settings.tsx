@@ -4,11 +4,9 @@
 // nicht im archivierten Space), archivieren und zurückholen Space- und Organisations-Admins
 // (app.archive_space; canManage, weil im archivierten Space auch Admins nur noch lesen). Der
 // Schlüssel bleibt fest: Er steht in Adressen und kommt beim Import aus Confluence.
-import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { spacePath } from '@notefieber/shared';
 import { api, queryKeys, type Space } from '@/lib/api';
 import { useErrorText } from '@/lib/errors';
 
@@ -55,9 +53,6 @@ export function SpaceSettings({ space }: { space: Space }) {
 
   return (
     <article className="nf-settings">
-      <p className="nf-breadcrumb">
-        <Link href={spacePath(space.key)}>{space.name}</Link> /
-      </p>
       <h1>{t('title')}</h1>
       <p className="nf-muted">{t.rich('key', { code: (chunks) => <code>{chunks}</code>, key: space.key })}</p>
 

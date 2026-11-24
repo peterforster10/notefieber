@@ -41,6 +41,15 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: '/:path*', headers: [{ key: 'Content-Security-Policy', value: "img-src 'self' data: blob:" }] }];
   },
+  // Kurze Adressen seit 24. November 2026 (/s/entw/p/<titel>-<id>, packages/shared/src/urls.ts):
+  // Die früheren Adressen bleiben gültig, Lesezeichen und geteilte Links führen dauerhaft dorthin
+  async redirects() {
+    return [
+      { source: '/spaces/:key', destination: '/s/:key', permanent: true },
+      { source: '/spaces/:key/settings', destination: '/s/:key/settings', permanent: true },
+      { source: '/spaces/:key/pages/:slug', destination: '/s/:key/p/:slug', permanent: true },
+    ];
+  },
   async rewrites() {
     return [{ source: '/api/:path*', destination: `${apiInternalUrl}/api/:path*` }];
   },

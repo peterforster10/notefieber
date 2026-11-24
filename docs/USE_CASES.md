@@ -3,7 +3,7 @@
 Was sich im Frontend schon durchklicken lässt. **Stand: 24. November 2026** (M0 abgeschlossen,
 M1 mit Editor, gemeinsamem Bearbeiten, Rechten, die auch für offene Editoren sofort gelten,
 Umbenennen aus der Seitenleiste und lokalen Kopien für Funklöcher; M2 mit Seitenbaum, der
-ebenenweise lädt, Drag & Drop und Space-Einstellungen sowie den Blöcken im Editor: Callouts, Bilder, Code, Tabellen, Seitenlinks, Erwähnungen, Inhaltsverzeichnis; Oberfläche auf Deutsch und Englisch). Wird nachgeführt, sobald ein neuer Ablauf in der Oberfläche dazukommt; was es
+ebenenweise lädt, Drag & Drop und Space-Einstellungen sowie den Blöcken im Editor: Callouts, Bilder, Code, Tabellen, Seitenlinks, Erwähnungen, Inhaltsverzeichnis; Oberfläche auf Deutsch und Englisch; Web-Client nach dem UI-Entwurf mit heller Seitenleiste, Kopfbereich, Tastaturbedienung und Schublade bis Tablet). Wird nachgeführt, sobald ein neuer Ablauf in der Oberfläche dazukommt; was es
 nur in Datenbank oder API gibt, steht unten unter „Noch nicht in der Oberfläche“.
 
 **Spalte „Geprüft“:** *Browser* = am 12. November 2026 von Hand gegen die lokale Umgebung
@@ -39,7 +39,7 @@ in `compose.yaml` (`NF_TEST_PASSWORD`).
 | UC-07 | Seite öffnen | alle mit Leserecht | Browser |
 | UC-08 | Seitenbaum auf- und zuklappen | alle | Browser (22. November 2026, jede Ebene lädt erst beim Aufklappen; Baum und Papierkorb bleiben beim Seitenwechsel und Neuladen offen) |
 | UC-09 | Seite anlegen | Bearbeitende | Browser |
-| UC-10 | Seite verschieben | Bearbeitende | Browser (↑), Code (↓ → ←); Drag & Drop: UC-28 |
+| UC-10 | Seite verschieben | Bearbeitende | Browser (↑; seit 24. November 2026 über das Menü „⋯“ der Zeile), Code (↓ → ←); Drag & Drop: UC-28 |
 | UC-11 | Seite in den Papierkorb legen | Bearbeitende | Browser |
 | UC-12 | Seite aus dem Papierkorb wiederherstellen | Bearbeitende | Browser |
 | UC-13 | Archivierten Space lesen | alle mit Leserecht | Browser |
@@ -67,6 +67,9 @@ in `compose.yaml` (`NF_TEST_PASSWORD`).
 | UC-36 | Person erwähnen | Bearbeitende; sehen: alle mit Leserecht | Browser (23. November 2026, „@“ im Absatz; Gast Elena sieht auf „Kampagne Frühjahr“ nur „@Unbekannt“ und findet nur sich selbst) |
 | UC-37 | Inhaltsverzeichnis einfügen | Bearbeitende | Browser (23. November 2026, zieht neue Überschriften sofort nach, Unterüberschriften eingerückt, Sprung zur Überschrift) |
 | UC-35 | Seitenlink bleibt gültig und verrät nichts | alle | Browser (23. November 2026, Ziel umbenannt und verschoben; Max sieht bei „Personalplanung 2027“ nur „Seite nicht verfügbar“) |
+| UC-39 | Kopfbereich: Brotkrume, Anwesenheit, Versionen, Exportieren, Teilen und Rechte | alle mit Leserecht | Browser (24. November 2026, „Personalplanung 2027“ mit Hinweis „Eingeschränkt“; Dialoge per Maus und Tastatur, Esc gibt den Fokus an den Knopf zurück), Skript (`apps/web/e2e/a11y.spec.ts`) |
+| UC-40 | Nur mit der Tastatur arbeiten | alle | Browser (24. November 2026, Baum mit Pfeiltasten auf- und zuklappen, Seite mit Enter öffnen, Menü „⋯“ der Zeile), Skript (`a11y.spec.ts`: Zum Inhalt springen, Pfeiltasten, Pos1/Ende) |
+| UC-41 | Auf dem Tablet arbeiten | alle | Browser (24. November 2026, 768 × 1024: Schublade öffnen und mit Esc schließen, Knöpfe nur mit Icon), Skript (`a11y.spec.ts` bei 768 px) |
 | UC-38 | Sprache umschalten (Deutsch, English) | alle, auch vor dem Login | Browser (24. November 2026, Lukas: ohne Cookie Browsersprache, nach dem Login Sprache aus dem Profil, Umschalten auf English mit Seitenleiste, Einstellungen, /-Menü, Callout-Arten und Fehlermeldung, zurück auf Deutsch) |
 
 ## Anmelden und Abmelden
@@ -121,20 +124,20 @@ jede nur in „Alpenwerk“.
 
 ### UC-06 Space wechseln
 
-Oben in der Seitenleiste per Auswahlliste, oder über „NoteFieber“ zurück zur Startseite.
+Oben in der Seitenleiste die Karte des Spaces (Kürzel, Name, Schlüssel) anklicken: Das Menü listet alle Spaces, dazu „Alle Spaces“. Über den Namen des Mandanten ganz oben geht es zurück zur Startseite.
 
 ## Seiten und Seitenbaum
 
 ### UC-07 Seite öffnen
 
 Ein Klick im Seitenbaum öffnet die Seite. Ohne Auswahl zeigt ein Space seine Startseite
-(eigener Eintrag „Startseite“ über dem Baum). Angezeigt werden Brotkrume (nur Seiten, die die
-Person sehen darf), Titel, Schloss bei Seiten mit eigenen Rechten und die eigene Rolle (Lesen,
-Kommentieren, Bearbeiten, Admin). Darunter der Editor mit dem Inhalt (UC-19 bis UC-22).
+(eigener Eintrag „Startseite“ über dem Baum). Angezeigt werden im Kopfbereich die Brotkrume (nur Seiten, die die
+Person sehen darf), über dem Titel der Hinweis „Eingeschränkt“ bei Seiten mit eigenen Rechten und unter dem Titel die eigene Rolle (Lesen,
+Kommentieren, Bearbeiten, Admin; UC-39). Darunter der Editor mit dem Inhalt (UC-19 bis UC-22).
 
 ### UC-08 Seitenbaum auf- und zuklappen
 
-Mit dem Dreieck vor einer Seite; das Dreieck steht nur an Seiten mit (sichtbaren) Unterseiten.
+Mit dem Pfeil vor einer Seite (per Tastatur → und ←, UC-40); der Pfeil steht nur an Seiten mit (sichtbaren) Unterseiten.
 Beim Öffnen einer Seite ist der Weg zu ihr aufgeklappt. Was man auf- oder zugeklappt hat,
 bleibt beim Wechsel auf eine andere Seite und beim Neuladen so, ebenso der Papierkorb (pro Space
 und Tab; Abmelden vergisst es). Der Baum lädt Ebene für Ebene: zuerst
@@ -143,31 +146,31 @@ nur die oberste Ebene und die Unterseiten der Startseite, jede weitere erst beim
 
 ### UC-09 Seite anlegen
 
-- „+ Neue Seite“ oben im Baum: neue Unterseite der Startseite.
-- „+“ an einer Seite (erscheint beim Darüberfahren oder per Tastatur): neue Unterseite dieser Seite.
+- „+“ neben der Überschrift „Seiten“: neue Unterseite der Startseite.
+- „+“ an einer Seite (erscheint beim Darüberfahren, per Tastatur und auf Touch-Geräten an der ausgewählten Seite): neue Unterseite dieser Seite.
 
 Titel eingeben, „Anlegen“ (oder Escape zum Abbrechen). Die Seite steht am Ende der Geschwister
 und öffnet sich sofort.
 
 ### UC-10 Seite verschieben
 
-Knöpfe an der Seite (beim Darüberfahren oder per Tastatur):
+Im Menü „⋯“ an der Seite (erscheint wie „+“):
 
-- ↑ / ↓: vor die vorige bzw. hinter die nächste Geschwisterseite
-- →: einrücken, also unter die vorige Seite
-- ←: ausrücken, also hinter die Elternseite (nicht aus der Startseite heraus)
+- Nach oben / Nach unten: vor die vorige bzw. hinter die nächste Geschwisterseite
+- Einrücken: unter die vorige Seite
+- Ausrücken: hinter die Elternseite (nicht aus der Startseite heraus)
 
 Verschieben nimmt die Unterseiten mit. Aus einem Bereich mit eigenen Rechten heraus geht es nur
 als Admin dieses Bereichs; sonst erscheint eine Meldung. Mit der Maus geht es per Drag & Drop
-(UC-28); die Knöpfe bleiben für Tastatur und Touch.
+(UC-28); das Menü bleibt für Tastatur und Touch.
 
 An Seiten, deren Elternseite die Person nicht sieht (sie stehen unter der nächsten sichtbaren
-Seite, UC-14), gibt es ↑, ↓ und ← nicht: Umsortieren dort verlangt Rechte auf der unsichtbaren
+Seite, UC-14), sind „Nach oben“, „Nach unten“ und „Ausrücken“ ausgegraut: Umsortieren dort verlangt Rechte auf der unsichtbaren
 Elternseite.
 
 ### UC-11 Seite in den Papierkorb legen
 
-Papierkorb-Knopf an der Seite, Rückfrage mit Titel (und „alle Unterseiten“, falls es welche gibt) bestätigen. Die
+„In den Papierkorb“ im Menü „⋯“ der Seite (oder Entf auf der Zeile), Rückfrage mit Titel (und „alle Unterseiten“, falls es welche gibt) bestätigen. Die
 Seite verschwindet samt Unterseiten aus dem Baum; war sie geöffnet, geht es zur Startseite. Die
 Startseite selbst lässt sich nicht löschen, ebenso wenig eine Seite, unter der Seiten liegen,
 die die Person nicht bearbeiten darf.
@@ -182,7 +185,7 @@ nicht in der Oberfläche (das macht später der Worker nach 30 Tagen).
 ### UC-13 Archivierten Space lesen
 
 Ein archivierter Space zeigt „Archiviert, nur lesbar“. Alle haben dort höchstens Leserechte, es
-gibt keine Knöpfe zum Anlegen, Verschieben oder Löschen. Archivieren und zurückholen: UC-30.
+gibt kein „+“ und kein Menü „⋯“ zum Anlegen, Verschieben oder Löschen. Archivieren und zurückholen: UC-30.
 
 ### UC-14 Nur sehen, was man sehen darf
 
@@ -229,10 +232,11 @@ mit einem Konto für eine andere Adresse wird abgelehnt (UC-02). Ausprobieren: P
 
 ### UC-18 Links bleiben gültig
 
-Adressen haben die Form `/spaces/entw/pages/architektur-<kurze id>`. Nur die kurze ID zählt:
+Adressen haben die Form `/s/entw/p/architektur-<kurze id>`. Nur die kurze ID zählt:
 Ein Link mit altem Titel oder großgeschriebenem Space-Schlüssel führt auf die richtige Seite,
 und die Adresse wird ohne neuen Eintrag im Verlauf korrigiert, auch nach dem Umbenennen im
-Editor (UC-22).
+Editor (UC-22). Die früheren, längeren Adressen `/spaces/entw/pages/…` führen dauerhaft auf die kurzen
+(Umleitung, geprüft in `apps/web/e2e/a11y.spec.ts`).
 
 ## Editor
 
@@ -250,8 +254,8 @@ zurück ist.“ (UC-27).
 
 Zwei Personen öffnen dieselbe Seite (zum Ausprobieren in zwei verschiedenen Browsern oder einem
 privaten Fenster, sonst teilen sie sich das Sitzungs-Cookie). Was die eine tippt, sieht die
-andere sofort. Rechts neben dem Titel stehen die Avatare aller, die die Seite offen haben, auch
-der Lesenden; eine Person mit mehreren Tabs nur einmal. Andere Bearbeitende haben einen Cursor
+andere sofort. Rechts im Kopfbereich stehen die Avatare aller, die die Seite offen haben, auch
+der Lesenden (Name beim Darüberfahren); eine Person mit mehreren Tabs nur einmal. Andere Bearbeitende haben einen Cursor
 mit Namen und Farbe (die Farbe hängt an der Person).
 
 ### UC-21 Live lesen, ohne zu schreiben
@@ -264,7 +268,7 @@ auch für Bearbeitende nur lesbar (UC-24).
 ### UC-22 Titel im Editor ändern
 
 Der Titel ist ein Eingabefeld über dem Inhalt (höchstens 255 Zeichen). Andere sehen die
-Änderung sofort; Seitenbaum, Brotkrume und Adresse (`/spaces/…/pages/<titel>-<id>`) ziehen nach
+Änderung sofort; Seitenbaum, Brotkrume und Adresse (`/s/…/p/<titel>-<id>`) ziehen nach
 spätestens 10 s nach. Umbenennen geht auch aus der Seitenleiste (UC-26). Enter im Titel fügt oben im
 Inhalt eine neue, leere Zeile ein und setzt den Cursor hinein; ist die erste Zeile schon leer
 (neue Seite), springt der Cursor nur dorthin. Der Titel selbst bleibt dabei unverändert.
@@ -299,8 +303,8 @@ ab, schließt der Editor spätestens nach 5 Minuten (regelmäßige Prüfung im C
 
 ### UC-26 Seite in der Seitenleiste umbenennen
 
-Im Seitenbaum über ✎ an der Seite (erscheint beim Darüberfahren oder per Tastatur), neuen Titel
-eingeben, Enter. Nur für Bearbeitende; die Startseite benennt man im Editor um. Der neue Titel
+Im Seitenbaum über „Umbenennen“ im Menü „⋯“ der Seite (oder F2 auf der Zeile), neuen Titel
+eingeben, Enter (Esc bricht ab). Nur für Bearbeitende; die Startseite benennt man im Editor um. Der neue Titel
 steht sofort im Baum, in der Brotkrume und in der Adresse, und wer die Seite gerade offen hat,
 sieht ihn im Editor ohne Neuladen (die API bittet den Collab-Server, den Titel im Yjs-Dokument zu
 ändern). Lokal braucht das `COLLAB_INTERNAL_SECRET` in der `.env` (siehe `.env.example`), sonst
@@ -335,7 +339,7 @@ unsichtbaren Seiten lassen sich nicht ziehen. Escape bricht ab.
 
 ### UC-29 Space umbenennen und beschreiben
 
-„Einstellungen“ unter dem Space-Umschalter (nur für Admins des Spaces und
+Space-Umschalter öffnen, über den Space fahren, „⋯“ und dann „Einstellungen“ im Untermenü rechts (per Tastatur: → auf dem Space; nur für Admins des Spaces und
 Organisations-Admins). Name und Beschreibung ändern, „Speichern“. Der Name ändert sich sofort im
 Umschalter und auf der Startseite; die Beschreibung steht in der Liste der Spaces. Der
 Schlüssel (z. B. `ENTW`) bleibt fest. Im archivierten Space erst zurückholen (UC-30).
@@ -418,6 +422,22 @@ Browser (Cookie `nf_locale`). Ohne Wahl gilt die Browsersprache, nach dem Login 
 dem Profil (für neue Personen Deutsch). Die Anmeldeseite von Zitadel erscheint in der gewählten
 Sprache (`ui_locales`). Geschriebene Inhalte werden nicht übersetzt; „/hinweis“ und „/note“
 finden den Callout in beiden Sprachen.
+
+## Web-Client (M2, E15)
+
+Aufbau nach dem UI-Entwurf in `prototype/pages/Main.dc.html`, abweichend davon mit heller Seitenleiste und der Schrift Inter (`CLAUDE.md`, Abschnitt 9). Barrierefreiheit (WCAG 2.2 AA) prüfen `apps/web/e2e/a11y.spec.ts` mit axe und `apps/web/src/app/contrast.test.mjs` für alle Farbpaare; die Ladezeit misst `apps/web/e2e/editor-200-blocks.spec.ts` ([LOCAL_SETUP.md](LOCAL_SETUP.md), Abschnitt 7).
+
+### UC-39 Kopfbereich einer Seite
+
+Oben links die Brotkrume (Vorfahren, die man lesen darf, dann die Seite selbst; lange Titel werden gekürzt), rechts die Avatare aller, die die Seite gerade offen haben, dann „Versionen“, „Exportieren“ und „Teilen und Rechte“. Seiten mit eigenen Rechten tragen über dem Titel den Hinweis „Eingeschränkt“ mit Schloss, darunter steht die eigene Rolle. Die drei Knöpfe öffnen vorerst einen Dialog, der sagt, was dort kommt (Versionen mit E08, Rechte-Dialog in M3, Export mit E14); „Teilen und Rechte“ zeigt schon, ob die Seite eigene Rechte hat oder sie erbt, und die eigene Rolle. Dialoge schließen mit Esc, „Schließen“ oder einem Klick daneben, der Fokus geht zurück zum Knopf. Unter 1200 px zeigen „Versionen“ und „Exportieren“ nur ihr Icon.
+
+### UC-40 Nur mit der Tastatur arbeiten
+
+Der erste Tab-Stopp ist „Zum Inhalt springen“. Der Seitenbaum ist ein einziger Tab-Stopp: ↑/↓ wechseln die Zeile, → klappt auf bzw. springt in die erste Unterseite, ← klappt zu bzw. springt zur Elternseite, Pos1/Ende springen an den Anfang bzw. ans Ende, Enter öffnet die Seite. Mit Tab geht es von der Zeile zu „Neue Unterseite“ und zum Menü „⋯“ (Umbenennen, nach oben, nach unten, einrücken, ausrücken, Papierkorb; im Menü ↑/↓, Esc). Direkt auf der Zeile benennt F2 um, Entf legt in den Papierkorb (mit Rückfrage). Der Space-Umschalter ist ebenfalls ein Menü. Der Fokus ist überall als blauer Ring sichtbar.
+
+### UC-41 Auf dem Tablet arbeiten
+
+Unter 1024 px Breite wird die Seitenleiste zur Schublade: Der Knopf „≡“ oben links öffnet sie, der Inhalt dahinter ist so lange gesperrt. Esc, „×“, ein Klick daneben oder ein Seitenwechsel schließen sie, der Fokus geht zurück zum Knopf. Unter 900 px zeigen alle Knöpfe im Kopfbereich nur ihr Icon. Auf Touch-Geräten sind „Neue Unterseite“ und „⋯“ an der ausgewählten Zeile immer sichtbar (ohne Hover).
 
 ## Noch nicht in der Oberfläche
 

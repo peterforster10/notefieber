@@ -24,8 +24,10 @@ import { apiError, type ApiErrorBody } from '@/lib/api';
 import { useErrorText } from '@/lib/errors';
 import type { Locale } from '@/i18n/locales';
 import { clearLocalCopy, closeLocalCopy, openLocalCopy } from '@/lib/local-copies';
+import { colorFor } from '@/lib/person-color';
 import { CONTENT_FRAGMENT, TITLE_MAX_LENGTH, TITLE_TEXT, documentName, setTitle } from '@notefieber/editor-schema';
 import { EditorMenus } from './editor/menus';
+import { usePresence, type PersonState } from './presence';
 import { browserSchema, setEditorTexts, setPageLinkNavigator, type EditorTexts } from './editor/schema';
 
 /** Wörterbücher von BlockNote (Menüs, Platzhalter, Tabellen …) pro Sprache der Oberfläche */
@@ -53,14 +55,6 @@ function collabUrl(): string {
   const configured = process.env.NEXT_PUBLIC_COLLAB_URL;
   if (configured) return configured;
   return `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/collab`;
-}
-
-/** Farbe pro Person, stabil über Sitzungen hinweg (aus der ID) */
-const COLORS = ['#1F5FD6', '#C2410C', '#1E5135', '#7C3AED', '#B45309', '#0E7490', '#BE185D', '#4D7C0F'];
-export function colorFor(id: string): string {
-  let h = 0;
-  for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  return COLORS[h % COLORS.length]!;
 }
 
 /** Text zur Ablehnung des Collab-Servers; `before`: der Editor war schon offen (Recht entzogen, abgemeldet) */
@@ -93,8 +87,12 @@ export function PageEditor(props: {
   fallbackTitle: string;
   /** Titel im Yjs-Dokument geändert (von wem auch immer) */
   onTitleChange?: (title: string) => void;
-  /** Zusätzliches im Kopfbereich neben dem Titel, z. B. das Schloss */
-  titleAddon?: React.ReactNode;
+  /** Über dem Titel, z. B. der Hinweis „Eingeschränkt“ */
+  beforeTitle?: React.ReactNode;
+  /** Unter dem Titel, z. B. Rolle und Papierkorb */
+  afterTitle?: React.ReactNode;
+  /** Wer die Seite gerade offen hat (Awareness); leer, solange keine Verbindung besteht */
+  onPresence?: (people: PersonState[]) => void;
   /**
    * Der Collab-Server hat die Verbindung neu angemeldet oder abgelehnt (Rechte geändert, Papierkorb,
    * abgemeldet): Seitendaten der API neu laden, damit Rolle und Papierkorb wieder stimmen.
@@ -166,12 +164,14 @@ export function PageEditor(props: {
     // (E04-05, E04-06). Der Titel aus der API ist der zuletzt gesehene.
     return (
       <>
-        <h1>{denied === 'forbidden' && conn ? t('noAccess') : props.fallbackTitle || common('untitled')}</h1>
+        <h1 className="nf-title">
+          {denied === 'forbidden' && conn ? t('noAccess') : props.fallbackTitle || common('untitled')}
+        </h1>
         <p role="alert" className="nf-alert">
           {deniedText(t, denied, !!conn)}
         </p>
         {denied === 'unauthenticated' && (
-          <button type="button" onClick={() => window.location.reload()}>
+          <button type="button" className="nf-button" onClick={() => window.location.reload()}>
             {t('signInAgain')}
           </button>
         )}
@@ -181,8 +181,12 @@ export function PageEditor(props: {
   if (!conn) {
     return (
       <>
-        <h1>{props.fallbackTitle || common('untitled')}</h1>
-        <p className="nf-muted">{status === 'disconnected' ? t('collabUnreachable') : t('connecting')}</p>
+        {props.beforeTitle}
+        <h1 className="nf-title">{props.fallbackTitle || common('untitled')}</h1>
+        {props.afterTitle}
+        <p className="nf-muted" role="status">
+          {status === 'disconnected' ? t('collabUnreachable') : t('connecting')}
+        </p>
       </>
     );
   }
@@ -197,7 +201,9 @@ export function PageEditor(props: {
       user={props.user}
       editable={editable}
       onTitleChange={props.onTitleChange}
-      titleAddon={props.titleAddon}
+      beforeTitle={props.beforeTitle}
+      afterTitle={props.afterTitle}
+      onPresence={props.onPresence}
       notice={
         // Erst nach dem ersten Abgleich sichtbar: alles außer verbunden heißt jetzt Funkloch
         status !== 'connected' ? (
@@ -253,7 +259,9 @@ function CollabEditor({
   editable,
   notice,
   onTitleChange,
-  titleAddon,
+  beforeTitle,
+  afterTitle,
+  onPresence,
 }: {
   pageId: string;
   spaceKey: string;
@@ -262,7 +270,9 @@ function CollabEditor({
   editable: boolean;
   notice?: React.ReactNode;
   onTitleChange?: (title: string) => void;
-  titleAddon?: React.ReactNode;
+  beforeTitle?: React.ReactNode;
+  afterTitle?: React.ReactNode;
+  onPresence?: (people: PersonState[]) => void;
 }) {
   const { doc, provider } = conn;
   const color = colorFor(user.id);
@@ -301,6 +311,8 @@ function CollabEditor({
       schema: browserSchema,
       dictionary: DICTIONARIES[locale],
       extensions: [syntaxHighlighter],
+      // Das Eingabefeld des Inhalts braucht einen Namen für Screenreader (WCAG 4.1.2)
+      domAttributes: { editor: { 'aria-label': t('contentLabel') } },
       uploadFile: (file: File) => uploadImage(pageId, file),
       collaboration: {
         provider: { awareness: provider.awareness ?? undefined },
@@ -332,6 +344,15 @@ function CollabEditor({
     };
   }, [provider, user.id, user.name, color]);
 
+  // Liste der Anwesenden an den Kopfbereich; beim Verlassen (andere Seite, kein Zugriff mehr) leeren
+  const people = usePresence(provider, user.id);
+  const presenceChanged = useRef(onPresence);
+  useEffect(() => {
+    presenceChanged.current = onPresence;
+  }, [onPresence]);
+  useEffect(() => presenceChanged.current?.(people), [people]);
+  useEffect(() => () => presenceChanged.current?.([]), []);
+
   // Enter im Titel: oben im Inhalt eine neue, leere Zeile und den Cursor hinein (wie in Confluence
   // und Notion). Ist die erste Zeile schon ein leerer Absatz (neue Seite), nur dorthin springen,
   // statt leere Zeilen zu stapeln.
@@ -349,17 +370,14 @@ function CollabEditor({
 
   return (
     <div className="nf-editor">
-      <div className="nf-editor-head">
-        <TitleField
-          text={doc.getText(TITLE_TEXT)}
-          editable={editable}
-          onChange={onTitleChange}
-          onEnter={startWriting}
-        />
-        {titleAddon}
-        <Presence provider={provider} selfId={user.id} />
-      </div>
-      {notice && <p className="nf-notice">{notice}</p>}
+      {beforeTitle}
+      <TitleField text={doc.getText(TITLE_TEXT)} editable={editable} onChange={onTitleChange} onEnter={startWriting} />
+      {afterTitle}
+      {notice && (
+        <p className="nf-notice" role="status">
+          {notice}
+        </p>
+      )}
       <BlockNoteView editor={editor} editable={editable} theme="light" slashMenu={false} filePanel={false}>
         <EditorMenus editor={editor} spaceKey={spaceKey} />
       </BlockNoteView>
@@ -420,49 +438,4 @@ function TitleField({
       />
     </h1>
   );
-}
-
-interface PersonState {
-  id: string;
-  name: string;
-  color: string;
-}
-
-/** Avatare aller, die die Seite offen haben (Awareness, nie gespeichert) */
-function Presence({ provider, selfId }: { provider: HocuspocusProvider; selfId: string }) {
-  const t = useTranslations('editor');
-  const awareness = provider.awareness;
-  const [people, setPeople] = useState<PersonState[]>([]);
-  useEffect(() => {
-    if (!awareness) return;
-    const update = () => {
-      const byId = new Map<string, PersonState>();
-      for (const state of awareness.getStates().values()) {
-        const p = (state as { person?: PersonState }).person;
-        if (p?.id) byId.set(p.id, p); // eine Person mit zwei Tabs nur einmal
-      }
-      setPeople([...byId.values()].sort((a, b) => (a.id === selfId ? -1 : b.id === selfId ? 1 : 0)));
-    };
-    update();
-    awareness.on('change', update);
-    return () => awareness.off('change', update);
-  }, [awareness, selfId]);
-
-  const shown = useMemo(() => people.slice(0, 6), [people]);
-  if (people.length === 0) return null;
-  return (
-    <ul className="nf-presence" aria-label={t('presence')}>
-      {shown.map((p) => (
-        <li key={p.id} title={p.id === selfId ? t('you', { name: p.name }) : p.name} style={{ background: p.color }}>
-          {initials(p.name)}
-        </li>
-      ))}
-      {people.length > shown.length && <li className="nf-presence-more">+{people.length - shown.length}</li>}
-    </ul>
-  );
-}
-
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  return ((parts[0]?.[0] ?? '') + (parts.length > 1 ? (parts.at(-1)?.[0] ?? '') : '')).toUpperCase() || '?';
 }

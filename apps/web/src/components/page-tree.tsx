@@ -12,12 +12,17 @@
 //
 // Verschieben per Drag & Drop (natives HTML5): obere Kante einer Zeile = davor, untere = dahinter
 // (bei aufgeklappten Seiten: als erste Unterseite), Mitte = hinein (ans Ende). Dieselben
-// Verschiebungen gehen mit Knöpfen, auch per Tastatur und auf Touch-Geräten: nach oben, nach
-// unten, einrücken (unter die vorige Seite), ausrücken (hinter die Elternseite). Der Baum zeigt
-// das Ergebnis sofort und lädt danach die betroffenen Ebenen neu; lehnt die API ab, springt er
+// Verschiebungen gehen über das Menü „⋯“ der Zeile, auch per Tastatur und auf Touch-Geräten: nach
+// oben, nach unten, einrücken (unter die vorige Seite), ausrücken (hinter die Elternseite). Der Baum
+// zeigt das Ergebnis sofort und lädt danach die betroffenen Ebenen neu; lehnt die API ab, springt er
 // zurück. Die Rechte prüft die Datenbank (app.move_page).
 //
-// Umbenennen (✎) geht über die API, die den Collab-Server bittet, den Titel im Yjs-Dokument zu
+// Tastatur (ARIA-Muster „Tree View“, E15): Der Baum ist ein Tab-Stopp (wandernder tabindex auf den
+// Links). ↑/↓ wechseln die Zeile, → klappt auf bzw. springt in die erste Unterseite, ← klappt zu bzw.
+// springt zur Elternseite, Pos1/Ende an den Anfang bzw. ans Ende, Enter öffnet die Seite. F2 benennt
+// um, Entf legt in den Papierkorb. Tab führt von der Zeile zu „Neue Unterseite“ und ihrem Menü.
+//
+// Umbenennen geht über die API, die den Collab-Server bittet, den Titel im Yjs-Dokument zu
 // ändern (E04-08): Wer die Seite gerade offen hat, sieht den neuen Titel sofort.
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -25,10 +30,12 @@ import {
   createContext,
   useContext,
   useEffect,
+  useId,
   useRef,
   useState,
   type DragEvent,
   type FormEvent,
+  type KeyboardEvent,
   type ReactNode,
 } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -38,6 +45,21 @@ import { pagePath, spacePath } from '@notefieber/shared';
 import { api, canEdit, queryKeys, usePage, useTreeLevel, type Space, type TreePage } from '@/lib/api';
 import { useErrorText } from '@/lib/errors';
 import { loadExpanded, saveExpanded } from '@/lib/sidebar-state';
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  ChevronRightIcon,
+  HomeIcon,
+  IndentIcon,
+  LockIcon,
+  MoreIcon,
+  OutdentIcon,
+  PageIcon,
+  PencilIcon,
+  PlusIcon,
+  TrashIcon,
+} from './icons';
+import { MenuButton } from './menu';
 
 type MoveBody = { parentId: string | null; afterId?: string; beforeId?: string };
 type Zone = 'before' | 'inside' | 'after';
@@ -63,6 +85,9 @@ interface Tree {
   expanded: Set<string>;
   toggle(id: string): void;
   expand(id: string): void;
+  /** Zeile, die per Tab erreichbar ist (wandernder tabindex) */
+  focusId: string | null;
+  setFocusId(id: string): void;
   busy: boolean;
   renaming: string | null;
   setRenaming(id: string | null): void;
@@ -90,12 +115,15 @@ export function PageTree({ space, selectedId }: { space: Space; selectedId?: str
   const errorText = useErrorText();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const headingId = useId();
+  const treeRef = useRef<HTMLUListElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [creatingUnder, setCreatingUnder] = useState<string | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [dragging, setDragging] = useState<Item | null>(null);
   const [drop, setDrop] = useState<{ id: string; zone: Zone } | null>(null);
   const homeId = space.homePageId;
+  const [focusId, setFocusId] = useState<string | null>(selectedId ?? homeId);
   const editableSpace = canEdit(space.role) && !space.archived;
 
   const root = useTreeLevel(space.key, null);
@@ -128,6 +156,14 @@ export function PageTree({ space, selectedId }: { space: Space; selectedId?: str
       return next;
     });
   const expand = (id: string) => setExpanded((prev) => (prev.has(id) ? prev : new Set(prev).add(id)));
+
+  // Genau eine Zeile per Tab erreichbar: Ist die gemerkte nicht (mehr) zu sehen (zugeklappt, gelöscht),
+  // übernimmt die erste
+  useEffect(() => {
+    const tree = treeRef.current;
+    if (!tree || tree.querySelector('[data-tree-link][tabindex="0"]')) return;
+    tree.querySelector<HTMLElement>('[data-tree-link]')?.setAttribute('tabindex', '0');
+  });
 
   const refresh = () =>
     Promise.all([
@@ -163,6 +199,12 @@ export function PageTree({ space, selectedId }: { space: Space; selectedId?: str
     onError: (err, _v, ctx) => {
       ctx?.snapshot.forEach(([key, data]) => queryClient.setQueryData(key, data));
       onError(err);
+    },
+    // Verschoben per Tastatur: Fokus bleibt auf der Seite, auch an ihrem neuen Platz
+    onSuccess: (_d, { item }) => {
+      requestAnimationFrame(() =>
+        treeRef.current?.querySelector<HTMLElement>(`[data-tree-link][data-id="${item.page.id}"]`)?.focus(),
+      );
     },
     onSettled: refresh,
   });
@@ -221,6 +263,55 @@ export function PageTree({ space, selectedId }: { space: Space; selectedId?: str
     return { parentId: target.page.parentId, afterId: target.page.id };
   }
 
+  /** Pfeiltasten, Pos1 und Ende im Baum; die Reihenfolge der sichtbaren Zeilen kommt aus dem DOM */
+  function onTreeKey(e: KeyboardEvent<HTMLUListElement>) {
+    const link = e.target as HTMLElement;
+    if (!link.matches('[data-tree-link]') || e.altKey || e.ctrlKey || e.metaKey) return;
+    const links = [...(treeRef.current?.querySelectorAll<HTMLElement>('[data-tree-link]') ?? [])];
+    const i = links.indexOf(link);
+    const row = link.closest<HTMLElement>('[role="treeitem"]');
+    const id = link.dataset.id;
+    const level = Number(row?.getAttribute('aria-level'));
+    const state = row?.getAttribute('aria-expanded');
+    const go = (el: HTMLElement | undefined) => {
+      if (!el?.dataset.id) return;
+      setFocusId(el.dataset.id);
+      el.focus();
+    };
+    switch (e.key) {
+      case 'ArrowDown':
+        go(links[i + 1]);
+        break;
+      case 'ArrowUp':
+        go(links[i - 1]);
+        break;
+      case 'Home':
+        go(links[0]);
+        break;
+      case 'End':
+        go(links.at(-1));
+        break;
+      case 'ArrowRight':
+        if (state === 'false' && id) toggle(id);
+        else if (state === 'true') {
+          const next = links[i + 1];
+          if (Number(next?.closest('[role="treeitem"]')?.getAttribute('aria-level')) === level + 1) go(next);
+        }
+        break;
+      case 'ArrowLeft':
+        if (state === 'true' && id) toggle(id);
+        else
+          go(
+            row?.parentElement?.closest('[role="treeitem"]')?.querySelector<HTMLElement>('[data-tree-link]') ??
+              undefined,
+          );
+        break;
+      default:
+        return;
+    }
+    e.preventDefault();
+  }
+
   const tree: Tree = {
     space,
     homeId,
@@ -228,6 +319,8 @@ export function PageTree({ space, selectedId }: { space: Space; selectedId?: str
     expanded,
     toggle,
     expand,
+    focusId,
+    setFocusId,
     busy: moveMutation.isPending || trashMutation.isPending,
     renaming,
     setRenaming,
@@ -260,16 +353,28 @@ export function PageTree({ space, selectedId }: { space: Space; selectedId?: str
     .filter((p) => p.id !== homeId)
     .map((page) => ({ page, level: null, ancestors: [] }));
   const homeItem: Item | undefined = home ? { page: home, level: null, ancestors: [] } : undefined;
+  const top = [...topFromHome, ...topFromRoot];
   const loading = root.isPending || (!!homeId && homeLevel.isPending);
 
   return (
     <TreeContext.Provider value={tree}>
-      <nav aria-label={t('label')} className="nf-tree">
-        {editableSpace && (
-          <button type="button" className="nf-sidebar-button" onClick={() => setCreatingUnder(homeId ?? 'root')}>
-            {t('newPage')}
-          </button>
-        )}
+      <div className="nf-tree">
+        <div className="nf-tree-head">
+          <h2 className="nf-tree-heading" id={headingId}>
+            {t('heading')}
+          </h2>
+          {editableSpace && (
+            <button
+              type="button"
+              className="nf-icon-button"
+              aria-label={t('newPage')}
+              title={t('newPage')}
+              onClick={() => setCreatingUnder(homeId ?? 'root')}
+            >
+              <PlusIcon />
+            </button>
+          )}
+        </div>
         {/* Die Startseite steht nicht im Baum: Das Formular für Seiten unter ihr kommt hierher */}
         {(creatingUnder === 'root' || (creatingUnder !== null && creatingUnder === homeId)) && (
           <TitleForm
@@ -283,44 +388,74 @@ export function PageTree({ space, selectedId }: { space: Space; selectedId?: str
           />
         )}
         {error && (
-          <p role="alert" className="nf-alert nf-alert-dark">
+          <p role="alert" className="nf-alert">
             {error}
           </p>
         )}
         {(root.isError || homeLevel.isError) && (
-          <p role="alert" className="nf-alert nf-alert-dark">
+          <p role="alert" className="nf-alert">
             {t('loadError')}
           </p>
         )}
-        {homeItem && <HomeRow item={homeItem} />}
         {loading ? (
-          <p className="nf-muted-dark">{common('loading')}</p>
+          <p className="nf-tree-loading" role="status">
+            {common('loading')}
+          </p>
         ) : (
-          <ul role="tree" aria-label={t('pagesIn', { space: space.name })}>
-            <ItemList items={topFromHome} />
-            <ItemList items={topFromRoot} />
+          <ul
+            ref={treeRef}
+            role="tree"
+            aria-label={t('pagesIn', { space: space.name })}
+            aria-describedby={headingId}
+            onKeyDown={onTreeKey}
+          >
+            {homeItem && <HomeRow item={homeItem} setSize={top.length + 1} />}
+            <ItemList items={top} depth={1} offset={homeItem ? 1 : 0} setSize={top.length + (homeItem ? 1 : 0)} />
           </ul>
         )}
-      </nav>
+      </div>
     </TreeContext.Provider>
   );
 }
 
 /** Seiten einer Ebene; Geschwister sind nur Seiten mit derselben echten Elternseite */
-function ItemList({ items, parent }: { items: Item[]; parent?: Item }) {
+function ItemList({
+  items,
+  parent,
+  depth,
+  offset = 0,
+  setSize = items.length,
+}: {
+  items: Item[];
+  parent?: Item;
+  depth: number;
+  offset?: number;
+  setSize?: number;
+}) {
   return (
     <>
-      {items.map((item) => {
+      {items.map((item, index) => {
         const sibs = isOrphan(item) ? [] : items.filter((s) => !isOrphan(s) && s.page.parentId === item.page.parentId);
         const i = sibs.findIndex((s) => s.page.id === item.page.id);
-        return <TreeItem key={item.page.id} item={item} prev={sibs[i - 1]} next={sibs[i + 1]} parent={parent} />;
+        return (
+          <TreeItem
+            key={item.page.id}
+            item={item}
+            prev={sibs[i - 1]}
+            next={sibs[i + 1]}
+            parent={parent}
+            depth={depth}
+            position={offset + index + 1}
+            setSize={setSize}
+          />
+        );
       })}
     </>
   );
 }
 
 /** Ebene unter einer aufgeklappten Seite, erst beim Aufklappen geladen */
-function ChildLevel({ parent }: { parent: Item }) {
+function ChildLevel({ parent, depth }: { parent: Item; depth: number }) {
   const t = useTranslations('tree');
   const { space } = useTree();
   const level = useTreeLevel(space.key, parent.page.id);
@@ -328,7 +463,7 @@ function ChildLevel({ parent }: { parent: Item }) {
   if (level.isPending) {
     return (
       <ul role="group">
-        <li className="nf-tree-loading" aria-busy="true">
+        <li className="nf-tree-loading" role="none">
           …
         </li>
       </ul>
@@ -337,14 +472,16 @@ function ChildLevel({ parent }: { parent: Item }) {
   if (level.isError) {
     return (
       <ul role="group">
-        <li className="nf-tree-loading">{t('notLoaded')}</li>
+        <li className="nf-tree-loading" role="none">
+          {t('notLoaded')}
+        </li>
       </ul>
     );
   }
   const items = level.data.map((page) => ({ page, level: parent.page.id, ancestors }));
   return (
     <ul role="group">
-      <ItemList items={items} parent={parent} />
+      <ItemList items={items} parent={parent} depth={depth} />
     </ul>
   );
 }
@@ -405,46 +542,88 @@ function useDropTarget(item: Item, onlyInside = false) {
   };
 }
 
-function HomeRow({ item }: { item: Item }) {
+function HomeRow({ item, setSize }: { item: Item; setSize: number }) {
   const tr = useTranslations('tree');
   const t = useTree();
   const target = useDropTarget(item, true);
+  const id = item.page.id;
+  const selected = id === t.selectedId;
   return (
-    <div
-      className={`nf-tree-row nf-home-row${item.page.id === t.selectedId ? ' nf-selected' : ''}${target.dropClass}`}
-      onDragOver={target.onDragOver}
-      onDragLeave={target.onDragLeave}
-      onDrop={target.onDrop}
-    >
-      <span className="nf-home-icon" aria-hidden="true">
-        ⌂
-      </span>
-      <Link href={spacePath(t.space.key)} className="nf-tree-link" draggable={false}>
-        {tr('home')}
-      </Link>
-    </div>
+    <li role="treeitem" aria-level={1} aria-posinset={1} aria-setsize={setSize} aria-selected={selected}>
+      <div
+        className={`nf-tree-row${selected ? ' nf-selected' : ''}${target.dropClass}`}
+        onDragOver={target.onDragOver}
+        onDragLeave={target.onDragLeave}
+        onDrop={target.onDrop}
+      >
+        <span className="nf-home-icon">
+          <HomeIcon />
+        </span>
+        <Link
+          href={spacePath(t.space.key)}
+          className="nf-tree-link"
+          draggable={false}
+          data-tree-link
+          data-id={id}
+          tabIndex={t.focusId === id ? 0 : -1}
+          aria-current={selected ? 'page' : undefined}
+          onFocus={() => t.setFocusId(id)}
+        >
+          <span className="nf-tree-title">{tr('home')}</span>
+        </Link>
+      </div>
+    </li>
   );
 }
 
-function TreeItem({ item, prev, next, parent }: { item: Item; prev?: Item; next?: Item; parent?: Item }) {
+function TreeItem({
+  item,
+  prev,
+  next,
+  parent,
+  depth,
+  position,
+  setSize,
+}: {
+  item: Item;
+  prev?: Item;
+  next?: Item;
+  parent?: Item;
+  depth: number;
+  position: number;
+  setSize: number;
+}) {
   const tr = useTranslations('tree');
   const common = useTranslations('common');
   const t = useTree();
   const p = item.page;
+  const link = useRef<HTMLAnchorElement>(null);
   const open = t.expanded.has(p.id) && p.hasChildren;
   const editable = canEdit(p.role) && !t.space.archived;
   const isHome = p.id === t.homeId;
   const orphan = isOrphan(item);
+  const selected = p.id === t.selectedId;
   // Ausrücken nur hinter eine angezeigte, nicht verwaiste Elternseite (nicht aus der Startseite)
   const outdent = parent && parent.page.id !== t.homeId && !isOrphan(parent) ? parent : undefined;
   const draggable = editable && !isHome && !orphan;
   const target = useDropTarget(item);
   const dragged = t.dragging?.page.id === p.id;
+  const title = p.title || common('untitled');
+  // Nur die aktive Zeile und ihre Knöpfe sind per Tab erreichbar
+  const tab = t.focusId === p.id ? 0 : -1;
+  const backToRow = () => link.current?.focus();
 
   return (
-    <li role="treeitem" aria-expanded={p.hasChildren ? open : undefined} aria-selected={p.id === t.selectedId}>
+    <li
+      role="treeitem"
+      aria-level={depth}
+      aria-posinset={position}
+      aria-setsize={setSize}
+      aria-expanded={p.hasChildren ? open : undefined}
+      aria-selected={selected}
+    >
       <div
-        className={`nf-tree-row${p.id === t.selectedId ? ' nf-selected' : ''}${dragged ? ' nf-dragging' : ''}${target.dropClass}`}
+        className={`nf-tree-row${selected ? ' nf-selected' : ''}${dragged ? ' nf-dragging' : ''}${target.dropClass}`}
         draggable={draggable}
         onDragStart={(e) => {
           e.dataTransfer.effectAllowed = 'move';
@@ -459,66 +638,116 @@ function TreeItem({ item, prev, next, parent }: { item: Item; prev?: Item; next?
         onDragLeave={target.onDragLeave}
         onDrop={target.onDrop}
       >
+        {/* Mit der Maus; per Tastatur klappen → und ← auf und zu */}
         <button
           type="button"
           className="nf-twisty"
-          onClick={() => t.toggle(p.id)}
-          aria-label={tr(open ? 'collapse' : 'expand', { title: p.title || common('untitled') })}
+          tabIndex={-1}
+          data-open={open}
+          onClick={() => {
+            t.setFocusId(p.id);
+            t.toggle(p.id);
+          }}
+          aria-label={tr(open ? 'collapse' : 'expand', { title })}
           style={{ visibility: p.hasChildren ? 'visible' : 'hidden' }}
         >
-          {open ? '▾' : '▸'}
+          <ChevronRightIcon size={14} />
         </button>
-        <Link href={pagePath(t.space.key, p)} className="nf-tree-link" draggable={false}>
-          {p.title || common('untitled')}
+        <Link
+          ref={link}
+          href={pagePath(t.space.key, p)}
+          className="nf-tree-link"
+          draggable={false}
+          data-tree-link
+          data-id={p.id}
+          tabIndex={tab}
+          aria-current={selected ? 'page' : undefined}
+          aria-keyshortcuts={editable && !isHome ? 'F2 Delete' : undefined}
+          onFocus={() => t.setFocusId(p.id)}
+          onKeyDown={(e) => {
+            if (!editable) return;
+            if (e.key === 'F2') {
+              e.preventDefault();
+              t.setRenaming(p.id);
+            } else if (e.key === 'Delete' && !isHome) {
+              e.preventDefault();
+              t.trash(item);
+            }
+          }}
+        >
+          <PageIcon size={15} />
+          <span className="nf-tree-title">{title}</span>
+          {p.restricted && <LockIcon size={14} label={common('restrictedLabel')} />}
         </Link>
-        {p.restricted && (
-          <span className="nf-lock" title={common('restricted')} role="img" aria-label={common('restrictedLabel')}>
-            🔒
-          </span>
-        )}
         {editable && (
           <span className="nf-actions">
-            <IconButton label={tr('newSubpage')} onClick={() => t.setCreatingUnder(p.id)}>
-              +
+            <IconButton label={tr('newSubpage')} tabIndex={tab} onClick={() => t.setCreatingUnder(p.id)}>
+              <PlusIcon size={14} />
             </IconButton>
-            <IconButton label={tr('rename')} disabled={t.renamePending} onClick={() => t.setRenaming(p.id)}>
-              ✎
-            </IconButton>
-            {!isHome && (
-              <>
-                <IconButton
-                  label={tr('moveUp')}
-                  disabled={!prev || t.busy}
-                  onClick={() => prev && t.move(item, { parentId: p.parentId, beforeId: prev.page.id })}
-                >
-                  ↑
-                </IconButton>
-                <IconButton
-                  label={tr('moveDown')}
-                  disabled={!next || t.busy}
-                  onClick={() => next && t.move(item, { parentId: p.parentId, afterId: next.page.id })}
-                >
-                  ↓
-                </IconButton>
-                <IconButton
-                  label={tr('indent')}
-                  disabled={!prev || t.busy}
-                  onClick={() => prev && t.move(item, { parentId: prev.page.id })}
-                >
-                  →
-                </IconButton>
-                <IconButton
-                  label={tr('outdent')}
-                  disabled={!outdent || orphan || t.busy}
-                  onClick={() => outdent && t.move(item, { parentId: outdent.page.parentId, afterId: outdent.page.id })}
-                >
-                  ←
-                </IconButton>
-                <IconButton label={tr('trash')} disabled={t.busy} onClick={() => t.trash(item)}>
-                  🗑
-                </IconButton>
-              </>
-            )}
+            <MenuButton
+              className="nf-icon-button"
+              label={tr('actionsFor', { title })}
+              align="end"
+              tabIndex={tab}
+              items={[
+                {
+                  key: 'rename',
+                  label: tr('rename'),
+                  icon: <PencilIcon />,
+                  shortcut: 'F2',
+                  keys: 'F2',
+                  disabled: t.renamePending,
+                  onSelect: () => t.setRenaming(p.id),
+                },
+                ...(isHome
+                  ? []
+                  : [
+                      {
+                        key: 'up',
+                        label: tr('moveUp'),
+                        icon: <ArrowUpIcon />,
+                        separatorBefore: true,
+                        disabled: !prev || t.busy,
+                        onSelect: () => prev && t.move(item, { parentId: p.parentId, beforeId: prev.page.id }),
+                      },
+                      {
+                        key: 'down',
+                        label: tr('moveDown'),
+                        icon: <ArrowDownIcon />,
+                        disabled: !next || t.busy,
+                        onSelect: () => next && t.move(item, { parentId: p.parentId, afterId: next.page.id }),
+                      },
+                      {
+                        key: 'indent',
+                        label: tr('indent'),
+                        icon: <IndentIcon />,
+                        disabled: !prev || t.busy,
+                        onSelect: () => prev && t.move(item, { parentId: prev.page.id }),
+                      },
+                      {
+                        key: 'outdent',
+                        label: tr('outdent'),
+                        icon: <OutdentIcon />,
+                        disabled: !outdent || orphan || t.busy,
+                        onSelect: () =>
+                          outdent && t.move(item, { parentId: outdent.page.parentId, afterId: outdent.page.id }),
+                      },
+                      {
+                        key: 'trash',
+                        label: tr('trash'),
+                        icon: <TrashIcon />,
+                        shortcut: tr('deleteKey'),
+                        keys: 'Delete',
+                        danger: true,
+                        separatorBefore: true,
+                        disabled: t.busy,
+                        onSelect: () => t.trash(item),
+                      },
+                    ]),
+              ]}
+            >
+              <MoreIcon />
+            </MenuButton>
           </span>
         )}
       </div>
@@ -528,8 +757,11 @@ function TreeItem({ item, prev, next, parent }: { item: Item; prev?: Item; next?
           label={tr('newTitle')}
           submitText={tr('rename')}
           busy={t.renamePending}
-          onCancel={() => t.setRenaming(null)}
-          onSubmit={(title) => (title === p.title ? t.setRenaming(null) : t.rename(p.id, title))}
+          onCancel={() => {
+            t.setRenaming(null);
+            backToRow();
+          }}
+          onSubmit={(value) => (value === p.title ? t.setRenaming(null) : t.rename(p.id, value))}
         />
       )}
       {t.creatingUnder === p.id && (
@@ -537,11 +769,14 @@ function TreeItem({ item, prev, next, parent }: { item: Item; prev?: Item; next?
           label={tr('newPageTitle')}
           submitText={common('create')}
           busy={t.createPending}
-          onCancel={() => t.setCreatingUnder(null)}
-          onSubmit={(title) => t.create(p.id, title)}
+          onCancel={() => {
+            t.setCreatingUnder(null);
+            backToRow();
+          }}
+          onSubmit={(value) => t.create(p.id, value)}
         />
       )}
-      {open && <ChildLevel parent={item} />}
+      {open && <ChildLevel parent={item} depth={depth + 1} />}
     </li>
   );
 }
@@ -578,19 +813,30 @@ function TitleForm({
         value={title}
         maxLength={255}
         onChange={(e) => setTitle(e.target.value)}
-        onKeyDown={(e) => e.key === 'Escape' && onCancel()}
+        onKeyDown={(e) => {
+          if (e.key !== 'Escape') return;
+          // Esc bricht nur das Formular ab, schließt nicht auch die Schublade
+          e.preventDefault();
+          onCancel();
+        }}
       />
-      <button type="submit" disabled={busy}>
+      <button type="submit" className="nf-button" disabled={busy}>
         {submitText}
       </button>
-      <button type="button" onClick={onCancel}>
+      <button type="button" className="nf-button nf-button-secondary" onClick={onCancel}>
         {common('cancel')}
       </button>
     </form>
   );
 }
 
-function IconButton(props: { label: string; disabled?: boolean; onClick: () => void; children: ReactNode }) {
+function IconButton(props: {
+  label: string;
+  disabled?: boolean;
+  tabIndex?: number;
+  onClick: () => void;
+  children: ReactNode;
+}) {
   return (
     <button
       type="button"
@@ -598,6 +844,7 @@ function IconButton(props: { label: string; disabled?: boolean; onClick: () => v
       aria-label={props.label}
       title={props.label}
       disabled={props.disabled}
+      tabIndex={props.tabIndex}
       onClick={props.onClick}
     >
       {props.children}

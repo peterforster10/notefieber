@@ -39,6 +39,11 @@ const ALLOWED_LICENSES = new Map([
   ['GPL-2.0-or-later', 'als GPL-3.0 nutzbar'],
   ['AGPL-3.0-only', ''],
   ['AGPL-3.0-or-later', ''],
+  // Schriften
+  [
+    'OFL-1.1',
+    'nur Schriften (Inter, IBM Plex Mono über @fontsource), kein Code; die OFL erlaubt, sie mit jeder Software auszuliefern',
+  ],
 ]);
 
 // Alte bzw. ungenaue Schreibweisen aus package.json auf SPDX-IDs abbilden

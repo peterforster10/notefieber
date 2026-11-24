@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server';
+import { AppShell, Main, SidebarTop, Topbar } from '@/components/app-shell';
 import { InviteLanding } from '@/components/invites';
 import { SidebarFoot } from '@/components/sidebar-foot';
 
@@ -7,15 +8,19 @@ export default async function Page({ params }: { params: Promise<{ token: string
   const { token } = await params;
   const t = await getTranslations('invites');
   return (
-    <main className="nf-shell">
-      <aside className="nf-sidebar">
-        <strong className="nf-brand">NoteFieber</strong>
-        <SidebarFoot />
-      </aside>
-      <section className="nf-main">
+    <AppShell
+      sidebar={
+        <>
+          <SidebarTop brand="NoteFieber" />
+          <SidebarFoot />
+        </>
+      }
+    >
+      <Topbar />
+      <Main>
         <h1>{t('landingTitle')}</h1>
         <InviteLanding token={token} />
-      </section>
-    </main>
+      </Main>
+    </AppShell>
   );
 }

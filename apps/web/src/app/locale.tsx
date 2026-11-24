@@ -76,7 +76,7 @@ export function LocaleSwitcher() {
         ))}
       </select>
       {error && (
-        <p role="alert" className="nf-alert nf-alert-dark">
+        <p role="alert" className="nf-alert">
           {error}
         </p>
       )}

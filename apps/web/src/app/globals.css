@@ -1,107 +1,376 @@
-/* Farben aus dem Designsystem von NoteFieber und TalkFieber (CLAUDE.md, Abschnitt 9) */
+/*
+ * Designsystem von NoteFieber (CLAUDE.md, Abschnitt 9; Werte aus prototype/pages/Main.dc.html).
+ * Abweichend vom Prototyp seit 24. November 2026: helle Seitenleiste, Schrift Inter statt IBM Plex
+ * Sans (Code weiter IBM Plex Mono). Farben nur über diese Tokens; die Kontraste prüft
+ * src/app/contrast.test.mjs (WCAG 2.2 AA), neue Paare dort eintragen.
+ */
 :root {
-  --nf-sidebar: #0f2537;
-  --nf-sidebar-text: #dbe4ee;
-  --nf-sidebar-hover: #1a3650;
-  --nf-sidebar-selected: #23476a;
+  --nf-font-sans: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --nf-font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', monospace;
+
+  /* Inhalt */
+  --nf-bg: #ffffff;
+  --nf-text: #1a2230;
+  --nf-muted: #5b6573;
+  --nf-subtle: #f5f7fa;
+  --nf-surface: #f8f9fb;
+  --nf-border: #e2e5ea;
+  --nf-control-border: #d5dae1;
+  --nf-input-border: #7d8796;
+  --nf-code-bg: #f0f2f5;
+
+  /* Akzent und Zustände */
   --nf-accent: #1f5fd6;
+  --nf-accent-hover: #174bb0;
+  --nf-accent-soft: #eef3fc;
+  --nf-on-accent: #ffffff;
+  --nf-focus: #1f5fd6;
   --nf-attention: #c2410c;
+  --nf-attention-soft: #fff4ec;
+  --nf-restricted-bg: #fff1e6;
+  --nf-restricted-fg: #9a3412;
   --nf-done-bg: #e3f1e8;
   --nf-done-fg: #1e5135;
-  --nf-text: #1b2430;
-  --nf-muted: #5b6675;
-  --nf-border: #d9dee5;
-  --nf-bg: #ffffff;
-  --nf-drop: #6f9cf0; /* Akzent, aufgehellt für die dunkle Seitenleiste */
+  --nf-danger: #b42318;
+  --nf-danger-soft: #fdecea;
+  --nf-neutral-soft: #f1f3f6;
+
+  /* Seitenleiste, hell */
+  --nf-sidebar-bg: #f3f5f8;
+  --nf-sidebar-border: #e2e5ea;
+  --nf-sidebar-text: #1a2230;
+  --nf-sidebar-muted: #5b6573;
+  --nf-sidebar-hover: #e6eaf0;
+  --nf-sidebar-selected: #dce6f8;
+  --nf-sidebar-selected-text: #174bb0;
+
+  --nf-backdrop: rgba(15, 37, 55, 0.45);
+  --nf-shadow-pop: 0 8px 24px rgba(15, 37, 55, 0.16);
+  --nf-shadow-dialog: 0 24px 64px rgba(15, 37, 55, 0.28);
+  --nf-sidebar-width: 272px;
 }
 
 * {
   box-sizing: border-box;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
-  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-family: var(--nf-font-sans);
+  font-size: 14px;
+  line-height: 1.5;
   color: var(--nf-text);
   background: var(--nf-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1 {
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+h2 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+code,
+pre,
+kbd {
+  font-family: var(--nf-font-mono);
 }
 
 code {
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.88em;
+  background: var(--nf-code-bg);
+  padding: 1px 5px;
+  border-radius: 4px;
 }
 
 a {
   color: var(--nf-accent);
 }
+a:hover {
+  color: var(--nf-accent-hover);
+}
 
-/* Gerüst: Seitenleiste links, Inhalt rechts */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* Fokus nur für die Tastatur sichtbar, überall gleich (WCAG 2.4.7, 2.4.11) */
+:focus-visible {
+  outline: 2px solid var(--nf-focus);
+  outline-offset: 2px;
+}
+
+svg.nf-icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
+
+.nf-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* „Zum Inhalt springen“: erst bei Fokus sichtbar */
+.nf-skip {
+  position: absolute;
+  left: 12px;
+  top: -100px;
+  z-index: 100;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--nf-accent);
+  color: var(--nf-on-accent);
+  font-weight: 500;
+  text-decoration: none;
+}
+.nf-skip:focus {
+  top: 12px;
+  color: var(--nf-on-accent);
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * Gerüst: Seitenleiste links (ab 1024 px fest, darunter eine Schublade), rechts Kopf und Inhalt
+ * ------------------------------------------------------------------------------------------- */
 .nf-shell {
   display: flex;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 .nf-sidebar {
-  width: 300px;
-  flex-shrink: 0;
-  background: var(--nf-sidebar);
+  width: var(--nf-sidebar-width);
+  flex: none;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
+  background: var(--nf-sidebar-bg);
+  border-right: 1px solid var(--nf-sidebar-border);
   color: var(--nf-sidebar-text);
-  padding: 16px 12px;
+  padding: 12px 10px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
-.nf-main {
-  padding: 40px 48px;
-  max-width: 820px;
+.nf-column {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.nf-main {
+  flex: 1;
+  min-width: 0;
+  padding: 40px 32px 72px;
+}
+.nf-main:focus {
+  outline: none;
+}
+.nf-main-inner {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.nf-sidebar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 4px 0 10px;
 }
 .nf-brand {
-  color: #fff;
+  color: var(--nf-sidebar-text);
+  font-size: 15px;
   font-weight: 600;
   text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.nf-eu {
-  font-size: 12px;
-  opacity: 0.6;
-  margin: 0;
+.nf-brand:hover {
+  color: var(--nf-sidebar-text);
 }
+/* Nur in der Schublade (unter 1024 px); spezifischer als .nf-btn und .nf-icon-button */
+button.nf-drawer-close,
+button.nf-drawer-open {
+  display: none;
+}
+.nf-backdrop {
+  display: none;
+}
+
 .nf-sidebar-foot {
   margin-top: auto;
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  padding-top: 12px;
+  border-top: 1px solid var(--nf-sidebar-border);
+}
+.nf-eu {
+  display: flex;
+  align-items: center;
   gap: 8px;
+  margin: 0;
+  padding: 10px 10px 2px;
+  font-size: 12px;
+  color: var(--nf-sidebar-muted);
+}
+.nf-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--nf-sidebar-text);
+  font-size: 14px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.nf-nav-item:hover {
+  background: var(--nf-sidebar-hover);
+  color: var(--nf-sidebar-text);
+}
+.nf-nav-item .nf-icon {
+  color: var(--nf-sidebar-muted);
 }
 
-/* Space-Umschalter */
+/* Space-Umschalter: Karte mit Kürzel, Name und Schlüssel */
 .nf-switcher {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
-.nf-switcher select {
-  font: inherit;
-  padding: 6px 8px;
+.nf-space-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--nf-sidebar-border);
+  border-radius: 8px;
+  background: var(--nf-bg);
+  color: var(--nf-sidebar-text);
+  text-align: left;
+  cursor: pointer;
+}
+.nf-space-card:hover,
+.nf-space-card[aria-expanded='true'] {
+  border-color: var(--nf-control-border);
+  background: var(--nf-surface);
+}
+.nf-space-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
   border-radius: 6px;
-  border: 1px solid #36506b;
-  background: var(--nf-sidebar-hover);
-  color: #fff;
+  background: var(--nf-accent);
+  color: var(--nf-on-accent);
+  font-size: 11px;
+  font-weight: 600;
+}
+.nf-space-names {
+  flex: 1;
+  min-width: 0;
+}
+.nf-space-name {
+  display: block;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nf-space-key {
+  display: block;
+  font-size: 12px;
+  color: var(--nf-sidebar-muted);
+}
+.nf-switcher-links {
+  display: flex;
+  gap: 12px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+.nf-switcher-links a {
+  color: var(--nf-sidebar-text);
+}
+.nf-sidebar-note {
+  margin: 0;
+  padding: 0 10px;
+  font-size: 12px;
+  color: var(--nf-sidebar-muted);
 }
 
-/* Seitenbaum */
+/* ---------------------------------------------------------------------------------------------
+ * Seitenbaum
+ * ------------------------------------------------------------------------------------------- */
+.nf-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nf-tree-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 4px 4px 10px;
+}
+.nf-tree-heading {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--nf-sidebar-muted);
+}
 .nf-tree ul {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 .nf-tree ul ul {
-  padding-left: 14px;
+  padding-left: 16px;
 }
 .nf-tree-row {
   display: flex;
   align-items: center;
   gap: 2px;
+  min-height: 36px;
+  padding: 0 4px 0 0;
   border-radius: 6px;
-  padding: 2px 4px;
-  min-height: 30px;
+  color: var(--nf-sidebar-text);
 }
 .nf-tree-row:hover,
 .nf-tree-row:focus-within {
@@ -109,136 +378,166 @@ a {
 }
 .nf-tree-row.nf-selected {
   background: var(--nf-sidebar-selected);
+  color: var(--nf-sidebar-selected-text);
 }
 .nf-twisty {
-  width: 20px;
-  border: 0;
-  background: none;
-  color: inherit;
-  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 32px;
+  flex: none;
   padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--nf-sidebar-muted);
+  cursor: pointer;
+}
+.nf-twisty .nf-icon {
+  transition: transform 120ms ease;
+}
+.nf-twisty[data-open='true'] .nf-icon {
+  transform: rotate(90deg);
 }
 .nf-tree-link {
-  color: var(--nf-sidebar-text);
-  text-decoration: none;
   flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 4px 0 2px;
+  border-radius: 4px;
+  color: inherit;
+  font-size: 14px;
+  text-decoration: none;
+}
+.nf-tree-link:hover {
+  color: inherit;
+}
+.nf-tree-link:focus-visible {
+  outline-offset: 0;
+}
+.nf-tree-title {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 14px;
 }
 .nf-selected .nf-tree-link {
-  color: #fff;
   font-weight: 600;
 }
-.nf-home-row {
-  margin-bottom: 4px;
+.nf-tree-link .nf-icon {
+  color: var(--nf-sidebar-muted);
+}
+.nf-selected .nf-tree-link .nf-icon {
+  color: inherit;
 }
 .nf-home-icon {
-  width: 20px;
-  text-align: center;
-  font-size: 14px;
+  width: 24px;
+  display: inline-flex;
+  justify-content: center;
+  flex: none;
 }
-.nf-lock {
-  font-size: 11px;
-}
+/* Neue Unterseite und das Menü der Zeile: bei Maus beim Darüberfahren, bei Tastatur mit dem Fokus,
+   auf Touch-Geräten an der ausgewählten Zeile */
 .nf-actions {
   display: none;
-  gap: 1px;
+  gap: 2px;
 }
 .nf-tree-row:hover .nf-actions,
-.nf-tree-row:focus-within .nf-actions {
+.nf-tree-row:focus-within .nf-actions,
+.nf-actions:has([aria-expanded='true']) {
   display: flex;
 }
+@media (hover: none) {
+  .nf-tree-row.nf-selected .nf-actions {
+    display: flex;
+  }
+}
 .nf-icon-button {
-  border: 0;
-  background: none;
-  color: var(--nf-sidebar-text);
-  width: 22px;
-  height: 22px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
   padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--nf-sidebar-muted);
+  cursor: pointer;
 }
 .nf-icon-button:hover:not(:disabled) {
-  background: #36506b;
+  background: var(--nf-sidebar-hover);
+  color: var(--nf-sidebar-text);
+}
+.nf-tree-row:hover .nf-icon-button:hover:not(:disabled) {
+  background: var(--nf-bg);
 }
 .nf-icon-button:disabled {
-  opacity: 0.3;
+  opacity: 0.4;
   cursor: default;
 }
 .nf-tree-loading {
-  padding: 2px 0 2px 24px;
+  padding: 4px 0 4px 26px;
   font-size: 13px;
-  opacity: 0.7;
+  color: var(--nf-sidebar-muted);
 }
 /* Drag & Drop: Linie davor bzw. dahinter, Rahmen beim Ablegen hinein */
 .nf-tree-row.nf-dragging {
   opacity: 0.45;
 }
 .nf-tree-row.nf-drop-before {
-  box-shadow: inset 0 2px 0 var(--nf-drop);
+  box-shadow: inset 0 2px 0 var(--nf-accent);
   border-radius: 0;
 }
 .nf-tree-row.nf-drop-after {
-  box-shadow: inset 0 -2px 0 var(--nf-drop);
+  box-shadow: inset 0 -2px 0 var(--nf-accent);
   border-radius: 0;
 }
 .nf-tree-row.nf-drop-inside {
-  box-shadow: inset 0 0 0 2px var(--nf-drop);
+  box-shadow: inset 0 0 0 2px var(--nf-accent);
   background: var(--nf-sidebar-hover);
 }
 .nf-tree-row[draggable='true'] {
   cursor: grab;
 }
-.nf-switcher-links {
-  display: flex;
-  gap: 12px;
-  font-size: 13px;
-}
-.nf-switcher-links a {
-  color: var(--nf-sidebar-text);
-}
-.nf-sidebar-button {
-  font: inherit;
-  font-size: 14px;
-  text-align: left;
-  border: 1px dashed #36506b;
-  background: none;
-  color: var(--nf-sidebar-text);
-  border-radius: 6px;
-  padding: 6px 8px;
-  cursor: pointer;
-  width: 100%;
-  margin-bottom: 8px;
-}
 .nf-new-page {
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
-  padding: 4px 0 4px 22px;
+  padding: 4px 0 6px 26px;
 }
 .nf-new-page input {
-  flex: 1;
+  flex: 1 1 100%;
   min-width: 0;
-  font: inherit;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--nf-input-border);
+  border-radius: 6px;
+  background: var(--nf-bg);
   font-size: 13px;
-  padding: 3px 6px;
-  border-radius: 4px;
-  border: 1px solid #36506b;
 }
-.nf-new-page button {
-  font-size: 12px;
+.nf-new-page .nf-button {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 13px;
 }
 
 /* Papierkorb */
 .nf-trash summary {
-  cursor: pointer;
-  font-size: 14px;
+  list-style: none;
+}
+.nf-trash summary::-webkit-details-marker {
+  display: none;
 }
 .nf-trash ul {
   list-style: none;
-  padding: 4px 0 0 12px;
+  padding: 2px 0 6px 36px;
   margin: 0;
   font-size: 13px;
 }
@@ -246,201 +545,367 @@ a {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  padding: 2px 0;
+  padding: 3px 4px 3px 0;
 }
-
-/* Formulare, Knöpfe, Hinweise */
-.nf-label {
-  display: block;
-  margin: 12px 0 6px;
-}
-.nf-input {
-  font: inherit;
-  padding: 8px 10px;
-  margin-right: 8px;
-  border: 1px solid var(--nf-border);
-  border-radius: 6px;
-}
-.nf-button {
-  font: inherit;
-  padding: 8px 16px;
-  border: 0;
-  border-radius: 6px;
-  background: var(--nf-accent);
-  color: #fff;
-  cursor: pointer;
-}
-.nf-button:disabled {
-  opacity: 0.6;
-}
-.nf-button-attention {
-  background: var(--nf-attention);
-}
-.nf-input-wide {
-  display: block;
-  width: 100%;
-  max-width: 560px;
-  margin-right: 0;
-}
-textarea.nf-input {
-  resize: vertical;
-}
-.nf-saved {
-  color: var(--nf-done-fg);
-  margin-left: 8px;
-}
-.nf-settings h2 {
-  font-size: 18px;
-}
-.nf-link-button {
-  font: inherit;
-  border: 0;
-  background: none;
-  color: var(--nf-accent);
-  cursor: pointer;
-  padding: 0;
-  text-decoration: underline;
-}
-.nf-on-dark {
-  color: var(--nf-sidebar-text);
-  font-size: 13px;
-  text-align: left;
-}
-.nf-form {
-  margin-top: 32px;
-  padding-top: 16px;
-  border-top: 1px solid var(--nf-border);
-}
-.nf-alert {
-  color: var(--nf-attention);
-}
-.nf-alert-dark {
-  color: #ffb08a;
-  font-size: 13px;
-}
-.nf-muted {
-  color: var(--nf-muted);
-}
-.nf-muted-dark {
-  font-size: 12px;
-  opacity: 0.7;
-  margin: 0;
-}
-.nf-breadcrumb {
-  font-size: 13px;
-  color: var(--nf-muted);
-}
-.nf-breadcrumb a {
-  color: var(--nf-muted);
-}
-.nf-space-list {
-  padding-left: 18px;
-  line-height: 1.8;
-}
-.nf-visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
+.nf-trash li span {
+  min-width: 0;
   overflow: hidden;
-  clip: rect(0 0 0 0);
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* Einladungen */
-.nf-inline-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
+/* Sprache wählen, unten in der Seitenleiste (app/locale.tsx) */
+.nf-locale {
+  padding: 4px 10px;
 }
-.nf-inline-form .nf-input {
-  margin-right: 0;
-}
-.nf-invite-link {
-  margin: 12px 0;
-  padding: 12px;
-  border-radius: 8px;
-  background: var(--nf-done-bg);
-  color: var(--nf-done-fg);
-  word-break: break-all;
-}
-.nf-invite-link p {
-  margin: 0 0 8px;
-}
-.nf-table {
-  margin-top: 16px;
-  border-collapse: collapse;
-  width: 100%;
-  font-size: 14px;
-}
-.nf-table th,
-.nf-table td {
-  text-align: left;
-  padding: 6px 8px;
-  border-bottom: 1px solid var(--nf-border);
-}
-.nf-button-link {
-  display: inline-block;
-  text-decoration: none;
-  margin-top: 8px;
+.nf-locale select {
+  height: 32px;
+  padding: 0 6px;
+  border-radius: 6px;
+  border: 1px solid var(--nf-input-border);
+  background: var(--nf-bg);
+  color: var(--nf-sidebar-text);
+  font-size: 13px;
 }
 
-/* Editor (page-editor.tsx): Titel aus Yjs, Anwesenheit, BlockNote */
-.nf-editor-head {
+/* ---------------------------------------------------------------------------------------------
+ * Menü (components/menu.tsx): Space-Umschalter und Aktionen einer Zeile im Baum
+ * ------------------------------------------------------------------------------------------- */
+.nf-menu {
+  position: fixed;
+  z-index: 60;
+  min-width: 240px;
+  max-width: min(320px, calc(100vw - 16px));
+  max-height: min(420px, calc(100vh - 16px));
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border: 1px solid var(--nf-border);
+  border-radius: 8px;
+  background: var(--nf-bg);
+  box-shadow: var(--nf-shadow-pop);
+  font-size: 14px;
+}
+.nf-menu-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  width: 100%;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--nf-text);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
 }
-.nf-title {
+.nf-menu-item:hover,
+.nf-menu-item:focus {
+  background: var(--nf-subtle);
+  color: var(--nf-text);
+  outline: none;
+}
+.nf-menu-item:focus-visible {
+  outline: 2px solid var(--nf-focus);
+  outline-offset: -2px;
+}
+.nf-menu-item[aria-disabled='true'] {
+  color: var(--nf-muted);
+  cursor: default;
+}
+.nf-menu-item[aria-current='true'] {
+  font-weight: 600;
+}
+.nf-menu-item .nf-icon {
+  color: var(--nf-muted);
+}
+.nf-menu-item-danger {
+  color: var(--nf-danger);
+}
+.nf-menu-item-danger .nf-icon {
+  color: var(--nf-danger);
+}
+.nf-menu-label {
   flex: 1;
   min-width: 0;
-  margin: 8px 0 16px;
+}
+.nf-menu-shortcut {
+  color: var(--nf-muted);
+  font-family: var(--nf-font-mono);
+  font-size: 12px;
+}
+/* Eintrag mit Untermenü: rechts „⋯“, sichtbar beim Darüberfahren, mit dem Fokus, wenn offen und auf Touch-Geräten */
+.nf-menu-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border-radius: 6px;
+}
+.nf-menu-row:hover {
+  background: var(--nf-subtle);
+}
+.nf-menu-row .nf-menu-item {
+  flex: 1;
+  min-width: 0;
+}
+.nf-menu-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  margin-right: 3px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--nf-muted);
+  cursor: pointer;
+  opacity: 0;
+}
+.nf-menu-row:hover .nf-menu-more,
+.nf-menu-row:focus-within .nf-menu-more,
+.nf-menu-more[aria-expanded='true'] {
+  opacity: 1;
+}
+.nf-menu-more:hover,
+.nf-menu-more:focus,
+.nf-menu-more[aria-expanded='true'] {
+  background: var(--nf-sidebar-hover);
+  color: var(--nf-text);
+  outline: none;
+}
+.nf-menu-more:focus-visible {
+  outline: 2px solid var(--nf-focus);
+  outline-offset: -2px;
+}
+@media (hover: none) {
+  .nf-menu-more {
+    opacity: 1;
+  }
+}
+.nf-submenu {
+  z-index: 61;
+  min-width: 200px;
+}
+.nf-menu-separator {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--nf-border);
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * Kopfbereich (components/page-header.tsx)
+ * ------------------------------------------------------------------------------------------- */
+.nf-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  min-height: 63px;
+  padding: 12px 32px;
+  border-bottom: 1px solid var(--nf-border);
+  background: var(--nf-bg);
+}
+.nf-topbar-start {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1 1 160px;
+}
+.nf-topbar-end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+/* Brotkrume in einer Zeile: zu lange Titel werden mit … gekürzt, statt umzubrechen */
+.nf-breadcrumb {
+  min-width: 0;
+}
+.nf-breadcrumb ol {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--nf-muted);
+}
+.nf-breadcrumb li {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+.nf-breadcrumb a,
+.nf-breadcrumb [aria-current] {
+  display: block;
+  min-width: 0;
+  max-width: 220px;
+  padding: 6px 4px;
+  border-radius: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--nf-muted);
+  text-decoration: none;
+}
+.nf-breadcrumb a:hover {
+  color: var(--nf-text);
+  text-decoration: underline;
+}
+.nf-breadcrumb [aria-current] {
+  color: var(--nf-text);
+}
+.nf-crumb-sep {
+  color: var(--nf-muted);
+}
+
+@media (min-width: 1024px) {
+  .nf-topbar-bare {
+    display: none;
+  }
+}
+
+/* Knöpfe im Kopfbereich und in Dialogen */
+.nf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--nf-control-border);
+  border-radius: 8px;
+  background: var(--nf-bg);
+  color: var(--nf-text);
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.nf-btn:hover {
+  background: var(--nf-subtle);
+}
+.nf-btn-primary {
+  padding: 0 14px;
+  border-color: var(--nf-accent);
+  background: var(--nf-accent);
+  color: var(--nf-on-accent);
+  font-weight: 500;
+}
+.nf-btn-primary:hover {
+  border-color: var(--nf-accent-hover);
+  background: var(--nf-accent-hover);
+}
+.nf-btn-icon {
+  width: 38px;
+  padding: 0;
+}
+
+/* Anwesenheit: Avatare aller, die die Seite offen haben */
+.nf-presence {
+  display: flex;
+  list-style: none;
+  margin: 0 8px 0 0;
+  padding: 0 0 0 8px;
+}
+.nf-presence span {
+  width: 30px;
+  height: 30px;
+  margin-left: -8px;
+  border-radius: 50%;
+  border: 2px solid var(--nf-bg);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}
+.nf-presence span.nf-presence-more {
+  background: var(--nf-muted);
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * Seite
+ * ------------------------------------------------------------------------------------------- */
+.nf-restricted-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--nf-restricted-bg);
+  color: var(--nf-restricted-fg);
+  font-size: 12px;
+  font-weight: 500;
+}
+.nf-page-meta {
+  margin: 0 0 28px;
+  font-size: 13px;
+  color: var(--nf-muted);
+}
+.nf-title {
+  margin: 8px 0 6px;
+  font-size: 34px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
 }
 .nf-title-input {
   width: 100%;
-  border: 0;
   padding: 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
   font: inherit;
+  letter-spacing: inherit;
   color: inherit;
   background: transparent;
   outline: none;
 }
+/* Ersatz für den Fokusring: Linie unter dem Titel */
+.nf-title-input:focus-visible {
+  border-bottom-color: var(--nf-focus);
+}
 .nf-title-input::placeholder {
   color: var(--nf-muted);
 }
-.nf-presence {
-  display: flex;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.nf-presence li {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 2px solid var(--nf-bg);
-  margin-left: -6px;
-  display: grid;
-  place-items: center;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 600;
-}
-.nf-presence li.nf-presence-more {
-  background: var(--nf-muted);
-}
 .nf-notice {
-  margin: 0 0 12px;
+  margin: 0 0 16px;
   padding: 8px 12px;
-  border-radius: 6px;
-  background: #fff4ec;
+  border-radius: 8px;
+  background: var(--nf-attention-soft);
   color: var(--nf-attention);
   font-size: 14px;
 }
-/* BlockNote rückt den Inhalt für Seitenmenü und Ziehpunkt ein; hier bündig mit dem Titel */
+
+/* BlockNote: Inhalt bündig mit dem Titel, Schriften und Größen aus dem Designsystem */
 .nf-editor .bn-editor {
   padding-inline: 0;
-  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-family: var(--nf-font-sans);
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--nf-text);
+}
+.nf-editor .bn-container {
+  --bn-font-family: var(--nf-font-sans);
+}
+.nf-editor .bn-editor code,
+.nf-editor .bn-editor pre {
+  font-family: var(--nf-font-mono);
 }
 
 /* Blöcke im Editor (M2, E07): Callout und Seitenlink, Farben aus dem Designsystem */
@@ -454,11 +919,11 @@ textarea.nf-input {
   border-radius: 4px;
   background: var(--nf-callout-bg);
   --nf-callout-fg: var(--nf-accent);
-  --nf-callout-bg: #e8effc;
+  --nf-callout-bg: var(--nf-accent-soft);
 }
 .nf-callout[data-variant='note'] {
-  --nf-callout-fg: #5b6675;
-  --nf-callout-bg: #f1f3f6;
+  --nf-callout-fg: var(--nf-muted);
+  --nf-callout-bg: var(--nf-neutral-soft);
 }
 .nf-callout[data-variant='success'] {
   --nf-callout-fg: var(--nf-done-fg);
@@ -466,11 +931,11 @@ textarea.nf-input {
 }
 .nf-callout[data-variant='warning'] {
   --nf-callout-fg: var(--nf-attention);
-  --nf-callout-bg: #fdf0e8;
+  --nf-callout-bg: var(--nf-attention-soft);
 }
 .nf-callout[data-variant='error'] {
-  --nf-callout-fg: #b42318;
-  --nf-callout-bg: #fdecea;
+  --nf-callout-fg: var(--nf-danger);
+  --nf-callout-bg: var(--nf-danger-soft);
 }
 .nf-callout-icon {
   flex: none;
@@ -501,7 +966,7 @@ textarea.nf-input {
 .nf-page-link {
   padding: 0 0.2rem;
   border-radius: 3px;
-  background: #e8effc;
+  background: var(--nf-accent-soft);
   color: var(--nf-accent);
   text-decoration: none;
   cursor: pointer;
@@ -511,7 +976,7 @@ textarea.nf-input {
 }
 .nf-page-link-missing,
 .nf-page-link-loading {
-  background: #f1f3f6;
+  background: var(--nf-neutral-soft);
   color: var(--nf-muted);
   cursor: default;
 }
@@ -530,7 +995,7 @@ textarea.nf-input {
 .nf-mention-missing,
 .nf-mention-loading,
 .nf-mention-deactivated {
-  background: #f1f3f6;
+  background: var(--nf-neutral-soft);
   color: var(--nf-muted);
   font-weight: 400;
 }
@@ -569,13 +1034,328 @@ textarea.nf-input {
   text-decoration: underline;
 }
 
-/* Sprache wählen, unten in der Seitenleiste (app/locale.tsx) */
-.nf-locale select {
-  font: inherit;
+/* ---------------------------------------------------------------------------------------------
+ * Dialog (components/dialog.tsx): natives <dialog> mit showModal()
+ * ------------------------------------------------------------------------------------------- */
+.nf-dialog {
+  width: min(560px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  margin: 96px auto auto;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: var(--nf-bg);
+  color: var(--nf-text);
+  box-shadow: var(--nf-shadow-dialog);
+}
+.nf-dialog::backdrop {
+  background: var(--nf-backdrop);
+}
+.nf-dialog-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px 16px;
+}
+.nf-dialog-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+.nf-dialog-description {
+  margin: 4px 0 0;
   font-size: 13px;
-  padding: 4px 6px;
-  border-radius: 6px;
-  border: 1px solid #36506b;
-  background: var(--nf-sidebar-hover);
-  color: #fff;
+  color: var(--nf-muted);
+}
+.nf-dialog-close {
+  border-color: transparent;
+  color: var(--nf-muted);
+}
+.nf-dialog-close:hover {
+  background: var(--nf-subtle);
+  color: var(--nf-text);
+}
+.nf-dialog-band {
+  padding: 14px 24px;
+  border-top: 1px solid var(--nf-border);
+  border-bottom: 1px solid var(--nf-border);
+  background: var(--nf-surface);
+}
+.nf-dialog-band strong {
+  display: block;
+  font-weight: 600;
+}
+.nf-dialog-band span {
+  font-size: 13px;
+  color: var(--nf-muted);
+}
+.nf-dialog-body {
+  padding: 16px 24px 4px;
+}
+.nf-dialog-body p {
+  margin: 0 0 12px;
+}
+.nf-dialog-soon {
+  display: flex;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--nf-accent-soft);
+  color: var(--nf-text);
+  font-size: 14px;
+}
+.nf-dialog-body .nf-dialog-soon p {
+  margin: 0;
+}
+.nf-dialog-soon .nf-icon {
+  color: var(--nf-accent);
+  margin-top: 2px;
+}
+.nf-dialog-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 24px 20px;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * Formulare, Knöpfe, Hinweise
+ * ------------------------------------------------------------------------------------------- */
+.nf-label {
+  display: block;
+  margin: 12px 0 6px;
+  font-weight: 500;
+}
+.nf-input {
+  height: 38px;
+  padding: 0 10px;
+  margin-right: 8px;
+  border: 1px solid var(--nf-input-border);
+  border-radius: 8px;
+  background: var(--nf-bg);
+  font-size: 14px;
+}
+textarea.nf-input {
+  height: auto;
+  padding: 8px 10px;
+  resize: vertical;
+}
+.nf-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--nf-accent);
+  color: var(--nf-on-accent);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.nf-button:hover:not(:disabled) {
+  background: var(--nf-accent-hover);
+  color: var(--nf-on-accent);
+}
+.nf-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.nf-button-secondary {
+  border: 1px solid var(--nf-control-border);
+  background: var(--nf-bg);
+  color: var(--nf-text);
+  font-weight: 400;
+}
+.nf-button-secondary:hover:not(:disabled) {
+  background: var(--nf-subtle);
+  color: var(--nf-text);
+}
+.nf-button-attention {
+  background: var(--nf-attention);
+}
+.nf-button-attention:hover:not(:disabled) {
+  background: var(--nf-restricted-fg);
+}
+.nf-input-wide {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  margin-right: 0;
+}
+.nf-saved {
+  color: var(--nf-done-fg);
+  margin-left: 8px;
+}
+.nf-link-button {
+  border: 0;
+  background: none;
+  color: var(--nf-accent);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+.nf-link-button:hover {
+  color: var(--nf-accent-hover);
+}
+.nf-form {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--nf-border);
+}
+.nf-alert {
+  color: var(--nf-attention);
+}
+.nf-sidebar .nf-alert {
+  margin: 0;
+  padding: 0 10px;
+  font-size: 13px;
+}
+.nf-muted {
+  color: var(--nf-muted);
+}
+.nf-space-list {
+  padding-left: 18px;
+  line-height: 1.8;
+}
+
+/* Einladungen */
+.nf-inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.nf-inline-form .nf-input {
+  margin-right: 0;
+}
+.nf-invite-link {
+  margin: 12px 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--nf-done-bg);
+  color: var(--nf-done-fg);
+  word-break: break-all;
+}
+.nf-invite-link p {
+  margin: 0 0 8px;
+}
+.nf-table-wrap {
+  overflow-x: auto;
+}
+.nf-table {
+  margin-top: 16px;
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 14px;
+}
+.nf-table th,
+.nf-table td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--nf-border);
+}
+.nf-table th {
+  background: var(--nf-subtle);
+  font-weight: 600;
+}
+.nf-button-link {
+  text-decoration: none;
+  margin-top: 8px;
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * Bis Tablet: unter 1024 px wird die Seitenleiste zur Schublade (components/app-shell.tsx)
+ * ------------------------------------------------------------------------------------------- */
+@media (max-width: 1023.98px) {
+  .nf-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 50;
+    width: min(320px, calc(100vw - 48px));
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition:
+      transform 160ms ease,
+      visibility 0s linear 160ms;
+    box-shadow: none;
+  }
+  .nf-shell[data-drawer='open'] .nf-sidebar {
+    transform: none;
+    visibility: visible;
+    transition: transform 160ms ease;
+    box-shadow: var(--nf-shadow-dialog);
+  }
+  .nf-shell[data-drawer='open'] .nf-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: var(--nf-backdrop);
+  }
+  button.nf-drawer-close,
+  button.nf-drawer-open {
+    display: inline-flex;
+  }
+  .nf-topbar {
+    padding: 10px 20px;
+  }
+  .nf-main {
+    padding: 32px 24px 64px;
+  }
+}
+
+/* Bis 1200 px zeigen „Versionen“ und „Exportieren“ nur das Icon, damit die Brotkrume Platz hat */
+@media (max-width: 1199.98px) {
+  .nf-btn-label-secondary {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .nf-btn:has(> .nf-btn-label-secondary) {
+    width: 38px;
+    padding: 0;
+  }
+}
+
+/* Schmal: Knöpfe im Kopfbereich nur mit Icon (der Text bleibt für Screenreader) */
+@media (max-width: 899.98px) {
+  .nf-btn-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .nf-topbar-end .nf-btn {
+    width: 38px;
+    padding: 0;
+  }
+}
+
+@media (max-width: 599.98px) {
+  .nf-topbar {
+    padding: 8px 12px;
+  }
+  .nf-main {
+    padding: 24px 16px 48px;
+  }
+  .nf-title {
+    font-size: 28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nf-sidebar,
+  .nf-twisty .nf-icon {
+    transition: none !important;
+  }
 }

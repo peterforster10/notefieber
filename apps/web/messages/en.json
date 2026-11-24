@@ -13,7 +13,8 @@
     "name": "Name",
     "restricted": "Own permissions",
     "restrictedLabel": "restricted",
-    "toHome": "Back to start page"
+    "toHome": "Back to start page",
+    "restrictedChip": "Restricted"
   },
   "roles": {
     "viewer": "View",
@@ -102,7 +103,11 @@
     "breadcrumb": "Breadcrumb",
     "yourRole": "Your role: {role}",
     "inTrash": " · in the trash",
-    "editorLoading": "Loading editor …"
+    "editorLoading": "Loading editor …",
+    "archivedSpace": "{name} (archived)",
+    "allSpaces": "All spaces",
+    "spaceKey": "Space · {key}",
+    "spaceActions": "Actions for {name}"
   },
   "settings": {
     "title": "Settings",
@@ -122,7 +127,7 @@
   "tree": {
     "label": "Page tree",
     "pagesIn": "Pages in {space}",
-    "newPage": "+ New page",
+    "newPage": "New page",
     "newPageTitle": "Title of the new page",
     "titlePlaceholder": "Title",
     "newTitle": "New title",
@@ -139,7 +144,10 @@
     "outdent": "Outdent (after the parent page)",
     "trash": "Move to trash",
     "confirmTrash": "Move “{title}” to the trash?",
-    "confirmTrashWithChildren": "Move “{title}” and all subpages to the trash?"
+    "confirmTrashWithChildren": "Move “{title}” and all subpages to the trash?",
+    "heading": "Pages",
+    "actionsFor": "Actions for {title}",
+    "deleteKey": "Del"
   },
   "editor": {
     "forbidden": "No access to this page.",
@@ -175,7 +183,9 @@
     "slashPageLink": "Link to page",
     "slashPageLinkHint": "Link to another page (also with “{trigger}”)",
     "slashMention": "Mention person",
-    "slashMentionHint": "Name a person from the workspace (also with “{trigger}”)"
+    "slashMentionHint": "Name a person from the workspace (also with “{trigger}”)",
+    "presenceNames": "On this page right now: {names}",
+    "contentLabel": "Page content"
   },
   "callout": {
     "info": "Info",
@@ -217,5 +227,31 @@
     "restore_parent_first": "Restore the parent page first.",
     "restore_trash_root_only": "Only the page that was deleted can be restored.",
     "guests_cannot_create_spaces": "Guests cannot create spaces."
+  },
+  "shell": {
+    "skipToContent": "Skip to content",
+    "navigation": "Navigation",
+    "openNavigation": "Open navigation",
+    "closeNavigation": "Close navigation"
+  },
+  "dialog": {
+    "close": "Close"
+  },
+  "pageHeader": {
+    "versions": "Versions",
+    "export": "Export",
+    "share": "Share and permissions",
+    "rightsTitle": "Permissions for “{title}”",
+    "rightsDescription": "Who may view and edit this page and its subpages.",
+    "rightsOwn": "Own permissions for this page",
+    "rightsOwnText": "This page does not inherit permissions. What applies here also applies to its subpages.",
+    "rightsInheritedTitle": "Inherits permissions",
+    "rightsInherited": "From the parent page or from the space “{space}”.",
+    "yourRole": "Your role on this page: {role}",
+    "rightsSoon": "Soon you will be able to set people, groups and “everyone in the workspace” with their role here, and switch on own permissions for this page.",
+    "versionsTitle": "Versions of “{title}”",
+    "versionsSoon": "Soon this will list every version of this page with everyone who wrote on it. You will be able to compare two versions and restore an old one.",
+    "exportTitle": "Export “{title}”",
+    "exportSoon": "Soon you will be able to download the page here as Markdown, as BlockNote JSON or as a ZIP with all images."
   }
 }

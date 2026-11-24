@@ -186,7 +186,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Das gilt für jede Seite im gelöschten Teilbaum, nicht nur für die, die jemand in den Papierkorb gelegt hat.
 
 **E04-08 Seite umbenennen.** Als Bearbeitende möchte ich eine Seite im Editor oder in der Seitenleiste umbenennen können, damit der Titel überall stimmt.
-- Gegeben ich ändere den Titel im Editor, dann zeigen Seitenbaum, Brotkrume und Adresse (`/spaces/…/pages/<titel>-<id>`) spätestens nach 10 s den neuen Titel.
+- Gegeben ich ändere den Titel im Editor, dann zeigen Seitenbaum, Brotkrume und Adresse (`/s/…/p/<titel>-<id>`) spätestens nach 10 s den neuen Titel.
 - Gegeben ich benenne in der Seitenleiste um, dann sehen alle, die die Seite offen haben, den neuen Titel sofort (interner Aufruf an den Collab-Server).
 - Gegeben ich darf nur lesen, dann kann ich weder im Editor noch in der Seitenleiste umbenennen.
 - Titel über 255 Zeichen werden gekürzt, nicht abgelehnt.
@@ -433,7 +433,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 **Umfang:**
 - Next.js als reine Oberfläche, Daten nur über die API
 - Seitenleiste mit Space-Umschalter und Seitenbaum, Kopfbereich mit Brotkrume und Anwesenheit, Kommentarspalte
-- Designsystem gemeinsam mit TalkFieber (IBM Plex, Farben aus der TalkFieber-`CLAUDE.md`)
+- Designsystem gemeinsam mit TalkFieber (Farben aus `CLAUDE.md` Abschnitt 9; seit 24. November 2026 helle Seitenleiste und Schrift Inter statt IBM Plex Sans, Code weiter IBM Plex Mono; TalkFieber zieht nach)
 - Tastaturbedienung, WCAG 2.2 AA, Deutsch und Englisch (umschaltbar seit M2, 24. November 2026), responsiv bis Tablet
 
 **Nicht enthalten:** Mobile-Apps (E30).

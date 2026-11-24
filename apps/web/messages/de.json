@@ -13,7 +13,8 @@
     "name": "Name",
     "restricted": "Eigene Rechte",
     "restrictedLabel": "eingeschränkt",
-    "toHome": "Zur Startseite"
+    "toHome": "Zur Startseite",
+    "restrictedChip": "Eingeschränkt"
   },
   "roles": {
     "viewer": "Lesen",
@@ -102,7 +103,11 @@
     "breadcrumb": "Brotkrume",
     "yourRole": "Deine Rolle: {role}",
     "inTrash": " · im Papierkorb",
-    "editorLoading": "Editor wird geladen …"
+    "editorLoading": "Editor wird geladen …",
+    "archivedSpace": "{name} (archiviert)",
+    "allSpaces": "Alle Spaces",
+    "spaceKey": "Space · {key}",
+    "spaceActions": "Aktionen für {name}"
   },
   "settings": {
     "title": "Einstellungen",
@@ -122,7 +127,7 @@
   "tree": {
     "label": "Seitenbaum",
     "pagesIn": "Seiten in {space}",
-    "newPage": "+ Neue Seite",
+    "newPage": "Neue Seite",
     "newPageTitle": "Titel der neuen Seite",
     "titlePlaceholder": "Titel",
     "newTitle": "Neuer Titel",
@@ -139,7 +144,10 @@
     "outdent": "Ausrücken (hinter die Elternseite)",
     "trash": "In den Papierkorb",
     "confirmTrash": "„{title}“ in den Papierkorb?",
-    "confirmTrashWithChildren": "„{title}“ und alle Unterseiten in den Papierkorb?"
+    "confirmTrashWithChildren": "„{title}“ und alle Unterseiten in den Papierkorb?",
+    "heading": "Seiten",
+    "actionsFor": "Aktionen für {title}",
+    "deleteKey": "Entf"
   },
   "editor": {
     "forbidden": "Kein Zugriff auf diese Seite.",
@@ -175,7 +183,9 @@
     "slashPageLink": "Link auf Seite",
     "slashPageLinkHint": "Eine andere Seite verlinken (auch mit „{trigger}“)",
     "slashMention": "Person erwähnen",
-    "slashMentionHint": "Eine Person aus dem Workspace nennen (auch mit „{trigger}“)"
+    "slashMentionHint": "Eine Person aus dem Workspace nennen (auch mit „{trigger}“)",
+    "presenceNames": "Gerade auf dieser Seite: {names}",
+    "contentLabel": "Inhalt der Seite"
   },
   "callout": {
     "info": "Info",
@@ -217,5 +227,31 @@
     "restore_parent_first": "Zuerst die Elternseite wiederherstellen.",
     "restore_trash_root_only": "Nur die Seite, die gelöscht wurde, lässt sich wiederherstellen.",
     "guests_cannot_create_spaces": "Gäste können keine Spaces anlegen."
+  },
+  "shell": {
+    "skipToContent": "Zum Inhalt springen",
+    "navigation": "Navigation",
+    "openNavigation": "Navigation öffnen",
+    "closeNavigation": "Navigation schließen"
+  },
+  "dialog": {
+    "close": "Schließen"
+  },
+  "pageHeader": {
+    "versions": "Versionen",
+    "export": "Exportieren",
+    "share": "Teilen und Rechte",
+    "rightsTitle": "Rechte für „{title}“",
+    "rightsDescription": "Wer diese Seite und ihre Unterseiten sehen und bearbeiten darf.",
+    "rightsOwn": "Eigene Rechte für diese Seite",
+    "rightsOwnText": "Diese Seite erbt keine Rechte. Was hier gilt, gilt auch für ihre Unterseiten.",
+    "rightsInheritedTitle": "Erbt die Rechte",
+    "rightsInherited": "Von der übergeordneten Seite bzw. vom Space „{space}“.",
+    "yourRole": "Deine Rolle auf dieser Seite: {role}",
+    "rightsSoon": "Bald lassen sich hier Personen, Gruppen und „Alle im Workspace“ mit ihrer Rolle festlegen und eigene Rechte für diese Seite einschalten.",
+    "versionsTitle": "Versionen von „{title}“",
+    "versionsSoon": "Bald stehen hier alle Versionen dieser Seite mit allen, die daran geschrieben haben. Zwei Versionen lassen sich vergleichen, eine alte wiederherstellen.",
+    "exportTitle": "„{title}“ exportieren",
+    "exportSoon": "Bald lässt sich die Seite hier als Markdown, als BlockNote-JSON oder als ZIP mit allen Bildern herunterladen."
   }
 }

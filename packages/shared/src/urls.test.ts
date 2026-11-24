@@ -1,6 +1,15 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { pageIdFromSlug, pagePath, pageSlug, shortId, slugify, spacePath, uuidFromShortId } from './urls.ts';
+import {
+  pageIdFromSlug,
+  pagePath,
+  pageSlug,
+  shortId,
+  slugify,
+  spacePath,
+  spaceSettingsPath,
+  uuidFromShortId,
+} from './urls.ts';
 
 const ID = '01a1bc1b-c003-7b51-b4d7-a9701a1a81d2';
 
@@ -44,7 +53,8 @@ test('Seitenadresse: Titel ist nur Schmuck, die ID zählt', () => {
   assert.equal(pageIdFromSlug('datenmodell'), undefined);
 });
 
-test('Pfade mit kleinem Space-Schlüssel', () => {
-  assert.equal(spacePath('ENTW'), '/spaces/entw');
-  assert.equal(pagePath('ENTW', { id: ID, title: 'Datenmodell' }), `/spaces/entw/pages/datenmodell-${shortId(ID)}`);
+test('Pfade mit kleinem Space-Schlüssel, kurz: /s/ und /p/', () => {
+  assert.equal(spacePath('ENTW'), '/s/entw');
+  assert.equal(spaceSettingsPath('ENTW'), '/s/entw/settings');
+  assert.equal(pagePath('ENTW', { id: ID, title: 'Datenmodell' }), `/s/entw/p/datenmodell-${shortId(ID)}`);
 });

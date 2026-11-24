@@ -1,18 +1,23 @@
+import { AppShell, Main, SidebarTop, Topbar } from '@/components/app-shell';
 import { SidebarFoot } from '@/components/sidebar-foot';
 import { Home } from './home';
 
 // Startseite: Anmelden über die API (Zitadel), danach die eigenen Spaces.
 export default function Page() {
   return (
-    <main className="nf-shell">
-      <aside className="nf-sidebar">
-        <strong className="nf-brand">NoteFieber</strong>
-        <SidebarFoot />
-      </aside>
-      <section className="nf-main">
+    <AppShell
+      sidebar={
+        <>
+          <SidebarTop brand="NoteFieber" />
+          <SidebarFoot />
+        </>
+      }
+    >
+      <Topbar />
+      <Main>
         <h1>NoteFieber</h1>
         <Home />
-      </section>
-    </main>
+      </Main>
+    </AppShell>
   );
 }

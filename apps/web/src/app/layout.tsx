@@ -3,6 +3,13 @@ import type { ReactNode } from 'react';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { Providers } from './providers';
+// Schriften vom eigenen Server (@fontsource, OFL-1.1), nie von Google: Inter als variable Schrift
+// für Oberfläche und Inhalt, IBM Plex Mono für Code (CLAUDE.md, Abschnitt 9). Der Browser lädt
+// nur die Schriftschnitte und Zeichenbereiche (unicode-range), die eine Seite wirklich braucht.
+import '@fontsource-variable/inter/wght.css';
+import '@fontsource-variable/inter/wght-italic.css';
+import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/ibm-plex-mono/500.css';
 import './globals.css';
 
 export async function generateMetadata(): Promise<Metadata> {

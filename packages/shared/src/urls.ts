@@ -1,6 +1,9 @@
 // Lesbare Adressen im Frontend (die API arbeitet weiter mit UUIDs):
-//   /spaces/entw                                       Space (Schlüssel klein, gespeichert als ENTW)
-//   /spaces/entw/pages/datenmodell-1yGd3kQ8vXr2mT5pLwN9aB   Seite: Titel + kurze ID
+//   /s/entw                                     Space (Schlüssel klein, gespeichert als ENTW)
+//   /s/entw/p/datenmodell-1yGd3kQ8vXr2mT5pLwN9aB   Seite: Titel + kurze ID
+//   /s/entw/settings                            Einstellungen des Spaces
+// Kurz gehalten (seit 24. November 2026); die früheren Adressen /spaces/…/pages/… leitet das
+// Frontend dauerhaft hierher um (apps/web/next.config.ts), damit alte Links gültig bleiben.
 // Die kurze ID ist die UUID der Seite in Base62 (immer 22 Zeichen, 0-9A-Za-z, umkehrbar,
 // ohne Datenbank). Der Titel davor ist nur zum Lesen: Wird die Seite umbenannt, funktioniert
 // der alte Link weiter, weil nur die ID nach dem letzten Bindestrich zählt.
@@ -59,7 +62,7 @@ export function pageIdFromSlug(slug: string): string | undefined {
 }
 
 export function spacePath(key: string): string {
-  return `/spaces/${key.toLowerCase()}`;
+  return `/s/${key.toLowerCase()}`;
 }
 
 /** Einstellungen eines Spaces: Name, Beschreibung, Archivieren */
@@ -68,5 +71,5 @@ export function spaceSettingsPath(key: string): string {
 }
 
 export function pagePath(spaceKey: string, page: { id: string; title: string }): string {
-  return `${spacePath(spaceKey)}/pages/${pageSlug(page.title, page.id)}`;
+  return `${spacePath(spaceKey)}/p/${pageSlug(page.title, page.id)}`;
 }

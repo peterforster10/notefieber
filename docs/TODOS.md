@@ -56,6 +56,20 @@ Bestehenden.
   M3), stattdessen einen Code aus der Datenbank liefern (`USING DETAIL` oder `HINT`), dann
   entfällt die Tabelle
 
+## Aus M2, Web-Client nach UI-Entwurf (24. November 2026)
+
+- [ ] **Kalter erster Aufruf nicht gemessen:** Die Messung mit 200 Blöcken (`apps/web/e2e/editor-200-blocks.spec.ts`)
+  lädt mit Browser-Cache (Median 1,48 s). Einen Lauf in einem frischen Browser-Kontext ergänzen,
+  spätestens im Pilot mit echter Netzlatenz (M5)
+- [ ] **Browser-Prüfungen in die CI:** `apps/web/e2e/` läuft nur lokal gegen den ganzen Stack. Mit
+  dem End-to-End-Test für das Gate in M3 einen Job in `.gitlab-ci.yml` mit PostgreSQL, Zitadel,
+  API, Collab-Server und Produktions-Build aufsetzen und `a11y.spec.ts` mitlaufen lassen
+- [ ] **Dialoge füllen:** „Versionen“ (E08), „Teilen und Rechte“ (M3) und „Exportieren“ (E14)
+  öffnen vorerst nur einen Ausblick (`apps/web/src/components/page-header.tsx`); das Gerüst
+  (`dialog.tsx`) ist für die echten Dialoge gedacht
+- [ ] **TalkFieber nachziehen:** helle Seitenleiste und Inter stehen in dieser `CLAUDE.md`
+  (Abschnitt 9), in der von TalkFieber noch nicht
+
 ## Open Source und öffentliches Repository (seit 23. November 2026)
 
 Umgestellt sind `LICENSE` (AGPL-3.0-only), Lizenzprüfung, `SECURITY.md`, `.gitignore`, CI-Job
