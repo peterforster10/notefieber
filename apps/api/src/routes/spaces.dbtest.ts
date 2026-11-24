@@ -129,6 +129,7 @@ test('Space anlegen, Seiten anlegen, verschieben, Papierkorb', { skip }, async (
 
   r = await a().call(peter, 'POST', `/pages/${pa}/move`, { parentId: pc });
   assert.equal(r.status, 409, 'Seite unter die eigene Unterseite verschoben');
+  assert.equal(r.body.code, 'move_into_self', 'Code für die Übersetzung in der Oberfläche');
 
   // Max liest mit (Standard: alle im Workspace lesen), darf aber nichts ändern
   assert.deepEqual(titles(await level(max, key)), ['Test über die API']);
@@ -147,7 +148,9 @@ test('Space anlegen, Seiten anlegen, verschieben, Papierkorb', { skip }, async (
   assert.deepEqual(r.body, { count: 2 });
   assert.deepEqual(await children(home), ['B', 'A']);
 
-  assert.equal((await a().call(peter, 'DELETE', `/pages/${home}`)).status, 409, 'Startseite gelöscht');
+  r = await a().call(peter, 'DELETE', `/pages/${home}`);
+  assert.equal(r.status, 409, 'Startseite gelöscht');
+  assert.equal(r.body.code, 'home_page_not_deletable');
 });
 
 test('Eingaben werden geprüft', { skip }, async () => {

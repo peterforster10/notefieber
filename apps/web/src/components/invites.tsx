@@ -5,21 +5,19 @@
 // Login (API: auth/accounts.ts). Das Konto beim Login-Dienst muss es schon geben.
 import { useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useFormatter, useTranslations } from 'next-intl';
 import { api, ApiError } from '@/lib/api';
+import { useErrorText } from '@/lib/errors';
 
-export const ROLE_LABELS: Record<string, string> = {
-  owner: 'Owner',
-  admin: 'Admin',
-  member: 'Mitglied',
-  guest: 'Gast',
-};
+const WORKSPACE_ROLES = ['owner', 'admin', 'member', 'guest'] as const;
+type WorkspaceRole = (typeof WORKSPACE_ROLES)[number];
+const isWorkspaceRole = (role: string): role is WorkspaceRole => (WORKSPACE_ROLES as readonly string[]).includes(role);
 
-const STATUS_LABELS: Record<string, string> = {
-  open: 'offen',
-  accepted: 'angenommen',
-  revoked: 'zurückgenommen',
-  expired: 'abgelaufen',
-};
+/** Name einer Rolle im Workspace; unbekannte Rollen (neuer Server, alter Browser) wie geliefert */
+function useWorkspaceRoleName() {
+  const t = useTranslations('workspaceRoles');
+  return (role: string) => (isWorkspaceRole(role) ? t(role) : role);
+}
 
 interface Invite {
   id: string;
@@ -40,6 +38,10 @@ export interface Workspace {
 
 /** Bereich für Admins eines Workspaces: einladen, offene Einladungen, zurücknehmen */
 export function WorkspaceInvites({ workspace }: { workspace: Workspace }) {
+  const t = useTranslations('invites');
+  const roleName = useWorkspaceRoleName();
+  const errorText = useErrorText();
+  const format = useFormatter();
   const queryClient = useQueryClient();
   const key = ['invites', workspace.id];
   const invites = useQuery({ queryKey: key, queryFn: () => api<Invite[]>(`/workspaces/${workspace.id}/invites`) });
@@ -75,22 +77,22 @@ export function WorkspaceInvites({ workspace }: { workspace: Workspace }) {
 
   return (
     <section className="nf-form" aria-labelledby={`invites-${workspace.id}`}>
-      <h3 id={`invites-${workspace.id}`}>Einladungen in „{workspace.name}“</h3>
+      <h3 id={`invites-${workspace.id}`}>{t('title', { workspace: workspace.name })}</h3>
       <form onSubmit={submit} className="nf-inline-form">
         <label className="nf-visually-hidden" htmlFor={`invite-email-${workspace.id}`}>
-          E-Mail-Adresse
+          {t('email')}
         </label>
         <input
           id={`invite-email-${workspace.id}`}
           type="email"
           required
-          placeholder="E-Mail-Adresse"
+          placeholder={t('email')}
           className="nf-input"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
         <label className="nf-visually-hidden" htmlFor={`invite-role-${workspace.id}`}>
-          Rolle
+          {t('role')}
         </label>
         <select
           id={`invite-role-${workspace.id}`}
@@ -98,28 +100,27 @@ export function WorkspaceInvites({ workspace }: { workspace: Workspace }) {
           value={role}
           onChange={(e) => setRole(e.target.value)}
         >
-          <option value="member">Mitglied</option>
-          <option value="admin">Admin</option>
-          <option value="guest">Gast</option>
+          {(['member', 'admin', 'guest'] as const).map((r) => (
+            <option key={r} value={r}>
+              {roleName(r)}
+            </option>
+          ))}
         </select>
         <button type="submit" className="nf-button" disabled={create.isPending}>
-          Einladen
+          {t('invite')}
         </button>
       </form>
       {create.isError && (
         <p role="alert" className="nf-alert">
-          {create.error.message}
+          {errorText(create.error)}
         </p>
       )}
       {link && (
         <div className="nf-invite-link" role="status">
-          <p>
-            Link für <strong>{link.email}</strong>, sieben Tage gültig. Er wird nur jetzt angezeigt; bitte selbst
-            weitergeben (E-Mails verschickt NoteFieber noch nicht).
-          </p>
+          <p>{t.rich('linkFor', { strong: (chunks) => <strong>{chunks}</strong>, email: link.email })}</p>
           <code>{link.link}</code>{' '}
           <button type="button" className="nf-link-button" onClick={copy}>
-            {copied ? 'Kopiert' : 'Kopieren'}
+            {copied ? t('copied') : t('copy')}
           </button>
         </div>
       )}
@@ -127,12 +128,12 @@ export function WorkspaceInvites({ workspace }: { workspace: Workspace }) {
         <table className="nf-table">
           <thead>
             <tr>
-              <th>E-Mail</th>
-              <th>Rolle</th>
-              <th>Status</th>
-              <th>Gültig bis</th>
+              <th>{t('columnEmail')}</th>
+              <th>{t('columnRole')}</th>
+              <th>{t('columnStatus')}</th>
+              <th>{t('columnValidUntil')}</th>
               <th>
-                <span className="nf-visually-hidden">Aktion</span>
+                <span className="nf-visually-hidden">{t('columnAction')}</span>
               </th>
             </tr>
           </thead>
@@ -140,9 +141,9 @@ export function WorkspaceInvites({ workspace }: { workspace: Workspace }) {
             {invites.data.map((i) => (
               <tr key={i.id}>
                 <td>{i.email}</td>
-                <td>{ROLE_LABELS[i.role] ?? i.role}</td>
-                <td>{STATUS_LABELS[i.status]}</td>
-                <td>{new Date(i.expiresAt).toLocaleDateString('de')}</td>
+                <td>{roleName(i.role)}</td>
+                <td>{t(`status.${i.status}`)}</td>
+                <td>{format.dateTime(new Date(i.expiresAt), { dateStyle: 'medium' })}</td>
                 <td>
                   {i.status === 'open' && (
                     <button
@@ -151,7 +152,7 @@ export function WorkspaceInvites({ workspace }: { workspace: Workspace }) {
                       disabled={revoke.isPending}
                       onClick={() => revoke.mutate(i.id)}
                     >
-                      Zurücknehmen
+                      {t('revoke')}
                     </button>
                   )}
                 </td>
@@ -174,36 +175,39 @@ interface InviteDetails {
 
 /** Seite hinter dem Einladungslink: worum es geht, dann anmelden und annehmen */
 export function InviteLanding({ token }: { token: string }) {
+  const t = useTranslations('invites');
+  const common = useTranslations('common');
+  const roleName = useWorkspaceRoleName();
+  const errorText = useErrorText();
   const invite = useQuery({
     queryKey: ['invite', token],
     queryFn: () => api<InviteDetails>(`/invites/${token}`),
     retry: false,
   });
-  if (invite.isPending) return <p>Einen Moment …</p>;
+  if (invite.isPending) return <p>{common('loading')}</p>;
   if (invite.isError) {
     const gone = invite.error instanceof ApiError && invite.error.status === 404;
-    return (
-      <p role="alert">
-        {gone
-          ? 'Diese Einladung ist ungültig, abgelaufen oder wurde schon benutzt. Bitte um einen neuen Link.'
-          : invite.error.message}
-      </p>
-    );
+    return <p role="alert">{gone ? t('landingInvalid') : errorText(invite.error)}</p>;
   }
   const i = invite.data;
   const params = new URLSearchParams({ invite: token, returnTo: '/' });
   return (
     <>
       <p>
-        {i.invitedBy ?? 'Jemand'} lädt dich in den Workspace <strong>{i.workspaceName}</strong> von {i.tenantName} ein,
-        als {ROLE_LABELS[i.role] ?? i.role}.
+        {t.rich('landingText', {
+          strong: (chunks) => <strong>{chunks}</strong>,
+          inviter: i.invitedBy ?? t('someone'),
+          workspace: i.workspaceName,
+          tenant: i.tenantName,
+          role: roleName(i.role),
+        })}
       </p>
       <p className="nf-muted">
-        Die Einladung gilt für <strong>{i.email}</strong>. Melde dich mit dem Konto für genau diese Adresse an.
+        {t.rich('landingEmail', { strong: (chunks) => <strong>{chunks}</strong>, email: i.email })}
       </p>
       {/* Der Browser navigiert zur API, die zum Login-Dienst weiterleitet und beim Rücksprung annimmt */}
       <a className="nf-button nf-button-link" href={`/api/v1/auth/login?${params}`}>
-        Annehmen und anmelden
+        {t('accept')}
       </a>
     </>
   );

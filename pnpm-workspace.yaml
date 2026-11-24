@@ -2,3 +2,10 @@
 packages:
   - apps/*
   - packages/*
+
+# Build-Skripte von Abhängigkeiten laufen nicht (Lieferkette). next-intl bringt @swc/core und
+# @parcel/watcher nur für das Herausziehen von Texten mit, das wir nicht nutzen; beide haben
+# fertige Binärdateien als optionale Pakete.
+allowBuilds:
+  '@parcel/watcher': false
+  '@swc/core': false

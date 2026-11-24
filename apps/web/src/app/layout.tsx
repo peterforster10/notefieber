@@ -1,12 +1,14 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Providers } from './providers';
 import './globals.css';
 
-export const metadata: Metadata = {
-  title: 'NoteFieber',
-  description: 'Europäisches Wiki, Daten gehostet in der EU',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('meta');
+  return { title: 'NoteFieber', description: t('description') };
+}
 
 // Mobil: Bildschirmtastatur verkleinert den Inhalt, statt ihn zu überdecken (Hinweis von BlockNote)
 export const viewport: Viewport = {
@@ -15,11 +17,16 @@ export const viewport: Viewport = {
   interactiveWidget: 'resizes-content',
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+// Sprache aus Cookie oder Accept-Language (src/i18n/request.ts); die Texte gehen an die
+// Client-Komponenten weiter (NextIntlClientProvider)
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const locale = await getLocale();
   return (
-    <html lang="de">
+    <html lang={locale}>
       <body>
-        <Providers>{children}</Providers>
+        <NextIntlClientProvider>
+          <Providers>{children}</Providers>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

@@ -2,6 +2,7 @@
 // Handlern, alle Daten kommen über die API (CLAUDE.md, Abschnitt 3).
 import path from 'node:path';
 import type { NextConfig } from 'next';
+import createNextIntlPlugin from 'next-intl/plugin';
 
 const root = path.join(import.meta.dirname, '../..');
 
@@ -45,4 +46,7 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Texte in Deutsch und Englisch (E15): Sprache und Nachrichten pro Anfrage aus src/i18n/request.ts
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
+
+export default withNextIntl(nextConfig);

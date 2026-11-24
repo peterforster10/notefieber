@@ -64,7 +64,11 @@ export function invitesRouter(c: ApiConfig, db: pg.Pool) {
       return r.rows;
     });
     if (!rows) {
-      res.status(403).json({ error: 'forbidden', message: 'Nur Admins des Workspaces sehen die Einladungen' });
+      res.status(403).json({
+        error: 'forbidden',
+        code: 'invites_admin_only',
+        message: 'Nur Admins des Workspaces sehen die Einladungen',
+      });
       return;
     }
     res.json(
@@ -160,7 +164,11 @@ export function invitesRouter(c: ApiConfig, db: pg.Pool) {
       : { rows: [] };
     const i = rows[0];
     if (!i) {
-      res.status(404).json({ error: 'not_found', message: 'Einladung ungültig, abgelaufen oder schon benutzt' });
+      res.status(404).json({
+        error: 'not_found',
+        code: 'invite_invalid',
+        message: 'Einladung ungültig, abgelaufen oder schon benutzt',
+      });
       return;
     }
     res.json({

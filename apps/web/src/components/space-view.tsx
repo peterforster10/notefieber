@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
 import { invalidatePageLinks } from '@/lib/page-links';
 import { pageIdFromSlug, pagePath, spacePath, spaceSettingsPath } from '@notefieber/shared';
 import { LoginForm, logout } from '@/app/account';
@@ -23,35 +24,37 @@ import {
   useTrash,
   type Space,
 } from '@/lib/api';
+import { useErrorText } from '@/lib/errors';
 import { PageTree } from './page-tree';
+import { SidebarFoot } from './sidebar-foot';
 import { SpaceSettings } from './space-settings';
 import { loadTrashOpen, saveTrashOpen } from '@/lib/sidebar-state';
+
+function EditorLoading() {
+  const t = useTranslations('space');
+  return <p className="nf-muted">{t('editorLoading')}</p>;
+}
 
 // Editor nur im Browser: BlockNote und Yjs brauchen das DOM und eine WebSocket-Verbindung
 const PageEditor = dynamic(() => import('./page-editor').then((m) => m.PageEditor), {
   ssr: false,
-  loading: () => <p className="nf-muted">Editor wird geladen …</p>,
+  loading: () => <EditorLoading />,
 });
-
-const ROLE_NAMES: Record<string, string> = {
-  viewer: 'Lesen',
-  commenter: 'Kommentieren',
-  editor: 'Bearbeiten',
-  admin: 'Admin',
-};
 
 export function SpaceView({ view = 'page' }: { view?: 'page' | 'settings' }) {
   const params = useParams<{ key: string; slug?: string }>();
   const pathname = usePathname();
   const key = decodeURIComponent(params.key);
   const me = useMe();
+  const common = useTranslations('common');
+  const account = useTranslations('account');
 
-  if (me.isPending) return <Shell>Einen Moment …</Shell>;
-  if (me.isError) return <Shell>Die API ist nicht erreichbar.</Shell>;
+  if (me.isPending) return <Shell>{common('loading')}</Shell>;
+  if (me.isError) return <Shell>{common('apiUnreachable')}</Shell>;
   if (!me.data)
     return (
       <Shell>
-        <h1>Anmelden</h1>
+        <h1>{account('signIn')}</h1>
         <LoginForm returnTo={pathname} />
       </Shell>
     );
@@ -73,6 +76,10 @@ function useCanonicalPath(path: string | undefined) {
 }
 
 function SignedInSpace({ spaceKey, pageId, view }: { spaceKey: string; pageId?: string; view: 'page' | 'settings' }) {
+  const t = useTranslations('space');
+  const common = useTranslations('common');
+  const account = useTranslations('account');
+  const errorText = useErrorText();
   const space = useSpace(spaceKey);
   const canonical = space.data && (view === 'settings' ? spaceSettingsPath(space.data.key) : spacePath(space.data.key));
   useCanonicalPath(!pageId ? canonical : undefined);
@@ -81,14 +88,12 @@ function SignedInSpace({ spaceKey, pageId, view }: { spaceKey: string; pageId?: 
     const notFound = space.error instanceof ApiError && [400, 404].includes(space.error.status);
     return (
       <Shell>
-        <p role="alert">
-          {notFound ? 'Diesen Space gibt es nicht, oder er ist für dich nicht sichtbar.' : space.error.message}
-        </p>
-        <Link href="/">Zur Startseite</Link>
+        <p role="alert">{notFound ? t('notFound') : errorText(space.error)}</p>
+        <Link href="/">{common('toHome')}</Link>
       </Shell>
     );
   }
-  if (!space.data) return <Shell>Einen Moment …</Shell>;
+  if (!space.data) return <Shell>{common('loading')}</Shell>;
   const selected = view === 'settings' ? undefined : (pageId ?? space.data.homePageId ?? undefined);
 
   return (
@@ -97,12 +102,11 @@ function SignedInSpace({ spaceKey, pageId, view }: { spaceKey: string; pageId?: 
         <SpaceSwitcher current={space.data} />
         <PageTree key={space.data.id} space={space.data} selectedId={selected} />
         <Trash space={space.data} />
-        <div className="nf-sidebar-foot">
+        <SidebarFoot>
           <button type="button" className="nf-link-button nf-on-dark" onClick={logout}>
-            Abmelden
+            {account('signOut')}
           </button>
-          <p className="nf-eu">Daten gehostet in der EU</p>
-        </div>
+        </SidebarFoot>
       </aside>
       <section className="nf-main">
         {view === 'settings' ? (
@@ -110,7 +114,7 @@ function SignedInSpace({ spaceKey, pageId, view }: { spaceKey: string; pageId?: 
         ) : selected ? (
           <PageView id={selected} canonicalize={!!pageId} />
         ) : (
-          <p>Dieser Space hat keine Startseite.</p>
+          <p>{t('noHomePage')}</p>
         )}
       </section>
     </main>
@@ -118,6 +122,7 @@ function SignedInSpace({ spaceKey, pageId, view }: { spaceKey: string; pageId?: 
 }
 
 function SpaceSwitcher({ current }: { current: Space }) {
+  const t = useTranslations('space');
   const router = useRouter();
   const spaces = useSpaces();
   return (
@@ -126,7 +131,7 @@ function SpaceSwitcher({ current }: { current: Space }) {
         NoteFieber
       </Link>
       <label htmlFor="space-switcher" className="nf-visually-hidden">
-        Space wechseln
+        {t('switchSpace')}
       </label>
       <select id="space-switcher" value={current.key} onChange={(e) => router.push(spacePath(e.target.value))}>
         {(spaces.data ?? [current]).map((s) => (
@@ -135,10 +140,10 @@ function SpaceSwitcher({ current }: { current: Space }) {
           </option>
         ))}
       </select>
-      {current.archived && <p className="nf-muted-dark">Archiviert, nur lesbar</p>}
+      {current.archived && <p className="nf-muted-dark">{t('archivedReadOnly')}</p>}
       {(current.canManage || current.role === 'admin') && (
         <div className="nf-switcher-links">
-          <Link href={spaceSettingsPath(current.key)}>Einstellungen</Link>
+          <Link href={spaceSettingsPath(current.key)}>{t('settings')}</Link>
         </div>
       )}
     </div>
@@ -146,6 +151,9 @@ function SpaceSwitcher({ current }: { current: Space }) {
 }
 
 function Trash({ space }: { space: Space }) {
+  const t = useTranslations('space');
+  const common = useTranslations('common');
+  const errorText = useErrorText();
   const trash = useTrash(space.key);
   const queryClient = useQueryClient();
   const restore = useMutation({
@@ -170,19 +178,19 @@ function Trash({ space }: { space: Space }) {
         saveTrashOpen(space.id, now);
       }}
     >
-      <summary>Papierkorb ({items.length})</summary>
+      <summary>{t('trash', { count: items.length })}</summary>
       {restore.isError && (
         <p role="alert" className="nf-alert nf-alert-dark">
-          {restore.error.message}
+          {errorText(restore.error)}
         </p>
       )}
       <ul>
         {items.map((p) => (
           <li key={p.id}>
-            <span>{p.title}</span>
+            <span>{p.title || common('untitled')}</span>
             {canEdit(space.role) && (
               <button type="button" className="nf-link-button nf-on-dark" onClick={() => restore.mutate(p.id)}>
-                Wiederherstellen
+                {t('restore')}
               </button>
             )}
           </li>
@@ -231,6 +239,9 @@ function useRefreshAccess(spaceKey: string | undefined) {
 }
 
 function PageView({ id, canonicalize }: { id: string; canonicalize: boolean }) {
+  const t = useTranslations('space');
+  const common = useTranslations('common');
+  const roles = useTranslations('roles');
   const page = usePage(id);
   const me = useMe();
   useCanonicalPath(page.data && canonicalize ? pagePath(page.data.spaceKey, page.data) : undefined);
@@ -241,26 +252,30 @@ function PageView({ id, canonicalize }: { id: string; canonicalize: boolean }) {
     await api(`/pages/${id}/restore`, { method: 'POST' });
     await refreshAccess();
   }, [id, refreshAccess]);
-  if (page.isPending) return <p>Einen Moment …</p>;
+  if (page.isPending) return <p>{common('loading')}</p>;
   // Schlägt erst das Neuladen fehl (Recht entzogen, während die Seite offen war), bleiben die alten
   // Daten stehen: Dann sagt der Editor „Kein Zugriff mehr“ und zeigt keinen Inhalt (E04-05)
   if (page.isError && !page.data) {
-    return <p role="alert">Diese Seite gibt es nicht, oder sie ist für dich nicht sichtbar.</p>;
+    return <p role="alert">{t('pageNotFound')}</p>;
   }
   const p = page.data;
-  const lock = p.restricted ? <span title="Eigene Rechte">🔒</span> : null;
+  const lock = p.restricted ? (
+    <span title={common('restricted')} role="img" aria-label={common('restrictedLabel')}>
+      🔒
+    </span>
+  ) : null;
   return (
     <article>
-      <nav aria-label="Brotkrume" className="nf-breadcrumb">
+      <nav aria-label={t('breadcrumb')} className="nf-breadcrumb">
         {p.breadcrumb.map((c) => (
           <span key={c.id}>
-            <Link href={pagePath(p.spaceKey, c)}>{c.title}</Link> /{' '}
+            <Link href={pagePath(p.spaceKey, c)}>{c.title || common('untitled')}</Link> /{' '}
           </span>
         ))}
       </nav>
       <p className="nf-muted">
-        Deine Rolle: {p.role ? ROLE_NAMES[p.role] : '–'}
-        {p.trashed ? ' · im Papierkorb' : ''}
+        {t('yourRole', { role: p.role ? roles(p.role) : '–' })}
+        {p.trashed ? t('inTrash') : ''}
       </p>
       {me.data ? (
         <PageEditor
@@ -278,7 +293,7 @@ function PageView({ id, canonicalize }: { id: string; canonicalize: boolean }) {
         />
       ) : (
         <h1>
-          {p.title || 'Ohne Titel'} {lock}
+          {p.title || common('untitled')} {lock}
         </h1>
       )}
     </article>
@@ -292,7 +307,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         <Link href="/" className="nf-brand">
           NoteFieber
         </Link>
-        <p className="nf-eu">Daten gehostet in der EU</p>
+        <SidebarFoot />
       </aside>
       <section className="nf-main">{children}</section>
     </main>

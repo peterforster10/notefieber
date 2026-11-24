@@ -13,6 +13,7 @@ import { PositionError } from './positions.ts';
 import { invitesRouter } from './routes/invites.ts';
 import { createCollabClient } from './collab-client.ts';
 import { filesRouter } from './routes/files.ts';
+import { meRouter } from './routes/me.ts';
 import { peopleRouter } from './routes/people.ts';
 import { spacesRouter } from './routes/spaces.ts';
 import { s3Store, type BlobStore } from './storage.ts';
@@ -53,6 +54,7 @@ export function createApp(config: ApiConfig, db: pg.Pool, idp: Oidc, store: Blob
   v1.use('/auth', authRouter(config, db, idp));
   v1.use(invitesRouter(config, db));
   v1.use(filesRouter(config, db, store));
+  v1.use(meRouter(db));
   v1.use(peopleRouter(db));
   v1.use(spacesRouter(db, createCollabClient(config.COLLAB_INTERNAL_URL, config.COLLAB_INTERNAL_SECRET)));
 
@@ -70,7 +72,7 @@ export function createApp(config: ApiConfig, db: pg.Pool, idp: Oidc, store: Blob
       return;
     }
     if (err instanceof PositionError) {
-      res.status(400).json({ error: 'invalid_request', message: err.message });
+      res.status(400).json({ error: 'invalid_request', code: 'invalid_position', message: err.message });
       return;
     }
     const http = toHttpError(err);

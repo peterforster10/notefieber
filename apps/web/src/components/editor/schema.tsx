@@ -20,12 +20,42 @@ import {
 import { useLinkedPage } from '@/lib/page-links';
 import { useMentionedPerson } from '@/lib/people';
 
-export const CALLOUT_LABELS: Record<CalloutVariant, { icon: string; label: string }> = {
-  info: { icon: 'ℹ', label: 'Info' },
-  note: { icon: '✎', label: 'Hinweis' },
-  success: { icon: '✓', label: 'Erfolg' },
-  warning: { icon: '⚠', label: 'Warnung' },
-  error: { icon: '✕', label: 'Fehler' },
+export const CALLOUT_ICONS: Record<CalloutVariant, string> = {
+  info: 'ℹ',
+  note: '✎',
+  success: '✓',
+  warning: '⚠',
+  error: '✕',
+};
+
+/** Texte der eigenen Blöcke und Inline-Inhalte in der Sprache der Oberfläche (E15) */
+export interface EditorTexts {
+  untitled: string;
+  calloutKind: string;
+  callout: Record<CalloutVariant, string>;
+  pageUnavailable: string;
+  pageUnavailableHint: string;
+  pageInTrash(title: string): string;
+  mentionUnknown: string;
+  mentionHidden: string;
+  deactivated(name: string): string;
+  toc: string;
+  tocTitle: string;
+  tocEmpty: string;
+}
+
+/**
+ * Wie die Texte zu den Darstellungen kommen: wie beim Navigieren über eine Variable, die der Editor
+ * setzt (page-editor.tsx), bevor er die Blöcke rendert; BlockNote rendert sie als eigene React-Bäume
+ * (lib/lookups.ts). Ein Wechsel der Sprache baut den Editor neu auf.
+ */
+let texts: EditorTexts | undefined;
+export function setEditorTexts(value: EditorTexts) {
+  texts = value;
+}
+const tx = () => {
+  if (!texts) throw new Error('setEditorTexts fehlt');
+  return texts;
 };
 
 /**
@@ -40,20 +70,21 @@ export function setPageLinkNavigator(fn: (href: string) => void) {
 const Callout = createReactBlockSpec(calloutConfig, {
   render: ({ block, editor, contentRef }) => {
     const variant = block.props.variant;
-    const { icon, label } = CALLOUT_LABELS[variant];
+    const icon = CALLOUT_ICONS[variant];
+    const label = tx().callout[variant];
     return (
       <div className="nf-callout" data-variant={variant}>
         <span className="nf-callout-icon" contentEditable={false}>
           {editor.isEditable ? (
             <select
-              aria-label="Art des Callouts"
+              aria-label={tx().calloutKind}
               title={label}
               value={variant}
               onChange={(e) => editor.updateBlock(block, { props: { variant: e.target.value as CalloutVariant } })}
             >
               {CALLOUT_VARIANTS.map((v) => (
                 <option key={v} value={v}>
-                  {CALLOUT_LABELS[v].icon} {CALLOUT_LABELS[v].label}
+                  {CALLOUT_ICONS[v]} {tx().callout[v]}
                 </option>
               ))}
             </select>
@@ -74,8 +105,8 @@ function PageLinkChip({ pageId }: { pageId: string }) {
   if (entry === undefined) return <span className="nf-page-link nf-page-link-loading">…</span>;
   if (!entry.value) {
     return (
-      <span className="nf-page-link nf-page-link-missing" title="Gelöscht, oder du darfst sie nicht sehen">
-        Seite nicht verfügbar
+      <span className="nf-page-link nf-page-link-missing" title={tx().pageUnavailableHint}>
+        {tx().pageUnavailable}
       </span>
     );
   }
@@ -85,14 +116,14 @@ function PageLinkChip({ pageId }: { pageId: string }) {
     <a
       className={page.trashed ? 'nf-page-link nf-page-link-trashed' : 'nf-page-link'}
       href={href}
-      title={page.trashed ? `${page.title} (im Papierkorb)` : `${page.title} (${page.spaceKey})`}
+      title={page.trashed ? tx().pageInTrash(page.title) : `${page.title} (${page.spaceKey})`}
       onClick={(e) => {
         if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return; // neuer Tab wie gewohnt
         e.preventDefault();
         navigate(href);
       }}
     >
-      {page.title || 'Ohne Titel'}
+      {page.title || tx().untitled}
     </a>
   );
 }
@@ -106,8 +137,8 @@ function MentionChip({ userId }: { userId: string }) {
   if (entry === undefined) return <span className="nf-mention nf-mention-loading">@…</span>;
   if (!entry.value) {
     return (
-      <span className="nf-mention nf-mention-missing" title="Diese Person kannst du nicht sehen">
-        @Unbekannt
+      <span className="nf-mention nf-mention-missing" title={tx().mentionHidden}>
+        @{tx().mentionUnknown}
       </span>
     );
   }
@@ -115,7 +146,7 @@ function MentionChip({ userId }: { userId: string }) {
   return (
     <span
       className={person.deactivated ? 'nf-mention nf-mention-deactivated' : 'nf-mention'}
-      title={person.deactivated ? `${person.displayName} (deaktiviert)` : person.displayName}
+      title={person.deactivated ? tx().deactivated(person.displayName) : person.displayName}
     >
       @{person.displayName}
     </span>
@@ -185,10 +216,10 @@ function TableOfContents({ editor }: { editor: TocEditor }) {
   }, [editor]);
   const top = headings.length ? Math.min(...headings.map((h) => h.level)) : 1;
   return (
-    <nav className="nf-toc" aria-label="Inhaltsverzeichnis" contentEditable={false}>
-      <p className="nf-toc-title">Inhalt</p>
+    <nav className="nf-toc" aria-label={tx().toc} contentEditable={false}>
+      <p className="nf-toc-title">{tx().tocTitle}</p>
       {headings.length === 0 ? (
-        <p className="nf-muted">Noch keine Überschriften auf dieser Seite.</p>
+        <p className="nf-muted">{tx().tocEmpty}</p>
       ) : (
         <ol>
           {headings.map((h) => (

@@ -5,33 +5,55 @@
 
 import { useQuery } from '@tanstack/react-query';
 
+/**
+ * Fehler der API. Angezeigt wird nie message (deutsch, für Logs), sondern der übersetzte Text zu
+ * code bzw. kind (useErrorText in lib/errors.ts, Texte unter errors in apps/web/messages/).
+ */
 export class ApiError extends Error {
+  /** HTTP-Status; 0 = keine Verbindung zur API */
   status: number;
-  constructor(status: number, message: string) {
-    super(message);
+  /** Art des Fehlers aus der Antwort (error: forbidden, rejected …) */
+  kind?: string;
+  /** Genaue Regel, falls die API sie kennt (code: home_page_not_deletable …) */
+  code?: string;
+  constructor(status: number, kind?: string, code?: string, message?: string) {
+    super(message ?? code ?? kind ?? `HTTP ${status}`);
     this.status = status;
+    this.kind = kind;
+    this.code = code;
   }
 }
 
+/** Antwortkörper der API im Fehlerfall */
+export interface ApiErrorBody {
+  error?: string;
+  code?: string;
+  message?: string;
+}
+export const apiError = (status: number, body: ApiErrorBody | undefined) =>
+  new ApiError(status, body?.error, body?.code, body?.message);
+
 export async function api<T>(path: string, init?: { method?: string; body?: unknown }): Promise<T> {
-  const res = await fetch(`/api/v1${path}`, {
-    method: init?.method ?? 'GET',
-    headers: init?.body !== undefined ? { 'content-type': 'application/json' } : undefined,
-    body: init?.body !== undefined ? JSON.stringify(init.body) : undefined,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`/api/v1${path}`, {
+      method: init?.method ?? 'GET',
+      headers: init?.body !== undefined ? { 'content-type': 'application/json' } : undefined,
+      body: init?.body !== undefined ? JSON.stringify(init.body) : undefined,
+    });
+  } catch {
+    throw new ApiError(0, 'network');
+  }
   const text = await res.text();
   // Fehlerantworten müssen kein JSON sein (z. B. 502 vom Proxy, wenn die API nicht läuft)
   let data;
   try {
     data = text ? JSON.parse(text) : undefined;
   } catch {
-    if (res.ok) throw new ApiError(res.status, 'Unerwartete Antwort der API');
+    if (res.ok) throw new ApiError(res.status, 'unexpected');
     data = undefined;
   }
-  if (!res.ok) {
-    const message = data?.message ?? (res.status === 403 ? 'Dafür fehlen die Rechte.' : `Fehler ${res.status}`);
-    throw new ApiError(res.status, message);
-  }
+  if (!res.ok) throw apiError(res.status, data);
   return data as T;
 }
 
@@ -43,6 +65,8 @@ export interface Me {
   email: string;
   displayName: string;
   orgRole: string;
+  /** Sprache der Oberfläche aus dem Profil (users.locale) */
+  locale: string;
   tenant: { id: string; slug: string; name: string };
 }
 export interface Space {
@@ -84,7 +108,8 @@ export interface TrashedPage {
 }
 
 // Keine Wiederholung bei 401/403/404: Das ist eine Antwort, kein Ausfall.
-const retry = (count: number, err: Error) => !(err instanceof ApiError && err.status < 500) && count < 2;
+const retry = (count: number, err: Error) =>
+  !(err instanceof ApiError && err.status >= 400 && err.status < 500) && count < 2;
 
 export const useMe = () =>
   useQuery({

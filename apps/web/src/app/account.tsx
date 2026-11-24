@@ -3,28 +3,32 @@
 // Anmelden und Abmelden. Die Anmeldung selbst macht die API (Weiterleitung zum Login-Dienst,
 // Sitzungs-Cookie); hier gibt es nur Formular, Anzeige der Person und den Abmelde-Knopf.
 import { useEffect, useState, type FormEvent } from 'react';
+import { useTranslations } from 'next-intl';
 import { api, type Me } from '@/lib/api';
 import { clearAllLocalCopies } from '@/lib/local-copies';
 import { clearSidebarState } from '@/lib/sidebar-state';
 
-const LOGIN_ERRORS: Record<string, string> = {
-  unknown_tenant: 'Diesen Mandanten gibt es nicht.',
-  login_failed: 'Die Anmeldung ist fehlgeschlagen. Bitte noch einmal versuchen.',
-  wrong_organization: 'Dieses Konto gehört nicht zu diesem Mandanten.',
-  no_account: 'Für dieses Konto gibt es in diesem Mandanten noch keinen Zugang. Bitte eine Einladung nutzen.',
-  deactivated: 'Dieses Konto ist deaktiviert.',
-  expired: 'Die Anmeldung hat zu lange gedauert. Bitte noch einmal versuchen.',
-  unavailable: 'Der Login-Dienst ist gerade nicht erreichbar.',
-  invite_invalid: 'Diese Einladung ist ungültig, abgelaufen oder wurde schon benutzt.',
-  invite_email_mismatch:
-    'Die Einladung gilt für eine andere E-Mail-Adresse. Bitte mit dem Konto für die eingeladene Adresse anmelden.',
-  invite_other_login: 'Zu dieser E-Mail-Adresse gibt es hier schon ein Konto mit einem anderen Login.',
-};
+/** Fehler beim Login, die die API als ?loginError=<code> zurückgibt (auth/routes.ts) */
+const LOGIN_ERRORS = [
+  'unknown_tenant',
+  'login_failed',
+  'wrong_organization',
+  'no_account',
+  'deactivated',
+  'expired',
+  'unavailable',
+  'invite_invalid',
+  'invite_email_mismatch',
+  'invite_other_login',
+] as const;
+type LoginError = (typeof LOGIN_ERRORS)[number];
+const isLoginError = (code: string): code is LoginError => (LOGIN_ERRORS as readonly string[]).includes(code);
 
 const defaultTenant = process.env.NEXT_PUBLIC_DEFAULT_TENANT ?? '';
 
 /** Anmeldeformular; schickt den Browser zur API, die zum Login-Dienst weiterleitet. */
 export function LoginForm({ returnTo = '/' }: { returnTo?: string }) {
+  const t = useTranslations('account');
   const [tenant, setTenant] = useState(defaultTenant);
   const [loginError, setLoginError] = useState<string | null>(null);
 
@@ -48,11 +52,11 @@ export function LoginForm({ returnTo = '/' }: { returnTo?: string }) {
       <input type="hidden" name="returnTo" value={returnTo} />
       {loginError && (
         <p role="alert" className="nf-alert">
-          {LOGIN_ERRORS[loginError] ?? 'Die Anmeldung ist fehlgeschlagen.'}
+          {t(`loginErrors.${isLoginError(loginError) ? loginError : 'default'}` as const)}
         </p>
       )}
       <label htmlFor="tenant" className="nf-label">
-        Mandant (Kurzname)
+        {t('tenantLabel')}
       </label>
       <input
         id="tenant"
@@ -65,7 +69,7 @@ export function LoginForm({ returnTo = '/' }: { returnTo?: string }) {
         className="nf-input"
       />
       <button type="submit" className="nf-button">
-        Anmelden
+        {t('signIn')}
       </button>
     </form>
   );
@@ -86,12 +90,18 @@ export async function logout() {
 
 /** Angemeldete Person mit Abmelde-Knopf */
 export function SignedIn({ me }: { me: Me }) {
+  const t = useTranslations('account');
   return (
     <p>
-      Angemeldet als <strong>{me.displayName}</strong> ({me.email}), Mandant {me.tenant.name}
-      {me.orgRole === 'org_admin' ? ', Organisations-Admin' : ''}.{' '}
+      {t.rich('signedIn', {
+        strong: (chunks) => <strong>{chunks}</strong>,
+        name: me.displayName,
+        email: me.email,
+        tenant: me.tenant.name,
+        orgAdmin: me.orgRole === 'org_admin' ? t('orgAdminSuffix') : '',
+      })}{' '}
       <button type="button" onClick={logout} className="nf-link-button">
-        Abmelden
+        {t('signOut')}
       </button>
     </p>
   );

@@ -7,10 +7,15 @@
 import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
 import { spacePath } from '@notefieber/shared';
 import { api, queryKeys, type Space } from '@/lib/api';
+import { useErrorText } from '@/lib/errors';
 
 export function SpaceSettings({ space }: { space: Space }) {
+  const t = useTranslations('settings');
+  const common = useTranslations('common');
+  const errorText = useErrorText();
   const queryClient = useQueryClient();
   const [name, setName] = useState(space.name);
   const [description, setDescription] = useState(space.description ?? '');
@@ -53,14 +58,12 @@ export function SpaceSettings({ space }: { space: Space }) {
       <p className="nf-breadcrumb">
         <Link href={spacePath(space.key)}>{space.name}</Link> /
       </p>
-      <h1>Einstellungen</h1>
-      <p className="nf-muted">
-        Schlüssel <code>{space.key}</code> (bleibt fest, er steht in den Adressen)
-      </p>
+      <h1>{t('title')}</h1>
+      <p className="nf-muted">{t.rich('key', { code: (chunks) => <code>{chunks}</code>, key: space.key })}</p>
 
       <form onSubmit={submit}>
         <label className="nf-label" htmlFor="space-name">
-          Name
+          {common('name')}
         </label>
         <input
           id="space-name"
@@ -72,7 +75,7 @@ export function SpaceSettings({ space }: { space: Space }) {
           disabled={!editable}
         />
         <label className="nf-label" htmlFor="space-description">
-          Beschreibung
+          {t('description')}
         </label>
         <textarea
           id="space-description"
@@ -86,59 +89,55 @@ export function SpaceSettings({ space }: { space: Space }) {
         {editable ? (
           <p>
             <button type="submit" className="nf-button" disabled={save.isPending || !name.trim()}>
-              Speichern
+              {common('save')}
             </button>
-            {saved && <span className="nf-saved"> Gespeichert</span>}
+            {saved && <span className="nf-saved"> {t('saved')}</span>}
           </p>
         ) : (
-          <p className="nf-muted">
-            {space.archived
-              ? 'Der Space ist archiviert. Name und Beschreibung lassen sich erst nach dem Zurückholen ändern.'
-              : 'Name und Beschreibung ändern nur Admins dieses Spaces.'}
-          </p>
+          <p className="nf-muted">{space.archived ? t('archivedNoEdit') : t('adminsOnly')}</p>
         )}
         {save.isError && (
           <p role="alert" className="nf-alert">
-            {save.error.message}
+            {errorText(save.error)}
           </p>
         )}
       </form>
 
       {space.canManage && (
         <section className="nf-form">
-          <h2>{space.archived ? 'Archiviert' : 'Archivieren'}</h2>
+          <h2>{space.archived ? t('archivedTitle') : t('archiveTitle')}</h2>
           {space.archived ? (
             <>
-              <p>Alle können diesen Space nur noch lesen. Zurückgeholt gelten wieder die bisherigen Rechte.</p>
+              <p>{t('archivedText')}</p>
               <button
                 type="button"
                 className="nf-button"
                 disabled={archive.isPending}
                 onClick={() => archive.mutate(false)}
               >
-                Space zurückholen
+                {t('unarchive')}
               </button>
             </>
           ) : (
             <>
-              <p>Ein archivierter Space bleibt sichtbar, lässt sich aber von niemandem mehr bearbeiten.</p>
+              <p>{t('archiveText')}</p>
               <button
                 type="button"
                 className="nf-button nf-button-attention"
                 disabled={archive.isPending}
                 onClick={() => {
-                  if (window.confirm(`„${space.name}“ archivieren? Danach können ihn alle nur noch lesen.`)) {
+                  if (window.confirm(t('archiveConfirm', { name: space.name }))) {
                     archive.mutate(true);
                   }
                 }}
               >
-                Space archivieren
+                {t('archive')}
               </button>
             </>
           )}
           {archive.isError && (
             <p role="alert" className="nf-alert">
-              {archive.error.message}
+              {errorText(archive.error)}
             </p>
           )}
         </section>

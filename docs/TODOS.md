@@ -42,9 +42,19 @@ Bestehenden.
 - [ ] **Bild auf eine andere Seite kopiert:** Der Bild-Block zeigt weiter auf die Datei der
   Ursprungsseite und ist nur für Personen sichtbar, die diese lesen dürfen. Beim Einfügen auf
   einer anderen Seite kopieren (neue Zeile in `files`, gleiches Objekt oder Kopie)
-- [ ] **Englische Texte:** Callout-Arten, „Link auf Seite“, „Seite nicht verfügbar“ und die übrige
-  Oberfläche gibt es nur auf Deutsch (Definition of Done in `EPICS.md`: Deutsch und Englisch);
-  mit der Übersetzung der Oberfläche in M2 (`ROADMAP.md`)
+
+## Aus M2, Sprachen der Oberfläche (24. November 2026)
+
+- [ ] **Sprache neuer Personen:** `users.locale` steht für alle neuen Personen auf `'de'`
+  (Standardwert). Wer vor dem Login English gewählt hat, sieht nach dem ersten Login Deutsch bis
+  zum Umschalten. Beim Annehmen der Einladung die Sprache aus dem Browser übernehmen (Cookie
+  `nf_locale` oder `Accept-Language`); braucht einen Parameter in `app.accept_invite` (Schema,
+  Migration, Test)
+- [ ] **Meldungen der Datenbank mit Code:** Die API bildet die Texte aus `RAISE EXCEPTION` über
+  `DB_RULES` (`apps/api/src/http/errors.ts`) auf Codes ab, die die Oberfläche übersetzt; ein Test
+  prüft, dass jeder Text im Schema steht. Kommen viele Regeln dazu (Rechte-Dialog, Kommentare in
+  M3), stattdessen einen Code aus der Datenbank liefern (`USING DETAIL` oder `HINT`), dann
+  entfällt die Tabelle
 
 ## Open Source und öffentliches Repository (seit 23. November 2026)
 

@@ -502,7 +502,7 @@ export function spacesRouter(db: pg.Pool, collab?: CollabClient) {
         return;
       }
       if (page.trashed) {
-        res.status(409).json({ error: 'rejected', message: 'Seite liegt im Papierkorb' });
+        res.status(409).json({ error: 'rejected', code: 'page_trashed', message: 'Seite liegt im Papierkorb' });
         return;
       }
       if (!collab) {
@@ -513,7 +513,7 @@ export function spacesRouter(db: pg.Pool, collab?: CollabClient) {
         const result = await collab.renamePage(id, { tenantId: auth.tenantId, userId: auth.userId, title });
         if (result === 'not-found') throw new NotFound();
         if (result === 'trashed') {
-          res.status(409).json({ error: 'rejected', message: 'Seite liegt im Papierkorb' });
+          res.status(409).json({ error: 'rejected', code: 'page_trashed', message: 'Seite liegt im Papierkorb' });
           return;
         }
       } catch (err) {

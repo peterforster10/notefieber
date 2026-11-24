@@ -1,9 +1,9 @@
 # Use Cases in der Oberfläche
 
-Was sich im Frontend schon durchklicken lässt. **Stand: 23. November 2026** (M0 abgeschlossen,
+Was sich im Frontend schon durchklicken lässt. **Stand: 24. November 2026** (M0 abgeschlossen,
 M1 mit Editor, gemeinsamem Bearbeiten, Rechten, die auch für offene Editoren sofort gelten,
 Umbenennen aus der Seitenleiste und lokalen Kopien für Funklöcher; M2 mit Seitenbaum, der
-ebenenweise lädt, Drag & Drop und Space-Einstellungen sowie den Blöcken im Editor: Callouts, Bilder, Code, Tabellen, Seitenlinks, Erwähnungen, Inhaltsverzeichnis). Wird nachgeführt, sobald ein neuer Ablauf in der Oberfläche dazukommt; was es
+ebenenweise lädt, Drag & Drop und Space-Einstellungen sowie den Blöcken im Editor: Callouts, Bilder, Code, Tabellen, Seitenlinks, Erwähnungen, Inhaltsverzeichnis; Oberfläche auf Deutsch und Englisch). Wird nachgeführt, sobald ein neuer Ablauf in der Oberfläche dazukommt; was es
 nur in Datenbank oder API gibt, steht unten unter „Noch nicht in der Oberfläche“.
 
 **Spalte „Geprüft“:** *Browser* = am 12. November 2026 von Hand gegen die lokale Umgebung
@@ -67,6 +67,7 @@ in `compose.yaml` (`NF_TEST_PASSWORD`).
 | UC-36 | Person erwähnen | Bearbeitende; sehen: alle mit Leserecht | Browser (23. November 2026, „@“ im Absatz; Gast Elena sieht auf „Kampagne Frühjahr“ nur „@Unbekannt“ und findet nur sich selbst) |
 | UC-37 | Inhaltsverzeichnis einfügen | Bearbeitende | Browser (23. November 2026, zieht neue Überschriften sofort nach, Unterüberschriften eingerückt, Sprung zur Überschrift) |
 | UC-35 | Seitenlink bleibt gültig und verrät nichts | alle | Browser (23. November 2026, Ziel umbenannt und verschoben; Max sieht bei „Personalplanung 2027“ nur „Seite nicht verfügbar“) |
+| UC-38 | Sprache umschalten (Deutsch, English) | alle, auch vor dem Login | Browser (24. November 2026, Lukas: ohne Cookie Browsersprache, nach dem Login Sprache aus dem Profil, Umschalten auf English mit Seitenleiste, Einstellungen, /-Menü, Callout-Arten und Fehlermeldung, zurück auf Deutsch) |
 
 ## Anmelden und Abmelden
 
@@ -405,6 +406,19 @@ eingerückt, und zieht neue oder geänderte Überschriften sofort nach, auch die
 springt zur Überschrift. Gespeichert wird nur der Block, nicht die Liste (wie das Makro in
 Confluence).
 
+## Sprache (M2)
+
+### UC-38 Sprache umschalten
+
+Unten in der Seitenleiste „Deutsch“ oder „English“ wählen. Die ganze Oberfläche wechselt sofort,
+auch die Menüs von BlockNote, Callout-Arten und Fehlermeldungen der API; ein offener Editor
+baut sich neu auf, ohne dass etwas verloren geht. Angemeldet speichert die Wahl das Profil
+(`users.locale` über `PATCH /api/v1/me`) und gilt damit auf jedem Gerät; vor dem Login nur im
+Browser (Cookie `nf_locale`). Ohne Wahl gilt die Browsersprache, nach dem Login die Sprache aus
+dem Profil (für neue Personen Deutsch). Die Anmeldeseite von Zitadel erscheint in der gewählten
+Sprache (`ui_locales`). Geschriebene Inhalte werden nicht übersetzt; „/hinweis“ und „/note“
+finden den Callout in beiden Sprachen.
+
 ## Noch nicht in der Oberfläche
 
 Teils in Datenbank oder API schon vorhanden, aber noch nicht klickbar:
@@ -412,7 +426,7 @@ Teils in Datenbank oder API schon vorhanden, aber noch nicht klickbar:
 | Was | Wann | Stand dahinter |
 |---|---|---|
 | Versionen ansehen und wiederherstellen | M2 | Datenbank fertig (`page_versions`, `save_version`) |
-| Profil (Name, Bild, Sprache, Zeitzone), Oberfläche auf Englisch | M2 | Spalten in `users` (`display_name`, `locale`, `time_zone`, `avatar_file_id`) |
+| Profil (Name, Bild, Zeitzone; die Sprache lässt sich schon umschalten, UC-38) | M2 | Spalten in `users` (`display_name`, `time_zone`, `avatar_file_id`), `PATCH /api/v1/me` kennt bisher nur `locale` |
 | Zuletzt besuchte Seiten | M2 | – |
 | Anhänge (Dateien außer Bildern), Virenscan | M3 | Tabelle `files` mit `scan_status`; mit `FILES_REQUIRE_SCAN` liefert die API nur geprüfte Dateien aus |
 | Rückverweise („Wer verlinkt hierher?“) | M3 | Worker pflegt `page_links` |

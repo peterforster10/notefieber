@@ -568,3 +568,14 @@ textarea.nf-input {
 .nf-toc a:focus-visible {
   text-decoration: underline;
 }
+
+/* Sprache wählen, unten in der Seitenleiste (app/locale.tsx) */
+.nf-locale select {
+  font: inherit;
+  font-size: 13px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid #36506b;
+  background: var(--nf-sidebar-hover);
+  color: #fff;
+}

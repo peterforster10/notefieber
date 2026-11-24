@@ -12,18 +12,24 @@
 import '@blocknote/mantine/style.css';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
 import * as Y from 'yjs';
 import { HocuspocusProvider } from '@hocuspocus/provider';
-import { de } from '@blocknote/core/locales';
+import { de, en } from '@blocknote/core/locales';
 import { withCollaboration } from '@blocknote/core/yjs';
 import { syntaxHighlighter } from '@blocknote/code-block';
 import { useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
-import { ApiError } from '@/lib/api';
+import { apiError, type ApiErrorBody } from '@/lib/api';
+import { useErrorText } from '@/lib/errors';
+import type { Locale } from '@/i18n/locales';
 import { clearLocalCopy, closeLocalCopy, openLocalCopy } from '@/lib/local-copies';
 import { CONTENT_FRAGMENT, TITLE_MAX_LENGTH, TITLE_TEXT, documentName, setTitle } from '@notefieber/editor-schema';
 import { EditorMenus } from './editor/menus';
-import { browserSchema, setPageLinkNavigator } from './editor/schema';
+import { browserSchema, setEditorTexts, setPageLinkNavigator, type EditorTexts } from './editor/schema';
+
+/** Wörterbücher von BlockNote (Menüs, Platzhalter, Tabellen …) pro Sprache der Oberfläche */
+const DICTIONARIES = { de, en } satisfies Record<Locale, unknown>;
 
 export interface EditorUser {
   id: string;
@@ -58,10 +64,10 @@ export function colorFor(id: string): string {
 }
 
 /** Text zur Ablehnung des Collab-Servers; `before`: der Editor war schon offen (Recht entzogen, abgemeldet) */
-function deniedText(reason: string, before: boolean): string {
-  if (reason === 'forbidden') return before ? 'Kein Zugriff mehr auf diese Seite.' : 'Kein Zugriff auf diese Seite.';
-  if (reason === 'unauthenticated') return 'Abgemeldet. Bitte neu anmelden.';
-  return 'Der Editor konnte nicht verbunden werden.';
+function deniedText(t: ReturnType<typeof useTranslations<'editor'>>, reason: string, before: boolean): string {
+  if (reason === 'forbidden') return before ? t('forbiddenNow') : t('forbidden');
+  if (reason === 'unauthenticated') return t('unauthenticated');
+  return t('connectFailed');
 }
 
 /** Bild an die Seite hochladen (E07, E11); die Adresse kommt in den Bild-Block */
@@ -71,8 +77,8 @@ async function uploadImage(pageId: string, file: File): Promise<string> {
     headers: { 'content-type': file.type || 'application/octet-stream', 'x-file-name': encodeURIComponent(file.name) },
     body: file,
   });
-  const data = (await res.json().catch(() => undefined)) as { url?: string; message?: string } | undefined;
-  if (!res.ok || !data?.url) throw new ApiError(res.status, data?.message ?? `Fehler ${res.status}`);
+  const data = (await res.json().catch(() => undefined)) as (ApiErrorBody & { url?: string }) | undefined;
+  if (!res.ok || !data?.url) throw apiError(res.status, data);
   return data.url;
 }
 
@@ -98,6 +104,8 @@ export function PageEditor(props: {
   onRestore?: () => Promise<unknown>;
 }) {
   const { pageId, onAccessChange } = props;
+  const t = useTranslations('editor');
+  const common = useTranslations('common');
   const router = useRouter();
   useEffect(() => setPageLinkNavigator((href) => router.push(href)), [router]);
   const userId = props.user.id;
@@ -158,13 +166,13 @@ export function PageEditor(props: {
     // (E04-05, E04-06). Der Titel aus der API ist der zuletzt gesehene.
     return (
       <>
-        <h1>{denied === 'forbidden' && conn ? 'Kein Zugriff' : props.fallbackTitle || 'Ohne Titel'}</h1>
+        <h1>{denied === 'forbidden' && conn ? t('noAccess') : props.fallbackTitle || common('untitled')}</h1>
         <p role="alert" className="nf-alert">
-          {deniedText(denied, !!conn)}
+          {deniedText(t, denied, !!conn)}
         </p>
         {denied === 'unauthenticated' && (
           <button type="button" onClick={() => window.location.reload()}>
-            Neu anmelden
+            {t('signInAgain')}
           </button>
         )}
       </>
@@ -173,8 +181,8 @@ export function PageEditor(props: {
   if (!conn) {
     return (
       <>
-        <h1>{props.fallbackTitle || 'Ohne Titel'}</h1>
-        <p className="nf-muted">{status === 'disconnected' ? 'Collab-Server nicht erreichbar …' : 'Verbinde …'}</p>
+        <h1>{props.fallbackTitle || common('untitled')}</h1>
+        <p className="nf-muted">{status === 'disconnected' ? t('collabUnreachable') : t('connecting')}</p>
       </>
     );
   }
@@ -193,11 +201,11 @@ export function PageEditor(props: {
       notice={
         // Erst nach dem ersten Abgleich sichtbar: alles außer verbunden heißt jetzt Funkloch
         status !== 'connected' ? (
-          'Offline. Änderungen werden übertragen, sobald die Verbindung zurück ist.'
+          t('offline')
         ) : props.trashed ? (
           <TrashNotice canRestore={props.mayEdit} onRestore={props.onRestore} />
         ) : scope === 'readonly' && props.mayEdit ? (
-          'Nur lesend verbunden.'
+          t('readOnly')
         ) : undefined
       }
     />
@@ -206,11 +214,13 @@ export function PageEditor(props: {
 
 /** Seite im Papierkorb (E04-07): nur lesbar; wer bearbeiten darf, holt sie hier zurück */
 function TrashNotice({ canRestore, onRestore }: { canRestore: boolean; onRestore?: () => Promise<unknown> }) {
+  const t = useTranslations('editor');
+  const errorText = useErrorText();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   return (
     <>
-      Diese Seite liegt im Papierkorb und kann nicht bearbeitet werden.
+      {t('trashed')}
       {canRestore && onRestore && (
         <>
           {' '}
@@ -222,11 +232,11 @@ function TrashNotice({ canRestore, onRestore }: { canRestore: boolean; onRestore
               setBusy(true);
               setError(undefined);
               onRestore()
-                .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)))
+                .catch((err: unknown) => setError(errorText(err)))
                 .finally(() => setBusy(false));
             }}
           >
-            Wiederherstellen
+            {t('restore')}
           </button>
         </>
       )}
@@ -256,10 +266,40 @@ function CollabEditor({
 }) {
   const { doc, provider } = conn;
   const color = colorFor(user.id);
+  const locale = useLocale();
+  const t = useTranslations('editor');
+  const common = useTranslations('common');
+  const callout = useTranslations('callout');
+  // Vor dem Editor setzen: Blöcke und Inline-Inhalte lesen die Texte beim Rendern (editor/schema.tsx)
+  const texts = useMemo<EditorTexts>(
+    () => ({
+      untitled: common('untitled'),
+      calloutKind: t('calloutKind'),
+      callout: {
+        info: callout('info'),
+        note: callout('note'),
+        success: callout('success'),
+        warning: callout('warning'),
+        error: callout('error'),
+      },
+      pageUnavailable: t('pageUnavailable'),
+      pageUnavailableHint: t('pageUnavailableHint'),
+      pageInTrash: (title) => t('pageInTrash', { title }),
+      mentionUnknown: t('mentionUnknown'),
+      mentionHidden: t('mentionHidden'),
+      deactivated: (name) => t('deactivated', { name }),
+      toc: t('toc'),
+      tocTitle: t('tocTitle'),
+      tocEmpty: t('tocEmpty'),
+    }),
+    [t, common, callout],
+  );
+  setEditorTexts(texts);
+  // Neue Sprache: neuer Editor mit dem anderen Wörterbuch; der Inhalt liegt in Yjs, es geht nichts verloren
   const editor = useCreateBlockNote(
     withCollaboration({
       schema: browserSchema,
-      dictionary: de,
+      dictionary: DICTIONARIES[locale],
       extensions: [syntaxHighlighter],
       uploadFile: (file: File) => uploadImage(pageId, file),
       collaboration: {
@@ -269,7 +309,7 @@ function CollabEditor({
         showCursorLabels: 'activity',
       },
     }),
-    [doc, provider, pageId],
+    [doc, provider, pageId, locale],
   );
 
   // Anwesenheit: wer die Seite offen hat, auch Lesende (E04-02). Die eigene ID für die Liste.
@@ -349,6 +389,8 @@ function TitleField({
   /** Enter im Titel: weiter in den Inhalt */
   onEnter?: () => void;
 }) {
+  const t = useTranslations('editor');
+  const common = useTranslations('common');
   const title = useYText(text);
   const first = useRef(true);
   useEffect(() => {
@@ -359,15 +401,15 @@ function TitleField({
     onChange?.(title);
   }, [title, onChange]);
 
-  if (!editable) return <h1 className="nf-title">{title || 'Ohne Titel'}</h1>;
+  if (!editable) return <h1 className="nf-title">{title || common('untitled')}</h1>;
   return (
     <h1 className="nf-title">
       <input
-        aria-label="Titel"
+        aria-label={t('titleLabel')}
         className="nf-title-input"
         value={title}
         maxLength={TITLE_MAX_LENGTH}
-        placeholder="Ohne Titel"
+        placeholder={common('untitled')}
         onChange={(e) => setTitle(text, e.target.value)}
         onKeyDown={(e) => {
           // Nicht während einer Eingabe mit IME (z. B. Japanisch), dort bestätigt Enter die Auswahl
@@ -388,6 +430,7 @@ interface PersonState {
 
 /** Avatare aller, die die Seite offen haben (Awareness, nie gespeichert) */
 function Presence({ provider, selfId }: { provider: HocuspocusProvider; selfId: string }) {
+  const t = useTranslations('editor');
   const awareness = provider.awareness;
   const [people, setPeople] = useState<PersonState[]>([]);
   useEffect(() => {
@@ -408,9 +451,9 @@ function Presence({ provider, selfId }: { provider: HocuspocusProvider; selfId: 
   const shown = useMemo(() => people.slice(0, 6), [people]);
   if (people.length === 0) return null;
   return (
-    <ul className="nf-presence" aria-label="Gerade auf dieser Seite">
+    <ul className="nf-presence" aria-label={t('presence')}>
       {shown.map((p) => (
-        <li key={p.id} title={p.id === selfId ? `${p.name} (du)` : p.name} style={{ background: p.color }}>
+        <li key={p.id} title={p.id === selfId ? t('you', { name: p.name }) : p.name} style={{ background: p.color }}>
           {initials(p.name)}
         </li>
       ))}

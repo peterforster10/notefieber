@@ -61,10 +61,13 @@ export function fileName(header: string | undefined, ext: string): string {
 class HttpFail extends Error {
   readonly status: number;
   readonly code: string;
-  constructor(status: number, code: string, message?: string) {
+  /** Genauere Regel für die Oberfläche (http/errors.ts) */
+  readonly detail?: string;
+  constructor(status: number, code: string, message?: string, detail?: string) {
     super(message ?? code);
     this.status = status;
     this.code = code;
+    this.detail = detail;
   }
 }
 
@@ -84,7 +87,9 @@ export function filesRouter(config: ApiConfig, db: pg.Pool, store: BlobStore) {
       await fn(req, res);
     } catch (err) {
       if (err instanceof HttpFail) {
-        res.status(err.status).json({ error: err.code, message: err.message });
+        res
+          .status(err.status)
+          .json({ error: err.code, ...(err.detail ? { code: err.detail } : {}), message: err.message });
         return;
       }
       throw err;
@@ -108,10 +113,10 @@ export function filesRouter(config: ApiConfig, db: pg.Pool, store: BlobStore) {
       });
       if (!page) throw new HttpFail(404, 'not_found');
       if (roleRank(page.role) < roleRank('editor')) throw new HttpFail(403, 'forbidden', 'Nur Bearbeitende laden hoch');
-      if (page.deleted_at) throw new HttpFail(409, 'rejected', 'Seite liegt im Papierkorb');
+      if (page.deleted_at) throw new HttpFail(409, 'rejected', 'Seite liegt im Papierkorb', 'page_trashed');
 
       const bytes: Uint8Array = Buffer.isBuffer(req.body) ? req.body : new Uint8Array();
-      if (bytes.length === 0) throw new HttpFail(400, 'invalid_request', 'Leere Datei');
+      if (bytes.length === 0) throw new HttpFail(400, 'invalid_request', 'Leere Datei', 'empty_file');
       const type = detectImage(bytes);
       if (!type) throw new HttpFail(415, 'unsupported_type', 'Nur Bilder: PNG, JPEG, GIF oder WebP');
 

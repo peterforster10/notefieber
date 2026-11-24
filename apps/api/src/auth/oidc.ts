@@ -50,3 +50,16 @@ export function endSessionUrl(
 }
 
 export { oidc };
+
+/** Cookie mit der Sprache der Oberfläche (apps/web/src/i18n/locales.ts) */
+const LOCALE_COOKIE = 'nf_locale';
+const UI_LOCALES = new Set(['de', 'en']);
+
+/**
+ * Sprache für die Anmeldeseite des Login-Dienstes (ui_locales, OpenID Connect Core 3.1.2.1), aus
+ * dem Cookie der Oberfläche. Nur unterstützte Sprachen; sonst entscheidet der Login-Dienst selbst.
+ */
+export function uiLocales(cookies: Record<string, string>): string | undefined {
+  const locale = cookies[LOCALE_COOKIE];
+  return locale && UI_LOCALES.has(locale) ? locale : undefined;
+}

@@ -885,6 +885,16 @@ Eine geänderte Entscheidung bekommt eine neue Notiz, die alte wird auf „erset
 
 Aus `EPICS.md`: Tests liegen vor, Mandantentrennung und Leserechte sind geprüft, die Oberfläche ist mit der Tastatur bedienbar, Texte gibt es auf Deutsch und Englisch.
 
+### Texte in zwei Sprachen
+
+Die Oberfläche gibt es auf Deutsch und Englisch (seit 24. November 2026, `next-intl`). Für neue Stories gilt:
+
+- **Kein Text fest im Code.** Jeder sichtbare Text, auch `aria-label`, `title`, `placeholder` und `window.confirm`, steht unter einem Schlüssel in `apps/web/messages/de.json` **und** `en.json`; in Komponenten über `useTranslations('bereich')`. Platzhalter und Auszeichnungen im ICU-Format (`{name}`, `<strong>…</strong>` mit `t.rich`). Der Test `apps/web/messages/messages.test.mjs` (in `pnpm check`) lehnt fehlende Schlüssel, abweichende Platzhalter und leere Texte ab.
+- **Die Sprache steht nicht in der Adresse.** Der Server liest sie aus dem Cookie `nf_locale`, sonst aus `Accept-Language`; angemeldet gilt `users.locale` (`PATCH /api/v1/me`, abgeglichen in `apps/web/src/app/locale.tsx`).
+- **Fehler der API zeigt die Oberfläche nie im Wortlaut.** Die API antwortet mit `{ error, code?, message? }`; übersetzt werden `code` (genaue Regel) und `error` (Art) über `useErrorText()` (`apps/web/src/lib/errors.ts`), `message` bleibt deutsch für Logs. Eine neue Regel, die die Oberfläche zeigt, bekommt einen `code` in der API (bei Meldungen der Datenbank in `DB_RULES`, `apps/api/src/http/errors.ts`) und einen Text unter `errors.<code>`.
+- **Editor:** BlockNote bekommt sein Wörterbuch je Sprache; eigene Blöcke und Inline-Inhalte lesen ihre Texte über `setEditorTexts` (`components/editor/schema.tsx`), weil BlockNote sie in eigenen React-Bäumen rendert. Einträge im /-Menü behalten Aliase in beiden Sprachen.
+- **Nicht übersetzt** werden Inhalte (Seiten, Titel, Namen) und die Meldungen in Logs und Tests.
+
 ### Arbeiten mit Claude Code
 
 - Eine User Story pro Sitzung, größere Stücke zuerst im Planungsmodus.

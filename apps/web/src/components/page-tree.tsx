@@ -32,9 +32,11 @@ import {
   type ReactNode,
 } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
 import { invalidatePageLinks } from '@/lib/page-links';
 import { pagePath, spacePath } from '@notefieber/shared';
 import { api, canEdit, queryKeys, usePage, useTreeLevel, type Space, type TreePage } from '@/lib/api';
+import { useErrorText } from '@/lib/errors';
 import { loadExpanded, saveExpanded } from '@/lib/sidebar-state';
 
 type MoveBody = { parentId: string | null; afterId?: string; beforeId?: string };
@@ -83,6 +85,9 @@ const TreeContext = createContext<Tree | null>(null);
 const useTree = () => useContext(TreeContext)!;
 
 export function PageTree({ space, selectedId }: { space: Space; selectedId?: string }) {
+  const t = useTranslations('tree');
+  const common = useTranslations('common');
+  const errorText = useErrorText();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
@@ -130,7 +135,7 @@ export function PageTree({ space, selectedId }: { space: Space; selectedId?: str
       queryClient.invalidateQueries({ queryKey: queryKeys.trash(space.key) }),
       queryClient.invalidateQueries({ queryKey: queryKeys.pages }),
     ]).then(invalidatePageLinks);
-  const onError = (err: Error) => setError(err.message);
+  const onError = (err: Error) => setError(errorText(err));
 
   const moveMutation = useMutation({
     mutationFn: ({ item, body }: { item: Item; body: MoveBody }) =>
@@ -234,9 +239,8 @@ export function PageTree({ space, selectedId }: { space: Space; selectedId?: str
     create: (parentId, title) => createMutation.mutate({ parentId, title }),
     move: (item, body) => moveMutation.mutate({ item, body }),
     trash: (item) => {
-      const msg = item.page.hasChildren
-        ? `„${item.page.title}“ und alle Unterseiten in den Papierkorb?`
-        : `„${item.page.title}“ in den Papierkorb?`;
+      const title = item.page.title || common('untitled');
+      const msg = item.page.hasChildren ? t('confirmTrashWithChildren', { title }) : t('confirmTrash', { title });
       if (window.confirm(msg)) trashMutation.mutate(item.page.id);
     },
     dragging,
@@ -260,17 +264,17 @@ export function PageTree({ space, selectedId }: { space: Space; selectedId?: str
 
   return (
     <TreeContext.Provider value={tree}>
-      <nav aria-label="Seitenbaum" className="nf-tree">
+      <nav aria-label={t('label')} className="nf-tree">
         {editableSpace && (
           <button type="button" className="nf-sidebar-button" onClick={() => setCreatingUnder(homeId ?? 'root')}>
-            + Neue Seite
+            {t('newPage')}
           </button>
         )}
         {/* Die Startseite steht nicht im Baum: Das Formular für Seiten unter ihr kommt hierher */}
         {(creatingUnder === 'root' || (creatingUnder !== null && creatingUnder === homeId)) && (
           <TitleForm
-            label="Titel der neuen Seite"
-            submitText="Anlegen"
+            label={t('newPageTitle')}
+            submitText={common('create')}
             busy={createMutation.isPending}
             onCancel={() => setCreatingUnder(null)}
             onSubmit={(title) =>
@@ -285,14 +289,14 @@ export function PageTree({ space, selectedId }: { space: Space; selectedId?: str
         )}
         {(root.isError || homeLevel.isError) && (
           <p role="alert" className="nf-alert nf-alert-dark">
-            Der Seitenbaum lässt sich gerade nicht laden.
+            {t('loadError')}
           </p>
         )}
         {homeItem && <HomeRow item={homeItem} />}
         {loading ? (
-          <p className="nf-muted-dark">Einen Moment …</p>
+          <p className="nf-muted-dark">{common('loading')}</p>
         ) : (
-          <ul role="tree" aria-label={`Seiten in ${space.name}`}>
+          <ul role="tree" aria-label={t('pagesIn', { space: space.name })}>
             <ItemList items={topFromHome} />
             <ItemList items={topFromRoot} />
           </ul>
@@ -317,6 +321,7 @@ function ItemList({ items, parent }: { items: Item[]; parent?: Item }) {
 
 /** Ebene unter einer aufgeklappten Seite, erst beim Aufklappen geladen */
 function ChildLevel({ parent }: { parent: Item }) {
+  const t = useTranslations('tree');
   const { space } = useTree();
   const level = useTreeLevel(space.key, parent.page.id);
   const ancestors = [...parent.ancestors, parent.page.id];
@@ -332,7 +337,7 @@ function ChildLevel({ parent }: { parent: Item }) {
   if (level.isError) {
     return (
       <ul role="group">
-        <li className="nf-tree-loading">Nicht geladen</li>
+        <li className="nf-tree-loading">{t('notLoaded')}</li>
       </ul>
     );
   }
@@ -401,6 +406,7 @@ function useDropTarget(item: Item, onlyInside = false) {
 }
 
 function HomeRow({ item }: { item: Item }) {
+  const tr = useTranslations('tree');
   const t = useTree();
   const target = useDropTarget(item, true);
   return (
@@ -414,13 +420,15 @@ function HomeRow({ item }: { item: Item }) {
         ⌂
       </span>
       <Link href={spacePath(t.space.key)} className="nf-tree-link" draggable={false}>
-        Startseite
+        {tr('home')}
       </Link>
     </div>
   );
 }
 
 function TreeItem({ item, prev, next, parent }: { item: Item; prev?: Item; next?: Item; parent?: Item }) {
+  const tr = useTranslations('tree');
+  const common = useTranslations('common');
   const t = useTree();
   const p = item.page;
   const open = t.expanded.has(p.id) && p.hasChildren;
@@ -455,58 +463,58 @@ function TreeItem({ item, prev, next, parent }: { item: Item; prev?: Item; next?
           type="button"
           className="nf-twisty"
           onClick={() => t.toggle(p.id)}
-          aria-label={open ? `${p.title} zuklappen` : `${p.title} aufklappen`}
+          aria-label={tr(open ? 'collapse' : 'expand', { title: p.title || common('untitled') })}
           style={{ visibility: p.hasChildren ? 'visible' : 'hidden' }}
         >
           {open ? '▾' : '▸'}
         </button>
         <Link href={pagePath(t.space.key, p)} className="nf-tree-link" draggable={false}>
-          {p.title || 'Ohne Titel'}
+          {p.title || common('untitled')}
         </Link>
         {p.restricted && (
-          <span className="nf-lock" title="Eigene Rechte" aria-label="eingeschränkt">
+          <span className="nf-lock" title={common('restricted')} role="img" aria-label={common('restrictedLabel')}>
             🔒
           </span>
         )}
         {editable && (
           <span className="nf-actions">
-            <IconButton label="Neue Unterseite" onClick={() => t.setCreatingUnder(p.id)}>
+            <IconButton label={tr('newSubpage')} onClick={() => t.setCreatingUnder(p.id)}>
               +
             </IconButton>
-            <IconButton label="Umbenennen" disabled={t.renamePending} onClick={() => t.setRenaming(p.id)}>
+            <IconButton label={tr('rename')} disabled={t.renamePending} onClick={() => t.setRenaming(p.id)}>
               ✎
             </IconButton>
             {!isHome && (
               <>
                 <IconButton
-                  label="Nach oben"
+                  label={tr('moveUp')}
                   disabled={!prev || t.busy}
                   onClick={() => prev && t.move(item, { parentId: p.parentId, beforeId: prev.page.id })}
                 >
                   ↑
                 </IconButton>
                 <IconButton
-                  label="Nach unten"
+                  label={tr('moveDown')}
                   disabled={!next || t.busy}
                   onClick={() => next && t.move(item, { parentId: p.parentId, afterId: next.page.id })}
                 >
                   ↓
                 </IconButton>
                 <IconButton
-                  label="Einrücken (unter die vorige Seite)"
+                  label={tr('indent')}
                   disabled={!prev || t.busy}
                   onClick={() => prev && t.move(item, { parentId: prev.page.id })}
                 >
                   →
                 </IconButton>
                 <IconButton
-                  label="Ausrücken (hinter die Elternseite)"
+                  label={tr('outdent')}
                   disabled={!outdent || orphan || t.busy}
                   onClick={() => outdent && t.move(item, { parentId: outdent.page.parentId, afterId: outdent.page.id })}
                 >
                   ←
                 </IconButton>
-                <IconButton label="In den Papierkorb" disabled={t.busy} onClick={() => t.trash(item)}>
+                <IconButton label={tr('trash')} disabled={t.busy} onClick={() => t.trash(item)}>
                   🗑
                 </IconButton>
               </>
@@ -517,8 +525,8 @@ function TreeItem({ item, prev, next, parent }: { item: Item; prev?: Item; next?
       {t.renaming === p.id && (
         <TitleForm
           initial={p.title}
-          label="Neuer Titel"
-          submitText="Umbenennen"
+          label={tr('newTitle')}
+          submitText={tr('rename')}
           busy={t.renamePending}
           onCancel={() => t.setRenaming(null)}
           onSubmit={(title) => (title === p.title ? t.setRenaming(null) : t.rename(p.id, title))}
@@ -526,8 +534,8 @@ function TreeItem({ item, prev, next, parent }: { item: Item; prev?: Item; next?
       )}
       {t.creatingUnder === p.id && (
         <TitleForm
-          label="Titel der neuen Seite"
-          submitText="Anlegen"
+          label={tr('newPageTitle')}
+          submitText={common('create')}
           busy={t.createPending}
           onCancel={() => t.setCreatingUnder(null)}
           onSubmit={(title) => t.create(p.id, title)}
@@ -554,6 +562,8 @@ function TitleForm({
   onSubmit: (title: string) => void;
   onCancel: () => void;
 }) {
+  const t = useTranslations('tree');
+  const common = useTranslations('common');
   const [title, setTitle] = useState(initial);
   function submit(e: FormEvent) {
     e.preventDefault();
@@ -564,7 +574,7 @@ function TitleForm({
       <input
         autoFocus
         aria-label={label}
-        placeholder="Titel"
+        placeholder={t('titlePlaceholder')}
         value={title}
         maxLength={255}
         onChange={(e) => setTitle(e.target.value)}
@@ -574,7 +584,7 @@ function TitleForm({
         {submitText}
       </button>
       <button type="button" onClick={onCancel}>
-        Abbrechen
+        {common('cancel')}
       </button>
     </form>
   );

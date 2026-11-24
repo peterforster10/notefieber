@@ -4,14 +4,18 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
+import { useTranslations } from 'next-intl';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { spacePath } from '@notefieber/shared';
 import { useQuery } from '@tanstack/react-query';
-import { api, useMe, useSpaces, type Space } from '@/lib/api';
+import { ApiError, api, useMe, useSpaces, type Space } from '@/lib/api';
+import { useErrorText } from '@/lib/errors';
 import { WorkspaceInvites, type Workspace } from '@/components/invites';
 import { LoginForm, SignedIn } from './account';
 
 export function Home() {
+  const t = useTranslations('home');
+  const common = useTranslations('common');
   const me = useMe();
   const spaces = useSpaces(!!me.data);
   const workspaces = useQuery({
@@ -20,23 +24,23 @@ export function Home() {
     enabled: !!me.data,
   });
 
-  if (me.isPending) return <p>Einen Moment …</p>;
-  if (me.isError) return <p role="alert">Die API ist nicht erreichbar.</p>;
+  if (me.isPending) return <p>{common('loading')}</p>;
+  if (me.isError) return <p role="alert">{common('apiUnreachable')}</p>;
   if (!me.data) return <LoginForm />;
 
   return (
     <>
       <SignedIn me={me.data} />
-      <h2>Spaces</h2>
-      {spaces.isPending && <p>Einen Moment …</p>}
-      {spaces.data && spaces.data.length === 0 && <p>Noch keine Spaces.</p>}
+      <h2>{t('spaces')}</h2>
+      {spaces.isPending && <p>{common('loading')}</p>}
+      {spaces.data && spaces.data.length === 0 && <p>{t('noSpaces')}</p>}
       <ul className="nf-space-list">
         {spaces.data?.map((s) => (
           <li key={s.id}>
             <Link href={spacePath(s.key)}>
               <strong>{s.name}</strong> <code>{s.key}</code>
             </Link>
-            {s.archived && <span className="nf-muted"> · archiviert</span>}
+            {s.archived && <span className="nf-muted"> · {t('archived')}</span>}
             {s.description && <span className="nf-muted"> · {s.description}</span>}
           </li>
         ))}
@@ -47,12 +51,8 @@ export function Home() {
   );
 }
 
-const ACCESS_OPTIONS = [
-  { value: 'viewer', label: 'Lesen' },
-  { value: 'commenter', label: 'Kommentieren' },
-  { value: 'editor', label: 'Bearbeiten' },
-  { value: 'none', label: 'Nichts (nur ich als Admin)' },
-] as const;
+/** Was alle im Workspace dürfen; none = nur die anlegende Person als Admin */
+const ACCESS_OPTIONS = ['viewer', 'commenter', 'editor', 'none'] as const;
 
 /**
  * Neuer Space: Schlüssel, Name, Workspace (nur wenn es mehrere gibt) und was alle im Workspace
@@ -60,13 +60,17 @@ const ACCESS_OPTIONS = [
  * (app.create_space); ohne passenden Workspace gibt es das Formular nicht.
  */
 function NewSpace({ workspaces }: { workspaces: Workspace[] }) {
+  const t = useTranslations('home');
+  const common = useTranslations('common');
+  const roles = useTranslations('roles');
+  const errorText = useErrorText();
   const router = useRouter();
   const queryClient = useQueryClient();
   const allowed = workspaces.filter((w) => w.role !== 'guest');
   const [key, setKey] = useState('');
   const [name, setName] = useState('');
   const [workspaceId, setWorkspaceId] = useState('');
-  const [access, setAccess] = useState<(typeof ACCESS_OPTIONS)[number]['value']>('viewer');
+  const [access, setAccess] = useState<(typeof ACCESS_OPTIONS)[number]>('viewer');
   const create = useMutation({
     mutationFn: () =>
       api<Space>('/spaces', {
@@ -90,14 +94,16 @@ function NewSpace({ workspaces }: { workspaces: Workspace[] }) {
   if (allowed.length === 0) return null;
   return (
     <form onSubmit={submit} className="nf-form">
-      <h3>Neuer Space</h3>
+      <h3>{t('newSpace')}</h3>
       {create.isError && (
         <p role="alert" className="nf-alert">
-          {create.error.message === 'Schon vorhanden' ? 'Diesen Schlüssel gibt es schon.' : create.error.message}
+          {create.error instanceof ApiError && create.error.kind === 'conflict'
+            ? t('keyTaken')
+            : errorText(create.error)}
         </p>
       )}
       <label className="nf-label" htmlFor="space-key">
-        Schlüssel (Großbuchstaben, z. B. ENTW)
+        {t('keyLabel')}
       </label>
       <input
         id="space-key"
@@ -108,7 +114,7 @@ function NewSpace({ workspaces }: { workspaces: Workspace[] }) {
         required
       />
       <label className="nf-label" htmlFor="space-name">
-        Name
+        {common('name')}
       </label>
       <input
         id="space-name"
@@ -121,7 +127,7 @@ function NewSpace({ workspaces }: { workspaces: Workspace[] }) {
       {allowed.length > 1 && (
         <>
           <label className="nf-label" htmlFor="space-workspace">
-            Workspace
+            {t('workspace')}
           </label>
           <select
             id="space-workspace"
@@ -138,7 +144,7 @@ function NewSpace({ workspaces }: { workspaces: Workspace[] }) {
         </>
       )}
       <label className="nf-label" htmlFor="space-access">
-        Alle im Workspace (ohne Gäste) dürfen
+        {t('workspaceAccess')}
       </label>
       <select
         id="space-access"
@@ -147,13 +153,13 @@ function NewSpace({ workspaces }: { workspaces: Workspace[] }) {
         onChange={(e) => setAccess(e.target.value as typeof access)}
       >
         {ACCESS_OPTIONS.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
+          <option key={o} value={o}>
+            {o === 'none' ? t('accessNone') : roles(o)}
           </option>
         ))}
       </select>
       <button type="submit" className="nf-button" disabled={create.isPending}>
-        Anlegen
+        {common('create')}
       </button>
     </form>
   );

@@ -38,7 +38,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Tests vorliegen.
 - Mandantentrennung und Leserechte geprüft sind (RLS und `app.page_rank`).
 - Die Oberfläche mit der Tastatur bedienbar ist.
-- Die Texte auf Deutsch und Englisch vorhanden sind. (Gilt ab der Übersetzung der Oberfläche in M2; was davor entstand, wird dabei nachgezogen.)
+- Die Texte auf Deutsch und Englisch vorhanden sind (seit 24. November 2026 übersetzt; Texte in `apps/web/messages/`, Regeln in `CONCEPTS.md`, „Texte in zwei Sprachen“).
 
 ---
 
@@ -434,7 +434,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Next.js als reine Oberfläche, Daten nur über die API
 - Seitenleiste mit Space-Umschalter und Seitenbaum, Kopfbereich mit Brotkrume und Anwesenheit, Kommentarspalte
 - Designsystem gemeinsam mit TalkFieber (IBM Plex, Farben aus der TalkFieber-`CLAUDE.md`)
-- Tastaturbedienung, WCAG 2.2 AA, Deutsch und Englisch (Übersetzung ab M2), responsiv bis Tablet
+- Tastaturbedienung, WCAG 2.2 AA, Deutsch und Englisch (umschaltbar seit M2, 24. November 2026), responsiv bis Tablet
 
 **Nicht enthalten:** Mobile-Apps (E30).
 

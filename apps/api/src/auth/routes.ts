@@ -18,7 +18,7 @@ import { clearCookie, parseCookies, serializeCookie, sign, verify } from '../htt
 import { safeReturnTo } from '../http/origin.ts';
 import { findInvite, resolveAccount, type AccountError } from './accounts.ts';
 import { ClaimError, identityFromClaims } from './claims.ts';
-import { type Oidc, endSessionUrl, oidc, scopesFor } from './oidc.ts';
+import { type Oidc, endSessionUrl, oidc, scopesFor, uiLocales } from './oidc.ts';
 import { SESSION_COOKIE, getAuth, hashToken, newSessionToken, requireAuth, sessionToken } from './session.ts';
 
 const LOGIN_COOKIE = 'nf_login';
@@ -92,6 +92,8 @@ export function authRouter(c: ApiConfig, db: pg.Pool, idp: Oidc) {
     const verifier = oidc.randomPKCECodeVerifier();
     const state = oidc.randomState();
     const nonce = oidc.randomNonce();
+    // Anmeldeseite in der Sprache der Oberfläche (E15)
+    const locale = uiLocales(parseCookies(req.headers.cookie));
     const url = oidc.buildAuthorizationUrl(config, {
       redirect_uri: c.OIDC_REDIRECT_URI,
       scope: scopesFor(c, tenant.idp_org_id),
@@ -99,6 +101,7 @@ export function authRouter(c: ApiConfig, db: pg.Pool, idp: Oidc) {
       code_challenge_method: 'S256',
       state,
       nonce,
+      ...(locale ? { ui_locales: locale } : {}),
     });
     const value = sign(c.AUTH_COOKIE_SECRET, {
       state,
