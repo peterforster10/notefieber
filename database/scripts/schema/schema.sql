@@ -83,7 +83,8 @@ COMMIT;
 --   sie ausdrücklich an wiki_app und/oder wiki_worker freigibt. Interne Bausteine nur an
 --   wiki_worker oder gar nicht.
 -- - Seiten im Papierkorb bleiben für Leser lesbar (Papierkorb-Ansicht). Seitenbaum, Suche
---   und Verlinkungen filtern deleted_at IS NULL; der Worker entfernt sie aus page_search.
+--   und Verlinkungen filtern deleted_at IS NULL. Aus page_search entfernt sie noch niemand
+--   (geplant für M3, docs/TODOS.md); bis dahin bleiben sie im Index.
 -- - Leseregel auf pages ruft app.page_rank pro Zeile auf. Für große Seitenbäume später
 --   eine vom Worker gepflegte Tabelle mit effektiven Rechten (siehe CLAUDE.md Abschnitt 8).
 -- - Der Outbox-Publisher sortiert nach id (uuidv7), nicht nach created_at.

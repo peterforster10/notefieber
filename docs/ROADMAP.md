@@ -100,7 +100,7 @@ Epics: E09, E10, E11, E12, E14, dazu aus E02 die Gruppenpflege (aus M0 verschobe
 - [ ] Kommentare an Textstellen und Seiten
 - [ ] Dateien mit Virenscan und Vorschau; dann `FILES_REQUIRE_SCAN` überall an (lokal bis dahin `false`), Anhänge als Datei-Block, „wird geprüft“ und „blockiert“ am Bild anzeigen
 - [ ] Sichtbarkeit für Listen mengenbasiert (Seitenbaum, Suche, Titelsuche für Seitenlinks `GET /pages/search`, „Ansehen als …“, Rückverweise): Ränge pro Space und Person einmal berechnen statt `page_rank` pro Zeile, durch einen Test gegen `page_rank` abgesichert (A-01)
-- [ ] Volltextsuche, Rechte in jedem Lesepfad; Deutsch und Englisch (zwei Sprachkonfigurationen oder `simple` mit Trigrammen, A-10); Filter nach Space, Autor und Zeitraum; Schnellsuche nach Titeln beim Tippen (E12, baut auf `GET /pages/search` auf)
+- [ ] Volltextsuche, Rechte in jedem Lesepfad; Deutsch und Englisch (zwei Sprachkonfigurationen oder `simple` mit Trigrammen, A-10); Filter nach Space, Autor und Zeitraum; Schnellsuche nach Titeln beim Tippen (E12, baut auf `GET /pages/search` auf); Seiten im Papierkorb verschwinden aus `page_search` und kommen beim Wiederherstellen zurück (noch nicht gebaut, [TODOS](TODOS.md))
 - [ ] Rückverweise „Wer verlinkt hierher?“ an der Seite, aus `page_links` (E06)
 - [ ] Export einer Seite, eines Teilbaums oder eines Spaces als Markdown + BlockNote-JSON + Anhänge (ZIP), nur was die Person lesen darf (E14). BlockNote-JSON ist das verlustfreie Format für Re-Import und Editorwechsel
 - [ ] Ein Webhook (E19, Teil des MVP laut `CLAUDE.md` Abschnitt 5): ausgewählte Ereignisse aus der Outbox an eine Adresse pro Mandant, mit Signatur

@@ -28,6 +28,18 @@ Bestehenden.
   Frage 2) den Index `outbox_unpublished` auf `id` umstellen. In M1 nicht nötig: Der
   Collab-Server bekommt die Ereignisse über `LISTEN/NOTIFY`, nicht über die Outbox
 
+## Mit M3 (Suche)
+
+- [ ] **Papierkorb im Suchindex (Mittel, gefunden 24. November 2026):** `CLAUDE.md` §8,
+  `docs/CONCEPTS.md` §9 und `schema.sql` sagen, der Worker entferne Seiten bei `page.trashed`
+  aus `page_search`. Gebaut ist das nicht: Es gibt kein `DELETE FROM page_search`, und der
+  Worker liest die Outbox nicht. Heute harmlos, weil die Titelsuche `GET /pages/search`
+  `deleted_at IS NULL` filtert. Vorschlag ohne Worker: `app.trash_page` löscht die Zeilen des
+  Teilbaums in derselben Transaktion, `app.restore_page` setzt `derived_stale`, damit der
+  Worker den Index neu aufbaut. Mit Test in `schema_test/` (Treffer verschwindet beim Löschen,
+  kommt nach dem Wiederherstellen und dem Ableiten zurück), Migration und Nachtrag in
+  `SCHEMA.md`; danach die Kennzeichnung „noch nicht gebaut“ an den drei Stellen entfernen
+
 ## Mit M5 (Pilot im Cluster)
 
 - [ ] **R-08 (Rest):** In der Datenbank `wiki` hat `PUBLIC` kein `CONNECT` mehr. Im Cluster

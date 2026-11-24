@@ -39,7 +39,7 @@ Alle Beispiele nutzen die erfundene Firma **Alpenwerk** mit Anna Huber (Organisa
 23. [Häufige Fragen](#23-häufige-fragen)
 24. [Glossar](#24-glossar)
 
-Was als **Empfehlung** gekennzeichnet ist, ist noch nicht entschieden und gehört bei der Umsetzung in eine Entscheidungsnotiz (siehe [Abschnitt 20](#20-entwicklungsablauf)).
+Was als **Empfehlung** gekennzeichnet ist, ist noch nicht entschieden. Entscheidungen stehen mit Datum in `CLAUDE.md` (Abschnitt 3, offene in Abschnitt 4), noch ungeklärte Themen in `docs/OPEN_QUESTIONS.md`.
 
 ---
 
@@ -404,7 +404,7 @@ Garage ist nur im Cluster erreichbar. Der Browser spricht nie direkt mit Garage,
 
 ### Sonderfälle
 
-- **Profilbilder** hängen an keiner Seite und sind für alle im Mandanten sichtbar. Als Profilbild lässt sich nur eine eigene Datei ohne Seite eintragen, sonst könnte jemand einen fremden Anhang so für alle sichtbar machen.
+- **Profilbilder** hängen an keiner Seite. Sichtbar sind sie für alle, die die Person sehen dürfen ([Wer sieht wen?](#personen-und-gruppen)), Gäste also nur ihr eigenes. Als Profilbild lässt sich nur eine eigene Datei ohne Seite eintragen, sonst könnte jemand einen fremden Anhang so für alle sichtbar machen.
 - **Löschen** (`deleted_at`) dürfen die hochladende Person und Bearbeitende der Seite.
 - **Import-Archive** hängen an keiner Seite und sind nur für die hochladende Person sichtbar.
 - Wird eine Seite **endgültig gelöscht**, fallen ihre Datei-Einträge mit weg. Ein Worker löscht danach die Objekte in Garage.
@@ -420,14 +420,18 @@ Gesucht wird mit der eingebauten Volltextsuche von PostgreSQL. Das ist ein Syste
 Ruht eine Seite nach einer Änderung (etwa 30 s), leitet der Worker Klartext und BlockNote-JSON ab und schreibt den Suchindex der Seite neu (`page.updated`). Neue Inhalte sind deshalb kurz verzögert findbar. Er besteht aus einem `tsvector`: einer Liste der Wortstämme mit Gewicht. Titel zählen stärker als der Text.
 
 ```sql
--- Worker, als wiki_worker
+-- vereinfacht aus app.store_derived (vom Worker als wiki_worker aufgerufen)
+BEGIN
+  v_tsv := setweight(to_tsvector('german', v_page.title), 'A')
+        || setweight(to_tsvector('german', v_text), 'B');
+EXCEPTION WHEN program_limit_exceeded THEN
+  -- ein tsvector hat höchstens 1 MB: dann zählt nur der Titel
+  v_tsv := setweight(to_tsvector('german', v_page.title), 'A');
+END;
 INSERT INTO page_search (page_id, tenant_id, space_id, tsv)
-SELECT p.id, p.tenant_id, p.space_id,
-       setweight(to_tsvector('german', p.title), 'A') ||
-       setweight(to_tsvector('german', c.plain_text), 'B')
-FROM pages p JOIN page_contents c ON c.page_id = p.id
-WHERE p.id = $1
-ON CONFLICT (page_id) DO UPDATE SET tsv = EXCLUDED.tsv, updated_at = now();
+VALUES (p_page_id, v_tenant, v_page.space_id, v_tsv)
+ON CONFLICT (page_id) DO UPDATE
+  SET space_id = EXCLUDED.space_id, tsv = EXCLUDED.tsv, updated_at = now();
 ```
 
 Die Sprachkonfiguration `german` versteht deutsche Wortformen: Eine Suche nach „Sicherung“ findet auch „Sicherungen“, „Seite“ auch „Seiten“. Englische Lehnwörter erkennt sie nicht: „Backup“ findet „Backups“ nicht (mit den Testdaten geprüft). Dafür gibt es die Titel-Schnellsuche (Trigramme) und, falls nötig, eine Präfixsuche (`backup:*`). Später ist die Sprache pro Mandant wählbar.
@@ -453,7 +457,7 @@ LIMIT 20;
 
 ### Rechte in der Suche
 
-Die Suchanfrage läuft als `wiki_app`. Ein Eintrag in `page_search` ist nur sichtbar, wenn die Person die Seite lesen darf. Es gibt also keinen Treffer, keinen Titel und keine Trefferzahl für Seiten ohne Leserecht. **Seiten im Papierkorb** entfernt der Worker bei `page.trashed` aus dem Index. Weil die Leseregel sie nicht von selbst ausblendet (die Papierkorb-Ansicht braucht sie), filtert die Abfrage trotzdem `deleted_at IS NULL`, für die Zeit, bis der Worker nachgezogen hat.
+Die Suchanfrage läuft als `wiki_app`. Ein Eintrag in `page_search` ist nur sichtbar, wenn die Person die Seite lesen darf. Es gibt also keinen Treffer, keinen Titel und keine Trefferzahl für Seiten ohne Leserecht. **Seiten im Papierkorb** sollen beim Löschen aus dem Index verschwinden und beim Wiederherstellen zurückkommen (**noch nicht gebaut**, kommt mit der Volltextsuche in M3, siehe `docs/TODOS.md`). Bis dahin bleiben sie in `page_search`. Weil die Leseregel sie ohnehin nicht von selbst ausblendet (die Papierkorb-Ansicht braucht sie), filtert jede Suche `deleted_at IS NULL`.
 
 ### Grenzen
 
@@ -520,13 +524,14 @@ Die Seitenleiste lädt den Baum **Ebene für Ebene** (`app.tree_level`), nicht a
 ### Der Inhalt: `page_contents`
 
 - **`ydoc`**: der vollständige Yjs-Zustand als Binärdaten. Das ist der eigentliche Inhalt.
-- **`content_json`**: derselbe Inhalt als BlockNote-JSON, bei jedem Speichern mitgeschrieben. Export, Import und ein späterer Wechsel des Editors arbeiten damit, ohne Yjs lesen zu müssen. Ist es einmal zu groß (über 20 MB) oder ungültig, bleibt es leer, statt das Speichern scheitern zu lassen; dann gilt nur `ydoc`. Versionen bekommen eine Kopie, damit sich auch alte Stände exportieren lassen.
+- **`content_json`**: derselbe Inhalt als BlockNote-JSON. Der Collab-Server schreibt es nicht mit, sondern der Worker leitet es aus `ydoc` ab, sobald die Seite etwa 30 s ruht (`app.store_derived`). Bis dahin steht `derived_stale` auf `true`, und `content_json` und `plain_text` hinken dem Editor hinterher. Export, Import und ein späterer Wechsel des Editors arbeiten damit, ohne Yjs lesen zu müssen. Ist es einmal zu groß (über 20 MB) oder ungültig, bleibt es leer (`NULL`), statt das Ableiten scheitern zu lassen; dann gilt nur `ydoc`. Versionen bekommen eine Kopie, wenn es aktuell ist. Entsteht eine Version, während die Seite veraltet ist, bekommt sie `NULL`, und maßgeblich ist ihr Yjs-Zustand.
+- **`derived_stale`**: `true`, solange `content_json`, `plain_text` und Suchindex älter sind als `ydoc`.
 - **`plain_text`**: abgeleiteter Klartext für Suche und später KI.
 - **`editors_since_version`**: wer seit der letzten Version bearbeitet hat. Wird beim Anlegen einer Version in deren `author_ids` übernommen und geleert.
 
 ### Outbox und Audit-Log
 
-- Die **Outbox** ist eine Tabelle, in die jede Änderung in **derselben Transaktion** ein Ereignis schreibt (`page.created`, `page.moved`, `grant.changed` …). Ein Worker liest sie und verteilt die Ereignisse weiter: an den Suchindex, an Benachrichtigungen, später an TalkFieber. Der Vorteil dieses **Outbox-Patterns**: Ein Ereignis geht nie verloren und wird nie verschickt, ohne dass die Änderung wirklich gespeichert ist. Das Subject folgt dem Muster `t.<tenant>.wiki.s.<space>`. Alle Ereignisse stehen in [Abschnitt 13](#13-ereignisse-in-der-outbox).
+- Die **Outbox** ist eine Tabelle, in die jede Änderung in **derselben Transaktion** ein Ereignis schreibt (`page.created`, `page.moved`, `grant.changed` …). Heute hört nur der Collab-Server zu, über `LISTEN/NOTIFY` aus einem Trigger auf der Outbox. Ein Worker, der sie liest und weiterverteilt (Benachrichtigungen, Webhook, später TalkFieber), ist geplant, aber noch nicht gebaut. Der Suchindex hängt nicht an der Outbox, ihn pflegt `app.store_derived` direkt. Der Vorteil dieses **Outbox-Patterns**: Ein Ereignis geht nie verloren und wird nie verschickt, ohne dass die Änderung wirklich gespeichert ist. Das Subject folgt dem Muster `t.<tenant>.wiki.s.<space>`. Alle Ereignisse stehen in [Abschnitt 13](#13-ereignisse-in-der-outbox).
 - Das **Audit-Log** hält sicherheitsrelevante Aktionen fest: Rechte, Vererbung, Papierkorb, Verschieben, Import, Export, „Ansehen als …“, Löschen fremder Kommentare, Wiederherstellung durch Organisations-Admins. Die App kann nur anfügen, nie ändern oder löschen. Lesen dürfen es nur Organisations-Admins.
 
 ---
@@ -572,13 +577,13 @@ Interne Bausteine (Ereignisse schreiben, Audit-Einträge, Rechte anderer Persone
 
 ### Die Tests
 
-`schema_test.sql` prüft das alles in 54 Tests als `wiki_app` und `wiki_worker` (gleichzeitige Sitzungen prüft `schema_concurrency_test.sh`), z. B.: Ein Leser kann weder direkt noch über Funktionen schreiben, eingeschränkte Seiten sind samt Inhalt, Versionen, Suchtreffern, Kommentaren, Dateien und Links unsichtbar, fremde Mandanten sind unsichtbar, jede Tabelle hat RLS. **Jede Änderung am Schema bekommt zuerst einen Test.**
+`schema_test.sql` prüft das alles in 56 Tests als `wiki_app` und `wiki_worker` (gleichzeitige Sitzungen prüft `schema_concurrency_test.sh`), z. B.: Ein Leser kann weder direkt noch über Funktionen schreiben, eingeschränkte Seiten sind samt Inhalt, Versionen, Suchtreffern, Kommentaren, Dateien und Links unsichtbar, fremde Mandanten sind unsichtbar, jede Tabelle hat RLS. **Jede Änderung am Schema bekommt zuerst einen Test.**
 
 ---
 
 ## 13. Ereignisse in der Outbox
 
-Jede wichtige Änderung schreibt in derselben Transaktion ein Ereignis in die Tabelle `outbox`. Ein Worker veröffentlicht sie (sortiert nach `id`) und setzt `published_at`. Später gehen sie über NATS auch an TalkFieber.
+Jede wichtige Änderung schreibt in derselben Transaktion ein Ereignis in die Tabelle `outbox`. Ein Trigger (`outbox_notify`) meldet jedes Ereignis sofort per `pg_notify`. Geplant ist zusätzlich ein Worker, der die Ereignisse sortiert nach `id` veröffentlicht und `published_at` setzt (über eine Funktion wie `app.claim_outbox`, siehe `docs/OPEN_QUESTIONS.md`, Frage 2). Bis dahin bleibt `published_at` leer. Später gehen die Ereignisse über NATS auch an TalkFieber.
 
 | Ereignis | Ausgelöst von | Inhalt (`payload`) |
 |---|---|---|
@@ -602,7 +607,7 @@ Die drei Ereignisse zu Personen gehen an jeden Space des betroffenen Workspaces 
 
 **Wer zuhört:**
 
-- **Worker:** Verlinkungen bei `page.updated` (den Suchindex pflegt er schon vorher beim Ableiten, `app.store_derived`, das `page.updated` erst auslöst), Zeitgeber für automatische Versionen, Import bei `import.requested`, später Benachrichtigungen.
+- **Worker (geplant):** Import bei `import.requested`, Benachrichtigungen, Webhook. Heute liest der Worker die Outbox noch nicht. Suchindex und Verlinkungen braucht er dafür nicht: Beides schreibt er beim Ableiten (`app.store_derived`, `app.replace_page_links`), und erst `app.store_derived` löst `page.updated` aus. Automatische Versionen kommen mit pg-boss (M2).
 - **Collab-Server** (per `LISTEN nf_events`, Trigger `outbox_notify`): prüft bei `grant.changed`, `page.permissions_changed`, `member.removed`, `member.changed`, `user.deactivated`, `space.archived`, `page.trashed` und `page.restored` die offenen Verbindungen im Space neu und meldet die betroffenen neu an, damit neue Rechte sofort gelten. Abmelden kommt nicht über die Outbox, sondern direkt von `app.end_session` (`nf_sessions`).
 - **Später TalkFieber:** Link-Vorschauen, Benachrichtigungen im Chat.
 
@@ -624,10 +629,10 @@ NoteFieber ist ein **modularer Monolith**: ein Code-Repository, wenige Prozesse,
          HTTPS · REST                 WebSocket (Yjs)
                  ▼                         ▼
    ┌─────────────────────┐      ┌─────────────────────┐
-   │ API (Express)        │◄─────│ Collab-Server        │
-   │ Seiten, Rechte,      │Rechte│ (Hocuspocus)         │
-   │ Suche, Kommentare,   │prüfen│ Yjs-Sync, Cursor,    │
-   │ Import starten       │      │ Speichern            │
+   │ API (Express)        │intern│ Collab-Server        │
+   │ Seiten, Rechte,      │─────►│ (Hocuspocus)         │
+   │ Suche, Kommentare,   │      │ Yjs-Sync, Cursor,    │
+   │ Import starten       │      │ Rechte beim Verbinden│
    └──────────┬──────────┘      └──────────┬──────────┘
               │      wiki_app      wiki_worker │
               ▼                                ▼
@@ -643,6 +648,8 @@ NoteFieber ist ein **modularer Monolith**: ein Code-Repository, wenige Prozesse,
    └─────────────────────┘     └──────────┘     └──────────┘
 ```
 
+Der Collab-Server fragt die API nie: Sitzung und Rolle prüft er beim Verbinden selbst in der Datenbank (`app.resolve_session`, `app.page_rank`), Rechteänderungen erfährt er per `LISTEN/NOTIFY`. Der Pfeil „intern“ ist der umgekehrte Weg: Änderungen von der Serverseite (Umbenennen, später Wiederherstellen einer Version) schickt die API über einen eigenen, nur im Cluster erreichbaren Port mit geteiltem Geheimnis an den Collab-Server.
+
 ### Die Prozesse
 
 | Prozess | Aufgabe | Zustand |
@@ -650,7 +657,7 @@ NoteFieber ist ein **modularer Monolith**: ein Code-Repository, wenige Prozesse,
 | **Frontend** (Next.js) | Liefert die Oberfläche aus. **Nur Oberfläche:** keine Geschäftslogik, alle Daten kommen über die API | zustandslos |
 | **API** (Express) | Alles außer dem Text selbst: Spaces, Seitenbaum, Rechte, Suche, Kommentare, Dateien, Import starten, Export | zustandslos |
 | **Collab-Server** (Hocuspocus) | Verteilt und speichert Yjs-Änderungen | hält offene Dokumente im Speicher, deshalb im MVP genau eine Instanz |
-| **Worker** | Hintergrundarbeit über eine Job-Queue in PostgreSQL: Suchindex, Links, automatische Versionen, Import, Export, Outbox, endgültiges Löschen | zustandslos |
+| **Worker** | Hintergrundarbeit. Heute fragt er alle 5 s die ruhenden Seiten ab (`app.pages_to_derive`) und leitet BlockNote-JSON, Klartext, Suchindex und Links ab. Mit pg-boss (Job-Queue in PostgreSQL, M2) kommen automatische Versionen und endgültiges Löschen dazu, später Import, Export und die Outbox | zustandslos |
 
 ### Warum zwei Wege zum Server?
 
@@ -672,7 +679,7 @@ Leitlinie: **bewährte Technik, eine Sprache, offene Lizenzen ohne Falle.** Note
 | Oberfläche | **Next.js** (React) | Verbreitet und bekannt. Wird nur als Oberfläche genutzt | MIT |
 | Editor | **BlockNote** | Notion-artige Blöcke, Slash-Menü, Drag & Drop und Yjs-Anbindung fertig. Baut auf Tiptap und ProseMirror. Die XL-Zusatzpakete (GPL-3.0, z. B. Export nach DOCX, ODT, PDF) sind mit der AGPL verträglich und dürfen im Kern genutzt werden, sobald sie gebraucht werden | MPL-2.0 (XL GPL-3.0) |
 | Echtzeit | **Yjs + Hocuspocus** | Bewährter CRDT und fertiger Server mit Einstiegspunkten für Login und Speichern | MIT |
-| API | **Express 5**, **Zod**, **Drizzle** | Express ist Standard. Zod prüft Eingaben, Drizzle bleibt nah an SQL | MIT |
+| API | **Express 5**, **Zod**, **`pg`** | Express ist Standard. Zod prüft Eingaben. Die API schreibt SQL direkt mit `pg` und ruft vor allem Funktionen im Schema `app` auf; Drizzle steht in `CLAUDE.md`, wird aber nicht genutzt (offene Frage A-13: streichen oder nur für typisierte Abfragen) | MIT |
 | Jobs | **pg-boss** | Job-Queue in PostgreSQL, kein zusätzlicher Dienst | MIT |
 | Datenbank | **PostgreSQL 18** mit `ltree`, `pg_trgm` | Struktur, Rechte, Inhalt, Volltextsuche und Jobs in einem System | PostgreSQL |
 | Login | **Zitadel** | Selbst gehostet, nutzt PostgreSQL, gemeinsam mit TalkFieber. Die App spricht nur **OIDC**, deshalb kann ein Kunde auch Entra ID oder Keycloak anschließen | AGPL-3.0, unverändert genutzt |
@@ -802,7 +809,7 @@ Unter „Architektur“ liegt „Datenmodell“, darunter die Seite „Intern“
 1. Sophie und Lukas haben „Datenmodell“ offen. Beide haben Bearbeitungsrecht und bekommen eine schreibende Verbindung zum Collab-Server.
 2. Etwa alle zwei Sekunden ruft der Collab-Server `app.store_ydoc` mit dem Yjs-Zustand, dem Titel und den IDs der Bearbeitenden; der abgeleitete Inhalt gilt damit als veraltet. Tippt etwa 30 s niemand, leitet der Worker BlockNote-JSON und Klartext ab und speichert sie mit `app.store_derived`: Suchindex erneuert, Ereignis `page.updated`.
 3. Zehn Minuten lang tippt niemand. Der Worker ruft `app.create_version(seite, 'auto')`. Die Version bekommt die Autoren Sophie und Lukas, die Liste in `page_contents` wird geleert.
-4. Anna stellt Version 3 wieder her. Die API prüft ihr Bearbeitungsrecht, dann lädt der Collab-Server den alten Stand, wendet ihn als neue Änderung an, speichert und ruft `app.create_version(seite, 'restore', NULL, 3)`. Version 3 selbst bleibt unverändert.
+4. Anna stellt Version 3 wieder her. Die API prüft ihr Bearbeitungsrecht, dann lädt der Collab-Server den alten Stand, wendet ihn als neue Änderung an, speichert und ruft `app.create_version(seite, 'restore', anna, 3)`. Anna steht damit als handelnde Person in der neuen Version, Version 3 selbst bleibt unverändert. (Versionen sind Teil von E08 und noch nicht gebaut; die Datenbankfunktionen gibt es schon.)
 
 ---
 
@@ -813,17 +820,24 @@ Unter „Architektur“ liegt „Datenmodell“, darunter die Seite „Intern“
 ```
 apps/
   web/        Next.js-Oberfläche (nur Oberfläche)
-  api/        Express-API und Worker (Suchindex, Versionen, Import, Export, Outbox):
+    messages/   Texte auf Deutsch und Englisch (de.json, en.json)
+    e2e/        Prüfungen im Browser mit Playwright (Ladezeit, Barrierefreiheit)
+  api/        Express-API (src/api.ts) und Worker (src/worker.ts, Ableiten in src/jobs/):
               ein Paket, später ein Image, zwei Deployments
   collab/     Hocuspocus-Server
 packages/
-  shared/     Typen, Zod-Schemas, Rollen, Ereignisse
+  shared/         Typen, Zod-Schemas, Rollen, Ereignisse, Adressen; /session (Sitzungs-Cookie),
+                  /db (Transaktion mit Mandant und Person, withContext)
+  editor-schema/  BlockNote-Schema für Browser, Worker und Import; /server: Yjs ↔ BlockNote-JSON ohne DOM
 database/
-  scripts/    Rollen, Schema (schema/), Migrationen (migrations/), Tests (schema_test/)
+  scripts/    Rollen, Schema (schema/), Migrationen (migrations/), Tests (schema_test/), Testdaten (seed/)
+docker/       Einrichtung von PostgreSQL, Garage und Zitadel für compose.yaml
 deploy/       (geplant)
   k8s/        Manifeste (Kustomize), später Helm-Chart
 docs/
   models/     Datenmodell und Architektur als Diagramme
+  reviews/    Reviews als Momentaufnahmen
+scripts/      Prüfungen für die CI (Lizenzen, fremde Hinweise) und check-login.mjs
 prototype/    UI-Prototyp (Referenz, kein Produktcode)
 ```
 
@@ -833,10 +847,10 @@ Ein Repository mit pnpm-Workspaces (Monorepo): jede App ein eigenes Node-Projekt
 
 Die vollständige Anleitung steht in [LOCAL_SETUP.md](LOCAL_SETUP.md). Kurz:
 
-1. PostgreSQL 18 im Docker-Container starten, später zusammen mit Zitadel und Garage per Docker Compose.
-2. `roles_database.sql` einmal als `postgres`, danach alle Migrationen (`migrate.sh`) als `wiki_owner`.
-3. `schema_test.sql`, `schema_concurrency_test.sh` und `schema_migrations_test.sh` laufen lassen: alle Tests müssen bestehen.
-4. Die Apps später direkt mit Node starten (schnelles Neuladen). k3d nur, um Manifeste vor dem Ausrollen zu prüfen.
+1. `docker compose up` startet PostgreSQL 18, Zitadel und Garage. Beim ersten Start richten sie sich selbst ein: Rollen, Schema und Testdaten in PostgreSQL, Projekt, Clients und Testpersonen in Zitadel, der Bucket `wiki` in Garage.
+2. Schemaänderungen spielt `migrate.sh` als `wiki_owner` ein, nie als `postgres`.
+3. `ci.sh` führt alle Datenbanktests aus (`schema_test.sql`, `schema_concurrency_test.sh`, `schema_migrations_test.sh`), `pnpm check` prüft die Apps, `pnpm test:db` testet API, Worker und Collab-Server gegen eine Wegwerf-Datenbank, nie gegen `nf-pg18`.
+4. Die Apps laufen direkt mit Node (schnelles Neuladen). k3d kommt erst für die Manifeste vor dem Ausrollen dazu.
 
 ### Migrationen
 
@@ -844,7 +858,7 @@ Die vollständige Anleitung steht in [LOCAL_SETUP.md](LOCAL_SETUP.md). Kurz:
 - **Einspielen** mit `database/scripts/migrate.sh`: fehlende Migrationen in der Reihenfolge der Nummern, jede in einer Transaktion, Buchführung in `migrations.applied`. Eine Prüfsumme pro Datei verhindert, dass eine eingespielte Migration nachträglich geändert wird; zwei gleichzeitige Läufe warten aufeinander.
 - Migrationen laufen immer als `wiki_owner`, auf dem Server in einem eigenen Kubernetes-Job vor dem Ausrollen, nie beim Start der App. Die App kennt die Zugangsdaten des Eigentümers nicht.
 - Jede Migration ist **eine Version rückwärtskompatibel**: Die alte App-Version muss mit dem neuen Schema noch laufen. Das ermöglicht Updates ohne Ausfall und ist für On-Prem-Kunden Pflicht, die Updates spät einspielen.
-- **Reines SQL**, weil das Schema viel Logik in Funktionen, Triggern und Policies enthält, die ein ORM nicht abbildet. Drizzle nur für Abfragen in der App. Ein eigenes kleines Skript statt eines Werkzeugs wie dbmate: Es nutzt psql wie Tests und Testdaten, `wiki_owner` braucht im Container kein Passwort, und Rückwärts-Migrationen sind nicht vorgesehen. Auf dem Server läuft dasselbe Skript im Image `postgres:18` als Job.
+- **Reines SQL**, weil das Schema viel Logik in Funktionen, Triggern und Policies enthält, die ein ORM nicht abbildet. Auch in der App gibt es bisher kein ORM, nur SQL mit `pg`. Ein eigenes kleines Skript statt eines Werkzeugs wie dbmate: Es nutzt psql wie Tests und Testdaten, `wiki_owner` braucht im Container kein Passwort, und Rückwärts-Migrationen sind nicht vorgesehen. Auf dem Server läuft dasselbe Skript im Image `postgres:18` als Job.
 
 ### Tests
 
@@ -864,22 +878,9 @@ Der Code entsteht größtenteils mit Claude Code. Das geht, weil die Datenbank d
 
 Weil das Repository öffentlich ist, kommen weder Secrets noch echte Kundendaten hinein (auch keine Confluence-Exporte von Pilotkunden); Testdaten sind synthetisch. Sicherheitslücken meldet man vertraulich ([SECURITY.md](../SECURITY.md)).
 
-```markdown
-# 7. Sitzungscookie statt Tokens im Browser
+### Entscheidungen festhalten
 
-Status: angenommen · 2026-11-10
-
-## Kontext
-Was ist das Problem, welche Möglichkeiten gab es?
-
-## Entscheidung
-Was wurde entschieden?
-
-## Folgen
-Was wird dadurch einfacher, was schwerer?
-```
-
-Eine geänderte Entscheidung bekommt eine neue Notiz, die alte wird auf „ersetzt durch 0012“ gesetzt. Die Kurzfassung steht zusätzlich in `CLAUDE.md`.
+Eigene Entscheidungsnotizen (ADRs) gibt es nicht. Jede Entscheidung kommt sofort mit Datum in die Tabelle in `CLAUDE.md`, Abschnitt 3, mit Begründung und, wo es eine gibt, dem Verweis auf den Befund in `docs/reviews/` (z. B. „entschieden 14. November 2026, A-04 bis A-08“). Ändert sich eine Entscheidung, wird der Eintrag überschrieben und nennt, was vorher galt; die Geschichte steht im Git-Verlauf. Offene Entscheidungen stehen in Abschnitt 4, ungeklärte Themen mit Vorschlag in `docs/OPEN_QUESTIONS.md`.
 
 ### Wann eine Story fertig ist
 
@@ -900,7 +901,7 @@ Die Oberfläche gibt es auf Deutsch und Englisch (seit 24. November 2026, `next-
 - Eine User Story pro Sitzung, größere Stücke zuerst im Planungsmodus.
 - Tests zuerst bei allem, was Rechte berührt.
 - Jeden Diff selbst lesen, besonders bei Rechten, Datenbankzugriff, Login und Collab-Server.
-- Neue Entscheidungen sofort in `CLAUDE.md` und als ADR.
+- Neue Entscheidungen sofort in `CLAUDE.md` (siehe „Entscheidungen festhalten“).
 
 ---
 
@@ -910,7 +911,7 @@ Manches ist mit Absicht einfach gehalten. Wer es ändern will, sollte den Grund 
 
 | Kompromiss | Warum so | Wann ändern |
 |---|---|---|
-| Rechte werden bei jeder Abfrage pro Zeile berechnet | Eine Wahrheit, immer aktuell, kein Abgleich nötig | Bei großen Bäumen oder langsamen Abfragen: eine vom Worker gepflegte Tabelle mit effektiven Rechten (E28) |
+| Rechte werden bei jeder Abfrage berechnet, nicht in einer Tabelle vorgehalten | Eine Wahrheit, immer aktuell, kein Abgleich nötig | Pro Zeile ist das für Listen zu langsam. Der Seitenbaum rechnet deshalb ebenenweise (`app.tree_level`, 2–42 ms pro Ebene bei 10.000 Seiten), Suche, „Ansehen als …“ und Rückverweise folgen in M3. Ob danach eine vom Worker gepflegte Tabelle mit effektiven Rechten nötig ist, entscheidet die Lastprüfung in M3 (`docs/OPEN_QUESTIONS.md`, Frage 11) |
 | Genau eine Collab-Server-Instanz | Kein Abgleich zwischen Instanzen nötig | Bei mehr Last oder Bedarf an Ausfallsicherheit: Hocuspocus mit Valkey oder Verteilung nach Seite (E28) |
 | Ein einzelner Server | Günstig, einfach | Vor dem ersten zahlenden Geschäftskunden (E24) |
 | Keine Ende-zu-Ende-Verschlüsselung | Sonst gingen Suche, Import, Export und KI nicht | Bewusst dauerhaft. Stattdessen EU-Betrieb, Verschlüsselung der gespeicherten Daten, eigene Zelle oder On-Prem |
@@ -997,7 +998,7 @@ UUIDs lassen sich nicht erraten, die App kann sie schon vor dem Speichern erzeug
 ## 24. Glossar
 
 | Begriff | Bedeutung |
-|---|---||
+|---|---|
 | **Audit-Log** | Unveränderbares Protokoll sicherheitsrelevanter Aktionen |
 | **AVV** | Auftragsverarbeitungsvertrag nach Art. 28 DSGVO zwischen Kunde und Anbieter |
 | **BlockNote** | Block-Editor im Browser, auf Basis von Tiptap und ProseMirror |
@@ -1022,7 +1023,7 @@ UUIDs lassen sich nicht erraten, die App kann sie schon vor dem Speichern erzeug
 | **RLS** | Row Level Security: Zugriffsregeln pro Zeile in PostgreSQL |
 | **SCIM** | Standard, mit dem Firmen-Verzeichnisse Personen und Gruppen automatisch anlegen und entfernen |
 | **`SECURITY DEFINER`** | Funktion läuft mit den Rechten ihres Eigentümers, nicht des Aufrufers |
-| **Signierte URL** | Kurzlebige Adresse für genau eine Datei, die Garage nur bis zum Ablauf annimmt |
+| **Signierte URL** | Kurzlebige Adresse für genau eine Datei, die ein S3-Speicher nur bis zum Ablauf annimmt. NoteFieber nutzt sie bewusst nicht: Dateien gehen über die API, die bei jeder Anfrage das Leserecht prüft (entschieden 23. November 2026, [Abschnitt 8](#8-dateien)) |
 | **Space** | Bereich im Wiki mit eigenem Key, eigener Startseite und eigenen Rechten |
 | **SSO** | Single Sign-on, Anmeldung über das Firmen-Login |
 | **TOMs** | Technische und organisatorische Maßnahmen, die ein Anbieter zum Datenschutz nachweist |
