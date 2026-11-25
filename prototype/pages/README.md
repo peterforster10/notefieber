@@ -29,15 +29,31 @@ values (colors, font sizes, spacing, radii, shadows, layout).
     die Leiste oben (`.nf-topbar`, bleibt stehen) enthält links die Suche (unter 1024 px mit dem
     Menü-Knopf davor) und rechts den Avatar der angemeldeten Person. Er öffnet das Konto-Menü: Name,
     E-Mail und Rolle, „Benutzerprofil“, „Einstellungen“, „Tastenkürzel“ (vorerst Dialoge mit
-    Ausblick), Sprache (Deutsch/English als Auswahl mit Haken), Darstellung (Hell, Dunkel, System)
-    und „Abmelden“.
+    Ausblick), für Owner und Admins des Workspaces „Workspace“ und „Einladungen“, Sprache
+    (Deutsch/English als Auswahl mit Haken), Darstellung (Hell, Dunkel, System) und „Abmelden“.
+  - **Workspace** (Dialog): Name ändern, Mitglieder mit Rolle (Admin, Mitglied, Gast; Owner fest),
+    Entfernen mit Rückfrage, Knopf „Personen einladen“. Im Frontend gibt es dafür noch keine
+    Oberfläche; die Datenbank kann es schon (`app.set_workspace_member_role`,
+    `app.remove_workspace_member`).
+  - **Einladungen** (Dialog, wie `apps/web/src/components/invites.tsx` auf der Startseite): E-Mail
+    und Rolle, danach den Link anzeigen und kopieren; Liste mit Status (offen, angenommen,
+    zurückgenommen, abgelaufen), offene zurücknehmen. Im Menü zeigt eine Zahl die offenen Einladungen.
 - **Dunkles Farbschema (Vorschlag, nur im Prototyp):** dunkle Werte aller Tokens unter
   `:root[data-theme='dark']`; „System“ folgt `prefers-color-scheme`. Alle Text-Paare erreichen
   mindestens 4,5:1, Bedienelemente 3:1 (nachgerechnet, aber noch nicht in
   `apps/web/src/app/contrast.test.mjs`). Die Auswahl merkt sich der Browser (`localStorage`,
   `nf-proto-theme`), Standard ist Hell. Der Import-Assistent hat noch kein dunkles Schema.
-  - Rechts: Kommentar-Knopf, „Teilen und Rechte“ als normaler Knopf (nicht mehr primär, unter 900 px
-    nur mit Icon) und „⋯“ mit einem Menü für „Versionen“ und „Exportieren“.
+  - Rechts, von links nach rechts:
+    - **Speicherstatus** „Gespeichert“ / „Speichert …“ / „Offline“ (orange) / „Nur lesen“ bzw.
+      „Archiviert“; ersetzt den Offline-Hinweis über dem Inhalt. Unter 900 px nur das Icon.
+    - **Anwesenheit nur der anderen** (man selbst steht oben rechts); bis drei Avatare, ab vier zwei
+      plus „+N“. Allein auf der Seite: keine Avatare.
+    - **Kommentar-Knopf** ohne Rahmen, mit der Zahl offener Kommentare.
+    - **„Teilen“** als normaler Knopf; mit eigenen Rechten orange mit Schloss und „Eingeschränkt“.
+      Der Hinweis „Eingeschränkt“ über dem Titel entfällt dafür.
+    - **„⋯“** ohne Rahmen, mit Link kopieren, Seiteninfo (Angaben, Rechte, Rückverweise), Versionen,
+      Exportieren, Verschieben … (Dialog mit Zielseite) und In den Papierkorb. Auf der Startseite und
+      ohne Bearbeitungsrecht sind Verschieben und Papierkorb gesperrt.
 - Seite: „Eingeschränkt“, Titel als Eingabefeld (ändert Baum und Brotkrume beim Tippen), Byline,
   Blöcke (Callout mit Art, Tabelle, Code-Block, Aufgaben, Seitenlinks, Erwähnungen, Inhaltsverzeichnis).
 - Neue Seite über „+“: ohne Titel, Cursor im Titel. Rückfragen als Dialog, Fokus auf „Abbrechen“.
