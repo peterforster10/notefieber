@@ -2,6 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NoteFieber – Seite</title>
 <script src="./vendor/react.js"></script>
 <script src="./vendor/react-dom.js"></script>
@@ -10,258 +11,908 @@
 <body>
 <x-dc>
 <helmet>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <style>
-body{margin:0}
-a{color:#1F5FD6}a:hover{color:#174BB0}
-svg.i{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
-code{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:0.88em;background:#F0F2F5;padding:1px 5px;border-radius:4px}
-button{font-family:inherit}
+/*
+ * Prototyp nach dem Stand des Web-Clients vom 25. November 2026 (apps/web/src/app/globals.css).
+ * Klassennamen und Tokens wie im Frontend (nf-…), damit sich Änderungen 1:1 übertragen lassen.
+ * Schriften liegen unter ../fonts (OFL-1.1), nie von Google.
+ */
+@font-face{font-family:'Inter Variable';font-style:normal;font-display:swap;font-weight:100 900;src:url(../fonts/inter-latin-wght-normal.woff2) format('woff2-variations')}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-display:swap;font-weight:400;src:url(../fonts/ibm-plex-mono-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-display:swap;font-weight:500;src:url(../fonts/ibm-plex-mono-latin-500-normal.woff2) format('woff2')}
+
+:root{
+  --nf-font-sans:'Inter Variable',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --nf-font-mono:'IBM Plex Mono',ui-monospace,'Cascadia Mono',monospace;
+  --nf-bg:#ffffff;--nf-text:#1a2230;--nf-muted:#5b6573;--nf-subtle:#f5f7fa;--nf-surface:#f8f9fb;
+  --nf-border:#e2e5ea;--nf-control-border:#d5dae1;--nf-input-border:#7d8796;--nf-code-bg:#f0f2f5;
+  --nf-placeholder:#6e7783;--nf-editor-icons:#7d8692;
+  --nf-accent:#1f5fd6;--nf-accent-hover:#174bb0;--nf-accent-soft:#eef3fc;--nf-on-accent:#ffffff;--nf-focus:#1f5fd6;
+  --nf-attention:#c2410c;--nf-attention-soft:#fff4ec;--nf-restricted-bg:#fff1e6;--nf-restricted-fg:#9a3412;
+  --nf-done-bg:#e3f1e8;--nf-done-fg:#1e5135;--nf-danger:#b42318;--nf-danger-soft:#fdecea;--nf-neutral-soft:#f1f3f6;
+  --nf-sidebar-bg:#f3f5f8;--nf-sidebar-border:#e2e5ea;--nf-sidebar-text:#1a2230;--nf-sidebar-muted:#5b6573;
+  --nf-sidebar-hover:#e6eaf0;--nf-sidebar-selected:#dce6f8;--nf-sidebar-selected-text:#174bb0;
+  --nf-backdrop:rgba(15,37,55,.45);--nf-shadow-pop:0 8px 24px rgba(15,37,55,.16);--nf-shadow-dialog:0 24px 64px rgba(15,37,55,.28);
+  --nf-sidebar-width:320px;
+  /* Kommentare (Ausblick, wie im ersten Prototyp) */
+  --nf-comment-mark:#ffead5;
+  --nf-danger-hover:#912018;
+  --nf-code-frame:#161616;
+  --nf-check-bg:var(--nf-accent);
+  color-scheme:light;
+}
+/* Dunkles Farbschema (Vorschlag vom 25. November 2026, im Prototyp): gesetzt über data-theme an <html>,
+   „System“ folgt prefers-color-scheme. Alle Textpaare >= 4,5:1, Bedienelemente >= 3:1; vor der Übernahme
+   ins Frontend in contrast.test.mjs eintragen */
+:root[data-theme='dark']{
+  --nf-bg:#14181f;--nf-text:#e6e9ef;--nf-muted:#9aa4b2;--nf-subtle:#1c222b;--nf-surface:#1a2029;
+  --nf-border:#2a313c;--nf-control-border:#3e4754;--nf-input-border:#6b7584;--nf-code-bg:#252c37;
+  --nf-placeholder:#8a94a3;--nf-editor-icons:#7d8796;
+  --nf-accent:#6b9cf5;--nf-accent-hover:#8db3f8;--nf-accent-soft:#1b2840;--nf-on-accent:#0b1220;--nf-focus:#8db3f8;
+  --nf-attention:#f0844a;--nf-attention-soft:#33221a;--nf-restricted-bg:#3a2418;--nf-restricted-fg:#f5a373;
+  --nf-done-bg:#16301f;--nf-done-fg:#7fd19b;--nf-danger:#f07167;--nf-danger-soft:#3a1c1c;--nf-neutral-soft:#222933;
+  --nf-sidebar-bg:#10141a;--nf-sidebar-border:#252c36;--nf-sidebar-text:#e6e9ef;--nf-sidebar-muted:#9aa4b2;
+  --nf-sidebar-hover:#1d232c;--nf-sidebar-selected:#1c2b48;--nf-sidebar-selected-text:#a8c4fa;
+  --nf-backdrop:rgba(0,0,0,.6);--nf-shadow-pop:0 8px 24px rgba(0,0,0,.45);--nf-shadow-dialog:0 24px 64px rgba(0,0,0,.6);
+  --nf-comment-mark:#4a3320;--nf-danger-hover:#f48c84;--nf-code-frame:#2a313c;--nf-check-bg:#2f6fe0;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--nf-font-sans);font-size:14px;line-height:1.5;color:var(--nf-text);background:var(--nf-bg);-webkit-font-smoothing:antialiased}
+h1{font-size:28px;line-height:1.2;font-weight:600;letter-spacing:-.01em}
+h2{font-size:18px;font-weight:600}
+code,pre,kbd{font-family:var(--nf-font-mono)}
+:not(pre)>code{font-size:.88em;background:var(--nf-code-bg);padding:1px 5px;border-radius:4px}
+a{color:var(--nf-accent)}a:hover{color:var(--nf-accent-hover)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--nf-focus);outline-offset:2px}
+svg.nf-icon{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.nf-visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+.nf-skip{position:absolute;left:12px;top:-100px;z-index:100;padding:8px 14px;border-radius:8px;background:var(--nf-accent);color:var(--nf-on-accent);font-weight:500;text-decoration:none}
+.nf-skip:focus{top:12px;color:var(--nf-on-accent)}
+
+/* Gerüst */
+.nf-shell{display:flex;min-height:100vh;min-height:100dvh}
+/* Im Prototyp ohne overflow, damit Menüs und Untermenüs nicht abgeschnitten werden (das Frontend
+   positioniert sie fest am Fenster, components/menu.tsx) */
+.nf-sidebar{width:var(--nf-sidebar-width);flex:none;position:sticky;top:0;height:100vh;height:100dvh;background:var(--nf-sidebar-bg);border-right:1px solid var(--nf-sidebar-border);color:var(--nf-sidebar-text);padding:12px 10px;display:flex;flex-direction:column;gap:12px;z-index:30}
+.nf-column{flex:1;min-width:0;display:flex;flex-direction:column}
+.nf-main{flex:1;min-width:0;padding:20px 56px 72px}
+.nf-main:focus{outline:none}
+.nf-main-inner{max-width:760px;margin:0 auto}
+/* Mit Kommentarspalte (Ausblick): Inhalt und Spalte nebeneinander */
+.nf-main-inner.nf-with-comments{max-width:1100px;display:flex;flex-wrap:wrap;justify-content:center;gap:40px}
+.nf-with-comments>article{flex:1 1 520px;max-width:760px;min-width:0}
+
+.nf-sidebar-top{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding:2px 4px 2px 10px}
+.nf-brand{display:flex;flex-direction:column;min-width:0;color:var(--nf-sidebar-text);text-decoration:none}
+.nf-brand:hover{color:var(--nf-sidebar-text)}
+.nf-logo{font-size:17px;font-weight:700;letter-spacing:-.015em;line-height:1.25}
+.nf-tenant{font-size:12px;line-height:1.3;color:var(--nf-sidebar-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+button.nf-drawer-close,button.nf-drawer-open{display:none}
+.nf-backdrop{display:none}
+
+/* Suche (Ausblick M3): in der Leiste oben, linksbündig */
+/* Weiß mit leichtem Schatten statt grauer Fläche, heller Rahmen wie bei den Knöpfen; beim Fokus Akzent
+   mit weichem Ring. Der Rahmen hat weniger als 3:1; erkennbar bleibt das Feld über Lupe, Platzhalter
+   und Schatten (vor der Übernahme ins Frontend in contrast.test.mjs bewerten) */
+.nf-search{display:flex;align-items:center;gap:8px;flex:0 1 480px;min-width:0;height:38px;padding:0 6px 0 12px;border:1px solid var(--nf-control-border);border-radius:10px;background:var(--nf-bg);color:var(--nf-muted);box-shadow:0 1px 2px rgba(15,37,55,.06);transition:border-color 120ms ease,box-shadow 120ms ease}
+.nf-search:hover{border-color:#b9c1cb}
+.nf-search:focus-within{border-color:var(--nf-focus);box-shadow:0 0 0 3px var(--nf-accent-soft)}
+.nf-search:focus-within .nf-icon{color:var(--nf-accent)}
+.nf-search input{flex:1;min-width:0;border:0;outline:none;background:transparent;color:var(--nf-text)}
+.nf-search input::placeholder{color:var(--nf-sidebar-muted)}
+.nf-search kbd{font-family:var(--nf-font-sans);font-size:12px;padding:0 5px;border:1px solid var(--nf-sidebar-border);border-radius:4px;background:var(--nf-subtle)}
+
+.nf-sidebar-foot{margin-top:auto;display:flex;flex-direction:column;gap:2px;padding-top:12px;border-top:1px solid var(--nf-sidebar-border)}
+.nf-eu{display:flex;align-items:center;gap:8px;margin:0;padding:10px 10px 2px;font-size:12px;color:var(--nf-sidebar-muted)}
+.nf-nav-item{display:flex;align-items:center;gap:10px;width:100%;min-height:38px;padding:0 10px;border:0;border-radius:6px;background:transparent;color:var(--nf-sidebar-text);font-size:14px;text-align:left;text-decoration:none;cursor:pointer}
+.nf-nav-item:hover{background:var(--nf-sidebar-hover);color:var(--nf-sidebar-text)}
+.nf-nav-item .nf-icon{color:var(--nf-sidebar-muted)}
+
+/* Space-Umschalter */
+.nf-switcher{position:relative;display:flex;flex-direction:column;gap:6px}
+.nf-space-card{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border:1px solid var(--nf-sidebar-border);border-radius:8px;background:var(--nf-bg);color:var(--nf-sidebar-text);text-align:left;cursor:pointer}
+.nf-space-card:hover,.nf-space-card[aria-expanded='true']{border-color:var(--nf-control-border);background:var(--nf-surface)}
+.nf-space-badge{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;flex:none;border-radius:6px;background:var(--nf-accent);color:var(--nf-on-accent);font-size:11px;font-weight:600}
+.nf-menu .nf-space-badge{width:24px;height:24px;font-size:10px;border-radius:5px}
+.nf-space-names{flex:1;min-width:0}
+.nf-space-name{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-space-key{display:block;font-size:12px;color:var(--nf-sidebar-muted)}
+.nf-sidebar-note{margin:0;padding:0 10px;font-size:12px;color:var(--nf-sidebar-muted)}
+
+/* Seitenbaum */
+.nf-tree{display:flex;flex-direction:column;gap:2px}
+.nf-tree-head{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 4px 10px}
+.nf-tree-heading{margin:0;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--nf-sidebar-muted)}
+.nf-tree-row{position:relative;display:flex;align-items:center;gap:2px;min-height:36px;padding:0 4px 0 0;border-radius:6px;color:var(--nf-sidebar-text)}
+.nf-tree-row:hover,.nf-tree-row:focus-within{background:var(--nf-sidebar-hover)}
+.nf-tree-row.nf-selected{background:var(--nf-sidebar-selected);color:var(--nf-sidebar-selected-text)}
+.nf-twisty{display:inline-flex;align-items:center;justify-content:center;width:24px;height:32px;flex:none;padding:0;border:0;border-radius:4px;background:none;color:var(--nf-sidebar-muted);cursor:pointer}
+.nf-twisty .nf-icon{transition:transform 120ms ease}
+.nf-twisty[data-open='true'] .nf-icon{transform:rotate(90deg)}
+.nf-tree-link{flex:1;min-width:0;display:flex;align-items:center;gap:8px;min-height:32px;padding:0 4px 0 2px;border-radius:4px;color:inherit;font-size:14px;text-decoration:none;cursor:pointer}
+.nf-tree-link:hover{color:inherit}
+.nf-tree-link:focus-visible{outline-offset:0}
+.nf-tree-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-tree-title.nf-untitled{color:var(--nf-sidebar-muted);font-style:italic}
+.nf-selected .nf-tree-link{font-weight:600}
+.nf-tree-link .nf-icon{color:var(--nf-sidebar-muted)}
+.nf-selected .nf-tree-link .nf-icon{color:inherit}
+.nf-home-icon{width:24px;display:inline-flex;justify-content:center;flex:none}
+.nf-actions{display:none;gap:2px}
+.nf-tree-row:hover .nf-actions,.nf-tree-row:focus-within .nf-actions,.nf-actions.nf-open{display:flex}
+@media (hover:none){.nf-tree-row.nf-selected .nf-actions{display:flex}}
+.nf-icon-button{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;flex:none;padding:0;border:0;border-radius:6px;background:none;color:var(--nf-sidebar-muted);cursor:pointer}
+.nf-icon-button:hover:not(:disabled){background:var(--nf-sidebar-hover);color:var(--nf-sidebar-text)}
+.nf-tree-row:hover .nf-icon-button:hover:not(:disabled){background:var(--nf-bg)}
+.nf-icon-button:disabled{opacity:.4;cursor:default}
+.nf-new-page{display:flex;flex-wrap:wrap;gap:4px;padding:4px 0 6px 26px}
+.nf-new-page input{flex:1 1 100%;min-width:0;height:32px;padding:0 8px;border:1px solid var(--nf-input-border);border-radius:6px;background:var(--nf-bg);font-size:13px}
+.nf-new-page .nf-button{height:30px;padding:0 10px;font-size:13px}
+
+/* Papierkorb */
+.nf-trash ul{list-style:none;padding:2px 0 6px 36px;margin:0;font-size:13px}
+.nf-trash li{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:32px;padding:0 4px 0 0}
+.nf-trash li>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-trash-empty{color:var(--nf-sidebar-muted)}
+
+/* Konto rechts in der Leiste oben: Avatar als Knopf, Menü rechtsbündig darunter */
+.nf-user{position:relative;margin-left:auto;flex:none}
+/* Ohne Rahmen und Ring; beim Darüberfahren und bei offenem Menü etwas dunkler. Den Fokusring gibt es
+   nur bei Tastaturbedienung (:focus-visible, WCAG 2.4.7) */
+.nf-avatar-btn{display:grid;place-items:center;width:34px;height:34px;padding:0;border:0;border-radius:50%;background:#1f5fd6;color:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:background-color 120ms ease}
+.nf-avatar-btn:hover,.nf-avatar-btn[aria-expanded='true']{background:#174bb0}
+.nf-user-menu{top:calc(100% + 8px);right:0;min-width:280px}
+.nf-menu-header{display:flex;align-items:flex-start;gap:10px;padding:10px 10px 8px}
+.nf-menu-header .nf-byline-avatar{width:36px;height:36px;font-size:12px}
+.nf-menu-header-names{display:flex;flex-direction:column;min-width:0}
+.nf-menu-header-names span{font-size:12px;color:var(--nf-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-menu-group-label{padding:6px 10px 2px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--nf-muted)}
+.nf-menu-group{list-style:none;margin:0;padding:0}
+.nf-menu-radio{display:inline-flex;width:16px;flex:none;color:var(--nf-accent)}
+.nf-menu-item[aria-checked='true']{font-weight:600}
+/* Darstellung: drei Optionen nebeneinander, die gewählte hinterlegt (ohne Rahmen) */
+.nf-theme-switch{display:flex;gap:4px;list-style:none;margin:0;padding:2px 6px 6px}
+.nf-theme-switch>li{flex:1}
+.nf-theme-option{display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;padding:8px 4px;border:0;border-radius:6px;background:none;color:var(--nf-text);font-size:12px;cursor:pointer}
+.nf-theme-option .nf-icon{color:var(--nf-muted)}
+.nf-theme-option:hover{background:var(--nf-subtle)}
+.nf-theme-option[aria-checked='true']{background:var(--nf-sidebar-selected);color:var(--nf-sidebar-selected-text);font-weight:600}
+.nf-theme-option[aria-checked='true'] .nf-icon{color:inherit}
+
+/* Menü */
+.nf-menu{position:absolute;z-index:60;min-width:240px;max-width:320px;margin:0;padding:4px;list-style:none;border:1px solid var(--nf-border);border-radius:8px;background:var(--nf-bg);box-shadow:var(--nf-shadow-pop);font-size:14px;color:var(--nf-text);font-weight:400}
+.nf-menu li{position:relative}
+.nf-space-menu{top:calc(100% + 4px);left:0;right:0;max-width:none}
+.nf-row-menu{top:calc(100% - 2px);right:0}
+.nf-submenu{top:-5px;left:calc(100% + 6px);min-width:200px;z-index:61}
+.nf-menu-item{display:flex;align-items:center;gap:10px;width:100%;min-height:34px;padding:0 10px;border:0;border-radius:6px;background:none;color:var(--nf-text);text-align:left;text-decoration:none;cursor:pointer}
+.nf-menu-item:hover,.nf-menu-item:focus{background:var(--nf-subtle);color:var(--nf-text);outline:none}
+.nf-menu-item:focus-visible{outline:2px solid var(--nf-focus);outline-offset:-2px}
+.nf-menu-item[aria-disabled='true']{color:var(--nf-muted);cursor:default;background:none}
+.nf-menu-item[aria-disabled='true'] .nf-icon{opacity:.6}
+.nf-menu-item[aria-current='true']{font-weight:600}
+.nf-menu-item .nf-icon{color:var(--nf-muted)}
+.nf-menu-item-danger,.nf-menu-item-danger .nf-icon{color:var(--nf-danger)}
+.nf-menu-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-menu-shortcut{color:var(--nf-muted);font-family:var(--nf-font-mono);font-size:12px}
+.nf-menu-row{display:flex;align-items:center;gap:2px;border-radius:6px}
+.nf-menu-row:hover{background:var(--nf-subtle)}
+.nf-menu-row .nf-menu-item{flex:1;min-width:0}
+.nf-menu-more{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;flex:none;margin-right:3px;padding:0;border:0;border-radius:6px;background:none;color:var(--nf-muted);cursor:pointer;opacity:0}
+.nf-menu-row:hover .nf-menu-more,.nf-menu-row:focus-within .nf-menu-more,.nf-menu-more[aria-expanded='true']{opacity:1}
+.nf-menu-more:hover,.nf-menu-more[aria-expanded='true']{background:var(--nf-sidebar-hover);color:var(--nf-text)}
+@media (hover:none){.nf-menu-more{opacity:1}}
+.nf-menu-separator{height:1px;margin:4px 6px;background:var(--nf-border)}
+
+/* Kopfbereich */
+.nf-topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:flex-start;gap:8px 12px;min-height:63px;padding:12px 32px;border-bottom:1px solid var(--nf-border);background:var(--nf-bg)}
+/* Zeile unter der Leiste: scrollt mit dem Inhalt */
+.nf-pagebar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;min-height:62px;padding:12px 32px}
+.nf-topbar-start{display:flex;align-items:center;gap:8px;min-width:0;flex:1 1 160px}
+.nf-topbar-end{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.nf-page-actions{position:relative}
+.nf-page-menu{top:calc(100% + 4px);right:0;min-width:220px}
+.nf-breadcrumb{min-width:0}
+.nf-breadcrumb ol{display:flex;flex-wrap:nowrap;align-items:center;gap:2px;margin:0;padding:0;list-style:none;font-size:13px;color:var(--nf-muted)}
+.nf-breadcrumb li{display:flex;align-items:center;gap:2px;min-width:0;flex:0 1 auto}
+.nf-breadcrumb a,.nf-breadcrumb [aria-current]{display:block;min-width:0;max-width:220px;padding:6px 4px;border-radius:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--nf-muted);text-decoration:none}
+.nf-breadcrumb a:hover{color:var(--nf-text);text-decoration:underline}
+.nf-breadcrumb [aria-current]{color:var(--nf-text)}
+.nf-crumb-sep{color:var(--nf-muted)}
+.nf-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:38px;padding:0 12px;border:1px solid var(--nf-control-border);border-radius:8px;background:var(--nf-bg);color:var(--nf-text);font-size:14px;white-space:nowrap;cursor:pointer}
+.nf-btn:hover{background:var(--nf-subtle)}
+.nf-btn[aria-pressed='true']{background:var(--nf-accent-soft);border-color:var(--nf-accent)}
+.nf-btn-primary{padding:0 14px;border-color:var(--nf-accent);background:var(--nf-accent);color:var(--nf-on-accent);font-weight:500}
+.nf-btn-primary:hover{border-color:var(--nf-accent-hover);background:var(--nf-accent-hover)}
+.nf-btn-icon{width:38px;padding:0}
+.nf-btn-danger,.nf-btn-attention{border-color:transparent;color:var(--nf-on-accent);font-weight:500}
+.nf-btn-danger{background:var(--nf-danger)}.nf-btn-danger:hover{background:var(--nf-danger-hover)}
+.nf-btn-attention{background:var(--nf-attention)}.nf-btn-attention:hover{background:var(--nf-restricted-fg)}
+.nf-presence{display:flex;list-style:none;margin:0 8px 0 0;padding:0 0 0 8px}
+/* Nur direkte Kinder: die Laufzeit des Prototyps legt um jeden Platzhalter ein eigenes <span> */
+.nf-presence>span{width:30px;height:30px;margin-left:-8px;border-radius:50%;border:2px solid var(--nf-bg);display:grid;place-items:center;color:#fff;font-size:11px;font-weight:600}
+
+/* Seite */
+.nf-restricted-chip{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;background:var(--nf-restricted-bg);color:var(--nf-restricted-fg);font-size:12px;font-weight:500}
+.nf-page-meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 0;margin:14px 0 28px;font-size:13px;color:var(--nf-muted)}
+.nf-page-meta>*+*::before{content:'·';margin:0 8px}
+.nf-byline-author{display:inline-flex;align-items:center;gap:6px;color:var(--nf-text)}
+.nf-byline-avatar{display:inline-grid;place-items:center;width:20px;height:20px;flex:none;border-radius:50%;color:#fff;font-size:9px;letter-spacing:.02em;font-weight:600}
+.nf-title{margin:8px 0 6px;font-size:34px;line-height:1.2;font-weight:600;letter-spacing:-.01em;overflow-wrap:anywhere}
+.nf-title-input{width:100%;padding:0;border:0;border-bottom:2px solid transparent;font:inherit;letter-spacing:inherit;color:inherit;background:transparent;outline:none}
+.nf-title-input:focus-visible{border-bottom-color:var(--nf-focus)}
+.nf-title-input::placeholder{color:var(--nf-muted)}
+.nf-notice{margin:0 0 16px;padding:8px 12px;border-radius:8px;background:var(--nf-attention-soft);color:var(--nf-attention);font-size:14px}
+
+/* Inhalt wie im BlockNote-Editor (page-editor.tsx, components/editor/) */
+.nf-editor{font-size:16px;line-height:1.65;color:var(--nf-text)}
+.nf-editor p{margin:3px 0 10px}
+.nf-editor h2{margin:28px 0 8px;font-size:20px;line-height:1.3;font-weight:600}
+.nf-editor h2:first-child{margin-top:0}
+.nf-editor ul{margin:0 0 12px;padding-left:24px}
+.nf-editor li{padding-block:1px}
+.nf-placeholder{color:var(--nf-placeholder)}
+.nf-comment-mark{background:transparent;color:inherit;padding:0 1px;border-bottom:2px solid transparent}
+.nf-comment-mark.nf-on{background:var(--nf-comment-mark);border-bottom-color:var(--nf-attention)}
+.nf-callout{display:flex;gap:.6rem;align-items:flex-start;width:100%;margin:6px 0 16px;padding:.6rem .8rem;border-left:4px solid var(--nf-callout-fg);border-radius:4px;background:var(--nf-callout-bg);--nf-callout-fg:var(--nf-accent);--nf-callout-bg:var(--nf-accent-soft)}
+.nf-callout[data-variant='note']{--nf-callout-fg:var(--nf-muted);--nf-callout-bg:var(--nf-neutral-soft)}
+.nf-callout[data-variant='success']{--nf-callout-fg:var(--nf-done-fg);--nf-callout-bg:var(--nf-done-bg)}
+.nf-callout[data-variant='warning']{--nf-callout-fg:var(--nf-attention);--nf-callout-bg:var(--nf-attention-soft)}
+.nf-callout[data-variant='error']{--nf-callout-fg:var(--nf-danger);--nf-callout-bg:var(--nf-danger-soft)}
+.nf-callout-icon{flex:none;color:var(--nf-callout-fg);font-weight:600;user-select:none}
+.nf-callout-icon select{max-width:7.5rem;padding:0 .2rem;border:1px solid transparent;border-radius:3px;background:transparent;color:var(--nf-callout-fg);font:inherit;font-size:.85em;cursor:pointer}
+.nf-callout-icon select:hover,.nf-callout-icon select:focus-visible{border-color:var(--nf-callout-fg)}
+.nf-callout-content{flex:1;min-width:0}
+.nf-callout-content p{margin:0}
+.nf-page-link{padding:0 .2rem;border-radius:3px;background:var(--nf-accent-soft);color:var(--nf-accent);text-decoration:none;cursor:pointer}
+.nf-page-link:hover{text-decoration:underline}
+.nf-page-link-trashed{text-decoration:line-through}
+.nf-mention{padding:0 .2rem;border-radius:3px;background:var(--nf-done-bg);color:var(--nf-done-fg);font-weight:500}
+.nf-toc{width:100%;margin:6px 0 16px;padding:.5rem .8rem;border:1px solid var(--nf-border);border-radius:4px;user-select:none}
+.nf-toc-title{margin:0 0 .3rem!important;color:var(--nf-muted);font-size:.8em;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.nf-toc ol{margin:0;padding:0;list-style:none}
+.nf-toc li{margin:.15rem 0}
+.nf-toc a{color:var(--nf-accent);text-decoration:none}
+.nf-toc a:hover{text-decoration:underline}
+.nf-table-block{overflow-x:auto;margin:6px 0 20px}
+.nf-table-block table{width:100%;border-collapse:collapse;font-size:15px;line-height:1.5}
+.nf-table-block th,.nf-table-block td{text-align:left;padding:8px 12px;border:1px solid var(--nf-border);vertical-align:top}
+.nf-table-block th{background:var(--nf-subtle);font-weight:600}
+/* Code-Block von BlockNote (@blocknote/code-block, Shiki „github-dark“) mit Sprachauswahl */
+.nf-code{position:relative;margin:6px 0 20px;border:1px solid var(--nf-code-frame);border-radius:8px;background:#161616;color:#e1e4e8}
+.nf-code select{position:absolute;top:6px;left:14px;border:0;background:transparent;color:#fff;font-size:12px;cursor:pointer;appearance:none;-webkit-appearance:none}
+.nf-code pre{margin:0;padding:30px 24px 18px;font-size:13px;line-height:1.6;overflow-x:auto;white-space:pre}
+.nf-code .k{color:#f97583}.nf-code .f{color:#b392f0}.nf-code .s{color:#9ecbff}.nf-code .c{color:#79b8ff}
+.nf-check{display:flex;align-items:flex-start;padding-block:1px}
+.nf-check input{appearance:none;-webkit-appearance:none;position:relative;top:4px;width:18px;height:18px;margin:0 10px 0 2px;flex:none;border:1.5px solid var(--nf-input-border);border-radius:5px;background:var(--nf-bg) center/14px 14px no-repeat;cursor:pointer;transition:background-color 120ms ease,border-color 120ms ease}
+.nf-check input:hover{border-color:var(--nf-accent)}
+.nf-check input:checked{border-color:var(--nf-check-bg);background-color:var(--nf-check-bg);background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Cpath d=%22M4 8.5l2.6 2.6L12 5.5%22 fill=%22none%22 stroke=%22white%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E')}
+.nf-check input:disabled{cursor:default}
+.nf-check[data-checked='true'] span{color:var(--nf-muted);text-decoration:line-through}
+.nf-checklist{margin:0 0 16px}
+
+/* Kommentare (Ausblick) */
+.nf-comments{flex:0 1 300px;min-width:260px}
+.nf-comments-heading{margin:56px 0 12px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--nf-muted)}
+.nf-thread{border:1px solid var(--nf-border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.nf-thread-quote{margin:0;padding:4px 8px;border-radius:4px;background:var(--nf-comment-mark);font-size:13px}
+.nf-comment{display:flex;gap:10px}
+.nf-comment .nf-byline-avatar{width:26px;height:26px;font-size:10px}
+.nf-comment p{margin:2px 0 0;font-size:14px}
+.nf-comment-meta{font-size:13px}.nf-comment-meta span{color:var(--nf-muted)}
+.nf-btn-done{height:36px;border:0;background:var(--nf-done-bg);color:var(--nf-done-fg);font-size:13px;font-weight:500}
+.nf-btn-done:hover{background:color-mix(in srgb,var(--nf-done-bg) 85%,var(--nf-done-fg))}
+
+/* Dialog (im Frontend natives <dialog>, hier als Overlay) */
+.nf-overlay{position:fixed;inset:0;z-index:70;display:flex;align-items:flex-start;justify-content:center;padding:96px 16px 16px;background:var(--nf-backdrop);overflow:auto}
+.nf-dialog{width:min(560px,100%);border-radius:12px;background:var(--nf-bg);color:var(--nf-text);box-shadow:var(--nf-shadow-dialog)}
+.nf-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px 24px 16px}
+.nf-dialog-title{margin:0;font-size:18px;font-weight:600}
+.nf-dialog-description{margin:4px 0 0;font-size:13px;color:var(--nf-muted)}
+.nf-dialog-close{border-color:transparent;color:var(--nf-muted)}
+.nf-dialog-close:hover{background:var(--nf-subtle);color:var(--nf-text)}
+.nf-dialog-band{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 24px;border-top:1px solid var(--nf-border);border-bottom:1px solid var(--nf-border);background:var(--nf-surface)}
+.nf-dialog-band strong{display:block;font-weight:600}
+.nf-dialog-band span:not(.sc-interp){font-size:13px;color:var(--nf-muted)}
+.nf-dialog-body{padding:16px 24px 4px}
+.nf-dialog-body p{margin:0 0 12px}
+.nf-dialog-soon{display:flex;gap:12px;padding:12px 14px;border-radius:8px;background:var(--nf-accent-soft);font-size:14px}
+.nf-dialog-soon p{margin:0!important}
+.nf-dialog-soon .nf-icon{color:var(--nf-accent);margin-top:2px}
+.nf-dialog-foot{display:flex;justify-content:flex-end;gap:8px;padding:16px 24px 20px}
+.nf-switch{position:relative;width:46px;height:28px;flex:none;border:0;border-radius:14px;background:#7d8796;cursor:pointer}
+.nf-switch[aria-pressed='true']{background:var(--nf-accent)}
+.nf-switch:disabled{opacity:.5;cursor:default}
+.nf-switch span{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(15,37,55,.3);transition:left 120ms ease}
+.nf-switch[aria-pressed='true'] span{left:21px}
+.nf-grant{display:flex;align-items:center;gap:12px;min-height:56px;border-bottom:1px solid var(--nf-border)}
+.nf-grant .nf-byline-avatar{width:32px;height:32px;font-size:11px}
+.nf-grant-names{flex:1;min-width:0}
+.nf-grant-names div:first-child{font-weight:500}
+.nf-grant-names div+div{font-size:12px;color:var(--nf-muted)}
+.nf-grant select{height:36px;padding:0 8px;border:1px solid var(--nf-input-border);border-radius:8px;background:var(--nf-bg);font-size:14px}
+.nf-grant-role{font-size:14px;color:var(--nf-muted)}
+.nf-grant-add{display:flex;gap:8px;padding:14px 0 6px}
+.nf-grant-add .nf-input{flex:1;min-width:0;margin:0}
+.nf-hint{margin:12px 0 6px!important;font-size:13px;color:var(--nf-muted)}
+
+/* Formulare */
+.nf-label{display:block;margin:12px 0 6px;font-weight:500}
+.nf-input{height:38px;padding:0 10px;margin-right:8px;border:1px solid var(--nf-input-border);border-radius:8px;background:var(--nf-bg);font-size:14px}
+textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
+.nf-input-wide{display:block;width:100%;max-width:560px;margin-right:0}
+.nf-input:disabled{background:var(--nf-subtle);color:var(--nf-muted)}
+.nf-button{display:inline-flex;align-items:center;justify-content:center;height:38px;padding:0 16px;border:0;border-radius:8px;background:var(--nf-accent);color:var(--nf-on-accent);font-size:14px;font-weight:500;cursor:pointer}
+.nf-button:hover:not(:disabled){background:var(--nf-accent-hover)}
+.nf-button-secondary{border:1px solid var(--nf-control-border);background:var(--nf-bg);color:var(--nf-text);font-weight:400}
+.nf-button-secondary:hover:not(:disabled){background:var(--nf-subtle);color:var(--nf-text)}
+.nf-button-attention{background:var(--nf-attention)}
+.nf-button-attention:hover:not(:disabled){background:var(--nf-restricted-fg)}
+.nf-saved{color:var(--nf-done-fg);margin-left:8px}
+.nf-form{margin-top:32px;padding-top:16px;border-top:1px solid var(--nf-border)}
+.nf-muted{color:var(--nf-muted)}
+
+/* Bis Tablet: Seitenleiste als Schublade */
+@media (max-width:1023.98px){
+  .nf-sidebar{position:fixed;inset:0 auto 0 0;z-index:50;width:min(360px,calc(100vw - 48px));transform:translateX(-100%);visibility:hidden;transition:transform 160ms ease,visibility 0s linear 160ms;overflow-y:auto}
+  .nf-shell[data-drawer='open'] .nf-sidebar{transform:none;visibility:visible;transition:transform 160ms ease;box-shadow:var(--nf-shadow-dialog)}
+  .nf-shell[data-drawer='open'] .nf-backdrop{display:block;position:fixed;inset:0;z-index:40;background:var(--nf-backdrop)}
+  button.nf-drawer-close,button.nf-drawer-open{display:inline-flex;flex:none}
+  .nf-topbar,.nf-pagebar{padding:10px 20px}
+  .nf-main{padding:16px 48px 64px}
+}
+@media (max-width:1199.98px){
+  .nf-btn-label-secondary{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+  .nf-btn:has(>.nf-btn-label-secondary){width:38px;padding:0}
+}
+@media (max-width:899.98px){
+  .nf-btn-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+  .nf-topbar-end .nf-btn{width:38px;padding:0}
+}
+@media (max-width:599.98px){
+  .nf-topbar,.nf-pagebar{padding:8px 12px}
+  .nf-main{padding:12px 16px 48px}
+  .nf-search kbd{display:none}
+  .nf-title{font-size:28px}
+}
+@media (prefers-reduced-motion:reduce){.nf-sidebar,.nf-twisty .nf-icon,.nf-switch span{transition:none!important}}
 </style>
 </helmet>
-<div style="position: relative; min-height: 1040px; display: flex; flex-wrap: wrap; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #1A2230; background: #FFFFFF; font-size: 14px; line-height: 1.5">
+<div class="nf-shell" data-drawer="{{drawerAttr}}" onClick="{{closeMenus}}" onKeyDown="{{onKey}}">
+  <a href="#content" class="nf-skip">Zum Inhalt springen</a>
 
-  <nav aria-label="Navigation" style="flex: 1 1 272px; box-sizing: border-box; background: #0F2537; color: #C9D3DE; padding: 16px 12px; display: flex; flex-direction: column; gap: 14px">
-    <button style="display: flex; align-items: center; justify-content: space-between; height: 40px; padding: 0 10px; background: transparent; border: 0; border-radius: 6px; color: #FFFFFF; font-size: 15px; font-weight: 600; cursor: pointer">
-      Alpenwerk
-      <svg class="i" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4"></path></svg>
-    </button>
-
-    <label style="display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 10px; background: #1A3550; border-radius: 6px; color: #8FA0B3">
-      <svg class="i" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
-      <input type="search" placeholder="Suchen" aria-label="Seiten suchen" style="flex: 1; min-width: 0; background: transparent; border: 0; outline: none; color: #FFFFFF; font: inherit">
-      <span style="font-size: 12px">Strg K</span>
-    </label>
-
-    <button style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: #1F4060; border: 0; border-radius: 8px; color: #C9D3DE; text-align: left; cursor: pointer">
-      <span style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 6px; background: #1F5FD6; color: #FFFFFF; font-size: 11px; font-weight: 600">EN</span>
-      <span style="flex: 1; min-width: 0">
-        <span style="display: block; color: #FFFFFF; font-weight: 600">Entwicklung</span>
-        <span style="display: block; font-size: 12px; color: #A9B7C6">Space · ENTW</span>
-      </span>
-      <svg class="i" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 6l3-3 3 3M5 10l3 3 3-3"></path></svg>
-    </button>
-
-    <div style="display: flex; flex-direction: column; gap: 2px">
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 4px 4px 10px">
-        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #A9B7C6">Seiten</span>
-        <button aria-label="Neue Seite" style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: transparent; border: 0; border-radius: 6px; color: #C9D3DE; cursor: pointer">
-          <svg class="i" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
-        </button>
-      </div>
-      <sc-for list="{{rows}}" as="row" hint-placeholder-count="8">
-        <div style="display: flex; align-items: center; padding-left: {{row.pad}}px; border-radius: 6px; background: {{row.bg}}">
-          <sc-if value="{{row.hasKids}}" hint-placeholder-val="{{ true }}">
-            <button aria-label="{{row.toggleLabel}}" onClick="{{row.toggle}}" style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 36px; flex: 0 0 24px; background: transparent; border: 0; color: #A9B7C6; cursor: pointer">
-              <svg class="i" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" style="transform: rotate({{row.rot}}deg)"><path d="M6 4l4 4-4 4"></path></svg>
-            </button>
-          </sc-if>
-          <sc-if value="{{row.leaf}}" hint-placeholder-val="{{ false }}">
-            <span style="width: 24px; flex: 0 0 24px"></span>
-          </sc-if>
-          <button onClick="{{row.open}}" aria-current="{{row.current}}" style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 8px 0 2px; background: transparent; border: 0; color: {{row.color}}; font-size: 14px; font-weight: {{row.weight}}; text-align: left; cursor: pointer">
-            <svg class="i" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg>
-            <span style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{row.title}}</span>
-            <sc-if value="{{row.restricted}}" hint-placeholder-val="{{ false }}">
-              <svg class="i" width="14" height="14" viewBox="0 0 16 16" role="img" aria-label="Eingeschränkt"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg>
-            </sc-if>
-          </button>
-        </div>
-      </sc-for>
-      <button style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 10px 0 30px; background: transparent; border: 0; border-radius: 6px; color: #A9B7C6; font-size: 14px; text-align: left; cursor: pointer">
-        <svg class="i" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
-        Neue Seite
+  <!-- ============================== Seitenleiste ============================== -->
+  <nav class="nf-sidebar" aria-label="Navigation">
+    <div class="nf-sidebar-top">
+      <a href="#" class="nf-brand" onClick="{{goOverview}}">
+        <span class="nf-logo">NoteFieber</span>
+        <span class="nf-tenant">Alpenwerk</span>
+      </a>
+      <button type="button" class="nf-icon-button nf-drawer-close" aria-label="Navigation schließen" onClick="{{closeDrawer}}">
+        <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
       </button>
     </div>
 
-    <div style="margin-top: auto; display: flex; flex-direction: column; gap: 2px; padding-top: 12px; border-top: 1px solid #1F4060">
-      <a href="Import.dc.html" style="display: flex; align-items: center; gap: 10px; height: 38px; padding: 0 10px; border-radius: 6px; color: #C9D3DE; text-decoration: none">
-        <svg class="i" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11V3M4.5 6.5L8 3l3.5 3.5"></path><path d="M3 11v2h10v-2"></path></svg>
+    <div class="nf-switcher">
+      <button type="button" class="nf-space-card" aria-haspopup="menu" aria-expanded="{{spaceMenuExpanded}}" onClick="{{toggleSpaceMenu}}">
+        <span class="nf-space-badge" aria-hidden="true">{{space.badge}}</span>
+        <span class="nf-space-names">
+          <span class="nf-visually-hidden">Space wechseln: </span>
+          <span class="nf-space-name">{{space.name}}</span>
+          <span class="nf-space-key">Space · {{space.key}}</span>
+        </span>
+        <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 6l3-3 3 3M5 10l3 3 3-3"></path></svg>
+      </button>
+      <sc-if value="{{spaceMenuOpen}}" hint-placeholder-val="{{ false }}">
+        <ul class="nf-menu nf-space-menu" role="menu">
+          <sc-for list="{{spaceItems}}" as="si" hint-placeholder-count="4">
+            <li role="none" class="nf-menu-row">
+              <a href="#" role="menuitem" class="nf-menu-item" aria-current="{{si.current}}" onClick="{{si.go}}">
+                <span class="nf-space-badge" aria-hidden="true">{{si.badge}}</span>
+                <span class="nf-menu-label">{{si.label}}</span>
+              </a>
+              <sc-if value="{{si.manage}}" hint-placeholder-val="{{ true }}">
+                <button type="button" class="nf-menu-more" aria-label="{{si.actionsLabel}}" aria-haspopup="menu" aria-expanded="{{si.subExpanded}}" onClick="{{si.toggleSub}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3.5" cy="8" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="12.5" cy="8" r="1.3" fill="currentColor" stroke="none"></circle></svg>
+                </button>
+              </sc-if>
+              <sc-if value="{{si.subOpen}}" hint-placeholder-val="{{ false }}">
+                <ul class="nf-menu nf-submenu" role="menu" aria-label="{{si.actionsLabel}}">
+                  <li role="none">
+                    <a href="#" role="menuitem" class="nf-menu-item" onClick="{{si.settings}}">
+                      <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2"></circle><path d="M8 1.75v1.7M8 12.55v1.7M1.75 8h1.7M12.55 8h1.7M3.58 3.58l1.2 1.2M11.22 11.22l1.2 1.2M3.58 12.42l1.2-1.2M11.22 4.78l1.2-1.2"></path><circle cx="8" cy="8" r="4.25"></circle></svg>
+                      <span class="nf-menu-label">Einstellungen</span>
+                    </a>
+                  </li>
+                </ul>
+              </sc-if>
+            </li>
+          </sc-for>
+          <li role="separator" class="nf-menu-separator"></li>
+          <li role="none"><a href="#" role="menuitem" class="nf-menu-item" onClick="{{goOverview}}"><span class="nf-menu-label">Alle Spaces</span></a></li>
+        </ul>
+      </sc-if>
+      <sc-if value="{{space.archived}}" hint-placeholder-val="{{ false }}">
+        <p class="nf-sidebar-note">Archiviert, nur lesbar</p>
+      </sc-if>
+    </div>
+
+    <div class="nf-tree">
+      <div class="nf-tree-head">
+        <h2 class="nf-tree-heading" id="tree-heading">Seiten</h2>
+        <sc-if value="{{spaceEditable}}" hint-placeholder-val="{{ true }}">
+          <button type="button" class="nf-icon-button" aria-label="Neue Seite" title="Neue Seite" onClick="{{createTop}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+          </button>
+        </sc-if>
+      </div>
+      <div role="tree" aria-label="{{treeLabel}}" aria-describedby="tree-heading">
+        <div class="nf-tree-row {{homeCls}}">
+          <span class="nf-home-icon"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 7.5L8 3l5.5 4.5M4 6.5V13h3V9.5h2V13h3V6.5"></path></svg></span>
+          <a href="#" class="nf-tree-link" aria-current="{{homeCurrent}}" onClick="{{goHome}}"><span class="nf-tree-title">Startseite</span></a>
+        </div>
+        <sc-for list="{{rows}}" as="row" hint-placeholder-count="8">
+          <div class="nf-tree-row {{row.cls}}" style="margin-left: {{row.pad}}px">
+            <button type="button" class="nf-twisty" tabindex="-1" data-open="{{row.openAttr}}" aria-label="{{row.toggleLabel}}" onClick="{{row.toggle}}" style="visibility: {{row.twisty}}">
+              <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 4l4 4-4 4"></path></svg>
+            </button>
+            <a href="#" class="nf-tree-link" aria-current="{{row.current}}" onClick="{{row.go}}">
+              <svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg>
+              <span class="nf-tree-title {{row.titleCls}}">{{row.title}}</span>
+              <sc-if value="{{row.restricted}}" hint-placeholder-val="{{ false }}">
+                <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" role="img" aria-label="eingeschränkt"><title>eingeschränkt</title><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg>
+              </sc-if>
+            </a>
+            <sc-if value="{{row.editable}}" hint-placeholder-val="{{ true }}">
+              <span class="nf-actions {{row.actionsCls}}">
+                <button type="button" class="nf-icon-button" aria-label="Neue Unterseite" title="Neue Unterseite" onClick="{{row.create}}">
+                  <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+                </button>
+                <button type="button" class="nf-icon-button" aria-label="{{row.actionsLabel}}" aria-haspopup="menu" aria-expanded="{{row.menuExpanded}}" onClick="{{row.toggleMenu}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3.5" cy="8" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="12.5" cy="8" r="1.3" fill="currentColor" stroke="none"></circle></svg>
+                </button>
+              </span>
+            </sc-if>
+            <sc-if value="{{row.menuOpen}}" hint-placeholder-val="{{ false }}">
+              <ul class="nf-menu nf-row-menu" role="menu" aria-label="{{row.actionsLabel}}">
+                <li role="none"><button type="button" role="menuitem" class="nf-menu-item" onClick="{{row.rename}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.5 2.5l3 3-8 8h-3v-3z"></path></svg>
+                  <span class="nf-menu-label">Umbenennen</span><span class="nf-menu-shortcut">F2</span></button></li>
+                <li role="separator" class="nf-menu-separator"></li>
+                <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-disabled="{{row.upDisabled}}" onClick="{{row.up}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M4.5 6.5L8 3l3.5 3.5"></path></svg>
+                  <span class="nf-menu-label">Nach oben</span></button></li>
+                <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-disabled="{{row.downDisabled}}" onClick="{{row.down}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M4.5 9.5L8 13l3.5-3.5"></path></svg>
+                  <span class="nf-menu-label">Nach unten</span></button></li>
+                <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-disabled="{{row.upDisabled}}" onClick="{{row.indent}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3v10M6 8h7M10 5l3 3-3 3"></path></svg>
+                  <span class="nf-menu-label">Einrücken (unter die vorige Seite)</span></button></li>
+                <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-disabled="{{row.outdentDisabled}}" onClick="{{row.outdent}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M13 3v10M10 8H3M6 5L3 8l3 3"></path></svg>
+                  <span class="nf-menu-label">Ausrücken (hinter die Elternseite)</span></button></li>
+                <li role="separator" class="nf-menu-separator"></li>
+                <li role="none"><button type="button" role="menuitem" class="nf-menu-item nf-menu-item-danger" onClick="{{row.trash}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.5 9h6l.5-9"></path></svg>
+                  <span class="nf-menu-label">In den Papierkorb</span><span class="nf-menu-shortcut">Entf</span></button></li>
+              </ul>
+            </sc-if>
+          </div>
+          <sc-if value="{{row.renaming}}" hint-placeholder-val="{{ false }}">
+            <form class="nf-new-page" style="margin-left: {{row.pad}}px" onSubmit="{{row.submitRename}}">
+              <input aria-label="Neuer Titel" placeholder="Titel" maxlength="255" value="{{row.draft}}" onChange="{{row.onDraft}}">
+              <button type="submit" class="nf-button">Umbenennen</button>
+              <button type="button" class="nf-button nf-button-secondary" onClick="{{row.cancelRename}}">Abbrechen</button>
+            </form>
+          </sc-if>
+        </sc-for>
+      </div>
+    </div>
+
+    <div class="nf-sidebar-foot">
+      <div class="nf-trash">
+        <button type="button" class="nf-nav-item" aria-expanded="{{trashExpanded}}" onClick="{{toggleTrash}}">
+          <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.5 9h6l.5-9"></path></svg>
+          <span>Papierkorb ({{trashCount}})</span>
+        </button>
+        <sc-if value="{{trashOpen}}" hint-placeholder-val="{{ false }}">
+          <ul>
+            <sc-for list="{{trashItems}}" as="ti" hint-placeholder-count="1">
+              <li>
+                <span>{{ti.title}}</span>
+                <sc-if value="{{ti.canRestore}}" hint-placeholder-val="{{ true }}">
+                  <button type="button" class="nf-icon-button" aria-label="{{ti.restoreLabel}}" title="Wiederherstellen" onClick="{{ti.restore}}">
+                    <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 7.5a5 5 0 1 1 1.3 4.1M3 3.5v4h4"></path></svg>
+                  </button>
+                </sc-if>
+              </li>
+            </sc-for>
+            <sc-if value="{{trashEmpty}}" hint-placeholder-val="{{ false }}">
+              <li class="nf-trash-empty">Leer</li>
+            </sc-if>
+          </ul>
+        </sc-if>
+      </div>
+      <!-- Ausblick M4: Confluence-Import -->
+      <a href="Import.dc.html" class="nf-nav-item">
+        <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11V3M4.5 6.5L8 3l3.5 3.5"></path><path d="M3 11v2h10v-2"></path></svg>
         Confluence-Import
       </a>
-      <button style="display: flex; align-items: center; gap: 10px; height: 38px; padding: 0 10px; background: transparent; border: 0; border-radius: 6px; color: #C9D3DE; font-size: 14px; text-align: left; cursor: pointer">
-        <svg class="i" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.5 9h6l.5-9"></path></svg>
-        Papierkorb
-      </button>
-      <div style="display: flex; align-items: center; gap: 8px; padding: 10px 10px 2px; font-size: 12px; color: #A9B7C6">
-        <svg class="i" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2l5 2v4c0 3-2.2 5-5 6-2.8-1-5-3-5-6V4z"></path></svg>
+      <p class="nf-eu">
+        <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2l5 2v4c0 3-2.2 5-5 6-2.8-1-5-3-5-6V4z"></path></svg>
         Daten gehostet in der EU
-      </div>
+      </p>
     </div>
   </nav>
+  <div class="nf-backdrop" aria-hidden="true" onClick="{{closeDrawer}}"></div>
 
-  <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
-    <header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 32px; border-bottom: 1px solid #E2E5EA">
-      <nav aria-label="Brotkrume" style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 13px; color: #5B6573">
-        <sc-for list="{{crumbs}}" as="c" hint-placeholder-count="3">
-          <button onClick="{{c.open}}" style="background: none; border: 0; padding: 6px 4px; color: #5B6573; font-size: 13px; cursor: pointer">{{c.title}}</button>
-          <sc-if value="{{c.sep}}" hint-placeholder-val="{{ true }}"><span aria-hidden="true" style="color: #A0A8B3">/</span></sc-if>
-        </sc-for>
-      </nav>
-      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
-        <div aria-label="Gerade auf dieser Seite: Sophie Bauer, Lukas Gruber, Anna Huber" role="img" style="display: flex; margin-right: 8px">
-          <span style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; border: 2px solid #FFFFFF; background: #0F766E; color: #FFFFFF; font-size: 11px; font-weight: 600">SB</span>
-          <span style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; margin-left: -8px; border-radius: 50%; border: 2px solid #FFFFFF; background: #7C3AED; color: #FFFFFF; font-size: 11px; font-weight: 600">LG</span>
-          <span style="display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; margin-left: -8px; border-radius: 50%; border: 2px solid #FFFFFF; background: #1F5FD6; color: #FFFFFF; font-size: 11px; font-weight: 600">AH</span>
-        </div>
-        <button style="display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 12px; background: #FFFFFF; border: 1px solid #D5DAE1; border-radius: 8px; color: #1A2230; font-size: 14px; cursor: pointer">
-          <svg class="i" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"></circle><path d="M8 4.5V8l2.5 1.5"></path></svg>
-          Versionen
+  <!-- ============================== Kopfbereich und Inhalt ============================== -->
+  <div class="nf-column">
+    <!-- Leiste oben: nur die Suche (Ausblick M3), linksbündig; unter 1024 px davor der Menü-Knopf -->
+    <header class="nf-topbar">
+      <button type="button" class="nf-btn nf-btn-icon nf-drawer-open" aria-label="Navigation öffnen" aria-expanded="{{drawerExpanded}}" onClick="{{openDrawer}}">
+        <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"></path></svg>
+      </button>
+      <label class="nf-search" role="search">
+        <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+        <input id="nf-search" type="search" placeholder="Suchen" aria-label="Seiten suchen" aria-keyshortcuts="Control+K">
+        <kbd>Strg K</kbd>
+      </label>
+
+      <!-- Rechts: Konto der angemeldeten Person mit Profil, Einstellungen, Sprache, Abmelden -->
+      <div class="nf-user">
+        <button type="button" class="nf-avatar-btn" aria-label="Konto: Peter Forster" title="Peter Forster" aria-haspopup="menu" aria-expanded="{{userMenuExpanded}}" onClick="{{toggleUserMenu}}">
+          <span aria-hidden="true">PF</span>
         </button>
-        <button onClick="{{toggleComments}}" aria-pressed="{{commentsPressed}}" aria-label="Kommentare anzeigen" style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; background: {{commentsBg}}; border: 1px solid #D5DAE1; border-radius: 8px; color: #1A2230; cursor: pointer">
-          <svg class="i" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"></path></svg>
-        </button>
-        <button onClick="{{openRights}}" style="display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; background: #1F5FD6; border: 0; border-radius: 8px; color: #FFFFFF; font-size: 14px; font-weight: 500; cursor: pointer">
-          <svg class="i" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="5.5" r="2.5"></circle><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4"></path><path d="M10.5 3.2a2.5 2.5 0 010 4.6M12 9.8c1.3.6 2.2 1.9 2.5 3.7"></path></svg>
-          Teilen und Rechte
-        </button>
-        <button aria-label="Weitere Aktionen" style="display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; background: #FFFFFF; border: 1px solid #D5DAE1; border-radius: 8px; color: #1A2230; cursor: pointer">
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3.5" cy="8" r="1.3" fill="currentColor"></circle><circle cx="8" cy="8" r="1.3" fill="currentColor"></circle><circle cx="12.5" cy="8" r="1.3" fill="currentColor"></circle></svg>
-        </button>
+        <sc-if value="{{userMenuOpen}}" hint-placeholder-val="{{ false }}">
+          <ul class="nf-menu nf-user-menu" role="menu" aria-label="Konto">
+            <li role="none" class="nf-menu-header">
+              <span class="nf-byline-avatar" style="background: #1F5FD6" aria-hidden="true">PF</span>
+              <span class="nf-menu-header-names">
+                <strong>Peter Forster</strong>
+                <span>peter.forster@alpenwerk.example</span>
+                <span>Alpenwerk · Organisations-Admin</span>
+              </span>
+            </li>
+            <li role="separator" class="nf-menu-separator"></li>
+            <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openProfile}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5.5" r="2.75"></circle><path d="M2.75 13.75c.6-2.7 2.7-4.25 5.25-4.25s4.65 1.55 5.25 4.25"></path></svg>
+              <span class="nf-menu-label">Benutzerprofil</span></button></li>
+            <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openUserSettings}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2"></circle><path d="M8 1.75v1.7M8 12.55v1.7M1.75 8h1.7M12.55 8h1.7M3.58 3.58l1.2 1.2M11.22 11.22l1.2 1.2M3.58 12.42l1.2-1.2M11.22 4.78l1.2-1.2"></path><circle cx="8" cy="8" r="4.25"></circle></svg>
+              <span class="nf-menu-label">Einstellungen</span></button></li>
+            <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openShortcuts}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.75" y="4" width="12.5" height="8" rx="1.5"></rect><path d="M4.5 6.5h.01M7 6.5h.01M9.5 6.5h.01M12 6.5h.01M5 9.5h6"></path></svg>
+              <span class="nf-menu-label">Tastenkürzel</span></button></li>
+            <li role="separator" class="nf-menu-separator"></li>
+            <li role="none" class="nf-menu-group-label" id="nf-lang-label">Sprache</li>
+            <li role="none">
+              <ul role="group" aria-labelledby="nf-lang-label" class="nf-menu-group">
+                <sc-for list="{{locales}}" as="lo" hint-placeholder-count="2">
+                  <li role="none"><button type="button" role="menuitemradio" class="nf-menu-item" aria-checked="{{lo.checked}}" lang="{{lo.lang}}" onClick="{{lo.choose}}">
+                    <span class="nf-menu-radio" aria-hidden="true">
+                      <sc-if value="{{lo.on}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if>
+                    </span>
+                    <span class="nf-menu-label">{{lo.label}}</span></button></li>
+                </sc-for>
+              </ul>
+            </li>
+            <li role="separator" class="nf-menu-separator"></li>
+            <li role="none" class="nf-menu-group-label" id="nf-theme-label">Darstellung</li>
+            <li role="none">
+              <ul role="group" aria-labelledby="nf-theme-label" class="nf-theme-switch">
+                <sc-for list="{{themes}}" as="th" hint-placeholder-count="3">
+                  <li role="none"><button type="button" role="menuitemradio" class="nf-theme-option" aria-checked="{{th.checked}}" onClick="{{th.choose}}">
+                    <sc-if value="{{th.isLight}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.75"></circle><path d="M8 1.75v1.5M8 12.75v1.5M1.75 8h1.5M12.75 8h1.5M3.6 3.6l1.05 1.05M11.35 11.35l1.05 1.05M3.6 12.4l1.05-1.05M11.35 4.65l1.05-1.05"></path></svg></sc-if>
+                    <sc-if value="{{th.isDark}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M13 9.5A5.5 5.5 0 116.5 3a4.5 4.5 0 006.5 6.5z"></path></svg></sc-if>
+                    <sc-if value="{{th.isSystem}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="8" rx="1.25"></rect><path d="M6 13.5h4M8 11v2.5"></path></svg></sc-if>
+                    <span>{{th.label}}</span>
+                  </button></li>
+                </sc-for>
+              </ul>
+            </li>
+            <li role="separator" class="nf-menu-separator"></li>
+            <li role="none"><button type="button" role="menuitem" class="nf-menu-item" onClick="{{closeUserMenu}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 3H3.5v10h6M7 8h6.5M11 5.5L13.5 8 11 10.5"></path></svg>
+              <span class="nf-menu-label">Abmelden</span></button></li>
+          </ul>
+        </sc-if>
       </div>
     </header>
 
-    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; padding: 40px 32px 72px">
-      <article style="flex: 1 1 520px; max-width: 760px; min-width: 0">
-        <sc-if value="{{restricted}}" hint-placeholder-val="{{ false }}">
-          <span style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 999px; background: #FFF1E6; color: #9A3412; font-size: 12px; font-weight: 500">
-            <svg class="i" width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg>
-            Eingeschränkt
-          </span>
-        </sc-if>
-        <h1 style="margin: 8px 0 6px; font-size: 34px; line-height: 1.2; font-weight: 600; letter-spacing: -0.01em">{{page.title}}</h1>
-        <p style="margin: 0 0 28px; font-size: 13px; color: #5B6573">{{page.meta}}</p>
-
-        <sc-if value="{{isDm}}" hint-placeholder-val="{{ true }}">
-          <div style="font-size: 16px; line-height: 1.65">
-            <h2 style="margin: 0 0 8px; font-size: 20px; font-weight: 600">Überblick</h2>
-            <p style="margin: 0 0 12px"><mark style="background: {{markBg}}; border-bottom: 2px solid {{markLine}}; color: inherit; padding: 0 1px">Jede Tabelle trägt <code>tenant_id</code></mark>. Row Level Security trennt die Mandanten in der Datenbank selbst; die API setzt den Mandanten zu Beginn jeder Transaktion.</p>
-            <div style="display: flex; gap: 12px; margin: 16px 0 24px; padding: 14px 16px; border-radius: 8px; background: #EEF3FC; color: #1A2230">
-              <svg class="i" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true" style="color: #1F5FD6; margin-top: 3px"><circle cx="8" cy="8" r="6"></circle><path d="M8 7.2V11M8 5v.01"></path></svg>
-              <p style="margin: 0; font-size: 15px">Maßgeblich ist <code>schema.sql</code>. Jede Änderung am Schema braucht einen Test in <code>schema_test.sql</code>.</p>
-            </div>
-
-            <h2 style="margin: 28px 0 8px; font-size: 20px; font-weight: 600">Kerntabellen</h2>
-            <div style="overflow-x: auto; margin: 0 0 24px">
-              <table style="width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.5">
-                <thead>
-                  <tr style="background: #F5F7FA">
-                    <th style="text-align: left; padding: 8px 12px; border: 1px solid #E2E5EA; font-weight: 600">Tabelle</th>
-                    <th style="text-align: left; padding: 8px 12px; border: 1px solid #E2E5EA; font-weight: 600">Zweck</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><td style="padding: 8px 12px; border: 1px solid #E2E5EA"><code>spaces</code></td><td style="padding: 8px 12px; border: 1px solid #E2E5EA">Bereich wie in Confluence, Einheit für Rechte und Import</td></tr>
-                  <tr><td style="padding: 8px 12px; border: 1px solid #E2E5EA"><code>pages</code></td><td style="padding: 8px 12px; border: 1px solid #E2E5EA">Seitenbaum mit Pfad und Position, Papierkorb</td></tr>
-                  <tr><td style="padding: 8px 12px; border: 1px solid #E2E5EA"><code>page_contents</code></td><td style="padding: 8px 12px; border: 1px solid #E2E5EA">Yjs-Zustand und Klartext für die Suche</td></tr>
-                  <tr><td style="padding: 8px 12px; border: 1px solid #E2E5EA"><code>grants</code></td><td style="padding: 8px 12px; border: 1px solid #E2E5EA">Rechte auf einen Space oder eine Seite</td></tr>
-                </tbody>
-              </table>
-            </div>
-
-            <h2 style="margin: 28px 0 8px; font-size: 20px; font-weight: 600">Mandant setzen</h2>
-            <pre style="margin: 0 0 24px; padding: 14px 16px; background: #0F2537; color: #E6EDF5; border-radius: 8px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 13px; line-height: 1.6; overflow-x: auto; white-space: pre">SELECT set_config('app.tenant_id', $1, true);
-SELECT set_config('app.user_id',   $2, true);</pre>
-
-            <h2 style="margin: 28px 0 8px; font-size: 20px; font-weight: 600">Offene Punkte</h2>
-            <div style="display: flex; flex-direction: column; gap: 4px; margin: 0 0 16px">
-              <sc-for list="{{tasks}}" as="t" hint-placeholder-count="2">
-                <label style="display: flex; align-items: center; gap: 10px; min-height: 36px; cursor: pointer">
-                  <input type="checkbox" checked="{{t.done}}" onChange="{{t.toggle}}" style="width: 18px; height: 18px; accent-color: #1F5FD6">
-                  <span style="text-decoration: {{t.deco}}; color: {{t.color}}">{{t.text}}</span>
-                </label>
-              </sc-for>
-            </div>
-            <p style="margin: 0; color: #6B7480">Tippe / für Befehle</p>
-          </div>
-        </sc-if>
-
-        <sc-if value="{{notDm}}" hint-placeholder-val="{{ false }}">
-          <div style="font-size: 16px; line-height: 1.65">
-            <sc-for list="{{page.body}}" as="para" hint-placeholder-count="2">
-              <p style="margin: 0 0 14px">{{para.text}}</p>
+    <!-- Unter der Leiste: Brotkrume links, Anwesenheit und Knöpfe rechts -->
+    <div class="nf-pagebar">
+      <div class="nf-topbar-start">
+        <nav aria-label="Brotkrume" class="nf-breadcrumb">
+          <ol>
+            <sc-for list="{{crumbs}}" as="c" hint-placeholder-count="2">
+              <li>
+                <a href="#" onClick="{{c.go}}">{{c.title}}</a>
+                <span class="nf-crumb-sep" aria-hidden="true">/</span>
+              </li>
             </sc-for>
-            <p style="margin: 0; color: #6B7480">Tippe / für Befehle</p>
+            <li><span aria-current="page">{{crumbCurrent}}</span></li>
+          </ol>
+        </nav>
+      </div>
+      <sc-if value="{{isPage}}" hint-placeholder-val="{{ true }}">
+        <div class="nf-topbar-end">
+          <div class="nf-presence" role="img" aria-label="{{presenceLabel}}">
+            <sc-for list="{{presence}}" as="pr" hint-placeholder-count="3">
+              <span title="{{pr.name}}" style="background: {{pr.color}}" aria-hidden="true">{{pr.initials}}</span>
+            </sc-for>
           </div>
-        </sc-if>
-      </article>
-
-      <sc-if value="{{commentsOpen}}" hint-placeholder-val="{{ true }}">
-        <aside aria-label="Kommentare" style="flex: 0 1 300px; min-width: 260px">
-          <h2 style="margin: 56px 0 12px; font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #5B6573">Kommentare</h2>
-          <sc-if value="{{hasThread}}" hint-placeholder-val="{{ true }}">
-            <div style="border: 1px solid #E2E5EA; border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 12px">
-              <p style="margin: 0; padding: 4px 8px; border-radius: 4px; background: #FFEAD5; font-size: 13px; color: #1A2230">„Jede Tabelle trägt tenant_id“</p>
-              <div style="display: flex; gap: 10px">
-                <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; flex: 0 0 26px; border-radius: 50%; background: #0F766E; color: #FFFFFF; font-size: 10px; font-weight: 600">SB</span>
-                <div style="min-width: 0">
-                  <div style="font-size: 13px"><strong style="font-weight: 600">Sophie Bauer</strong> <span style="color: #5B6573">vor 1 Std.</span></div>
-                  <p style="margin: 2px 0 0; font-size: 14px">Gilt das auch für <code>page_links</code>? Dort hängen zwei Seiten dran.</p>
-                </div>
-              </div>
-              <div style="display: flex; gap: 10px">
-                <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; flex: 0 0 26px; border-radius: 50%; background: #7C3AED; color: #FFFFFF; font-size: 10px; font-weight: 600">LG</span>
-                <div style="min-width: 0">
-                  <div style="font-size: 13px"><strong style="font-weight: 600">Lukas Gruber</strong> <span style="color: #5B6573">vor 40 Min.</span></div>
-                  <p style="margin: 2px 0 0; font-size: 14px">Ja, ergänzt. Der Schematest prüft jetzt alle Tabellen.</p>
-                </div>
-              </div>
-              <label style="display: block">
-                <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Antworten</span>
-                <input type="text" placeholder="Antworten …" style="box-sizing: border-box; width: 100%; height: 38px; padding: 0 10px; border: 1px solid #D5DAE1; border-radius: 8px; font: inherit; font-size: 14px; color: #1A2230">
-              </label>
-              <div style="display: flex; justify-content: flex-end">
-                <button onClick="{{resolveThread}}" style="display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; background: #E3F1E8; border: 0; border-radius: 8px; color: #1E5135; font-size: 13px; font-weight: 500; cursor: pointer">
-                  <svg class="i" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg>
-                  Erledigt
-                </button>
-              </div>
-            </div>
-          </sc-if>
-          <sc-if value="{{noComments}}" hint-placeholder-val="{{ false }}">
-            <p style="margin: 0 0 12px; font-size: 14px; color: #5B6573">Noch keine offenen Kommentare auf dieser Seite. Markiere Text, um ihn zu kommentieren.</p>
-          </sc-if>
-          <sc-if value="{{hasResolved}}" hint-placeholder-val="{{ true }}">
-            <button style="margin-top: 10px; height: 36px; padding: 0 4px; background: none; border: 0; color: #1E5135; font-size: 13px; cursor: pointer">{{resolvedLabel}} anzeigen</button>
-          </sc-if>
-        </aside>
+          <!-- Ausblick: Kommentarspalte ein- und ausblenden -->
+          <button type="button" class="nf-btn nf-btn-icon" aria-pressed="{{commentsPressed}}" aria-label="Kommentare anzeigen" title="Kommentare" onClick="{{toggleComments}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"></path></svg>
+          </button>
+          <button type="button" class="nf-btn" aria-haspopup="dialog" onClick="{{openRights}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="5.5" r="2.5"></circle><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4"></path><path d="M10.5 3.2a2.5 2.5 0 010 4.6M12 9.8c1.3.6 2.2 1.9 2.5 3.7"></path></svg>
+            <span class="nf-btn-label">Teilen und Rechte</span>
+          </button>
+          <!-- Weitere Aktionen der Seite: Versionen, Exportieren -->
+          <div class="nf-page-actions">
+            <button type="button" class="nf-btn nf-btn-icon" aria-label="Weitere Aktionen" title="Weitere Aktionen" aria-haspopup="menu" aria-expanded="{{pageMenuExpanded}}" onClick="{{togglePageMenu}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3.5" cy="8" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="12.5" cy="8" r="1.3" fill="currentColor" stroke="none"></circle></svg>
+            </button>
+            <sc-if value="{{pageMenuOpen}}" hint-placeholder-val="{{ false }}">
+              <ul class="nf-menu nf-page-menu" role="menu" aria-label="Weitere Aktionen">
+                <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openVersions}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"></circle><path d="M8 4.5V8l2.5 1.5"></path></svg>
+                  <span class="nf-menu-label">Versionen</span></button></li>
+                <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openExport}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v7.5M4.5 7L8 10.5 11.5 7"></path><path d="M3 11v2h10v-2"></path></svg>
+                  <span class="nf-menu-label">Exportieren</span></button></li>
+              </ul>
+            </sc-if>
+          </div>
+        </div>
       </sc-if>
     </div>
-  </main>
 
+    <main id="content" tabindex="-1" class="nf-main">
+      <!-- ---------- Seite ---------- -->
+      <sc-if value="{{isPage}}" hint-placeholder-val="{{ true }}">
+        <div class="nf-main-inner {{innerCls}}">
+          <article>
+            <sc-if value="{{page.restricted}}" hint-placeholder-val="{{ false }}">
+              <span class="nf-restricted-chip" title="Eigene Rechte">
+                <svg class="nf-icon" width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg>
+                Eingeschränkt
+              </span>
+            </sc-if>
+            <sc-if value="{{page.editable}}" hint-placeholder-val="{{ true }}">
+              <h1 class="nf-title"><input id="nf-title" aria-label="Titel" class="nf-title-input" maxlength="255" placeholder="Ohne Titel" value="{{page.title}}" onChange="{{onTitle}}" onKeyDown="{{onTitleKey}}"></h1>
+            </sc-if>
+            <sc-if value="{{page.readonly}}" hint-placeholder-val="{{ false }}">
+              <h1 class="nf-title">{{page.shownTitle}}</h1>
+            </sc-if>
+            <p class="nf-page-meta">
+              <span class="nf-byline-author">
+                <span class="nf-byline-avatar" style="background: {{page.authorColor}}" aria-hidden="true">{{page.authorInitials}}</span>
+                <span>Von {{page.authorName}}</span>
+              </span>
+              <time title="{{page.editedAt}}">Zuletzt bearbeitet von {{page.editorName}} {{page.when}}</time>
+              <span>Deine Rolle: {{page.roleLabel}}</span>
+            </p>
+
+            <div class="nf-editor" aria-label="Inhalt der Seite">
+              <!-- Startseite von ENTW: Inhaltsverzeichnis, Seitenlinks, Hinweis, Erwähnung -->
+              <sc-if value="{{body.home}}" hint-placeholder-val="{{ false }}">
+                <p>Hier dokumentiert das Entwicklungsteam von Alpenwerk Architektur, Abläufe und Betrieb.</p>
+                <nav class="nf-toc" aria-label="Inhaltsverzeichnis">
+                  <p class="nf-toc-title">Inhalt</p>
+                  <ol>
+                    <li><a href="#h-bereiche">Bereiche</a></li>
+                    <li><a href="#h-mitmachen">Mitmachen</a></li>
+                  </ol>
+                </nav>
+                <h2 id="h-bereiche">Bereiche</h2>
+                <ul>
+                  <sc-for list="{{homeLinks}}" as="hl" hint-placeholder-count="3">
+                    <li><a href="#" class="{{hl.cls}}" onClick="{{hl.go}}">{{hl.title}}</a> – {{hl.text}}</li>
+                  </sc-for>
+                </ul>
+                <h2 id="h-mitmachen">Mitmachen</h2>
+                <div class="nf-callout" data-variant="{{calloutHome.variant}}">
+                  <span class="nf-callout-icon">
+                    <sc-if value="{{page.editable}}" hint-placeholder-val="{{ true }}">
+                      <select aria-label="Art des Callouts" title="{{calloutHome.label}}" value="{{calloutHome.variant}}" onChange="{{calloutHome.change}}">
+                        <option value="info">ℹ Info</option>
+                        <option value="note">✎ Hinweis</option>
+                        <option value="success">✓ Erfolg</option>
+                        <option value="warning">⚠ Warnung</option>
+                        <option value="error">✕ Fehler</option>
+                      </select>
+                    </sc-if>
+                    <sc-if value="{{page.readonly}}" hint-placeholder-val="{{ false }}">
+                      <span role="img" aria-label="{{calloutHome.label}}" title="{{calloutHome.label}}">{{calloutHome.icon}}</span>
+                    </sc-if>
+                  </span>
+                  <div class="nf-callout-content"><p>Neue Seiten bitte unter dem passenden Bereich anlegen. Seiten mit eigenen Rechten sind mit einem Schloss markiert.</p></div>
+                </div>
+                <p>Fragen zum Wiki an <span class="nf-mention">@Lukas Gruber</span>.</p>
+              </sc-if>
+
+              <!-- Datenmodell: Kommentar an einer Textstelle, Callout, Tabelle, Code, Aufgaben -->
+              <sc-if value="{{body.dm}}" hint-placeholder-val="{{ true }}">
+                <h2>Überblick</h2>
+                <p><mark class="nf-comment-mark {{markCls}}">Jede Tabelle trägt <code>tenant_id</code></mark>. Row Level Security trennt die Mandanten in der Datenbank selbst; die API setzt den Mandanten zu Beginn jeder Transaktion.</p>
+                <div class="nf-callout" data-variant="{{calloutDm.variant}}">
+                  <span class="nf-callout-icon">
+                    <sc-if value="{{page.editable}}" hint-placeholder-val="{{ true }}">
+                      <select aria-label="Art des Callouts" title="{{calloutDm.label}}" value="{{calloutDm.variant}}" onChange="{{calloutDm.change}}">
+                        <option value="info">ℹ Info</option>
+                        <option value="note">✎ Hinweis</option>
+                        <option value="success">✓ Erfolg</option>
+                        <option value="warning">⚠ Warnung</option>
+                        <option value="error">✕ Fehler</option>
+                      </select>
+                    </sc-if>
+                    <sc-if value="{{page.readonly}}" hint-placeholder-val="{{ false }}">
+                      <span role="img" aria-label="{{calloutDm.label}}" title="{{calloutDm.label}}">{{calloutDm.icon}}</span>
+                    </sc-if>
+                  </span>
+                  <div class="nf-callout-content"><p>Maßgeblich ist <code>schema.sql</code>. Jede Änderung am Schema braucht einen Test in <code>schema_test.sql</code>.</p></div>
+                </div>
+
+                <h2>Kerntabellen</h2>
+                <div class="nf-table-block">
+                  <table>
+                    <thead><tr><th>Tabelle</th><th>Zweck</th></tr></thead>
+                    <tbody>
+                      <tr><td><code>spaces</code></td><td>Bereich wie in Confluence, Einheit für Rechte und Import</td></tr>
+                      <tr><td><code>pages</code></td><td>Seitenbaum mit Pfad und Position, Papierkorb</td></tr>
+                      <tr><td><code>page_contents</code></td><td>Yjs-Zustand, BlockNote-JSON und Klartext für die Suche</td></tr>
+                      <tr><td><code>grants</code></td><td>Rechte auf einen Space oder eine Seite</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <h2>Mandant setzen</h2>
+                <div class="nf-code">
+                  <select aria-label="Sprache des Codes"><option>SQL</option><option>TypeScript</option><option>Text</option></select>
+                  <pre><code><span class="k">SELECT</span> <span class="f">set_config</span>(<span class="s">'app.tenant_id'</span>, $1, <span class="c">true</span>);
+<span class="k">SELECT</span> <span class="f">set_config</span>(<span class="s">'app.user_id'</span>,   $2, <span class="c">true</span>);</code></pre>
+                </div>
+
+                <h2>Offene Punkte</h2>
+                <div class="nf-checklist">
+                  <sc-for list="{{tasks}}" as="t" hint-placeholder-count="2">
+                    <label class="nf-check" data-checked="{{t.checkedAttr}}">
+                      <input type="checkbox" checked="{{t.done}}" disabled="{{t.disabled}}" onChange="{{t.toggle}}">
+                      <span>{{t.text}}</span>
+                    </label>
+                  </sc-for>
+                </div>
+                <p>Wie Rechte vererbt werden, steht unter <a href="#" class="{{rechteLink.cls}}" onClick="{{rechteLink.go}}">{{rechteLink.title}}</a>. Fragen an <span class="nf-mention">@Sophie Bauer</span>.</p>
+              </sc-if>
+
+              <!-- Alle anderen Seiten: Absätze; leere Seiten zeigen den Platzhalter von BlockNote -->
+              <sc-if value="{{body.plain}}" hint-placeholder-val="{{ false }}">
+                <sc-for list="{{page.paragraphs}}" as="para" hint-placeholder-count="2">
+                  <p>{{para.text}}</p>
+                </sc-for>
+              </sc-if>
+              <sc-if value="{{body.empty}}" hint-placeholder-val="{{ false }}">
+                <p class="nf-placeholder">Text eingeben oder '/' für Befehle tippen</p>
+              </sc-if>
+            </div>
+          </article>
+
+          <!-- Ausblick: Kommentare in einer rechten Spalte, an der Textstelle markiert -->
+          <sc-if value="{{commentsOpen}}" hint-placeholder-val="{{ true }}">
+            <aside class="nf-comments" aria-label="Kommentare">
+              <h2 class="nf-comments-heading">Kommentare</h2>
+              <sc-if value="{{hasThread}}" hint-placeholder-val="{{ true }}">
+                <div class="nf-thread">
+                  <p class="nf-thread-quote">„Jede Tabelle trägt tenant_id“</p>
+                  <div class="nf-comment">
+                    <span class="nf-byline-avatar" style="background: #0E7490" aria-hidden="true">SB</span>
+                    <div>
+                      <div class="nf-comment-meta"><strong>Sophie Bauer</strong> <span>vor 1 Std.</span></div>
+                      <p>Gilt das auch für <code>page_links</code>? Dort hängen zwei Seiten dran.</p>
+                    </div>
+                  </div>
+                  <div class="nf-comment">
+                    <span class="nf-byline-avatar" style="background: #7C3AED" aria-hidden="true">LG</span>
+                    <div>
+                      <div class="nf-comment-meta"><strong>Lukas Gruber</strong> <span>vor 40 Min.</span></div>
+                      <p>Ja, ergänzt. Der Schematest prüft jetzt alle Tabellen.</p>
+                    </div>
+                  </div>
+                  <label>
+                    <span class="nf-visually-hidden">Antworten</span>
+                    <input type="text" class="nf-input nf-input-wide" placeholder="Antworten …">
+                  </label>
+                  <div style="display: flex; justify-content: flex-end">
+                    <button type="button" class="nf-btn nf-btn-done" onClick="{{resolveThread}}">
+                      <svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg>
+                      Erledigt
+                    </button>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{noComments}}" hint-placeholder-val="{{ false }}">
+                <p class="nf-muted" style="margin: 0 0 12px">Noch keine offenen Kommentare auf dieser Seite. Markiere Text, um ihn zu kommentieren.</p>
+              </sc-if>
+              <sc-if value="{{hasResolved}}" hint-placeholder-val="{{ true }}">
+                <button type="button" class="nf-link-button" style="margin-top: 10px; height: 36px; padding: 0 4px; border: 0; background: none; color: var(--nf-done-fg); font-size: 13px; cursor: pointer">{{resolvedLabel}} anzeigen</button>
+              </sc-if>
+            </aside>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ---------- Einstellungen des Spaces ---------- -->
+      <sc-if value="{{isSettings}}" hint-placeholder-val="{{ false }}">
+        <div class="nf-main-inner">
+          <article>
+            <h1>Einstellungen</h1>
+            <p class="nf-muted">Schlüssel <code>{{space.key}}</code> (bleibt fest, er steht in den Adressen)</p>
+            <form onSubmit="{{saveSettings}}">
+              <label class="nf-label" for="space-name">Name</label>
+              <input id="space-name" class="nf-input nf-input-wide" maxlength="200" value="{{settings.name}}" disabled="{{settings.locked}}" onChange="{{settings.onName}}">
+              <label class="nf-label" for="space-description">Beschreibung</label>
+              <textarea id="space-description" class="nf-input nf-input-wide" rows="4" maxlength="2000" value="{{settings.description}}" disabled="{{settings.locked}}" onChange="{{settings.onDescription}}"></textarea>
+              <sc-if value="{{settings.editable}}" hint-placeholder-val="{{ true }}">
+                <p>
+                  <button type="submit" class="nf-button">Speichern</button>
+                  <sc-if value="{{settings.saved}}" hint-placeholder-val="{{ false }}"><span class="nf-saved"> Gespeichert</span></sc-if>
+                </p>
+              </sc-if>
+              <sc-if value="{{settings.locked}}" hint-placeholder-val="{{ false }}">
+                <p class="nf-muted">{{settings.lockedText}}</p>
+              </sc-if>
+            </form>
+            <section class="nf-form">
+              <sc-if value="{{space.archived}}" hint-placeholder-val="{{ false }}">
+                <h2>Archiviert</h2>
+                <p>Alle können diesen Space nur noch lesen. Zurückgeholt gelten wieder die bisherigen Rechte.</p>
+                <button type="button" class="nf-button" onClick="{{unarchive}}">Space zurückholen</button>
+              </sc-if>
+              <sc-if value="{{space.active}}" hint-placeholder-val="{{ true }}">
+                <h2>Archivieren</h2>
+                <p>Ein archivierter Space bleibt sichtbar, lässt sich aber von niemandem mehr bearbeiten.</p>
+                <button type="button" class="nf-button nf-button-attention" onClick="{{askArchive}}">Space archivieren</button>
+              </sc-if>
+            </section>
+          </article>
+        </div>
+      </sc-if>
+    </main>
+  </div>
+
+  <!-- ============================== Dialoge ============================== -->
+  <!-- Teilen und Rechte (Ausblick M3; im Frontend vorerst ein Dialog mit Ausblick) -->
   <sc-if value="{{rightsOpen}}" hint-placeholder-val="{{ false }}">
-    <div style="position: absolute; inset: 0; z-index: 10; display: flex; align-items: flex-start; justify-content: center; padding: 96px 16px; background: rgba(15, 37, 55, 0.45)">
-      <div role="dialog" aria-modal="true" aria-labelledby="rights-title" style="width: 100%; max-width: 560px; background: #FFFFFF; border-radius: 12px; box-shadow: 0 24px 64px rgba(15, 37, 55, 0.28); display: flex; flex-direction: column">
-        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 20px 24px 16px">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <div class="nf-dialog" role="dialog" aria-modal="true" aria-labelledby="rights-title">
+        <div class="nf-dialog-head">
           <div>
-            <h2 id="rights-title" style="margin: 0; font-size: 18px; font-weight: 600">Rechte für „{{page.title}}“</h2>
-            <p style="margin: 4px 0 0; font-size: 13px; color: #5B6573">Wer diese Seite und ihre Unterseiten sehen und bearbeiten darf.</p>
+            <h2 id="rights-title" class="nf-dialog-title">Rechte für „{{page.shownTitle}}“</h2>
+            <p class="nf-dialog-description">Wer diese Seite und ihre Unterseiten sehen und bearbeiten darf.</p>
           </div>
-          <button onClick="{{closeRights}}" aria-label="Schließen" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; flex: 0 0 36px; background: transparent; border: 0; border-radius: 8px; color: #5B6573; cursor: pointer">
-            <svg class="i" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
           </button>
         </div>
-
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 24px; border-top: 1px solid #E2E5EA; border-bottom: 1px solid #E2E5EA; background: #F8F9FB">
+        <div class="nf-dialog-band">
           <div>
-            <div style="font-weight: 600">Eigene Rechte für diese Seite</div>
-            <div style="font-size: 13px; color: #5B6573">{{inheritText}}</div>
+            <strong>Eigene Rechte für diese Seite</strong>
+            <span>{{rights.inheritText}}</span>
           </div>
-          <button onClick="{{toggleOwn}}" aria-pressed="{{ownPressed}}" aria-label="Eigene Rechte für diese Seite" style="position: relative; width: 46px; height: 28px; flex: 0 0 46px; border: 0; border-radius: 14px; background: {{switchBg}}; cursor: pointer">
-            <span style="position: absolute; top: 3px; left: {{knobX}}px; width: 22px; height: 22px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 1px 3px rgba(15, 37, 55, 0.3)"></span>
-          </button>
+          <button type="button" class="nf-switch" aria-pressed="{{rights.ownPressed}}" aria-label="Eigene Rechte für diese Seite" disabled="{{rights.locked}}" onClick="{{rights.toggleOwn}}"><span></span></button>
         </div>
-
-        <div style="padding: 4px 24px">
-          <sc-for list="{{grants}}" as="g" hint-placeholder-count="3">
-            <div style="display: flex; align-items: center; gap: 12px; min-height: 56px; border-bottom: 1px solid #EEF0F3">
-              <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex: 0 0 32px; border-radius: 50%; background: {{g.bg}}; color: #FFFFFF; font-size: 11px; font-weight: 600">{{g.initials}}</span>
-              <div style="flex: 1; min-width: 0">
-                <div style="font-weight: 500">{{g.name}}</div>
-                <div style="font-size: 12px; color: #5B6573">{{g.sub}}</div>
-              </div>
-              <sc-if value="{{g.editable}}" hint-placeholder-val="{{ false }}">
-                <select aria-label="{{g.selectLabel}}" value="{{g.role}}" onChange="{{g.change}}" style="height: 36px; padding: 0 8px; border: 1px solid #D5DAE1; border-radius: 8px; background: #FFFFFF; font: inherit; font-size: 14px; color: #1A2230">
+        <div class="nf-dialog-body" style="padding-top: 4px">
+          <sc-for list="{{rights.grants}}" as="g" hint-placeholder-count="3">
+            <div class="nf-grant">
+              <span class="nf-byline-avatar" style="background: {{g.bg}}" aria-hidden="true">{{g.initials}}</span>
+              <div class="nf-grant-names"><div>{{g.name}}</div><div>{{g.sub}}</div></div>
+              <sc-if value="{{g.selectAdmin}}" hint-placeholder-val="{{ false }}">
+                <select aria-label="{{g.selectLabel}}" value="{{g.role}}" onChange="{{g.change}}">
                   <option value="admin">Admin</option>
                   <option value="editor">Bearbeiten</option>
                   <option value="commenter">Kommentieren</option>
@@ -269,28 +920,78 @@ SELECT set_config('app.user_id',   $2, true);</pre>
                   <option value="none">Kein Zugriff</option>
                 </select>
               </sc-if>
+              <sc-if value="{{g.selectNoAdmin}}" hint-placeholder-val="{{ false }}">
+                <select aria-label="{{g.selectLabel}}" value="{{g.role}}" onChange="{{g.change}}">
+                  <option value="editor">Bearbeiten</option>
+                  <option value="commenter">Kommentieren</option>
+                  <option value="viewer">Lesen</option>
+                  <option value="none">Kein Zugriff</option>
+                </select>
+              </sc-if>
               <sc-if value="{{g.readonly}}" hint-placeholder-val="{{ true }}">
-                <span style="font-size: 14px; color: #5B6573">{{g.roleLabel}}</span>
+                <span class="nf-grant-role">{{g.roleLabel}}</span>
               </sc-if>
             </div>
           </sc-for>
-          <sc-if value="{{ownOn}}" hint-placeholder-val="{{ false }}">
-            <div style="display: flex; gap: 8px; padding: 14px 0 6px">
-              <label style="flex: 1; min-width: 0">
-                <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Person oder Gruppe hinzufügen</span>
-                <input type="text" placeholder="Person oder Gruppe hinzufügen" style="box-sizing: border-box; width: 100%; height: 38px; padding: 0 10px; border: 1px solid #D5DAE1; border-radius: 8px; font: inherit; font-size: 14px; color: #1A2230">
+          <sc-if value="{{rights.canAdd}}" hint-placeholder-val="{{ false }}">
+            <form class="nf-grant-add" onSubmit="{{rights.add}}">
+              <label style="flex: 1; min-width: 0; display: flex">
+                <span class="nf-visually-hidden">Person oder Gruppe hinzufügen</span>
+                <input type="text" class="nf-input" placeholder="Person oder Gruppe hinzufügen" value="{{rights.query}}" onChange="{{rights.onQuery}}">
               </label>
-              <button style="height: 38px; padding: 0 14px; background: #FFFFFF; border: 1px solid #D5DAE1; border-radius: 8px; color: #1A2230; font-size: 14px; cursor: pointer">Hinzufügen</button>
-            </div>
+              <button type="submit" class="nf-btn">Hinzufügen</button>
+            </form>
           </sc-if>
-          <sc-if value="{{ownOff}}" hint-placeholder-val="{{ true }}">
-            <p style="margin: 12px 0 6px; font-size: 13px; color: #5B6573">Um nur einzelnen Personen Zugriff zu geben, schalte „Eigene Rechte“ ein. Die bisherigen Rechte werden übernommen und lassen sich dann einschränken.</p>
+          <sc-if value="{{rights.hint}}" hint-placeholder-val="{{ true }}">
+            <p class="nf-hint">{{rights.hintText}}</p>
           </sc-if>
         </div>
+        <div class="nf-dialog-foot">
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Abbrechen</button>
+          <sc-if value="{{rights.canSave}}" hint-placeholder-val="{{ true }}">
+            <button type="button" class="nf-btn nf-btn-primary" onClick="{{rights.save}}">Speichern</button>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
 
-        <div style="display: flex; justify-content: flex-end; gap: 8px; padding: 16px 24px 20px">
-          <button onClick="{{closeRights}}" style="height: 38px; padding: 0 14px; background: #FFFFFF; border: 1px solid #D5DAE1; border-radius: 8px; color: #1A2230; font-size: 14px; cursor: pointer">Abbrechen</button>
-          <button onClick="{{saveRights}}" style="height: 38px; padding: 0 16px; background: #1F5FD6; border: 0; border-radius: 8px; color: #FFFFFF; font-size: 14px; font-weight: 500; cursor: pointer">Speichern</button>
+  <!-- Versionen und Export: im Frontend vorerst Dialoge mit Ausblick (E08, E14) -->
+  <sc-if value="{{soonOpen}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <div class="nf-dialog" role="dialog" aria-modal="true" aria-labelledby="soon-title">
+        <div class="nf-dialog-head">
+          <h2 id="soon-title" class="nf-dialog-title">{{soon.title}}</h2>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body" style="padding-bottom: 24px">
+          <div class="nf-dialog-soon">
+            <svg class="nf-icon" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"></circle><path d="M8 7.2V11M8 5v.01"></path></svg>
+            <p>{{soon.text}}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- Rückfrage (ConfirmDialog): Fokus zuerst auf „Abbrechen“, Bestätigen rot bzw. orange -->
+  <sc-if value="{{confirmOpen}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <div class="nf-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-text">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="confirm-title" class="nf-dialog-title">{{confirm.title}}</h2>
+            <p id="confirm-text" class="nf-dialog-description">{{confirm.text}}</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-foot">
+          <button type="button" id="nf-confirm-cancel" class="nf-btn" onClick="{{closeDialog}}">Abbrechen</button>
+          <button type="button" class="nf-btn {{confirm.cls}}" onClick="{{confirm.ok}}">{{confirm.label}}</button>
         </div>
       </div>
     </div>
@@ -298,155 +999,597 @@ SELECT set_config('app.user_id',   $2, true);</pre>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1040}}'>
+// Daten wie in database/scripts/seed/seed.sql (Mandant Alpenwerk); angemeldet ist Peter Forster
+const PEOPLE = {
+  peter: { name: 'Peter Forster', color: '#1F5FD6' },
+  sophie: { name: 'Sophie Bauer', color: '#0E7490' },
+  lukas: { name: 'Lukas Gruber', color: '#7C3AED' },
+  markus: { name: 'Markus Wagner', color: '#B45309' },
+  max: { name: 'Max Mustermann', color: '#BE185D' }
+};
+const SUBJECTS = {
+  ...Object.fromEntries(Object.entries(PEOPLE).map(([k, p]) => [k, { name: p.name, sub: k === 'peter' ? 'Du' : 'Person', bg: p.color }])),
+  grp: { name: 'Gruppe Entwicklung', sub: 'Gruppe im Wiki · 3 Mitglieder', bg: '#1E5135' },
+  ws: { name: 'Alle im Workspace', sub: 'Alle Mitglieder von Alpenwerk, ohne Gäste', bg: '#5B6573' }
+};
+const ROLE_LABEL = { admin: 'Admin', editor: 'Bearbeiten', commenter: 'Kommentieren', viewer: 'Lesen', none: 'Kein Zugriff' };
+const RANK = { viewer: 1, commenter: 2, editor: 3, admin: 4 };
+// Dialoge mit Ausblick (wie im Frontend: was dort entsteht)
+const SOON = {
+  versions: (t) => ({ title: 'Versionen von „' + t + '“', text: 'Bald stehen hier alle Versionen dieser Seite mit allen, die daran geschrieben haben. Zwei Versionen lassen sich vergleichen, eine alte wiederherstellen.' }),
+  export: (t) => ({ title: '„' + t + '“ exportieren', text: 'Bald lässt sich die Seite hier als Markdown, als BlockNote-JSON oder als ZIP mit allen Bildern herunterladen.' }),
+  profile: () => ({ title: 'Benutzerprofil', text: 'Bald lassen sich hier Name, Profilbild und Zeitzone ändern. E-Mail und Passwort verwaltet der Login-Dienst.' }),
+  userSettings: () => ({ title: 'Einstellungen', text: 'Bald stehen hier persönliche Einstellungen, z. B. Benachrichtigungen bei Erwähnungen und Kommentaren.' }),
+  shortcuts: () => ({ title: 'Tastenkürzel', text: 'Strg K Suche · F2 Seite umbenennen · Entf Seite in den Papierkorb · / Befehle im Editor · [ Seitenlink · @ Person erwähnen' })
+};
+const CALLOUT = {
+  info: { icon: 'ℹ', label: 'Info' }, note: { icon: '✎', label: 'Hinweis' }, success: { icon: '✓', label: 'Erfolg' },
+  warning: { icon: '⚠', label: 'Warnung' }, error: { icon: '✕', label: 'Fehler' }
+};
+const initials = (name) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join('');
+const pg = (space, title, parent, kids, editor, when, text, extra) =>
+  ({ space, title, parent, kids, author: 'peter', editor, when, text: text || [], ...(extra || {}) });
+
+const PAGES = {
+  home: pg('ENTW', 'Entwicklung', null, ['arch', 'release', 'betrieb'], 'lukas', 'am 28. Oktober', [], { body: 'home' }),
+  arch: pg('ENTW', 'Architektur', 'home', ['dm', 'rechte'], 'lukas', 'am 30. Oktober',
+    ['Frontend, API und Collab-Server laufen als eigene Prozesse. PostgreSQL ist die einzige Wahrheit für Struktur, Rechte und Inhalt.']),
+  dm: pg('ENTW', 'Datenmodell', 'arch', [], 'sophie', 'vor 2 Minuten', [], { body: 'dm' }),
+  rechte: pg('ENTW', 'Rechte-Konzept', 'arch', [], 'peter', 'am 29. Oktober',
+    ['Rechte werden am Space vergeben und an Seiten vererbt. Eine Seite kann die Vererbung kappen und eigene Rechte bekommen.']),
+  release: pg('ENTW', 'Release-Prozess', 'home', [], 'markus', 'am 21. Oktober',
+    ['Jeder Merge rollt automatisch nach staging aus. Für pilot braucht es eine Freigabe im Review.']),
+  betrieb: pg('ENTW', 'Betrieb', 'home', ['backup', 'personal'], 'lukas', 'am 2. November',
+    ['Alles zum Cluster auf dem VPS: Backups, Überwachung und Bereitschaft.']),
+  backup: pg('ENTW', 'Backups und Wiederherstellung', 'betrieb', [], 'lukas', 'am 2. November',
+    ['CloudNativePG sichert laufend in einen S3-Speicher bei einem anderen Anbieter. Die Wiederherstellung wird einmal pro Quartal geprobt.']),
+  personal: pg('ENTW', 'Personalplanung 2027', 'betrieb', ['urlaub'], 'peter', 'am 1. November',
+    ['Bereitschaftsplan und Personalplanung für 2027. Diese Seite sehen nur ausgewählte Personen.']),
+  urlaub: pg('ENTW', 'Urlaubsplanung Vertrieb', 'personal', [], 'peter', 'am 1. November',
+    ['Urlaube im Vertrieb für 2027. Max Mustermann darf mitlesen.']),
+  notizen: pg('ENTW', 'Alte Notizen', 'home', [], 'peter', 'am 12. Oktober', ['Sammlung aus der Anfangszeit.']),
+  vert_home: pg('VERT', 'Vertrieb', null, ['angebote', 'kampagne'], 'max', 'am 25. Oktober',
+    ['Angebote, Kampagnen und Material für den Vertrieb.'], { author: 'max' }),
+  angebote: pg('VERT', 'Angebote 2027', 'vert_home', [], 'max', 'am 30. Oktober', ['Vorlagen und Preise für Angebote im nächsten Jahr.'], { author: 'max' }),
+  kampagne: pg('VERT', 'Kampagne Frühjahr', 'vert_home', [], 'max', 'am 3. November', ['Planung der Frühjahrskampagne: Messen, Mailings, Webinare.'], { author: 'max' }),
+  pers_home: pg('PERS', 'Personal', null, ['urlaubsregel', 'gehalt'], 'peter', 'am 20. Oktober', ['Nur für die Geschäftsleitung.']),
+  urlaubsregel: pg('PERS', 'Urlaubsregelung', 'pers_home', [], 'peter', 'am 20. Oktober', ['Wie Urlaub beantragt und genehmigt wird.']),
+  gehalt: pg('PERS', 'Gehaltsbänder 2027', 'pers_home', [], 'peter', 'am 22. Oktober', ['Gehaltsbänder nach Rolle und Erfahrung.']),
+  alt_home: pg('ALT', 'Altes Intranet', null, ['telefon'], 'peter', 'am 2. März 2025', ['Archiv, nur noch lesbar.']),
+  telefon: pg('ALT', 'Telefonliste (veraltet)', 'alt_home', [], 'peter', 'am 2. März 2025', ['Bitte das Adressbuch im Login-Dienst nutzen.'])
+};
+const SPACES = {
+  ENTW: { key: 'ENTW', name: 'Entwicklung', description: 'Architektur, Abläufe und Betrieb des Entwicklungsteams', home: 'home', archived: false },
+  VERT: { key: 'VERT', name: 'Vertrieb', description: '', home: 'vert_home', archived: false },
+  PERS: { key: 'PERS', name: 'Personal', description: 'Nur für die Geschäftsleitung', home: 'pers_home', archived: false },
+  ALT: { key: 'ALT', name: 'Altes Intranet', description: 'Archiv, nur noch lesbar', home: 'alt_home', archived: true }
+};
+// Grants auf Spaces („space:KEY“) und auf Seiten mit eigenen Rechten (Seiten-ID)
+const GRANTS = {
+  'space:ENTW': [{ key: 'peter', role: 'admin' }, { key: 'grp', role: 'editor' }, { key: 'ws', role: 'viewer' }],
+  'space:VERT': [{ key: 'max', role: 'admin' }, { key: 'ws', role: 'commenter' }],
+  'space:PERS': [{ key: 'peter', role: 'admin' }],
+  'space:ALT': [{ key: 'peter', role: 'admin' }, { key: 'ws', role: 'viewer' }],
+  personal: [{ key: 'peter', role: 'admin' }, { key: 'lukas', role: 'editor' }],
+  urlaub: [{ key: 'peter', role: 'admin' }, { key: 'lukas', role: 'editor' }, { key: 'max', role: 'viewer' }]
+};
+
 class Component extends DCLogic {
   constructor(props) {
     super(props);
     this.state = {
+      space: 'ENTW',
+      view: 'page',
       current: 'dm',
-      expanded: { home: true, arch: true, betrieb: true },
-      own: { personal: true },
-      roles: { personal: { anna: 'admin', dev: 'none', ws: 'none' } },
-      rightsOpen: false,
-      draftOwn: false,
-      draftRoles: {},
+      expanded: { arch: true, betrieb: true },
+      pages: JSON.parse(JSON.stringify(PAGES)),
+      spaces: JSON.parse(JSON.stringify(SPACES)),
+      grants: JSON.parse(JSON.stringify(GRANTS)),
+      trash: [{ id: 'notizen', index: 3 }],
+      trashOpen: false,
+      menu: null,
+      spaceMenu: false,
+      spaceSub: null,
+      renaming: null,
+      draft: '',
+      dialog: null,
+      confirm: null,
+      rightsDraft: null,
       commentsOpen: true,
       threadOpen: true,
-      tasks: { t1: true, t2: false }
+      tasks: { t1: true, t2: false },
+      callouts: { dm: 'info', home: 'note' },
+      drawer: false,
+      settingsDraft: null,
+      saved: false,
+      seq: 1,
+      // Darstellung: 'light' | 'dark' | 'system'; im Browser gemerkt (nur Komfort, darf fehlen)
+      theme: (() => { try { return localStorage.getItem('nf-proto-theme') || 'light'; } catch (e) { return 'light'; } })(),
+      osDark: typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches
     };
+    // „System“ folgt einem Wechsel im Betriebssystem auch bei offener Seite
+    if (typeof matchMedia === 'function') {
+      const mq = matchMedia('(prefers-color-scheme: dark)');
+      const onChange = () => this.setState({ osDark: mq.matches });
+      if (mq.addEventListener) mq.addEventListener('change', onChange);
+    }
   }
 
+  // ---------- Hilfen ----------
+  chain(id) { const out = []; let x = id; while (x) { out.unshift(x); x = this.state.pages[x].parent; } return out; }
+  /** Nächste Seite mit eigenen Rechten (die Seite selbst eingeschlossen), sonst der Space */
+  source(id, includeSelf = true) {
+    const ch = this.chain(id);
+    if (!includeSelf) ch.pop();
+    const own = ch.reverse().find((x) => this.state.grants[x]);
+    return own || 'space:' + this.state.pages[id].space;
+  }
+  role(id) {
+    const s = this.state; const p = s.pages[id];
+    let best = null;
+    for (const g of s.grants[this.source(id)] || []) {
+      if (g.role !== 'none' && (g.key === 'peter' || g.key === 'ws') && (!best || RANK[g.role] > RANK[best])) best = g.role;
+    }
+    if (best && s.spaces[p.space].archived) best = 'viewer';
+    return best;
+  }
+  canEdit(id) { const r = this.role(id); return r === 'editor' || r === 'admin'; }
+  set(patch) { this.setState(patch); }
+  stop(e) { if (e && e.stopPropagation) e.stopPropagation(); }
+  prevent(e) { if (e && e.preventDefault) e.preventDefault(); }
+  focusLater(sel) { setTimeout(() => { const el = document.querySelector(sel); if (el) el.focus(); }, 30); }
+
+  go(id) { this.setState((st) => ({ current: id, space: st.pages[id].space, view: 'page', menu: null, spaceMenu: false, drawer: false })); }
+
+  movePage(id, parent, index) {
+    this.setState((st) => {
+      const pages = { ...st.pages };
+      const p = { ...pages[id] };
+      const oldParent = { ...pages[p.parent], kids: pages[p.parent].kids.filter((k) => k !== id) };
+      pages[p.parent] = oldParent;
+      const np = { ...pages[parent] };
+      const kids = np.kids.filter((k) => k !== id);
+      kids.splice(Math.max(0, Math.min(index, kids.length)), 0, id);
+      np.kids = kids;
+      pages[parent] = np;
+      p.parent = parent;
+      pages[id] = p;
+      return { pages, menu: null, expanded: { ...st.expanded, [parent]: true } };
+    });
+  }
+
+  createPage(parent) {
+    this.setState((st) => {
+      const id = 'neu' + st.seq;
+      const pages = { ...st.pages };
+      pages[id] = { space: st.pages[parent].space, title: '', parent, kids: [], author: 'peter', editor: 'peter', when: 'gerade eben', text: [] };
+      pages[parent] = { ...pages[parent], kids: [...pages[parent].kids, id] };
+      return { pages, seq: st.seq + 1, current: id, view: 'page', expanded: { ...st.expanded, [parent]: true }, menu: null, drawer: false };
+    });
+    this.focusLater('#nf-title');
+  }
+
+  trashPage(id) {
+    this.setState((st) => {
+      const pages = { ...st.pages };
+      const parent = pages[id].parent;
+      const index = pages[parent].kids.indexOf(id);
+      pages[parent] = { ...pages[parent], kids: pages[parent].kids.filter((k) => k !== id) };
+      const sub = (x) => [x, ...st.pages[x].kids.flatMap(sub)];
+      const inside = sub(id).includes(st.current);
+      return { pages, trash: [...st.trash, { id, index }], dialog: null, confirm: null, current: inside ? parent : st.current };
+    });
+  }
+
+  restorePage(id) {
+    this.setState((st) => {
+      const entry = st.trash.find((t) => t.id === id);
+      const pages = { ...st.pages };
+      const parent = pages[id].parent;
+      const kids = [...pages[parent].kids];
+      kids.splice(Math.min(entry.index, kids.length), 0, id);
+      pages[parent] = { ...pages[parent], kids };
+      return { pages, trash: st.trash.filter((t) => t.id !== id) };
+    });
+  }
+
+  setTitle(id, title) {
+    this.setState((st) => ({ pages: { ...st.pages, [id]: { ...st.pages[id], title, editor: 'peter', when: 'gerade eben' } } }));
+  }
+
+  openRights() {
+    const s = this.state; const cur = s.current;
+    const own = !!s.grants[cur];
+    const list = s.grants[cur] || s.grants[this.source(cur, false)] || [];
+    this.setState({ dialog: 'rights', rightsDraft: { own, grants: list.map((g) => ({ ...g })), query: '' } });
+  }
+
+  // ---------- Werte für die Vorlage ----------
   renderVals() {
     const s = this.state;
-    const P = {
-      home: { title: 'Entwicklung', parent: null, kids: ['arch', 'release', 'betrieb'], meta: 'Startseite des Space · zuletzt bearbeitet von Anna Huber am 28. Oktober',
-        body: ['Hier dokumentiert das Entwicklungsteam von Alpenwerk Architektur, Abläufe und Betrieb.', 'Neue Seiten bitte unter dem passenden Bereich anlegen. Seiten mit eigenen Rechten sind mit einem Schloss markiert.'] },
-      arch: { title: 'Architektur', parent: 'home', kids: ['dm', 'rechte'], meta: 'Zuletzt bearbeitet von Lukas Gruber am 30. Oktober',
-        body: ['Frontend, API und Collab-Server laufen als eigene Prozesse. PostgreSQL ist die einzige Wahrheit für Struktur, Rechte und Inhalt.'] },
-      dm: { title: 'Datenmodell', parent: 'arch', kids: [], meta: 'Zuletzt bearbeitet von Sophie Bauer vor 2 Minuten' },
-      rechte: { title: 'Rechte-Konzept', parent: 'arch', kids: [], meta: 'Zuletzt bearbeitet von Anna Huber am 29. Oktober',
-        body: ['Rechte werden am Space vergeben und an Seiten vererbt. Eine Seite kann die Vererbung kappen und eigene Rechte bekommen.'] },
-      release: { title: 'Release-Prozess', parent: 'home', kids: [], meta: 'Zuletzt bearbeitet von Markus Wagner am 21. Oktober',
-        body: ['Jeder Merge rollt automatisch nach staging aus. Für pilot braucht es eine Freigabe im Review.'] },
-      betrieb: { title: 'Betrieb', parent: 'home', kids: ['backup', 'personal'], meta: 'Zuletzt bearbeitet von Lukas Gruber am 2. November',
-        body: ['Alles zum Cluster auf dem VPS: Backups, Überwachung und Bereitschaft.'] },
-      backup: { title: 'Backups und Wiederherstellung', parent: 'betrieb', kids: [], meta: 'Zuletzt bearbeitet von Lukas Gruber am 2. November',
-        body: ['CloudNativePG sichert laufend in einen S3-Speicher bei einem anderen Anbieter. Die Wiederherstellung wird einmal pro Quartal geprobt.'] },
-      personal: { title: 'Personalplanung 2027', parent: 'betrieb', kids: [], meta: 'Zuletzt bearbeitet von Anna Huber am 1. November',
-        body: ['Bereitschaftsplan und Personalplanung für 2027. Diese Seite sehen nur ausgewählte Personen.'] }
-    };
+    // Farbschema an <html>, damit auch body und alles außerhalb der Vorlage folgen
+    // Systemwert bei jedem Rendern frisch lesen; der Listener im Konstruktor sorgt nur für das Neurendern
+    const osDark = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)').matches : s.osDark;
+    const effectiveTheme = s.theme === 'system' ? (osDark ? 'dark' : 'light') : s.theme;
+    if (document.documentElement.dataset.theme !== effectiveTheme) document.documentElement.dataset.theme = effectiveTheme;
+    const P = s.pages;
+    const sp = s.spaces[s.space];
+    const homeId = sp.home;
+    const isPage = s.view === 'page';
+    const cur = isPage ? s.current : null;
+    const spaceEditable = !sp.archived && this.canEdit(homeId);
+    const shown = (t) => t || 'Ohne Titel';
 
-    const chain = (id) => { const out = []; let x = id; while (x) { out.unshift(x); x = P[x].parent; } return out; };
-    const cur = s.current;
-    const curChain = chain(cur);
-    const restricted = curChain.some((x) => s.own[x]);
-    const srcId = curChain.slice(0, -1).reverse().find((x) => s.own[x]);
-    const source = srcId ? '„' + P[srcId].title + '“' : 'Space „Entwicklung“';
-
+    // Seitenbaum: wie im Frontend ohne die Startseite selbst, er beginnt mit ihren Unterseiten
     const rows = [];
-    const walk = (id, depth) => {
+    const walk = (id, depth, siblings, index) => {
       const p = P[id];
-      const open = !!s.expanded[id];
-      const active = cur === id;
+      const open = !!s.expanded[id] && p.kids.length > 0;
+      const editable = !sp.archived && this.canEdit(id);
+      const prev = siblings[index - 1];
+      const next = siblings[index + 1];
+      const parentIsHome = p.parent === homeId;
       rows.push({
-        title: p.title,
-        pad: 4 + depth * 16,
-        hasKids: p.kids.length > 0,
-        leaf: p.kids.length === 0,
-        rot: open ? 90 : 0,
-        toggleLabel: (open ? 'Zuklappen: ' : 'Aufklappen: ') + p.title,
-        bg: active ? '#1F4060' : 'transparent',
-        color: active ? '#FFFFFF' : '#C9D3DE',
-        weight: active ? 600 : 400,
-        current: active ? 'page' : 'false',
-        restricted: !!s.own[id],
-        toggle: () => this.setState((st) => ({ expanded: { ...st.expanded, [id]: !st.expanded[id] } })),
-        open: () => this.setState({ current: id })
+        title: shown(p.title),
+        titleCls: p.title ? '' : 'nf-untitled',
+        pad: depth * 16,
+        cls: (cur === id ? 'nf-selected' : ''),
+        current: cur === id ? 'page' : 'false',
+        twisty: p.kids.length ? 'visible' : 'hidden',
+        openAttr: open ? 'true' : 'false',
+        toggleLabel: shown(p.title) + (open ? ' zuklappen' : ' aufklappen'),
+        restricted: !!s.grants[id],
+        editable,
+        actionsCls: s.menu === id ? 'nf-open' : '',
+        actionsLabel: 'Aktionen für ' + shown(p.title),
+        menuOpen: s.menu === id,
+        menuExpanded: s.menu === id ? 'true' : 'false',
+        upDisabled: prev ? 'false' : 'true',
+        downDisabled: next ? 'false' : 'true',
+        outdentDisabled: parentIsHome ? 'true' : 'false',
+        renaming: s.renaming === id,
+        draft: s.draft,
+        toggle: (e) => { this.stop(e); this.setState((st) => ({ expanded: { ...st.expanded, [id]: !st.expanded[id] } })); },
+        go: (e) => { this.prevent(e); this.go(id); },
+        create: (e) => { this.stop(e); this.createPage(id); },
+        toggleMenu: (e) => { this.stop(e); this.setState((st) => ({ menu: st.menu === id ? null : id, spaceMenu: false, pageMenu: false, userMenu: false })); },
+        rename: () => this.setState({ renaming: id, draft: p.title, menu: null }),
+        up: () => prev && this.movePage(id, p.parent, index - 1),
+        down: () => next && this.movePage(id, p.parent, index + 1),
+        indent: () => prev && this.movePage(id, prev, P[prev].kids.length),
+        outdent: () => {
+          if (parentIsHome) return;
+          const gp = P[p.parent].parent;
+          this.movePage(id, gp, P[gp].kids.indexOf(p.parent) + 1);
+        },
+        trash: () => { this.setState({ menu: null, dialog: 'confirm', confirm: { kind: 'trash', id } }); this.focusLater('#nf-confirm-cancel'); },
+        onDraft: (e) => this.setState({ draft: e.target.value }),
+        submitRename: (e) => {
+          this.prevent(e);
+          const v = s.draft.trim();
+          if (v) this.setTitle(id, v);
+          this.setState({ renaming: null });
+        },
+        cancelRename: () => this.setState({ renaming: null })
       });
-      if (open) p.kids.forEach((k) => walk(k, depth + 1));
+      if (open) p.kids.forEach((k, i) => walk(k, depth + 1, p.kids, i));
     };
-    walk('home', 0);
+    P[homeId].kids.forEach((k, i) => walk(k, 0, P[homeId].kids, i));
 
-    const crumbs = curChain.map((id, i) => ({
-      title: P[id].title,
-      sep: i < curChain.length - 1,
-      open: () => this.setState({ current: id })
+    // Space-Umschalter (Organisations-Admins dürfen jeden Space verwalten)
+    const spaceItems = Object.values(s.spaces).map((x) => ({
+      badge: x.key.slice(0, 2),
+      label: x.archived ? x.name + ' (archiviert)' : x.name,
+      current: x.key === s.space ? 'true' : 'false',
+      manage: true,
+      actionsLabel: 'Aktionen für ' + x.name,
+      subOpen: s.spaceSub === x.key,
+      subExpanded: s.spaceSub === x.key ? 'true' : 'false',
+      go: (e) => { this.prevent(e); this.setState({ space: x.key, current: x.home, view: 'page', spaceMenu: false, spaceSub: null, drawer: false }); },
+      toggleSub: (e) => { this.stop(e); this.setState((st) => ({ spaceSub: st.spaceSub === x.key ? null : x.key })); },
+      settings: (e) => {
+        this.prevent(e);
+        this.setState({ space: x.key, view: 'settings', spaceMenu: false, spaceSub: null, drawer: false,
+          settingsDraft: { name: x.name, description: x.description }, saved: false });
+      }
     }));
 
-    const labels = { admin: 'Admin', editor: 'Bearbeiten', commenter: 'Kommentieren', viewer: 'Lesen', none: 'Kein Zugriff' };
-    const defaults = { anna: 'admin', dev: 'editor', ws: 'viewer' };
-    const people = [
-      { key: 'anna', name: 'Anna Huber', sub: 'Space-Admin', initials: 'AH', bg: '#1F5FD6' },
-      { key: 'dev', name: 'Gruppe Entwicklung', sub: 'Gruppe aus dem Login-Dienst', initials: 'GE', bg: '#0F766E' },
-      { key: 'ws', name: 'Alle im Workspace', sub: 'Alle Mitglieder von Alpenwerk, ohne Gäste', initials: 'AW', bg: '#5B6573' }
-    ];
-    const grants = people.map((g) => {
-      const role = s.draftRoles[g.key] || defaults[g.key];
-      return {
-        ...g,
-        role,
-        roleLabel: labels[role],
-        selectLabel: 'Rolle für ' + g.name,
-        editable: s.draftOwn,
-        readonly: !s.draftOwn,
-        change: (e) => { const v = e.target.value; this.setState((st) => ({ draftRoles: { ...st.draftRoles, [g.key]: v } })); }
-      };
-    });
+    // Brotkrume
+    let crumbs = [];
+    let crumbCurrent = '';
+    if (isPage) {
+      const ch = this.chain(cur);
+      crumbs = ch.slice(0, -1).map((id) => ({ title: shown(P[id].title), go: (e) => { this.prevent(e); this.go(id); } }));
+      crumbCurrent = shown(P[cur].title);
+    } else {
+      crumbs = [{ title: sp.name, go: (e) => { this.prevent(e); this.go(homeId); } }];
+      crumbCurrent = 'Einstellungen';
+    }
 
+    // Seite
+    const p = isPage ? P[cur] : P[homeId];
+    const pid = isPage ? cur : homeId;
+    const myRole = this.role(pid);
+    const editable = !sp.archived && this.canEdit(pid);
+    const restricted = this.chain(pid).some((x) => s.grants[x]);
+    const author = PEOPLE[p.author];
+    const editor = PEOPLE[p.editor];
+    const body = {
+      home: p.body === 'home',
+      dm: p.body === 'dm',
+      plain: !p.body && p.text.length > 0,
+      empty: !p.body && p.text.length === 0
+    };
+    const link = (id, text) => ({
+      title: shown(P[id].title),
+      text,
+      cls: s.trash.some((t) => t.id === id) ? 'nf-page-link nf-page-link-trashed' : 'nf-page-link',
+      go: (e) => { this.prevent(e); this.go(id); }
+    });
+    const presenceIds = pid === 'dm' ? ['peter', 'sophie', 'lukas'] : ['peter'];
+    const presence = presenceIds.map((k) => ({
+      name: k === 'peter' ? PEOPLE[k].name + ' (du)' : PEOPLE[k].name,
+      color: PEOPLE[k].color,
+      initials: initials(PEOPLE[k].name)
+    }));
+    const callout = (key) => ({
+      variant: s.callouts[key],
+      icon: CALLOUT[s.callouts[key]].icon,
+      label: CALLOUT[s.callouts[key]].label,
+      change: (e) => { const v = e.target.value; this.setState((st) => ({ callouts: { ...st.callouts, [key]: v } })); }
+    });
     const tasks = [
       { id: 't1', text: 'RLS-Tests für alle Lesepfade' },
       { id: 't2', text: 'Tabelle mit effektiven Rechten für große Seitenbäume' }
-    ].map((t) => {
-      const done = !!s.tasks[t.id];
-      return {
-        ...t,
-        done,
-        deco: done ? 'line-through' : 'none',
-        color: done ? '#5B6573' : '#1A2230',
-        toggle: () => this.setState((st) => ({ tasks: { ...st.tasks, [t.id]: !st.tasks[t.id] } }))
-      };
-    });
+    ].map((t) => ({
+      ...t,
+      done: !!s.tasks[t.id],
+      checkedAttr: s.tasks[t.id] ? 'true' : 'false',
+      disabled: !editable,
+      toggle: () => editable && this.setState((st) => ({ tasks: { ...st.tasks, [t.id]: !st.tasks[t.id] } }))
+    }));
 
-    const p = P[cur];
-    const isDm = cur === 'dm';
-    const threadVisible = isDm && s.threadOpen;
+    // Kommentare (Ausblick)
+    const threadVisible = pid === 'dm' && s.threadOpen;
+
+    // Rechte-Dialog (Ausblick M3)
+    let rights = {};
+    if (s.dialog === 'rights' && s.rightsDraft) {
+      const d = s.rightsDraft;
+      const locked = myRole !== 'admin';
+      const srcId = this.source(pid, false);
+      const from = srcId.startsWith('space:') ? 'vom Space „' + sp.name + '“' : 'von „' + shown(P[srcId].title) + '“';
+      const editableGrants = d.own && !locked;
+      rights = {
+        locked,
+        ownPressed: d.own ? 'true' : 'false',
+        inheritText: d.own ? 'Gilt für diese Seite und ihre Unterseiten.' : 'Erbt die Rechte ' + from + '.',
+        grants: d.grants.map((g, i) => {
+          const subj = SUBJECTS[g.key];
+          return {
+            name: subj.name, sub: subj.sub, bg: subj.bg, initials: g.key === 'grp' ? 'GE' : g.key === 'ws' ? 'AW' : initials(subj.name),
+            role: g.role, roleLabel: ROLE_LABEL[g.role],
+            selectLabel: 'Rolle für ' + subj.name,
+            selectAdmin: editableGrants && g.key !== 'ws',
+            selectNoAdmin: editableGrants && g.key === 'ws',
+            readonly: !editableGrants,
+            change: (e) => {
+              const v = e.target.value;
+              this.setState((st) => ({ rightsDraft: { ...st.rightsDraft, grants: st.rightsDraft.grants.map((x, j) => (j === i ? { ...x, role: v } : x)) } }));
+            }
+          };
+        }),
+        canAdd: editableGrants,
+        query: d.query,
+        onQuery: (e) => { const v = e.target.value; this.setState((st) => ({ rightsDraft: { ...st.rightsDraft, query: v } })); },
+        add: (e) => {
+          this.prevent(e);
+          const q = d.query.trim().toLowerCase();
+          const hit = Object.keys(SUBJECTS).find((k) => !d.grants.some((g) => g.key === k) && SUBJECTS[k].name.toLowerCase().includes(q));
+          if (q && hit) this.setState((st) => ({ rightsDraft: { ...st.rightsDraft, query: '', grants: [...st.rightsDraft.grants, { key: hit, role: 'viewer' }] } }));
+        },
+        hint: !editableGrants,
+        hintText: locked
+          ? 'Rechte ändern nur Admins dieser Seite bzw. dieses Spaces. Deine Rolle: ' + (myRole ? ROLE_LABEL[myRole] : '–') + '.'
+          : 'Um nur einzelnen Personen Zugriff zu geben, schalte „Eigene Rechte“ ein. Die bisherigen Rechte werden übernommen und lassen sich dann einschränken.',
+        canSave: !locked,
+        toggleOwn: () => {
+          if (locked) return;
+          this.setState((st) => {
+            const own = !st.rightsDraft.own;
+            const inherited = (st.grants[this.source(pid, false)] || []).map((g) => ({ ...g }));
+            // Vererbung kappen übernimmt die bisherigen Rechte und macht die handelnde Person zum Admin
+            if (own && !inherited.some((g) => g.key === 'peter')) inherited.unshift({ key: 'peter', role: 'admin' });
+            if (own) inherited.forEach((g) => { if (g.key === 'peter') g.role = 'admin'; });
+            return { rightsDraft: { ...st.rightsDraft, own, grants: inherited } };
+          });
+        },
+        save: () => this.setState((st) => {
+          const grants = { ...st.grants };
+          if (st.rightsDraft.own) grants[pid] = st.rightsDraft.grants.filter((g) => g.role !== 'none');
+          else delete grants[pid];
+          return { grants, dialog: null, rightsDraft: null };
+        })
+      };
+    }
+
+    // Rückfrage
+    let confirm = {};
+    if (s.dialog === 'confirm' && s.confirm) {
+      if (s.confirm.kind === 'trash') {
+        const t = P[s.confirm.id];
+        confirm = {
+          title: t.kids.length ? '„' + shown(t.title) + '“ und alle Unterseiten in den Papierkorb?' : '„' + shown(t.title) + '“ in den Papierkorb?',
+          text: 'Aus dem Papierkorb unten in der Seitenleiste lässt sie sich wiederherstellen.',
+          label: 'In den Papierkorb', cls: 'nf-btn-danger',
+          ok: () => this.trashPage(s.confirm.id)
+        };
+      } else {
+        confirm = {
+          title: '„' + sp.name + '“ archivieren?',
+          text: 'Danach können ihn alle nur noch lesen. Zurückholen geht jederzeit hier in den Einstellungen.',
+          label: 'Space archivieren', cls: 'nf-btn-attention',
+          ok: () => this.setState((st) => ({ spaces: { ...st.spaces, [st.space]: { ...st.spaces[st.space], archived: true } }, dialog: null, confirm: null }))
+        };
+      }
+    }
+
+    // Einstellungen
+    const sd = s.settingsDraft || { name: sp.name, description: sp.description };
+    const settingsEditable = !sp.archived && this.role(homeId) === 'admin';
+    const settings = {
+      name: sd.name, description: sd.description,
+      editable: settingsEditable, locked: !settingsEditable, saved: s.saved,
+      lockedText: sp.archived ? 'Der Space ist archiviert. Name und Beschreibung lassen sich erst nach dem Zurückholen ändern.' : 'Name und Beschreibung ändern nur Admins dieses Spaces.',
+      onName: (e) => { const v = e.target.value; this.setState((st) => ({ settingsDraft: { ...(st.settingsDraft || sd), name: v }, saved: false })); },
+      onDescription: (e) => { const v = e.target.value; this.setState((st) => ({ settingsDraft: { ...(st.settingsDraft || sd), description: v }, saved: false })); }
+    };
+
+    const anyMenu = s.menu || s.spaceMenu || s.pageMenu || s.userMenu;
+    const trashItems = s.trash.filter((t) => P[t.id].space === s.space).map((t) => ({
+      title: shown(P[t.id].title),
+      canRestore: !sp.archived && this.canEdit(P[t.id].parent),
+      restoreLabel: '„' + shown(P[t.id].title) + '“ wiederherstellen',
+      restore: () => this.restorePage(t.id)
+    }));
 
     return {
+      drawerAttr: s.drawer ? 'open' : 'closed',
+      drawerExpanded: s.drawer ? 'true' : 'false',
+      openDrawer: (e) => { this.stop(e); this.setState({ drawer: true }); },
+      closeDrawer: () => this.setState({ drawer: false }),
+      closeMenus: () => { if (anyMenu) this.setState({ menu: null, spaceMenu: false, spaceSub: null, pageMenu: false, userMenu: false }); },
+      onKey: (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+          this.prevent(e);
+          const el = document.getElementById('nf-search');
+          if (el) el.focus();
+          return;
+        }
+        if (e.key !== 'Escape') return;
+        if (s.dialog) this.setState({ dialog: null, confirm: null, rightsDraft: null });
+        else if (anyMenu) this.setState({ menu: null, spaceMenu: false, spaceSub: null, pageMenu: false, userMenu: false });
+        else if (s.renaming) this.setState({ renaming: null });
+        else if (s.drawer) this.setState({ drawer: false });
+      },
+      goOverview: (e) => { this.prevent(e); this.setState({ spaceMenu: false }); },
+
+      space: { ...sp, badge: sp.key.slice(0, 2), active: !sp.archived },
+      spaceMenuOpen: s.spaceMenu,
+      spaceMenuExpanded: s.spaceMenu ? 'true' : 'false',
+      toggleSpaceMenu: (e) => { this.stop(e); this.setState((st) => ({ spaceMenu: !st.spaceMenu, spaceSub: null, menu: null, pageMenu: false, userMenu: false })); },
+      spaceItems,
+      spaceEditable,
+      createTop: (e) => { this.stop(e); this.createPage(homeId); },
+      treeLabel: 'Seiten in ' + sp.name,
+      homeCls: cur === homeId ? 'nf-selected' : '',
+      homeCurrent: cur === homeId ? 'page' : 'false',
+      goHome: (e) => { this.prevent(e); this.go(homeId); },
       rows,
+
+      trashOpen: s.trashOpen,
+      trashExpanded: s.trashOpen ? 'true' : 'false',
+      toggleTrash: () => this.setState((st) => ({ trashOpen: !st.trashOpen })),
+      trashCount: trashItems.length,
+      trashItems,
+      trashEmpty: trashItems.length === 0,
+
       crumbs,
-      page: { title: p.title, meta: p.meta, body: (p.body || []).map((text) => ({ text })) },
-      isDm,
-      notDm: !isDm,
-      restricted,
+      crumbCurrent,
+      isPage,
+      isSettings: !isPage,
+      presence,
+      presenceLabel: 'Gerade auf dieser Seite: ' + presence.map((x) => x.name).join(', '),
+      openVersions: () => this.setState({ dialog: 'versions', pageMenu: false }),
+      openExport: () => this.setState({ dialog: 'export', pageMenu: false }),
+      pageMenuOpen: !!s.pageMenu,
+      pageMenuExpanded: s.pageMenu ? 'true' : 'false',
+      togglePageMenu: (e) => { this.stop(e); this.setState((st) => ({ pageMenu: !st.pageMenu, menu: null, spaceMenu: false, spaceSub: null, userMenu: false })); },
+      openRights: () => this.openRights(),
+      commentsPressed: s.commentsOpen ? 'true' : 'false',
+      toggleComments: () => this.setState((st) => ({ commentsOpen: !st.commentsOpen })),
+
+      innerCls: s.commentsOpen ? 'nf-with-comments' : '',
+      page: {
+        title: p.title,
+        shownTitle: shown(p.title),
+        editable,
+        readonly: !editable,
+        restricted,
+        authorName: author.name,
+        authorInitials: initials(author.name),
+        authorColor: author.color,
+        editorName: editor.name,
+        when: p.when,
+        editedAt: p.when === 'gerade eben' || p.when.startsWith('vor') ? '25. Nov. 2026, 15:40' : p.when.replace(/^am /, ''),
+        roleLabel: myRole ? ROLE_LABEL[myRole] : '–',
+        paragraphs: p.text.map((text) => ({ text }))
+      },
+      onTitle: (e) => this.setTitle(pid, e.target.value),
+      onTitleKey: (e) => { if (e.key === 'Enter') { this.prevent(e); } },
+      body,
+      homeLinks: [
+        link('arch', 'Frontend, API, Datenmodell und Rechte'),
+        link('release', 'vom Merge bis zum Pilot'),
+        link('betrieb', 'Cluster, Backups und Bereitschaft')
+      ],
+      rechteLink: link('rechte'),
+      calloutHome: callout('home'),
+      calloutDm: callout('dm'),
+      markCls: threadVisible && s.commentsOpen ? 'nf-on' : '',
       tasks,
-      markBg: threadVisible ? '#FFEAD5' : 'transparent',
-      markLine: threadVisible ? '#C2410C' : 'transparent',
 
       commentsOpen: s.commentsOpen,
-      commentsPressed: s.commentsOpen ? 'true' : 'false',
-      commentsBg: s.commentsOpen ? '#EEF3FC' : '#FFFFFF',
-      toggleComments: () => this.setState((st) => ({ commentsOpen: !st.commentsOpen })),
       hasThread: threadVisible,
       noComments: !threadVisible,
-      hasResolved: isDm,
+      hasResolved: pid === 'dm',
       resolvedLabel: s.threadOpen ? '1 erledigten Thread' : '2 erledigte Threads',
       resolveThread: () => this.setState({ threadOpen: false }),
 
-      rightsOpen: s.rightsOpen,
-      openRights: () => this.setState((st) => ({ rightsOpen: true, draftOwn: !!st.own[st.current], draftRoles: { ...(st.roles[st.current] || {}) } })),
-      closeRights: () => this.setState({ rightsOpen: false }),
-      saveRights: () => this.setState((st) => ({
-        rightsOpen: false,
-        own: { ...st.own, [st.current]: st.draftOwn },
-        roles: { ...st.roles, [st.current]: st.draftOwn ? st.draftRoles : {} }
+      settings,
+      saveSettings: (e) => {
+        this.prevent(e);
+        this.setState((st) => ({ spaces: { ...st.spaces, [st.space]: { ...st.spaces[st.space], ...sd, name: sd.name.trim() || st.spaces[st.space].name } }, saved: true }));
+      },
+      askArchive: () => { this.setState({ dialog: 'confirm', confirm: { kind: 'archive' } }); this.focusLater('#nf-confirm-cancel'); },
+      unarchive: () => this.setState((st) => ({ spaces: { ...st.spaces, [st.space]: { ...st.spaces[st.space], archived: false } } })),
+
+      rightsOpen: s.dialog === 'rights',
+      rights,
+      soonOpen: !!SOON[s.dialog],
+      soon: SOON[s.dialog] ? SOON[s.dialog](shown(p.title)) : {},
+
+      userMenuOpen: !!s.userMenu,
+      userMenuExpanded: s.userMenu ? 'true' : 'false',
+      toggleUserMenu: (e) => { this.stop(e); this.setState((st) => ({ userMenu: !st.userMenu, menu: null, spaceMenu: false, spaceSub: null, pageMenu: false })); },
+      closeUserMenu: () => this.setState({ userMenu: false }),
+      openProfile: () => this.setState({ dialog: 'profile', userMenu: false }),
+      openUserSettings: () => this.setState({ dialog: 'userSettings', userMenu: false }),
+      openShortcuts: () => this.setState({ dialog: 'shortcuts', userMenu: false }),
+      locales: [{ key: 'de', label: 'Deutsch' }, { key: 'en', label: 'English' }].map((l) => ({
+        ...l,
+        lang: l.key,
+        on: (s.locale || 'de') === l.key,
+        checked: (s.locale || 'de') === l.key ? 'true' : 'false',
+        choose: () => this.setState({ locale: l.key, userMenu: false })
       })),
-      toggleOwn: () => this.setState((st) => ({ draftOwn: !st.draftOwn })),
-      ownPressed: s.draftOwn ? 'true' : 'false',
-      ownOn: s.draftOwn,
-      ownOff: !s.draftOwn,
-      switchBg: s.draftOwn ? '#1F5FD6' : '#9AA5B1',
-      knobX: s.draftOwn ? 21 : 3,
-      inheritText: s.draftOwn ? 'Gilt für diese Seite und ihre Unterseiten.' : 'Erbt die Rechte von ' + source + '.',
-      grants
+      // Menü bleibt offen, damit man den Wechsel gleich sieht
+      themes: [{ key: 'light', label: 'Hell' }, { key: 'dark', label: 'Dunkel' }, { key: 'system', label: 'System' }].map((t) => ({
+        ...t,
+        isLight: t.key === 'light',
+        isDark: t.key === 'dark',
+        isSystem: t.key === 'system',
+        checked: s.theme === t.key ? 'true' : 'false',
+        choose: (e) => {
+          this.stop(e);
+          try { localStorage.setItem('nf-proto-theme', t.key); } catch (err) { /* ohne Speicher nur für diese Sitzung */ }
+          this.setState({ theme: t.key });
+        }
+      })),
+      confirmOpen: s.dialog === 'confirm',
+      confirm,
+      closeDialog: () => this.setState({ dialog: null, confirm: null, rightsDraft: null }),
+      closeDialogOnBackdrop: (e) => { if (e.target === e.currentTarget) this.setState({ dialog: null, confirm: null, rightsDraft: null }); }
     };
   }
 }

@@ -10,8 +10,13 @@
 <body>
 <x-dc>
 <helmet>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <style>
+/* Schrift wie im Web-Client (Inter, Code in IBM Plex Mono), vom eigenen Server unter ../fonts, nie von Google */
+@font-face{font-family:'Inter Variable';font-style:normal;font-display:swap;font-weight:100 900;src:url(../fonts/inter-latin-wght-normal.woff2) format('woff2-variations')}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-display:swap;font-weight:400;src:url(../fonts/ibm-plex-mono-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-display:swap;font-weight:500;src:url(../fonts/ibm-plex-mono-latin-500-normal.woff2) format('woff2')}
+body{-webkit-font-smoothing:antialiased}
+:focus-visible{outline:2px solid #1F5FD6;outline-offset:2px}
 body{margin:0}
 a{color:#1F5FD6}a:hover{color:#174BB0}
 svg.i{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
@@ -19,14 +24,17 @@ button,select,input{font-family:inherit}
 button:disabled{cursor:not-allowed;opacity:0.5}
 </style>
 </helmet>
-<div style="min-height: 1240px; display: flex; flex-direction: column; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #1A2230; background: #F5F7FA; font-size: 14px; line-height: 1.5">
+<div style="min-height: 1240px; display: flex; flex-direction: column; font-family: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif; color: #1A2230; background: #F5F7FA; font-size: 14px; line-height: 1.5">
 
-  <header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 0 32px; min-height: 60px; background: #0F2537; color: #C9D3DE">
-    <a href="Main.dc.html" style="display: inline-flex; align-items: center; gap: 8px; height: 44px; color: #FFFFFF; text-decoration: none; font-weight: 500">
-      <svg class="i" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 4L6 8l4 4"></path></svg>
-      Zurück zu Entwicklung
-    </a>
-    <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: #A9B7C6">
+  <header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 0 32px; min-height: 63px; background: #FFFFFF; border-bottom: 1px solid #E2E5EA; color: #1A2230">
+    <div style="display: flex; align-items: center; gap: 20px; min-width: 0">
+      <span style="font-size: 17px; font-weight: 700; letter-spacing: -0.015em">NoteFieber</span>
+      <a href="Main.dc.html" style="display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 12px; border: 1px solid #D5DAE1; border-radius: 8px; color: #1A2230; text-decoration: none; font-size: 14px">
+        <svg class="i" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 4L6 8l4 4"></path></svg>
+        Zurück zu Entwicklung
+      </a>
+    </div>
+    <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: #5B6573">
       <svg class="i" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2l5 2v4c0 3-2.2 5-5 6-2.8-1-5-3-5-6V4z"></path></svg>
       Daten gehostet in der EU
     </span>
@@ -51,7 +59,7 @@ button:disabled{cursor:not-allowed;opacity:0.5}
       <section aria-label="Export hochladen" style="background: #FFFFFF; border: 1px solid #E2E5EA; border-radius: 12px; padding: 28px; display: flex; flex-direction: column; gap: 20px">
         <label style="display: flex; flex-direction: column; gap: 6px; max-width: 360px">
           <span style="font-weight: 600">Ziel-Space</span>
-          <select style="height: 40px; padding: 0 10px; border: 1px solid #D5DAE1; border-radius: 8px; background: #FFFFFF; font-size: 14px; color: #1A2230">
+          <select style="height: 40px; padding: 0 10px; border: 1px solid #7D8796; border-radius: 8px; background: #FFFFFF; font-size: 14px; color: #1A2230">
             <option>Entwicklung (ENTW)</option>
             <option>Neuen Space anlegen</option>
           </select>
@@ -250,7 +258,7 @@ class Component extends DCLogic {
       ...g,
       target: s.groups[g.key],
       label: 'Zuordnung für ' + g.name,
-      border: s.groups[g.key] ? '#D5DAE1' : '#C2410C',
+      border: s.groups[g.key] ? '#7D8796' : '#C2410C',
       change: (e) => { const v = e.target.value; this.setState((st) => ({ groups: { ...st.groups, [g.key]: v } })); }
     }));
     const missingCount = defs.filter((g) => !s.groups[g.key]).length;
