@@ -90,7 +90,19 @@ Erreichbar über das Logo, „Alle Spaces“ im Space-Umschalter oder direkt mit
 
 ## Ausblick (noch nicht im Frontend)
 
-- Suche in der Leiste oben über dem Inhalt, Strg K setzt den Fokus hinein (M3)
+- **Suche als Befehlspalette** (M3): Das Feld oben öffnet sie, ebenso Strg K (noch einmal: zu).
+  - Volltext über Titel und Inhalt, nur Seiten mit Leserecht und ohne Papierkorb (im Frontend
+    `page_search` und `app.page_rank`); Groß- und Kleinschreibung und Akzente egal („uberblick“ findet
+    „Überblick“), mehrere Wörter müssen alle vorkommen. Titeltreffer zuerst.
+  - Treffer mit Markierung im Titel und einem Ausschnitt aus dem Inhalt, Pfad (Space / Eltern),
+    Schloss bei eigenen Rechten.
+  - Bereiche Alles, Seiten, Spaces, Personen (mit Zahl der Treffer), dazu „Nur in <Space>“; ohne
+    Treffer im Space ein Knopf „In allen Spaces suchen“.
+  - Ohne Eingabe: zuletzt angesehen und Befehle. Mit „>“ am Anfang nur Befehle (neue Seite, neuer
+    Space, Übersicht, Link kopieren, Exportieren, Darstellung, Personen einladen, Tastenkürzel).
+  - Tastatur: ↑↓ auswählen, Enter öffnen, Tab bzw. Umschalt+Tab Bereich, Esc schließen (Fokus
+    zurück aufs Suchfeld). Als Combobox mit `aria-activedescendant` für Screenreader.
+  - Personen öffnen noch nichts (Profile kommen später). Auf dem Handy fast bildschirmfüllend.
 - Kommentarspalte rechts mit Markierung an der Textstelle (Knopf mit Sprechblase im Kopfbereich)
 - Rechte-Dialog mit „Eigene Rechte für diese Seite“, Rollen pro Person/Gruppe, Hinzufügen (M3)
 - „Confluence-Import“ unten in der Seitenleiste, führt zu `../import/Import.dc.html` (M4)

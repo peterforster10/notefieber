@@ -100,8 +100,8 @@ button.nf-drawer-close,button.nf-drawer-open{display:none}
 .nf-search:hover{border-color:#b9c1cb}
 .nf-search:focus-within{border-color:var(--nf-focus);box-shadow:0 0 0 3px var(--nf-accent-soft)}
 .nf-search:focus-within .nf-icon{color:var(--nf-accent)}
-.nf-search input{flex:1;min-width:0;border:0;outline:none;background:transparent;color:var(--nf-text)}
-.nf-search input::placeholder{color:var(--nf-sidebar-muted)}
+.nf-search{cursor:text;font-size:14px;text-align:left}
+.nf-search-placeholder{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--nf-placeholder)}
 .nf-search kbd{font-family:var(--nf-font-sans);font-size:12px;padding:0 5px;border:1px solid var(--nf-sidebar-border);border-radius:4px;background:var(--nf-subtle)}
 
 .nf-sidebar-foot{margin-top:auto;display:flex;flex-direction:column;gap:2px;padding-top:12px;border-top:1px solid var(--nf-sidebar-border)}
@@ -341,6 +341,52 @@ button.nf-drawer-close,button.nf-drawer-open{display:none}
 .nf-field-hint{margin:4px 0 0;font-size:12px;color:var(--nf-muted)}
 .nf-field-error{margin:4px 0 0;font-size:12px;color:var(--nf-danger)}
 .nf-key-input{font-family:var(--nf-font-mono);text-transform:uppercase;max-width:200px}
+/* Befehlspalette (Suche, Strg K) */
+.nf-cmd-overlay{position:fixed;inset:0;z-index:75;display:flex;justify-content:center;align-items:flex-start;padding:12vh 16px 16px;background:rgba(15,37,55,.28)}
+:root[data-theme='dark'] .nf-cmd-overlay{background:rgba(0,0,0,.5)}
+.nf-cmd{display:flex;flex-direction:column;width:min(660px,100%);max-height:min(620px,76vh);border:1px solid var(--nf-border);border-radius:14px;background:var(--nf-bg);box-shadow:var(--nf-shadow-dialog);overflow:hidden}
+.nf-cmd-input{display:flex;align-items:center;gap:10px;padding:0 14px;border-bottom:1px solid var(--nf-border)}
+.nf-cmd-input .nf-icon{color:var(--nf-muted)}
+.nf-cmd-input input{flex:1;min-width:0;height:54px;border:0;outline:none;background:transparent;color:var(--nf-text);font-size:17px}
+.nf-cmd-input input::placeholder{color:var(--nf-placeholder)}
+.nf-cmd kbd{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border:1px solid var(--nf-border);border-bottom-width:2px;border-radius:5px;background:var(--nf-subtle);color:var(--nf-muted);font-family:var(--nf-font-sans);font-size:11px}
+.nf-cmd-scopes{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:8px 10px;border-bottom:1px solid var(--nf-border)}
+.nf-cmd-scope{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border:0;border-radius:999px;background:none;color:var(--nf-muted);font-size:13px;cursor:pointer}
+.nf-cmd-scope:hover{background:var(--nf-subtle);color:var(--nf-text)}
+.nf-cmd-scope[aria-selected='true']{background:var(--nf-sidebar-selected);color:var(--nf-sidebar-selected-text);font-weight:600}
+.nf-cmd-scope-count{font-size:11px;font-weight:500;opacity:.8}
+.nf-cmd-limit{display:inline-flex;align-items:center;gap:6px;height:28px;margin-left:auto;padding:0 10px;border:1px dashed var(--nf-control-border);border-radius:999px;background:none;color:var(--nf-muted);font-size:13px;cursor:pointer}
+.nf-cmd-limit:hover{color:var(--nf-text);border-color:var(--nf-input-border)}
+.nf-cmd-limit[aria-pressed='true']{border-style:solid;border-color:transparent;background:var(--nf-sidebar-selected);color:var(--nf-sidebar-selected-text);font-weight:600}
+.nf-cmd-list{flex:1;min-height:0;overflow-y:auto;padding:6px}
+.nf-cmd-group{padding:10px 10px 4px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--nf-muted)}
+.nf-cmd-item{display:flex;align-items:center;gap:12px;min-height:44px;padding:6px 10px;border-radius:8px;cursor:pointer}
+.nf-cmd-item[aria-selected='true']{background:var(--nf-sidebar-selected)}
+.nf-cmd-icon{display:grid;place-items:center;width:28px;height:28px;flex:none;border-radius:7px;background:var(--nf-subtle);color:var(--nf-muted);font-size:10px;font-weight:600}
+.nf-cmd-item[aria-selected='true'] .nf-cmd-icon{background:var(--nf-bg)}
+.nf-cmd-text{flex:1;min-width:0;display:flex;flex-direction:column}
+.nf-cmd-title{display:flex;align-items:center;gap:6px;min-width:0;font-size:14px;font-weight:500;color:var(--nf-text)}
+.nf-cmd-title-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-cmd-lock{color:var(--nf-restricted-fg)}
+.nf-cmd-snippet{font-size:12.5px;color:var(--nf-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-cmd mark{padding:0;border-radius:2px;background:var(--nf-comment-mark);color:inherit;font-weight:600}
+.nf-cmd-meta{flex:none;max-width:42%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--nf-muted)}
+.nf-cmd-enter{flex:none;width:16px;color:var(--nf-sidebar-selected-text);font-size:13px;visibility:hidden}
+.nf-cmd-item[aria-selected='true'] .nf-cmd-enter{visibility:visible}
+.nf-cmd-more{display:block;width:100%;margin:2px 0 4px;padding:6px 10px;border:0;border-radius:6px;background:none;color:var(--nf-accent);font-size:13px;text-align:left;cursor:pointer}
+.nf-cmd-more:hover{background:var(--nf-subtle)}
+.nf-cmd-empty{padding:28px 20px;text-align:center;color:var(--nf-muted);font-size:13px}
+.nf-cmd-empty p{margin:0 0 6px}
+.nf-cmd-empty strong{color:var(--nf-text);font-size:14px}
+.nf-cmd-foot{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;padding:8px 14px;border-top:1px solid var(--nf-border);background:var(--nf-surface);font-size:12px;color:var(--nf-muted)}
+.nf-cmd-foot>span{display:inline-flex;align-items:center;gap:4px}
+.nf-cmd-foot-note{margin-left:auto}
+@media (max-width:599.98px){
+  .nf-cmd-overlay{padding:8px}
+  .nf-cmd{max-height:calc(100dvh - 16px)}
+  .nf-cmd-meta{display:none}
+  .nf-cmd-foot{display:none}
+}
 /* Rückmeldung */
 .nf-toast{position:fixed;left:50%;bottom:24px;z-index:80;transform:translateX(-50%);padding:10px 16px;border-radius:8px;background:var(--nf-text);color:var(--nf-bg);font-size:14px;box-shadow:var(--nf-shadow-pop)}
 .nf-page-menu{top:calc(100% + 4px);right:0;min-width:220px}
@@ -741,11 +787,12 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
       <button type="button" class="nf-btn nf-btn-icon nf-drawer-open" aria-label="Navigation öffnen" aria-expanded="{{drawerExpanded}}" onClick="{{openDrawer}}">
         <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"></path></svg>
       </button>
-      <label class="nf-search" role="search">
+      <!-- Sieht aus wie ein Feld, öffnet die Befehlspalette (auch mit Strg K) -->
+      <button type="button" id="nf-search" class="nf-search" aria-haspopup="dialog" aria-keyshortcuts="Control+K" onClick="{{openPalette}}">
         <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
-        <input id="nf-search" type="search" placeholder="Suchen" aria-label="Seiten suchen" aria-keyshortcuts="Control+K">
+        <span class="nf-search-placeholder">Suchen oder Befehl …</span>
         <kbd>Strg K</kbd>
-      </label>
+      </button>
 
       <!-- Rechts: Konto der angemeldeten Person mit Profil, Einstellungen, Sprache, Abmelden -->
       <div class="nf-user">
@@ -1528,6 +1575,79 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
     </div>
   </sc-if>
 
+  <!-- ============================== Befehlspalette (Suche, Strg K) ==============================
+       Volltext über Titel und Inhalt (im Frontend: page_search, nur Seiten mit Leserecht), dazu Spaces,
+       Personen und Aktionen. Tastatur: ↑↓ auswählen, Enter öffnen, Tab Bereich wechseln, Esc schließen. -->
+  <sc-if value="{{cmd.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-cmd-overlay" onClick="{{cmd.backdrop}}">
+      <div class="nf-cmd" role="dialog" aria-modal="true" aria-label="Suchen und Befehle">
+        <div class="nf-cmd-input">
+          <svg class="nf-icon" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+          <input id="nf-cmd-q" type="text" role="combobox" aria-expanded="true" aria-controls="nf-cmd-list" aria-activedescendant="{{cmd.activeId}}" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="{{cmd.placeholder}}" value="{{cmd.q}}" onChange="{{cmd.onInput}}" onKeyDown="{{cmd.onKey}}">
+          <kbd>Esc</kbd>
+        </div>
+        <div class="nf-cmd-scopes" role="tablist" aria-label="Bereich">
+          <sc-for list="{{cmd.scopes}}" as="sc" hint-placeholder-count="4">
+            <button type="button" role="tab" class="nf-cmd-scope" aria-selected="{{sc.selected}}" tabindex="-1" onClick="{{sc.choose}}">{{sc.label}}<span class="nf-cmd-scope-count">{{sc.count}}</span></button>
+          </sc-for>
+          <sc-if value="{{cmd.canLimit}}" hint-placeholder-val="{{ true }}">
+            <button type="button" class="nf-cmd-limit" aria-pressed="{{cmd.limitPressed}}" tabindex="-1" onClick="{{cmd.toggleLimit}}">
+              <span class="nf-space-badge nf-space-badge-xs" style="background: {{cmd.limitColor}}" aria-hidden="true">{{cmd.limitBadge}}</span>
+              <span>Nur in {{cmd.limitName}}</span>
+            </button>
+          </sc-if>
+        </div>
+        <div id="nf-cmd-list" class="nf-cmd-list" role="listbox" aria-label="Treffer">
+          <sc-for list="{{cmd.groups}}" as="g" hint-placeholder-count="2">
+            <div role="group" aria-label="{{g.label}}">
+              <div class="nf-cmd-group" aria-hidden="true">{{g.label}}</div>
+              <sc-for list="{{g.items}}" as="it" hint-placeholder-count="3">
+                <div id="{{it.domId}}" role="option" aria-selected="{{it.selected}}" class="nf-cmd-item" onClick="{{it.run}}" onMouseMove="{{it.hover}}">
+                  <span class="nf-cmd-icon" style="{{it.iconStyle}}">
+                    <sc-if value="{{it.isPage}}" hint-placeholder-val="{{ true }}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg></sc-if>
+                    <sc-if value="{{it.isSpace}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true">{{it.badge}}</span></sc-if>
+                    <sc-if value="{{it.isPerson}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true">{{it.badge}}</span></sc-if>
+                    <sc-if value="{{it.isAction}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M9 4.5L12.5 8 9 11.5"></path></svg></sc-if>
+                  </span>
+                  <span class="nf-cmd-text">
+                    <span class="nf-cmd-title">
+                      <span class="nf-cmd-title-text">{{it.t1}}<mark>{{it.t2}}</mark>{{it.t3}}</span>
+                      <sc-if value="{{it.restricted}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon nf-cmd-lock" width="13" height="13" viewBox="0 0 16 16" role="img" aria-label="eingeschränkt"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></sc-if>
+                    </span>
+                    <sc-if value="{{it.hasSnippet}}" hint-placeholder-val="{{ false }}">
+                      <span class="nf-cmd-snippet">{{it.s1}}<mark>{{it.s2}}</mark>{{it.s3}}</span>
+                    </sc-if>
+                  </span>
+                  <span class="nf-cmd-meta">{{it.meta}}</span>
+                  <span class="nf-cmd-enter" aria-hidden="true">↵</span>
+                </div>
+              </sc-for>
+              <sc-if value="{{g.hasMore}}" hint-placeholder-val="{{ false }}">
+                <button type="button" class="nf-cmd-more" tabindex="-1" onClick="{{g.more}}">{{g.moreLabel}}</button>
+              </sc-if>
+            </div>
+          </sc-for>
+          <sc-if value="{{cmd.empty}}" hint-placeholder-val="{{ false }}">
+            <div class="nf-cmd-empty">
+              <p><strong>Keine Treffer für „{{cmd.q}}“{{cmd.emptyWhere}}</strong></p>
+              <p>Gesucht wird in Titel und Inhalt aller Seiten, die du lesen darfst. Neue Änderungen sind nach etwa 30 Sekunden auffindbar.</p>
+              <sc-if value="{{cmd.limitPressedBool}}" hint-placeholder-val="{{ false }}">
+                <button type="button" class="nf-btn" style="margin-top: 8px" onClick="{{cmd.toggleLimit}}">In allen Spaces suchen</button>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+        <div class="nf-cmd-foot" aria-hidden="true">
+          <span><kbd>↑</kbd><kbd>↓</kbd> auswählen</span>
+          <span><kbd>↵</kbd> öffnen</span>
+          <span><kbd>Tab</kbd> Bereich</span>
+          <span><kbd>Esc</kbd> schließen</span>
+          <span class="nf-cmd-foot-note">{{cmd.footNote}}</span>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
   <!-- Kurze Rückmeldung unten in der Mitte (z. B. „Link kopiert“) -->
   <sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
     <div class="nf-toast" role="status">{{toast}}</div>
@@ -1590,6 +1710,13 @@ const INVITES = [
   { id: 'i2', email: 'elena.novak@agentur-nord.example', role: 'guest', status: 'accepted', until: '12. Nov. 2026', by: 'Peter Forster' },
   { id: 'i3', email: 'jonas.berg@alpenwerk.example', role: 'member', status: 'expired', until: '3. Nov. 2026', by: 'Lukas Gruber' }
 ];
+// Klartext der Seiten mit eigenem Inhalt im Prototyp (im Frontend: page_contents.plain_text, page_search)
+const SEARCH_TEXT = {
+  home: 'Hier dokumentiert das Entwicklungsteam von Alpenwerk Architektur, Abläufe und Betrieb. Bereiche: Architektur – Frontend, API, Datenmodell und Rechte. Release-Prozess – vom Merge bis zum Pilot. Betrieb – Cluster, Backups und Bereitschaft. Mitmachen: Neue Seiten bitte unter dem passenden Bereich anlegen. Seiten mit eigenen Rechten sind mit einem Schloss markiert. Fragen zum Wiki an @Lukas Gruber.',
+  dm: 'Überblick: Jede Tabelle trägt tenant_id. Row Level Security trennt die Mandanten in der Datenbank selbst; die API setzt den Mandanten zu Beginn jeder Transaktion. Maßgeblich ist schema.sql. Jede Änderung am Schema braucht einen Test in schema_test.sql. Kerntabellen: spaces – Bereich wie in Confluence, Einheit für Rechte und Import. pages – Seitenbaum mit Pfad und Position, Papierkorb. page_contents – Yjs-Zustand, BlockNote-JSON und Klartext für die Suche. grants – Rechte auf einen Space oder eine Seite. Mandant setzen: SELECT set_config(\'app.tenant_id\', $1, true). Offene Punkte: RLS-Tests für alle Lesepfade. Tabelle mit effektiven Rechten für große Seitenbäume. Wie Rechte vererbt werden, steht unter Rechte-Konzept. Fragen an @Sophie Bauer.'
+};
+/** Für den Vergleich: klein, ohne Akzente (ü → u); bei vorkomponierten Zeichen gleich lang wie das Original */
+const fold = (t) => t.normalize('NFC').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 // Farben für Spaces (weiße Schrift auf jeder Farbe >= 4,5:1, wie die Personenfarben)
 const SPACE_COLORS = [
   { color: '#1F5FD6', label: 'Blau' }, { color: '#0E7490', label: 'Petrol' }, { color: '#7C3AED', label: 'Violett' },
@@ -1824,6 +1951,219 @@ class Component extends DCLogic {
   openSpaceSettings(key) {
     this.setState({ dialog: 'spaceSettings', settingsKey: key, settingsDraft: null, spaceMenu: false, spaceSub: null, sideMenu: null, drawer: false });
     this.focusLater('#st-name');
+  }
+
+  // ---------- Befehlspalette (Suche, Strg K) ----------
+  openPalette() {
+    this.setState({ palette: { q: '', scope: 'all', active: 0, limit: false }, menu: null, spaceMenu: false, spaceSub: null, pageMenu: false, userMenu: false, sideMenu: null, drawer: false });
+    this.focusLater('#nf-cmd-q');
+  }
+  closePalette(restoreFocus = true) {
+    this.setState({ palette: null });
+    if (restoreFocus) this.focusLater('#nf-search');
+  }
+  setPalette(patch) {
+    this.setState((st) => ({ palette: st.palette ? { ...st.palette, ...patch } : st.palette }));
+  }
+
+  paletteVals() {
+    const s = this.state;
+    const pal = s.palette;
+    if (!pal) return { open: false };
+    const P = s.pages;
+    const shown = (t) => t || 'Ohne Titel';
+    const sp = s.spaces[s.space];
+    const inSpace = s.view !== 'overview';
+    const trashed = new Set(s.trash.map((t) => t.id));
+    const inTrash = (id) => this.chain(id).some((x) => trashed.has(x));
+    const raw = pal.q;
+    const commandsOnly = raw.trim().startsWith('>');
+    const q = commandsOnly ? raw.trim().slice(1).trim() : raw.trim();
+    const words = fold(q).split(/\s+/).filter(Boolean);
+    const all = (hay) => words.every((w) => hay.includes(w));
+    /** Text in drei Teile: vor, Treffer, nach (für <mark>); mit Ausschnitt um die Fundstelle */
+    const split = (text, window) => {
+      const f = fold(text);
+      const w = words.find((x) => f.includes(x));
+      if (!w) return [text, '', ''];
+      const i = f.indexOf(w);
+      if (!window) return [text.slice(0, i), text.slice(i, i + w.length), text.slice(i + w.length)];
+      let start = Math.max(0, i - 36);
+      if (start > 0) { const sp2 = text.indexOf(' ', start); if (sp2 > 0 && sp2 < i) start = sp2 + 1; }
+      const end = Math.min(text.length, i + w.length + 70);
+      return [(start > 0 ? '… ' : '') + text.slice(start, i), text.slice(i, i + w.length), text.slice(i + w.length, end) + (end < text.length ? ' …' : '')];
+    };
+    const pathOf = (id) => {
+      const ch = this.chain(id).slice(1, -1).map((x) => shown(P[x].title));
+      return [s.spaces[P[id].space].name, ...ch].join(' / ');
+    };
+    const close = (fn) => () => { this.closePalette(false); fn(); };
+
+    // Seiten: nur mit Leserecht (page_rank), nicht im Papierkorb; optional nur im aktuellen Space
+    const readable = Object.keys(P).filter((id) => this.role(id) && !inTrash(id) && (!pal.limit || P[id].space === s.space));
+    const textOf = (id) => SEARCH_TEXT[id] || P[id].text.join(' ');
+    let pages = [];
+    if (words.length && !commandsOnly) {
+      pages = readable.map((id) => {
+        const title = shown(P[id].title);
+        const ft = fold(title);
+        const body = textOf(id);
+        const inTitle = all(ft);
+        if (!inTitle && !all(fold(title + ' ' + body))) return null;
+        const score = (inTitle ? 10 : 0) + (ft.startsWith(words[0]) ? 5 : 0) + (P[id].space === s.space ? 1 : 0);
+        return { id, score, inTitle, title, body };
+      }).filter(Boolean).sort((a, b) => b.score - a.score || a.title.localeCompare(b.title, 'de'));
+    }
+    const pageItem = (x) => {
+      const [t1, t2, t3] = split(x.title);
+      const bodyHit = words.some((w) => fold(x.body).includes(w));
+      const [s1, s2, s3] = bodyHit && (!x.inTitle || words.length) ? split(x.body, true) : ['', '', ''];
+      return {
+        kind: 'page', t1, t2, t3, s1, s2, s3, hasSnippet: bodyHit && !!s2,
+        restricted: this.chain(x.id).some((y) => s.grants[y]),
+        meta: pathOf(x.id),
+        run: close(() => this.go(x.id))
+      };
+    };
+    const recentIds = ['dm', 'personal', 'kampagne', 'release'].filter((id) => P[id] && readable.includes(id));
+    const recentItems = recentIds.map((id) => ({
+      kind: 'page', t1: shown(P[id].title), t2: '', t3: '', hasSnippet: false,
+      restricted: this.chain(id).some((y) => s.grants[y]),
+      meta: pathOf(id) + ' · ' + P[id].when,
+      run: close(() => this.go(id))
+    }));
+
+    // Spaces und Personen
+    const spaces = Object.values(s.spaces).filter((x) => !words.length || all(fold(x.name + ' ' + x.key))).map((x) => {
+      const [t1, t2, t3] = split(x.name);
+      return {
+        kind: 'space', t1, t2, t3, badge: x.key.slice(0, 2), iconStyle: 'background:' + (x.color || '#1F5FD6') + ';color:#fff',
+        meta: x.key + (x.archived ? ' · archiviert' : ''),
+        run: close(() => this.setState({ space: x.key, current: x.home, view: 'page' }))
+      };
+    });
+    const people = s.members.filter((m) => !words.length || all(fold(PEOPLE[m.key].name + ' ' + m.email))).map((m) => {
+      const name = PEOPLE[m.key].name;
+      const [t1, t2, t3] = split(name);
+      return {
+        kind: 'person', t1, t2, t3, badge: initials(name), iconStyle: 'background:' + PEOPLE[m.key].color + ';color:#fff;border-radius:50%',
+        meta: m.email,
+        run: close(() => this.showToast('Profile von Personen kommen später (Ausblick)'))
+      };
+    });
+
+    // Aktionen
+    const isPage = s.view === 'page';
+    const dark = document.documentElement.dataset.theme === 'dark';
+    const acts = [
+      inSpace && !sp.archived && this.canEdit(sp.home) && { label: 'Neue Seite in „' + sp.name + '“', kw: 'neue seite anlegen erstellen', run: () => this.createPage(sp.home) },
+      { label: 'Neuer Space', kw: 'space anlegen erstellen neu', run: () => { this.setState({ dialog: 'newSpace', ns: null }); this.focusLater('#ns-name'); } },
+      { label: 'Zur Übersicht', kw: 'startseite home übersicht spaces', run: () => this.setState({ view: 'overview' }) },
+      isPage && { label: 'Link zur Seite kopieren', kw: 'link kopieren teilen url adresse', run: () => this.showToast('Link kopiert') },
+      isPage && { label: 'Seite exportieren', kw: 'export exportieren markdown download', run: () => this.setState({ dialog: 'export' }) },
+      { label: dark ? 'Helle Darstellung' : 'Dunkle Darstellung', kw: 'darstellung theme dunkel hell modus farbe', run: () => {
+        const next = dark ? 'light' : 'dark';
+        try { localStorage.setItem('nf-proto-theme', next); } catch (err) { /* nur diese Sitzung */ }
+        this.setState({ theme: next });
+      } },
+      { label: 'Personen einladen', kw: 'einladen einladung mitglied workspace', run: () => this.setState({ dialog: 'invites', inviteLink: null }) },
+      { label: 'Tastenkürzel anzeigen', kw: 'tastatur kürzel shortcuts hilfe', run: () => this.setState({ dialog: 'shortcuts' }) }
+    ].filter(Boolean);
+    const actions = acts.filter((a) => !words.length || all(fold(a.label + ' ' + a.kw))).map((a) => {
+      const [t1, t2, t3] = split(a.label);
+      return { kind: 'action', t1, t2, t3, meta: 'Befehl', run: close(a.run) };
+    });
+
+    // Bereiche und Gruppen
+    const scope = commandsOnly ? 'all' : pal.scope;
+    const groups = [];
+    const more = (label, n, sc) => ({ hasMore: true, moreLabel: label, more: () => { this.setPalette({ scope: sc, active: 0 }); this.focusLater('#nf-cmd-q'); } });
+    if (commandsOnly) {
+      groups.push({ label: 'Befehle', items: actions });
+    } else if (!words.length) {
+      if (scope === 'all' || scope === 'pages') groups.push({ label: pal.limit ? 'Zuletzt angesehen in ' + sp.name : 'Zuletzt angesehen', items: recentItems.filter((r, i) => !pal.limit || P[recentIds[i]].space === s.space) });
+      if (scope === 'spaces') groups.push({ label: 'Spaces', items: spaces });
+      if (scope === 'people') groups.push({ label: 'Personen im Workspace', items: people });
+      if (scope === 'all') groups.push({ label: 'Befehle', items: actions.slice(0, 5) });
+    } else {
+      if (scope === 'all') {
+        groups.push({ label: 'Seiten', items: pages.slice(0, 5).map(pageItem), ...(pages.length > 5 ? more('Alle ' + pages.length + ' Seiten zeigen', pages.length, 'pages') : {}) });
+        groups.push({ label: 'Spaces', items: spaces.slice(0, 3) });
+        groups.push({ label: 'Personen', items: people.slice(0, 3), ...(people.length > 3 ? more('Alle ' + people.length + ' Personen zeigen', people.length, 'people') : {}) });
+        groups.push({ label: 'Befehle', items: actions.slice(0, 3) });
+      }
+      if (scope === 'pages') groups.push({ label: pages.length + (pages.length === 1 ? ' Seite' : ' Seiten'), items: pages.slice(0, 50).map(pageItem) });
+      if (scope === 'spaces') groups.push({ label: 'Spaces', items: spaces });
+      if (scope === 'people') groups.push({ label: 'Personen', items: people });
+    }
+    const visible = groups.filter((g) => g.items.length);
+    const flat = visible.flatMap((g) => g.items);
+    const active = flat.length ? Math.min(pal.active, flat.length - 1) : -1;
+    let n = 0;
+    visible.forEach((g) => {
+      g.items = g.items.map((it) => {
+        const idx = n++;
+        return {
+          ...it,
+          domId: 'nf-cmd-opt-' + idx,
+          selected: idx === active ? 'true' : 'false',
+          isPage: it.kind === 'page', isSpace: it.kind === 'space', isPerson: it.kind === 'person', isAction: it.kind === 'action',
+          restricted: !!it.restricted, iconStyle: it.iconStyle || '',
+          hover: () => { if (this.state.palette && this.state.palette.active !== idx) this.setPalette({ active: idx }); }
+        };
+      });
+    });
+    this._paletteFlat = flat;
+
+    const SCOPES = [['all', 'Alles'], ['pages', 'Seiten'], ['spaces', 'Spaces'], ['people', 'Personen']];
+    const counts = { all: '', pages: words.length ? pages.length : '', spaces: words.length ? spaces.length : '', people: words.length ? people.length : '' };
+    const scroll = (i) => setTimeout(() => { const el = document.getElementById('nf-cmd-opt-' + i); if (el) el.scrollIntoView({ block: 'nearest' }); }, 20);
+    return {
+      open: true,
+      q: raw,
+      placeholder: 'Seiten, Spaces und Personen suchen – oder > für Befehle',
+      activeId: active >= 0 ? 'nf-cmd-opt-' + active : '',
+      scopes: SCOPES.map(([key, label]) => ({
+        label, count: counts[key] === '' ? '' : counts[key],
+        selected: scope === key ? 'true' : 'false',
+        choose: () => { this.setPalette({ scope: key, active: 0 }); this.focusLater('#nf-cmd-q'); }
+      })),
+      canLimit: inSpace,
+      limitPressed: pal.limit ? 'true' : 'false',
+      limitPressedBool: !!pal.limit,
+      limitName: sp.name,
+      limitBadge: sp.key.slice(0, 2),
+      limitColor: sp.color || '#1F5FD6',
+      toggleLimit: () => { this.setPalette({ limit: !pal.limit, active: 0 }); this.focusLater('#nf-cmd-q'); },
+      groups: visible,
+      empty: !!q && flat.length === 0,
+      emptyWhere: pal.limit ? ' in ' + sp.name : '',
+      footNote: commandsOnly ? 'Nur Befehle' : q ? 'Titel und Inhalt · nur Seiten, die du lesen darfst' : 'Mit > nur Befehle',
+      onInput: (e) => this.setPalette({ q: e.target.value, active: 0 }),
+      onKey: (e) => {
+        const k = e.key;
+        if (k === 'ArrowDown' || k === 'ArrowUp') {
+          this.prevent(e);
+          if (!flat.length) return;
+          const next = (active + (k === 'ArrowDown' ? 1 : -1) + flat.length) % flat.length;
+          this.setPalette({ active: next });
+          scroll(next);
+        } else if (k === 'Enter') {
+          this.prevent(e);
+          if (active >= 0) flat[active].run();
+        } else if (k === 'Tab') {
+          this.prevent(e);
+          const i = SCOPES.findIndex(([key]) => key === scope);
+          const next = SCOPES[(i + (e.shiftKey ? -1 : 1) + SCOPES.length) % SCOPES.length][0];
+          this.setPalette({ scope: next, active: 0 });
+        } else if (k === 'Escape') {
+          this.prevent(e);
+          this.stop(e);
+          this.closePalette();
+        }
+      },
+      backdrop: (e) => { if (e.target === e.currentTarget) this.closePalette(); }
+    };
   }
 
   /** Archivieren aus einem Menü: mit Rückfrage; Zurückholen sofort (umkehrbar) */
@@ -2272,8 +2612,7 @@ class Component extends DCLogic {
       onKey: (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
           this.prevent(e);
-          const el = document.getElementById('nf-search');
-          if (el) el.focus();
+          if (s.palette) this.closePalette(); else this.openPalette();
           return;
         }
         if (e.key !== 'Escape') return;
@@ -2311,6 +2650,8 @@ class Component extends DCLogic {
       isOverview: s.view === 'overview',
       inSpace: s.view !== 'overview',
       ...this.overviewVals(),
+      cmd: this.paletteVals(),
+      openPalette: (e) => { this.stop(e); this.openPalette(); },
       presence,
       hasPresence: others.length > 0,
       presenceMore: others.length > shownOthers.length,
