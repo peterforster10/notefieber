@@ -114,7 +114,7 @@ button.nf-drawer-close,button.nf-drawer-open{display:none}
 .nf-switcher{position:relative;display:flex;flex-direction:column;gap:6px}
 .nf-space-card{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border:1px solid var(--nf-sidebar-border);border-radius:8px;background:var(--nf-bg);color:var(--nf-sidebar-text);text-align:left;cursor:pointer}
 .nf-space-card:hover,.nf-space-card[aria-expanded='true']{border-color:var(--nf-control-border);background:var(--nf-surface)}
-.nf-space-badge{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;flex:none;border-radius:6px;background:var(--nf-accent);color:var(--nf-on-accent);font-size:11px;font-weight:600}
+.nf-space-badge{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;flex:none;border-radius:6px;background:var(--nf-accent);color:#fff;font-size:11px;font-weight:600}
 .nf-menu .nf-space-badge{width:24px;height:24px;font-size:10px;border-radius:5px}
 .nf-space-names{flex:1;min-width:0}
 .nf-space-name{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -259,6 +259,88 @@ button.nf-drawer-close,button.nf-drawer-open{display:none}
 .nf-invite-link-row{display:flex;align-items:center;gap:8px}
 .nf-invite-link-row code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:var(--nf-bg)!important;color:var(--nf-text)}
 .nf-dialog-foot-split{justify-content:space-between}
+/* Übersicht (Startseite nach dem Login) */
+.nf-nav-current{background:var(--nf-sidebar-selected);color:var(--nf-sidebar-selected-text);font-weight:600}
+.nf-nav-current:hover{background:var(--nf-sidebar-selected);color:var(--nf-sidebar-selected-text)}
+.nf-nav-current .nf-icon{color:inherit!important}
+.nf-side-spaces{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nf-side-spaces .nf-nav-item{min-height:36px;flex:1;min-width:0}
+/* Zeile mit „⋯“ wie im Seitenbaum: Knopf beim Darüberfahren, mit dem Fokus und bei offenem Menü */
+.nf-side-space-row{position:relative;display:flex;align-items:center;gap:2px;padding-right:4px;border-radius:6px}
+.nf-side-space-row:hover,.nf-side-space-row:focus-within{background:var(--nf-sidebar-hover)}
+.nf-side-space-row .nf-nav-item:hover{background:transparent}
+.nf-side-space-row:hover .nf-actions,.nf-side-space-row:focus-within .nf-actions{display:flex}
+.nf-side-space-row:hover .nf-icon-button:hover{background:var(--nf-bg)}
+@media (hover:none){.nf-side-space-row .nf-actions{display:flex}}
+.nf-side-space-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-side-space-note{font-size:12px;color:var(--nf-sidebar-muted)}
+.nf-side-archived{color:var(--nf-sidebar-muted)}
+.nf-space-badge-sm{width:22px;height:22px;font-size:9px;border-radius:5px}
+.nf-space-badge-xs{width:18px;height:18px;font-size:8px;border-radius:4px}
+.nf-space-badge-lg{width:40px;height:40px;font-size:13px;border-radius:9px}
+.nf-overview{max-width:1120px;margin:0 auto}
+.nf-ov-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin:12px 0 8px}
+.nf-ov-head p{margin:4px 0 0}
+.nf-ov-greeting{margin:0;font-size:30px}
+.nf-ov-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:40px;align-items:start}
+.nf-ov-main>section+section{margin-top:12px}
+.nf-ov-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.nf-ov-toggle{display:inline-flex;align-items:center;gap:6px;margin-top:16px;font-size:13px;color:var(--nf-muted);cursor:pointer}
+.nf-ov-toggle input{accent-color:var(--nf-accent)}
+.nf-recent{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.nf-recent-card{display:flex;flex-direction:column;gap:6px;height:100%;padding:14px;border:1px solid var(--nf-border);border-radius:10px;background:var(--nf-bg);color:var(--nf-text);text-decoration:none;transition:border-color 120ms ease,box-shadow 120ms ease}
+.nf-recent-card:hover{color:var(--nf-text);border-color:var(--nf-control-border);box-shadow:var(--nf-shadow-pop)}
+.nf-recent-space{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--nf-muted)}
+.nf-recent-title{display:flex;align-items:center;gap:6px;font-weight:600;font-size:15px;line-height:1.3}
+.nf-recent-title .nf-icon{color:var(--nf-restricted-fg)}
+.nf-recent-excerpt{font-size:13px;color:var(--nf-muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nf-recent-meta{margin-top:auto;font-size:12px;color:var(--nf-muted)}
+.nf-space-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.nf-space-tile{display:flex;flex-direction:column;gap:8px;width:100%;height:100%;min-height:150px;padding:16px;border:1px solid var(--nf-border);border-radius:12px;background:var(--nf-bg);color:var(--nf-text);text-align:left;text-decoration:none;cursor:pointer;transition:border-color 120ms ease,box-shadow 120ms ease}
+.nf-space-tile:hover{color:var(--nf-text);border-color:var(--nf-control-border);box-shadow:var(--nf-shadow-pop)}
+.nf-space-tile-top{display:flex;align-items:center;gap:12px}
+.nf-space-tile-names{flex:1;min-width:0;display:flex;flex-direction:column}
+.nf-space-tile-name{font-size:16px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-space-tile-key{font-size:12px;color:var(--nf-muted);font-family:var(--nf-font-mono)}
+.nf-space-tile-desc{font-size:14px;color:var(--nf-muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nf-space-tile-meta{margin-top:auto;font-size:12px;color:var(--nf-muted)}
+.nf-space-tile.nf-archived{background:var(--nf-surface)}
+.nf-space-tile.nf-archived .nf-space-badge{filter:grayscale(1);opacity:.7}
+.nf-space-tile-new{align-items:center;justify-content:center;gap:6px;border-style:dashed;border-color:var(--nf-control-border);background:transparent;color:var(--nf-muted);font-weight:500}
+.nf-space-tile-new:hover{color:var(--nf-accent);border-color:var(--nf-accent);box-shadow:none;background:var(--nf-accent-soft)}
+.nf-space-tile-new .nf-space-tile-meta{margin-top:0;font-weight:400}
+.nf-chip{flex:none;padding:2px 8px;border-radius:999px;background:var(--nf-neutral-soft);color:var(--nf-muted);font-size:12px;font-weight:500}
+.nf-chip-admin{background:var(--nf-accent-soft);color:var(--nf-accent)}
+.nf-chip-archived{background:var(--nf-attention-soft);color:var(--nf-attention)}
+.nf-ov-side{display:flex;flex-direction:column;gap:16px;margin-top:22px}
+.nf-ov-panel{padding:16px;border:1px solid var(--nf-border);border-radius:12px;background:var(--nf-surface)}
+.nf-activity{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
+.nf-activity li{display:flex;gap:10px;font-size:13px;line-height:1.45}
+.nf-activity .nf-byline-avatar{width:26px;height:26px;font-size:10px;margin-top:1px}
+.nf-activity-text{display:flex;flex-direction:column;min-width:0}
+.nf-activity-text a{color:var(--nf-accent);text-decoration:none;font-weight:500}
+.nf-activity-text a:hover{text-decoration:underline}
+.nf-activity-meta{font-size:12px;color:var(--nf-muted)}
+.nf-ov-stat{margin:0 0 12px;font-size:14px;color:var(--nf-muted)}
+.nf-ov-stat strong{color:var(--nf-text)}
+.nf-ov-actions{display:flex;flex-wrap:wrap;gap:8px}
+@media (max-width:1199.98px){.nf-ov-grid{grid-template-columns:minmax(0,1fr)}.nf-ov-side{margin-top:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}}
+/* Einstellungen eines Spaces (Dialog) */
+.nf-st-head{display:flex;align-items:center;gap:12px;min-width:0}
+.nf-st-locked{margin:0 0 12px!important;padding:8px 12px;border-radius:8px;background:var(--nf-neutral-soft);color:var(--nf-muted);font-size:13px}
+.nf-swatches{display:flex;flex-wrap:wrap;gap:8px}
+.nf-swatch{display:grid;place-items:center;width:28px;height:28px;padding:0;border:0;border-radius:50%;color:#fff;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.nf-swatch[aria-checked='true']{box-shadow:0 0 0 2px var(--nf-bg),0 0 0 4px var(--nf-text)}
+.nf-swatch:disabled{cursor:default;opacity:.5}
+.nf-st-key{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:0!important;font-size:13px;color:var(--nf-muted)}
+.nf-zone{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:20px 0 4px;padding:14px 16px;border:1px solid var(--nf-border);border-radius:10px}
+.nf-zone-title{margin:0;font-size:14px;font-weight:600}
+.nf-zone-text{margin:2px 0 0!important;font-size:13px;color:var(--nf-muted)}
+.nf-zone .nf-btn{flex:none}
+/* Neuer Space */
+.nf-field-hint{margin:4px 0 0;font-size:12px;color:var(--nf-muted)}
+.nf-field-error{margin:4px 0 0;font-size:12px;color:var(--nf-danger)}
+.nf-key-input{font-family:var(--nf-font-mono);text-transform:uppercase;max-width:200px}
 /* Rückmeldung */
 .nf-toast{position:fixed;left:50%;bottom:24px;z-index:80;transform:translateX(-50%);padding:10px 16px;border-radius:8px;background:var(--nf-text);color:var(--nf-bg);font-size:14px;box-shadow:var(--nf-shadow-pop)}
 .nf-page-menu{top:calc(100% + 4px);right:0;min-width:220px}
@@ -445,9 +527,56 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
       </button>
     </div>
 
+    <!-- Übersicht: statt Umschalter und Seitenbaum die Liste aller Spaces -->
+    <sc-if value="{{isOverview}}" hint-placeholder-val="{{ false }}">
+      <div class="nf-tree">
+        <a href="#" class="nf-nav-item nf-nav-current" aria-current="page" onClick="{{goOverview}}">
+          <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 7.5L8 3l5.5 4.5M4 6.5V13h3V9.5h2V13h3V6.5"></path></svg>
+          <span>Übersicht</span>
+        </a>
+        <div class="nf-tree-head" style="margin-top: 10px">
+          <h2 class="nf-tree-heading">Spaces</h2>
+          <button type="button" class="nf-icon-button" aria-label="Neuer Space" title="Neuer Space" onClick="{{openNewSpace}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+          </button>
+        </div>
+        <ul class="nf-side-spaces">
+          <sc-for list="{{spaceCards}}" as="sc" hint-placeholder-count="4">
+            <li class="nf-side-space-row">
+              <a href="#" class="nf-nav-item {{sc.sideCls}}" onClick="{{sc.go}}">
+                <span class="nf-space-badge nf-space-badge-sm" style="background: {{sc.color}}" aria-hidden="true">{{sc.badge}}</span>
+                <span class="nf-side-space-name">{{sc.name}}</span>
+                <sc-if value="{{sc.archived}}" hint-placeholder-val="{{ false }}"><span class="nf-side-space-note">archiviert</span></sc-if>
+              </a>
+              <span class="nf-actions {{sc.moreCls}}">
+                <button type="button" class="nf-icon-button" aria-label="{{sc.actionsLabel}}" title="{{sc.actionsLabel}}" aria-haspopup="menu" aria-expanded="{{sc.menuExpanded}}" onClick="{{sc.toggleMenu}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3.5" cy="8" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="12.5" cy="8" r="1.3" fill="currentColor" stroke="none"></circle></svg>
+                </button>
+              </span>
+              <sc-if value="{{sc.menuOpen}}" hint-placeholder-val="{{ false }}">
+                <ul class="nf-menu nf-row-menu" role="menu" aria-label="{{sc.actionsLabel}}">
+                  <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{sc.settings}}">
+                    <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2"></circle><path d="M8 1.75v1.7M8 12.55v1.7M1.75 8h1.7M12.55 8h1.7M3.58 3.58l1.2 1.2M11.22 11.22l1.2 1.2M3.58 12.42l1.2-1.2M11.22 4.78l1.2-1.2"></path><circle cx="8" cy="8" r="4.25"></circle></svg>
+                    <span class="nf-menu-label">Einstellungen</span></button></li>
+                  <li role="none"><button type="button" role="menuitem" class="nf-menu-item" onClick="{{sc.copyLink}}">
+                    <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.75 9.25a3 3 0 004.24 0l2-2a3 3 0 00-4.24-4.24l-.75.75"></path><path d="M9.25 6.75a3 3 0 00-4.24 0l-2 2a3 3 0 004.24 4.24l.75-.75"></path></svg>
+                    <span class="nf-menu-label">Link kopieren</span></button></li>
+                  <li role="separator" class="nf-menu-separator"></li>
+                  <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="{{sc.archivePopup}}" onClick="{{sc.archive}}">
+                    <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="3" rx="1"></rect><path d="M3 6v7h10V6M6.5 9h3"></path></svg>
+                    <span class="nf-menu-label">{{sc.archiveLabel}}</span></button></li>
+                </ul>
+              </sc-if>
+            </li>
+          </sc-for>
+        </ul>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{inSpace}}" hint-placeholder-val="{{ true }}">
     <div class="nf-switcher">
       <button type="button" class="nf-space-card" aria-haspopup="menu" aria-expanded="{{spaceMenuExpanded}}" onClick="{{toggleSpaceMenu}}">
-        <span class="nf-space-badge" aria-hidden="true">{{space.badge}}</span>
+        <span class="nf-space-badge" style="background: {{space.color}}" aria-hidden="true">{{space.badge}}</span>
         <span class="nf-space-names">
           <span class="nf-visually-hidden">Space wechseln: </span>
           <span class="nf-space-name">{{space.name}}</span>
@@ -460,7 +589,7 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
           <sc-for list="{{spaceItems}}" as="si" hint-placeholder-count="4">
             <li role="none" class="nf-menu-row">
               <a href="#" role="menuitem" class="nf-menu-item" aria-current="{{si.current}}" onClick="{{si.go}}">
-                <span class="nf-space-badge" aria-hidden="true">{{si.badge}}</span>
+                <span class="nf-space-badge" style="background: {{si.color}}" aria-hidden="true">{{si.badge}}</span>
                 <span class="nf-menu-label">{{si.label}}</span>
               </a>
               <sc-if value="{{si.manage}}" hint-placeholder-val="{{ true }}">
@@ -476,6 +605,10 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
                       <span class="nf-menu-label">Einstellungen</span>
                     </a>
                   </li>
+                  <li role="separator" class="nf-menu-separator"></li>
+                  <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="{{si.archivePopup}}" onClick="{{si.archive}}">
+                    <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="3" rx="1"></rect><path d="M3 6v7h10V6M6.5 9h3"></path></svg>
+                    <span class="nf-menu-label">{{si.archiveLabel}}</span></button></li>
                 </ul>
               </sc-if>
             </li>
@@ -560,8 +693,10 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
         </sc-for>
       </div>
     </div>
+    </sc-if>
 
     <div class="nf-sidebar-foot">
+      <sc-if value="{{inSpace}}" hint-placeholder-val="{{ true }}">
       <div class="nf-trash">
         <button type="button" class="nf-nav-item" aria-expanded="{{trashExpanded}}" onClick="{{toggleTrash}}">
           <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.5 9h6l.5-9"></path></svg>
@@ -585,6 +720,7 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
           </ul>
         </sc-if>
       </div>
+      </sc-if>
       <!-- Ausblick M4: Confluence-Import -->
       <a href="Import.dc.html" class="nf-nav-item">
         <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11V3M4.5 6.5L8 3l3.5 3.5"></path><path d="M3 11v2h10v-2"></path></svg>
@@ -683,6 +819,7 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
     </header>
 
     <!-- Unter der Leiste: Brotkrume links, Anwesenheit und Knöpfe rechts -->
+    <sc-if value="{{inSpace}}" hint-placeholder-val="{{ true }}">
     <div class="nf-pagebar">
       <div class="nf-topbar-start">
         <nav aria-label="Brotkrume" class="nf-breadcrumb">
@@ -761,6 +898,7 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
         </div>
       </sc-if>
     </div>
+    </sc-if>
 
     <main id="content" tabindex="-1" class="nf-main">
       <!-- ---------- Seite ---------- -->
@@ -931,42 +1069,105 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
         </div>
       </sc-if>
 
-      <!-- ---------- Einstellungen des Spaces ---------- -->
-      <sc-if value="{{isSettings}}" hint-placeholder-val="{{ false }}">
-        <div class="nf-main-inner">
-          <article>
-            <h1>Einstellungen</h1>
-            <p class="nf-muted">Schlüssel <code>{{space.key}}</code> (bleibt fest, er steht in den Adressen)</p>
-            <form onSubmit="{{saveSettings}}">
-              <label class="nf-label" for="space-name">Name</label>
-              <input id="space-name" class="nf-input nf-input-wide" maxlength="200" value="{{settings.name}}" disabled="{{settings.locked}}" onChange="{{settings.onName}}">
-              <label class="nf-label" for="space-description">Beschreibung</label>
-              <textarea id="space-description" class="nf-input nf-input-wide" rows="4" maxlength="2000" value="{{settings.description}}" disabled="{{settings.locked}}" onChange="{{settings.onDescription}}"></textarea>
-              <sc-if value="{{settings.editable}}" hint-placeholder-val="{{ true }}">
-                <p>
-                  <button type="submit" class="nf-button">Speichern</button>
-                  <sc-if value="{{settings.saved}}" hint-placeholder-val="{{ false }}"><span class="nf-saved"> Gespeichert</span></sc-if>
-                </p>
-              </sc-if>
-              <sc-if value="{{settings.locked}}" hint-placeholder-val="{{ false }}">
-                <p class="nf-muted">{{settings.lockedText}}</p>
-              </sc-if>
-            </form>
-            <section class="nf-form">
-              <sc-if value="{{space.archived}}" hint-placeholder-val="{{ false }}">
-                <h2>Archiviert</h2>
-                <p>Alle können diesen Space nur noch lesen. Zurückgeholt gelten wieder die bisherigen Rechte.</p>
-                <button type="button" class="nf-button" onClick="{{unarchive}}">Space zurückholen</button>
-              </sc-if>
-              <sc-if value="{{space.active}}" hint-placeholder-val="{{ true }}">
-                <h2>Archivieren</h2>
-                <p>Ein archivierter Space bleibt sichtbar, lässt sich aber von niemandem mehr bearbeiten.</p>
-                <button type="button" class="nf-button nf-button-attention" onClick="{{askArchive}}">Space archivieren</button>
-              </sc-if>
-            </section>
-          </article>
+      <!-- ---------- Übersicht (Startseite nach dem Login) ---------- -->
+      <sc-if value="{{isOverview}}" hint-placeholder-val="{{ false }}">
+        <div class="nf-overview">
+          <header class="nf-ov-head">
+            <div>
+              <h1 class="nf-ov-greeting">{{greeting}}</h1>
+              <p class="nf-muted">{{ws.name}} · {{spaceCount}} Spaces, in denen du etwas sehen darfst</p>
+            </div>
+            <button type="button" class="nf-btn nf-btn-primary" onClick="{{openNewSpace}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+              Neuer Space
+            </button>
+          </header>
+
+          <div class="nf-ov-grid">
+            <div class="nf-ov-main">
+              <!-- Zuletzt angesehen (Ausblick: merkt sich die API pro Person) -->
+              <section aria-labelledby="ov-recent">
+                <h2 id="ov-recent" class="nf-section-title">Zuletzt angesehen</h2>
+                <ul class="nf-recent">
+                  <sc-for list="{{recent}}" as="r" hint-placeholder-count="4">
+                    <li><a href="#" class="nf-recent-card" onClick="{{r.go}}">
+                      <span class="nf-recent-space"><span class="nf-space-badge nf-space-badge-xs" style="background: {{r.color}}" aria-hidden="true">{{r.badge}}</span><span>{{r.spaceName}}</span></span>
+                      <span class="nf-recent-title">
+                        <span>{{r.title}}</span>
+                        <sc-if value="{{r.restricted}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon" width="13" height="13" viewBox="0 0 16 16" role="img" aria-label="eingeschränkt"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></sc-if>
+                      </span>
+                      <span class="nf-recent-excerpt">{{r.excerpt}}</span>
+                      <span class="nf-recent-meta">{{r.meta}}</span>
+                    </a></li>
+                  </sc-for>
+                </ul>
+              </section>
+
+              <!-- Spaces als Kacheln -->
+              <section aria-labelledby="ov-spaces">
+                <div class="nf-ov-section-head">
+                  <h2 id="ov-spaces" class="nf-section-title">Spaces</h2>
+                  <label class="nf-ov-toggle">
+                    <input type="checkbox" checked="{{showArchived}}" onChange="{{toggleArchived}}">
+                    <span>Archivierte zeigen</span>
+                  </label>
+                </div>
+                <ul class="nf-space-grid">
+                  <sc-for list="{{spaceCardsShown}}" as="sc" hint-placeholder-count="3">
+                    <li><a href="#" class="nf-space-tile {{sc.tileCls}}" onClick="{{sc.go}}">
+                      <span class="nf-space-tile-top">
+                        <span class="nf-space-badge nf-space-badge-lg" style="background: {{sc.color}}" aria-hidden="true">{{sc.badge}}</span>
+                        <span class="nf-space-tile-names">
+                          <span class="nf-space-tile-name">{{sc.name}}</span>
+                          <span class="nf-space-tile-key">{{sc.key}}</span>
+                        </span>
+                        <span class="nf-chip {{sc.chipCls}}">{{sc.chip}}</span>
+                      </span>
+                      <span class="nf-space-tile-desc">{{sc.description}}</span>
+                      <span class="nf-space-tile-meta">{{sc.meta}}</span>
+                    </a></li>
+                  </sc-for>
+                  <li><button type="button" class="nf-space-tile nf-space-tile-new" onClick="{{openNewSpace}}">
+                    <svg class="nf-icon" width="20" height="20" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+                    <span>Neuer Space</span>
+                    <span class="nf-space-tile-meta">Mit Startseite, Rechte gleich festlegen</span>
+                  </button></li>
+                </ul>
+              </section>
+            </div>
+
+            <aside class="nf-ov-side" aria-label="Neuigkeiten">
+              <!-- Letzte Änderungen in sichtbaren Spaces (Ausblick: aus den Ereignissen der Outbox) -->
+              <section class="nf-ov-panel" aria-labelledby="ov-activity">
+                <h2 id="ov-activity" class="nf-section-title" style="margin-top: 0">Letzte Änderungen</h2>
+                <ul class="nf-activity">
+                  <sc-for list="{{activity}}" as="a" hint-placeholder-count="4">
+                    <li>
+                      <span class="nf-byline-avatar" style="background: {{a.color}}" aria-hidden="true">{{a.initials}}</span>
+                      <span class="nf-activity-text">
+                        <a href="#" onClick="{{a.go}}">{{a.title}}</a>
+                        <span class="nf-activity-meta">{{a.who}} · {{a.when}}</span>
+                        <span class="nf-activity-meta">{{a.what}} in {{a.where}}</span>
+                      </span>
+                    </li>
+                  </sc-for>
+                </ul>
+              </section>
+              <!-- Nur für Owner und Admins des Workspaces -->
+              <section class="nf-ov-panel" aria-labelledby="ov-ws">
+                <h2 id="ov-ws" class="nf-section-title" style="margin-top: 0">Workspace {{ws.name}}</h2>
+                <p class="nf-ov-stat">{{ws.statLine}}</p>
+                <div class="nf-ov-actions">
+                  <button type="button" class="nf-btn" onClick="{{openInvites}}">Personen einladen</button>
+                  <button type="button" class="nf-btn nf-btn-ghost" onClick="{{openWorkspace}}">Mitglieder</button>
+                </div>
+              </section>
+            </aside>
+          </div>
         </div>
       </sc-if>
+
+      <!-- Die Einstellungen eines Spaces sind ein Dialog (siehe unten), keine eigene Seite mehr -->
     </main>
   </div>
 
@@ -1232,6 +1433,101 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
     </div>
   </sc-if>
 
+  <!-- Neuer Space (statt des Formulars auf der alten Startseite): Name, Schlüssel, Beschreibung, Rechte -->
+  <sc-if value="{{newSpaceOpen}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <form class="nf-dialog" role="dialog" aria-modal="true" aria-labelledby="ns-title" onSubmit="{{ns.submit}}">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="ns-title" class="nf-dialog-title">Neuer Space</h2>
+            <p class="nf-dialog-description">Ein Space bekommt eine Startseite; du wirst sein Admin.</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body">
+          <label class="nf-label" for="ns-name" style="margin-top: 0">Name</label>
+          <input id="ns-name" class="nf-input nf-input-wide" maxlength="200" required placeholder="z. B. Kundenservice" value="{{ns.name}}" onChange="{{ns.onName}}">
+          <label class="nf-label" for="ns-key">Schlüssel</label>
+          <input id="ns-key" class="nf-input nf-input-wide nf-key-input" maxlength="32" required value="{{ns.key}}" onChange="{{ns.onKey}}" aria-describedby="ns-key-hint">
+          <p id="ns-key-hint" class="{{ns.keyHintCls}}">{{ns.keyHint}}</p>
+          <label class="nf-label" for="ns-desc">Beschreibung <span class="nf-muted" style="font-weight: 400">(optional)</span></label>
+          <textarea id="ns-desc" class="nf-input nf-input-wide" rows="2" maxlength="2000" value="{{ns.description}}" onChange="{{ns.onDescription}}"></textarea>
+          <label class="nf-label" for="ns-access">Alle im Workspace „{{ws.name}}“ (ohne Gäste) dürfen</label>
+          <select id="ns-access" class="nf-input nf-input-wide" value="{{ns.access}}" onChange="{{ns.onAccess}}">
+            <option value="viewer">Lesen</option>
+            <option value="commenter">Kommentieren</option>
+            <option value="editor">Bearbeiten</option>
+            <option value="none">Nichts (nur ich als Admin)</option>
+          </select>
+        </div>
+        <div class="nf-dialog-foot">
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Abbrechen</button>
+          <button type="submit" class="nf-btn nf-btn-primary">Space anlegen</button>
+        </div>
+      </form>
+    </div>
+  </sc-if>
+
+  <!-- Einstellungen eines Spaces (statt der Seite /s/<schlüssel>/settings): Name, Beschreibung, Farbe, Archivieren -->
+  <sc-if value="{{spaceSettingsOpen}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <form class="nf-dialog" role="dialog" aria-modal="true" aria-labelledby="st-title" onSubmit="{{settings.save}}">
+        <div class="nf-dialog-head">
+          <div class="nf-st-head">
+            <span class="nf-space-badge nf-space-badge-lg" style="background: {{settings.color}}" aria-hidden="true">{{settings.badge}}</span>
+            <div>
+              <h2 id="st-title" class="nf-dialog-title">Einstellungen für „{{settings.title}}“</h2>
+              <p class="nf-dialog-description">Space {{settings.key}} · {{settings.pageCount}}</p>
+            </div>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body">
+          <sc-if value="{{settings.locked}}" hint-placeholder-val="{{ false }}">
+            <p class="nf-st-locked">{{settings.lockedText}}</p>
+          </sc-if>
+          <label class="nf-label" for="st-name" style="margin-top: 0">Name</label>
+          <input id="st-name" class="nf-input nf-input-wide" maxlength="200" required value="{{settings.name}}" disabled="{{settings.locked}}" onChange="{{settings.onName}}">
+          <label class="nf-label" for="st-desc">Beschreibung</label>
+          <textarea id="st-desc" class="nf-input nf-input-wide" rows="3" maxlength="2000" value="{{settings.description}}" disabled="{{settings.locked}}" onChange="{{settings.onDescription}}"></textarea>
+          <span class="nf-label" id="st-color-label">Farbe</span>
+          <div class="nf-swatches" role="radiogroup" aria-labelledby="st-color-label">
+            <sc-for list="{{settings.colors}}" as="c" hint-placeholder-count="8">
+              <button type="button" role="radio" class="nf-swatch" style="background: {{c.color}}" aria-checked="{{c.checked}}" aria-label="{{c.label}}" title="{{c.label}}" disabled="{{settings.locked}}" onClick="{{c.choose}}">
+                <sc-if value="{{c.on}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if>
+              </button>
+            </sc-for>
+          </div>
+          <span class="nf-label">Schlüssel</span>
+          <p class="nf-st-key"><code>{{settings.key}}</code><span>Adresse {{settings.address}} · bleibt fest</span></p>
+
+          <section class="nf-zone" aria-labelledby="st-zone">
+            <div>
+              <h3 id="st-zone" class="nf-zone-title">{{settings.zoneTitle}}</h3>
+              <p class="nf-zone-text">{{settings.zoneText}}</p>
+            </div>
+            <sc-if value="{{settings.active}}" hint-placeholder-val="{{ true }}">
+              <button type="button" class="nf-btn nf-btn-attention" onClick="{{settings.askArchive}}">Archivieren</button>
+            </sc-if>
+            <sc-if value="{{settings.archived}}" hint-placeholder-val="{{ false }}">
+              <button type="button" class="nf-btn" onClick="{{settings.unarchive}}">Zurückholen</button>
+            </sc-if>
+          </section>
+        </div>
+        <div class="nf-dialog-foot">
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">{{settings.cancelLabel}}</button>
+          <sc-if value="{{settings.editable}}" hint-placeholder-val="{{ true }}">
+            <button type="submit" class="nf-btn nf-btn-primary">Speichern</button>
+          </sc-if>
+        </div>
+      </form>
+    </div>
+  </sc-if>
+
   <!-- Kurze Rückmeldung unten in der Mitte (z. B. „Link kopiert“) -->
   <sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
     <div class="nf-toast" role="status">{{toast}}</div>
@@ -1294,7 +1590,13 @@ const INVITES = [
   { id: 'i2', email: 'elena.novak@agentur-nord.example', role: 'guest', status: 'accepted', until: '12. Nov. 2026', by: 'Peter Forster' },
   { id: 'i3', email: 'jonas.berg@alpenwerk.example', role: 'member', status: 'expired', until: '3. Nov. 2026', by: 'Lukas Gruber' }
 ];
-const WS_ROLE = { owner: 'Owner', admin: 'Admin', member: 'Mitglied', guest: 'Gast' };
+// Farben für Spaces (weiße Schrift auf jeder Farbe >= 4,5:1, wie die Personenfarben)
+const SPACE_COLORS = [
+  { color: '#1F5FD6', label: 'Blau' }, { color: '#0E7490', label: 'Petrol' }, { color: '#7C3AED', label: 'Violett' },
+  { color: '#BE185D', label: 'Beere' }, { color: '#B45309', label: 'Ocker' }, { color: '#1E5135', label: 'Grün' },
+  { color: '#4D7C0F', label: 'Oliv' }, { color: '#5B6573', label: 'Grau' }
+];
+const WS_ROLE ={ owner: 'Owner', admin: 'Admin', member: 'Mitglied', guest: 'Gast' };
 const INVITE_STATUS = { open: 'offen', accepted: 'angenommen', revoked: 'zurückgenommen', expired: 'abgelaufen' };
 // Dialoge mit Ausblick (wie im Frontend: was dort entsteht)
 const SOON = {
@@ -1341,10 +1643,10 @@ const PAGES = {
   telefon: pg('ALT', 'Telefonliste (veraltet)', 'alt_home', [], 'peter', 'am 2. März 2025', ['Bitte das Adressbuch im Login-Dienst nutzen.'])
 };
 const SPACES = {
-  ENTW: { key: 'ENTW', name: 'Entwicklung', description: 'Architektur, Abläufe und Betrieb des Entwicklungsteams', home: 'home', archived: false },
-  VERT: { key: 'VERT', name: 'Vertrieb', description: '', home: 'vert_home', archived: false },
-  PERS: { key: 'PERS', name: 'Personal', description: 'Nur für die Geschäftsleitung', home: 'pers_home', archived: false },
-  ALT: { key: 'ALT', name: 'Altes Intranet', description: 'Archiv, nur noch lesbar', home: 'alt_home', archived: true }
+  ENTW: { key: 'ENTW', name: 'Entwicklung', description: 'Architektur, Abläufe und Betrieb des Entwicklungsteams', home: 'home', archived: false, color: '#1F5FD6', lastChange: 'vor 2 Minuten' },
+  VERT: { key: 'VERT', name: 'Vertrieb', description: 'Angebote, Kampagnen und Material für den Vertrieb', home: 'vert_home', archived: false, color: '#0E7490', lastChange: 'am 3. November' },
+  PERS: { key: 'PERS', name: 'Personal', description: 'Nur für die Geschäftsleitung', home: 'pers_home', archived: false, color: '#7C3AED', lastChange: 'am 22. Oktober' },
+  ALT: { key: 'ALT', name: 'Altes Intranet', description: 'Archiv, nur noch lesbar', home: 'alt_home', archived: true, color: '#5B6573', lastChange: 'am 2. März 2025' }
 };
 // Grants auf Spaces („space:KEY“) und auf Seiten mit eigenen Rechten (Seiten-ID)
 const GRANTS = {
@@ -1361,7 +1663,8 @@ class Component extends DCLogic {
     super(props);
     this.state = {
       space: 'ENTW',
-      view: 'page',
+      // Mit #uebersicht in der Adresse startet der Prototyp in der Übersicht
+      view: typeof location !== 'undefined' && location.hash === '#uebersicht' ? 'overview' : 'page',
       current: 'dm',
       expanded: { arch: true, betrieb: true },
       pages: JSON.parse(JSON.stringify(PAGES)),
@@ -1385,6 +1688,8 @@ class Component extends DCLogic {
       settingsDraft: null,
       saved: false,
       seq: 1,
+      showArchived: false,
+      ns: null,
       // Darstellung: 'light' | 'dark' | 'system'; im Browser gemerkt (nur Komfort, darf fehlen)
       theme: (() => { try { return localStorage.getItem('nf-proto-theme') || 'light'; } catch (e) { return 'light'; } })(),
       osDark: typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches,
@@ -1516,6 +1821,152 @@ class Component extends DCLogic {
     this.setState({ dialog: 'rights', rightsDraft: { own, grants: list.map((g) => ({ ...g })), query: '' } });
   }
 
+  openSpaceSettings(key) {
+    this.setState({ dialog: 'spaceSettings', settingsKey: key, settingsDraft: null, spaceMenu: false, spaceSub: null, sideMenu: null, drawer: false });
+    this.focusLater('#st-name');
+  }
+
+  /** Archivieren aus einem Menü: mit Rückfrage; Zurückholen sofort (umkehrbar) */
+  archiveFromMenu(key) {
+    const x = this.state.spaces[key];
+    const closed = { sideMenu: null, spaceMenu: false, spaceSub: null };
+    if (x.archived) {
+      this.setState((st) => ({ ...closed, spaces: { ...st.spaces, [key]: { ...st.spaces[key], archived: false } } }));
+      this.showToast('„' + x.name + '“ zurückgeholt');
+    } else {
+      this.setState({ ...closed, dialog: 'confirm', confirm: { kind: 'archive', key } });
+      this.focusLater('#nf-confirm-cancel');
+    }
+  }
+
+  // ---------- Übersicht und „Neuer Space“ ----------
+  overviewVals() {
+    const s = this.state;
+    const P = s.pages;
+    const shown = (t) => t || 'Ohne Titel';
+    const inTrash = (id) => s.trash.some((t) => t.id === id) || this.chain(id).some((x) => s.trash.some((t) => t.id === x));
+    const restricted = (id) => this.chain(id).some((x) => s.grants[x]);
+    const sub = (x) => [x, ...P[x].kids.flatMap(sub)];
+    const hour = new Date().getHours();
+    const cards = Object.values(s.spaces).map((x) => {
+      const role = this.role(x.home);
+      const count = sub(x.home).length;
+      return {
+        key: x.key,
+        name: x.name,
+        badge: x.key.slice(0, 2),
+        color: x.color || '#1F5FD6',
+        description: x.description || 'Ohne Beschreibung',
+        archived: x.archived,
+        chip: x.archived ? 'Archiviert' : role ? ROLE_LABEL[role] : '–',
+        chipCls: x.archived ? 'nf-chip-archived' : role === 'admin' ? 'nf-chip-admin' : '',
+        tileCls: x.archived ? 'nf-archived' : '',
+        sideCls: x.archived ? 'nf-side-archived' : '',
+        meta: count + (count === 1 ? ' Seite' : ' Seiten') + ' · zuletzt geändert ' + (x.lastChange || 'gerade eben'),
+        // „⋯“ in der linken Liste: Einstellungen, Link kopieren, Archivieren bzw. Zurückholen
+        actionsLabel: 'Aktionen für ' + x.name,
+        menuOpen: s.sideMenu === x.key,
+        menuExpanded: s.sideMenu === x.key ? 'true' : 'false',
+        moreCls: s.sideMenu === x.key ? 'nf-open' : '',
+        toggleMenu: (e) => { this.stop(e); this.setState((st) => ({ sideMenu: st.sideMenu === x.key ? null : x.key, userMenu: false })); },
+        settings: () => this.openSpaceSettings(x.key),
+        copyLink: () => {
+          try { navigator.clipboard.writeText(location.origin + '/s/' + x.key.toLowerCase()).catch(() => {}); } catch (err) { /* nur Rückmeldung */ }
+          this.setState({ sideMenu: null });
+          this.showToast('Link kopiert');
+        },
+        archiveLabel: x.archived ? 'Zurückholen' : 'Archivieren',
+        archivePopup: x.archived ? 'false' : 'dialog',
+        archive: () => this.archiveFromMenu(x.key),
+        go: (e) => { this.prevent(e); this.setState({ space: x.key, current: x.home, view: 'page', drawer: false }); }
+      };
+    });
+    const excerpt = { dm: 'Jede Tabelle trägt tenant_id. Row Level Security trennt die Mandanten in der Datenbank selbst.' };
+    const recent = ['dm', 'personal', 'kampagne', 'release'].filter((id) => P[id] && !inTrash(id)).map((id) => {
+      const x = s.spaces[P[id].space];
+      return {
+        title: shown(P[id].title),
+        spaceName: x.name,
+        badge: x.key.slice(0, 2),
+        color: x.color || '#1F5FD6',
+        restricted: restricted(id),
+        excerpt: excerpt[id] || P[id].text[0] || '',
+        meta: PEOPLE[P[id].editor].name + ' · ' + P[id].when,
+        go: (e) => { this.prevent(e); this.go(id); }
+      };
+    });
+    const ACT = [
+      { who: 'sophie', what: 'Bearbeitet', id: 'dm', when: 'vor 2 Min.' },
+      { who: 'lukas', what: 'Kommentiert', id: 'dm', when: 'vor 40 Min.' },
+      { who: 'max', what: 'Angelegt', id: 'kampagne', when: '3. Nov.' },
+      { who: 'lukas', what: 'Bearbeitet', id: 'betrieb', when: '2. Nov.' },
+      { who: 'peter', what: 'Rechte geändert', id: 'personal', when: '1. Nov.' }
+    ];
+    const activity = ACT.filter((a) => P[a.id] && !inTrash(a.id)).map((a) => ({
+      who: a.who === 'peter' ? 'Du' : PEOPLE[a.who].name,
+      color: PEOPLE[a.who].color,
+      initials: initials(PEOPLE[a.who].name),
+      title: shown(P[a.id].title),
+      what: a.what,
+      where: s.spaces[P[a.id].space].name,
+      when: a.when,
+      go: (e) => { this.prevent(e); this.go(a.id); }
+    }));
+
+    // Neuer Space: Schlüssel aus dem Namen vorschlagen, bis man ihn selbst ändert
+    const ns = s.ns || { name: '', key: '', keyTouched: false, description: '', access: 'viewer' };
+    const suggest = (name) => {
+      const base = name.toUpperCase().replace(/Ä/g, 'AE').replace(/Ö/g, 'OE').replace(/Ü/g, 'UE').replace(/ß/g, 'SS').replace(/[^A-Z0-9]/g, '').replace(/^[0-9]+/, '').slice(0, 4);
+      if (!base || !s.spaces[base]) return base;
+      for (let i = 2; i < 100; i++) if (!s.spaces[base + i]) return base + i; // belegt: ENTW → ENTW2
+      return base;
+    };
+    const keyValid = /^[A-Z][A-Z0-9]{1,31}$/.test(ns.key);
+    const keyTaken = !!s.spaces[ns.key];
+    const setNs = (patch) => this.setState((st) => ({ ns: { ...(st.ns || ns), ...patch } }));
+    return {
+      greeting: (hour < 11 ? 'Guten Morgen' : hour < 18 ? 'Guten Tag' : 'Guten Abend') + ', Peter',
+      spaceCount: cards.length,
+      spaceCards: cards,
+      spaceCardsShown: cards.filter((c) => s.showArchived || !c.archived),
+      showArchived: s.showArchived,
+      toggleArchived: () => this.setState((st) => ({ showArchived: !st.showArchived })),
+      recent,
+      activity,
+      openNewSpace: (e) => { this.stop(e); this.setState({ dialog: 'newSpace', ns: null, drawer: false }); this.focusLater('#ns-name'); },
+      newSpaceOpen: s.dialog === 'newSpace',
+      ns: {
+        name: ns.name,
+        key: ns.key,
+        description: ns.description,
+        access: ns.access,
+        onName: (e) => { const v = e.target.value; setNs(ns.keyTouched ? { name: v } : { name: v, key: suggest(v) }); },
+        onKey: (e) => setNs({ key: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''), keyTouched: true }),
+        onDescription: (e) => setNs({ description: e.target.value }),
+        onAccess: (e) => setNs({ access: e.target.value }),
+        keyHint: !ns.key ? 'Großbuchstaben und Ziffern, 2 bis 32 Zeichen, wie in Confluence. Er steht in den Adressen und bleibt fest.'
+          : keyTaken ? 'Diesen Schlüssel gibt es schon.'
+          : !keyValid ? 'Beginnt mit einem Buchstaben, 2 bis 32 Zeichen.'
+          : 'Adresse: /s/' + ns.key.toLowerCase() + ' · bleibt fest',
+        keyHintCls: ns.key && (keyTaken || !keyValid) ? 'nf-field-error' : 'nf-field-hint',
+        submit: (e) => {
+          this.prevent(e);
+          const name = ns.name.trim();
+          if (!name || !keyValid || keyTaken) { this.focusLater(!name ? '#ns-name' : '#ns-key'); return; }
+          const home = 'home_' + ns.key.toLowerCase();
+          const palette = ['#B45309', '#BE185D', '#1E5135', '#4D7C0F', '#0E7490', '#7C3AED'];
+          this.setState((st) => ({
+            spaces: { ...st.spaces, [ns.key]: { key: ns.key, name, description: ns.description.trim(), home, archived: false, color: palette[Object.keys(st.spaces).length % palette.length], lastChange: 'gerade eben' } },
+            pages: { ...st.pages, [home]: pg(ns.key, name, null, [], 'peter', 'gerade eben', []) },
+            grants: { ...st.grants, ['space:' + ns.key]: [{ key: 'peter', role: 'admin' }, ...(ns.access === 'none' ? [] : [{ key: 'ws', role: ns.access }])] },
+            dialog: null, ns: null, space: ns.key, current: home, view: 'page'
+          }));
+          this.showToast('Space „' + name + '“ angelegt');
+        }
+      }
+    };
+  }
+
   // ---------- Werte für die Vorlage ----------
   renderVals() {
     const s = this.state;
@@ -1591,6 +2042,7 @@ class Component extends DCLogic {
     // Space-Umschalter (Organisations-Admins dürfen jeden Space verwalten)
     const spaceItems = Object.values(s.spaces).map((x) => ({
       badge: x.key.slice(0, 2),
+      color: x.color || '#1F5FD6',
       label: x.archived ? x.name + ' (archiviert)' : x.name,
       current: x.key === s.space ? 'true' : 'false',
       manage: true,
@@ -1601,9 +2053,12 @@ class Component extends DCLogic {
       toggleSub: (e) => { this.stop(e); this.setState((st) => ({ spaceSub: st.spaceSub === x.key ? null : x.key })); },
       settings: (e) => {
         this.prevent(e);
-        this.setState({ space: x.key, view: 'settings', spaceMenu: false, spaceSub: null, drawer: false,
-          settingsDraft: { name: x.name, description: x.description }, saved: false });
-      }
+        this.openSpaceSettings(x.key);
+      },
+      // Archivieren direkt im Menü (mit Rückfrage), archivierte Spaces direkt zurückholen
+      archiveLabel: x.archived ? 'Zurückholen' : 'Archivieren',
+      archivePopup: x.archived ? 'false' : 'dialog',
+      archive: () => this.archiveFromMenu(x.key)
     }));
 
     // Brotkrume
@@ -1747,26 +2202,60 @@ class Component extends DCLogic {
         };
       } else {
         confirm = {
-          title: '„' + sp.name + '“ archivieren?',
-          text: 'Danach können ihn alle nur noch lesen. Zurückholen geht jederzeit hier in den Einstellungen.',
+          title: '„' + s.spaces[s.confirm.key || s.space].name + '“ archivieren?',
+          text: 'Danach können ihn alle nur noch lesen. Zurückholen geht jederzeit in den Einstellungen des Spaces.',
           label: 'Space archivieren', cls: 'nf-btn-attention',
-          ok: () => this.setState((st) => ({ spaces: { ...st.spaces, [st.space]: { ...st.spaces[st.space], archived: true } }, dialog: null, confirm: null }))
+          ok: () => {
+            const key = s.confirm.key || s.space;
+            this.setState((st) => ({ spaces: { ...st.spaces, [key]: { ...st.spaces[key], archived: true } }, dialog: s.confirm.back || null, confirm: null, settingsDraft: null }));
+            this.showToast('„' + s.spaces[key].name + '“ archiviert');
+          }
         };
       }
     }
 
-    // Einstellungen
-    const sd = s.settingsDraft || { name: sp.name, description: sp.description };
-    const settingsEditable = !sp.archived && this.role(homeId) === 'admin';
+    // Einstellungen eines Spaces (Dialog); welcher Space, sagt settingsKey (aus Umschalter oder Übersicht)
+    const stKey = s.settingsKey || s.space;
+    const stSpace = s.spaces[stKey];
+    const sd = s.settingsDraft || { name: stSpace.name, description: stSpace.description || '', color: stSpace.color || '#1F5FD6' };
+    const settingsEditable = !stSpace.archived && this.role(stSpace.home) === 'admin';
+    const setSd = (patch) => this.setState((st) => ({ settingsDraft: { ...(st.settingsDraft || sd), ...patch } }));
+    const stCount = ((x) => { const sub = (y) => [y, ...P[y].kids.flatMap(sub)]; return sub(x).length; })(stSpace.home);
     const settings = {
+      key: stKey,
+      title: stSpace.name,
+      badge: stKey.slice(0, 2),
+      color: sd.color,
+      pageCount: stCount + (stCount === 1 ? ' Seite' : ' Seiten'),
+      address: '/s/' + stKey.toLowerCase(),
       name: sd.name, description: sd.description,
-      editable: settingsEditable, locked: !settingsEditable, saved: s.saved,
-      lockedText: sp.archived ? 'Der Space ist archiviert. Name und Beschreibung lassen sich erst nach dem Zurückholen ändern.' : 'Name und Beschreibung ändern nur Admins dieses Spaces.',
-      onName: (e) => { const v = e.target.value; this.setState((st) => ({ settingsDraft: { ...(st.settingsDraft || sd), name: v }, saved: false })); },
-      onDescription: (e) => { const v = e.target.value; this.setState((st) => ({ settingsDraft: { ...(st.settingsDraft || sd), description: v }, saved: false })); }
+      editable: settingsEditable, locked: !settingsEditable,
+      cancelLabel: settingsEditable ? 'Abbrechen' : 'Schließen',
+      lockedText: stSpace.archived ? 'Der Space ist archiviert. Name, Beschreibung und Farbe lassen sich erst nach dem Zurückholen ändern.' : 'Name, Beschreibung und Farbe ändern nur Admins dieses Spaces.',
+      onName: (e) => setSd({ name: e.target.value }),
+      onDescription: (e) => setSd({ description: e.target.value }),
+      colors: SPACE_COLORS.map((c) => ({
+        color: c.color, label: c.label,
+        on: sd.color === c.color, checked: sd.color === c.color ? 'true' : 'false',
+        choose: () => settingsEditable && setSd({ color: c.color })
+      })),
+      archived: stSpace.archived,
+      active: !stSpace.archived,
+      zoneTitle: stSpace.archived ? 'Archiviert' : 'Archivieren',
+      zoneText: stSpace.archived
+        ? 'Alle können diesen Space nur noch lesen. Zurückgeholt gelten wieder die bisherigen Rechte.'
+        : 'Ein archivierter Space bleibt sichtbar, lässt sich aber von niemandem mehr bearbeiten.',
+      save: (e) => {
+        this.prevent(e);
+        if (!settingsEditable) return;
+        this.setState((st) => ({ spaces: { ...st.spaces, [stKey]: { ...st.spaces[stKey], name: sd.name.trim() || st.spaces[stKey].name, description: sd.description.trim(), color: sd.color } }, dialog: null, settingsDraft: null }));
+        this.showToast('Gespeichert');
+      },
+      askArchive: () => { this.setState({ dialog: 'confirm', confirm: { kind: 'archive', key: stKey, back: 'spaceSettings' } }); this.focusLater('#nf-confirm-cancel'); },
+      unarchive: () => { this.setState((st) => ({ spaces: { ...st.spaces, [stKey]: { ...st.spaces[stKey], archived: false } }, settingsDraft: null })); this.showToast('„' + stSpace.name + '“ zurückgeholt'); }
     };
 
-    const anyMenu = s.menu || s.spaceMenu || s.pageMenu || s.userMenu;
+    const anyMenu = s.menu || s.spaceMenu || s.pageMenu || s.userMenu || s.sideMenu;
     const trashItems = s.trash.filter((t) => P[t.id].space === s.space).map((t) => ({
       title: shown(P[t.id].title),
       canRestore: !sp.archived && this.canEdit(P[t.id].parent),
@@ -1779,7 +2268,7 @@ class Component extends DCLogic {
       drawerExpanded: s.drawer ? 'true' : 'false',
       openDrawer: (e) => { this.stop(e); this.setState({ drawer: true }); },
       closeDrawer: () => this.setState({ drawer: false }),
-      closeMenus: () => { if (anyMenu) this.setState({ menu: null, spaceMenu: false, spaceSub: null, pageMenu: false, userMenu: false }); },
+      closeMenus: () => { if (anyMenu) this.setState({ menu: null, spaceMenu: false, spaceSub: null, pageMenu: false, userMenu: false, sideMenu: null }); },
       onKey: (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
           this.prevent(e);
@@ -1789,13 +2278,13 @@ class Component extends DCLogic {
         }
         if (e.key !== 'Escape') return;
         if (s.dialog) this.setState({ dialog: null, confirm: null, rightsDraft: null });
-        else if (anyMenu) this.setState({ menu: null, spaceMenu: false, spaceSub: null, pageMenu: false, userMenu: false });
+        else if (anyMenu) this.setState({ menu: null, spaceMenu: false, spaceSub: null, pageMenu: false, userMenu: false, sideMenu: null });
         else if (s.renaming) this.setState({ renaming: null });
         else if (s.drawer) this.setState({ drawer: false });
       },
-      goOverview: (e) => { this.prevent(e); this.setState({ spaceMenu: false }); },
+      goOverview: (e) => { this.prevent(e); this.setState({ view: 'overview', spaceMenu: false, spaceSub: null, drawer: false, menu: null }); },
 
-      space: { ...sp, badge: sp.key.slice(0, 2), active: !sp.archived },
+      space: { ...sp, badge: sp.key.slice(0, 2), color: sp.color || '#1F5FD6', active: !sp.archived },
       spaceMenuOpen: s.spaceMenu,
       spaceMenuExpanded: s.spaceMenu ? 'true' : 'false',
       toggleSpaceMenu: (e) => { this.stop(e); this.setState((st) => ({ spaceMenu: !st.spaceMenu, spaceSub: null, menu: null, pageMenu: false, userMenu: false })); },
@@ -1818,7 +2307,10 @@ class Component extends DCLogic {
       crumbs,
       crumbCurrent,
       isPage,
-      isSettings: !isPage,
+      isSettings: s.view === 'settings',
+      isOverview: s.view === 'overview',
+      inSpace: s.view !== 'overview',
+      ...this.overviewVals(),
       presence,
       hasPresence: others.length > 0,
       presenceMore: others.length > shownOthers.length,
@@ -1947,12 +2439,7 @@ class Component extends DCLogic {
       resolveThread: () => this.setState({ threadOpen: false }),
 
       settings,
-      saveSettings: (e) => {
-        this.prevent(e);
-        this.setState((st) => ({ spaces: { ...st.spaces, [st.space]: { ...st.spaces[st.space], ...sd, name: sd.name.trim() || st.spaces[st.space].name } }, saved: true }));
-      },
-      askArchive: () => { this.setState({ dialog: 'confirm', confirm: { kind: 'archive' } }); this.focusLater('#nf-confirm-cancel'); },
-      unarchive: () => this.setState((st) => ({ spaces: { ...st.spaces, [st.space]: { ...st.spaces[st.space], archived: false } } })),
+      spaceSettingsOpen: s.dialog === 'spaceSettings',
 
       rightsOpen: s.dialog === 'rights',
       rights,
@@ -1985,6 +2472,8 @@ class Component extends DCLogic {
           openInvites: openCount,
           hasOpenInvites: openCount > 0,
           openInvitesLabel: openCount + ' offen',
+          statLine: s.members.length + (s.members.length === 1 ? ' Mitglied' : ' Mitglieder') + ' · '
+            + (openCount === 0 ? 'keine offene Einladung' : openCount + (openCount === 1 ? ' offene Einladung' : ' offene Einladungen')),
           memberCount: s.members.length,
           members: s.members.map((m) => {
             const fixed = m.role === 'owner' || m.key === 'peter';

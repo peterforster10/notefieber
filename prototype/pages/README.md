@@ -18,7 +18,7 @@ values (colors, font sizes, spacing, radii, shadows, layout).
 
 ## Was wie im Frontend ist
 
-- Seitenleiste: Logo und Mandant, Space-Umschalter (Menü mit allen Spaces, „⋯“ → Einstellungen),
+- Seitenleiste: Logo und Mandant, Space-Umschalter (Menü mit allen Spaces, „⋯“ → Einstellungen, Archivieren),
   Seitenbaum mit „Startseite“, Aufklappen, „+“ und Zeilenmenü (Umbenennen, Nach oben/unten,
   Einrücken, Ausrücken, In den Papierkorb), Papierkorb mit Wiederherstellen, „Daten gehostet in der
   EU“. Unter 1024 px eine Schublade. **Abweichend vom Frontend:** Abmelden und Sprache stehen nicht
@@ -57,8 +57,36 @@ values (colors, font sizes, spacing, radii, shadows, layout).
 - Seite: „Eingeschränkt“, Titel als Eingabefeld (ändert Baum und Brotkrume beim Tippen), Byline,
   Blöcke (Callout mit Art, Tabelle, Code-Block, Aufgaben, Seitenlinks, Erwähnungen, Inhaltsverzeichnis).
 - Neue Seite über „+“: ohne Titel, Cursor im Titel. Rückfragen als Dialog, Fokus auf „Abbrechen“.
-- Einstellungen eines Spaces mit Archivieren und Zurückholen.
+- **Einstellungen eines Spaces als Dialog** (statt der Seite `/s/<schlüssel>/settings`), geöffnet über
+  „⋯“ im Space-Umschalter oder in der Übersicht: Name, Beschreibung, Farbe (acht Farben mit weißer
+  Schrift >= 4,5:1), Schlüssel mit Adresse (fest), Bereich „Archivieren“ bzw. „Archiviert“ mit
+  „Zurückholen“. Ohne Admin-Recht oder archiviert nur lesbar mit Hinweis. Nach der Rückfrage zum
+  Archivieren geht es zurück in den Dialog.
+- **Archivieren direkt im Menü:** „⋯“ an einem Space (Umschalter und Übersicht) hat „Archivieren“
+  (mit Rückfrage) bzw. bei archivierten Spaces „Zurückholen“ (sofort).
 - Rollen: In „Vertrieb“ nur Kommentieren (kein „+“, Titel nicht änderbar), „Altes Intranet“ archiviert.
+
+## Übersicht (Startseite nach dem Login), neuer Entwurf
+
+Erreichbar über das Logo, „Alle Spaces“ im Space-Umschalter oder direkt mit
+`Main.dc.html#uebersicht`. Ersetzt die bisherige Liste mit Formularen (`apps/web/src/app/home.tsx`).
+
+- Seitenleiste: „Übersicht“ und die Liste aller Spaces mit farbigem Kürzel (Archivierte gedämpft),
+  „+“ für einen neuen Space; an jedem Space „⋯“ (wie im Seitenbaum beim Darüberfahren) mit
+  Einstellungen, Link kopieren und Archivieren bzw. Zurückholen. Kein Seitenbaum, kein Papierkorb,
+  keine Zeile unter der Suche.
+- Kopf: Begrüßung nach Tageszeit, Workspace und Zahl der Spaces, „Neuer Space“.
+- **Zuletzt angesehen** (Ausblick, die API merkt sich das noch nicht): Karten mit Space, Titel,
+  Schloss bei eigenen Rechten, Anfang des Inhalts, wer zuletzt bearbeitet hat.
+- **Spaces** als Kacheln: Kürzel in eigener Farbe (`color` pro Space, Vorschlag; auch im
+  Umschalter), Name, Schlüssel, Beschreibung, eigene Rolle als Chip, Zahl der Seiten, letzte
+  Änderung. Archivierte nur mit „Archivierte zeigen“. Letzte Kachel „Neuer Space“.
+- Rechte Spalte: **Letzte Änderungen** in sichtbaren Spaces (Ausblick, aus den Ereignissen der
+  Outbox) und für Owner/Admins eine Karte zum Workspace (Mitglieder, offene Einladungen, Knöpfe zu
+  den Dialogen). Unter 1200 px rutscht die Spalte unter den Inhalt.
+- **Neuer Space** als Dialog statt Formular: Name, Schlüssel (aus dem Namen vorgeschlagen, belegte
+  weichen aus, z. B. ENTW2; Prüfung wie in der Datenbank), Beschreibung, was alle im Workspace
+  dürfen. Danach öffnet sich die leere Startseite des neuen Spaces.
 
 ## Ausblick (noch nicht im Frontend)
 
