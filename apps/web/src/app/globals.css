@@ -981,6 +981,42 @@ button.nf-drawer-open {
 .nf-editor .bn-editor pre {
   font-family: var(--nf-font-mono);
 }
+/* Text der Seite wie im Prototyp (prototype/pages/Main.dc.html, .nf-editor): Zeilenhöhe 1,65 statt
+   BlockNotes 1,5, 10 px zwischen Absätzen, Überschriften kleiner (BlockNote: 3, 2 und 1,3 em). Die
+   Abstände sind Innenabstände und addieren sich: Absatz 3 + 7 = 10 px, vor einer Überschrift 7 + 21 =
+   28 px, danach 5 + 3 = 8 px. */
+.nf-editor .bn-editor .bn-block-content {
+  line-height: 1.65;
+}
+.nf-editor .bn-editor .bn-block-content[data-content-type='paragraph'] {
+  padding: 3px 0 7px;
+}
+.nf-editor .bn-editor .bn-block-content[data-content-type='heading'] {
+  padding: 21px 0 5px;
+  line-height: 1.3;
+}
+.nf-editor
+  .bn-editor
+  .bn-block-group
+  > .bn-block-outer:first-child
+  > .bn-block
+  > .bn-block-content[data-content-type='heading'] {
+  padding-top: 3px;
+}
+.nf-editor .bn-editor .bn-block-content[data-content-type='heading'] .bn-inline-content {
+  font-weight: 600;
+  line-height: 1.3;
+}
+.nf-editor .bn-editor .bn-block-content[data-content-type='heading'][data-level='1'] .bn-inline-content {
+  font-size: 24px;
+  letter-spacing: -0.01em;
+}
+.nf-editor .bn-editor .bn-block-content[data-content-type='heading'][data-level='2'] .bn-inline-content {
+  font-size: 20px;
+}
+.nf-editor .bn-editor .bn-block-content[data-content-type='heading'][data-level='3'] .bn-inline-content {
+  font-size: 17px;
+}
 /* Listenpunkte enger als Absätze (BlockNote gibt jedem Block 3 px oben und unten) */
 .nf-editor .bn-block-content[data-content-type='bulletListItem'],
 .nf-editor .bn-block-content[data-content-type='numberedListItem'],

@@ -81,7 +81,7 @@ svg.nf-icon{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;
 .nf-main:focus{outline:none}
 .nf-main-inner{max-width:760px;margin:0 auto}
 /* Mit Kommentarspalte (Ausblick): Inhalt und Spalte nebeneinander */
-.nf-main-inner.nf-with-comments{max-width:1100px;display:flex;flex-wrap:wrap;justify-content:center;gap:40px}
+.nf-main-inner.nf-with-comments{max-width:1160px;display:flex;flex-wrap:nowrap;justify-content:center;gap:60px}
 .nf-with-comments>article{flex:1 1 520px;max-width:760px;min-width:0}
 
 .nf-sidebar-top{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding:2px 4px 2px 10px}
@@ -102,7 +102,6 @@ button.nf-drawer-close,button.nf-drawer-open{display:none}
 .nf-search:focus-within .nf-icon{color:var(--nf-accent)}
 .nf-search{cursor:text;font-size:14px;text-align:left}
 .nf-search-placeholder{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--nf-placeholder)}
-.nf-search kbd{font-family:var(--nf-font-sans);font-size:12px;padding:0 5px;border:1px solid var(--nf-sidebar-border);border-radius:4px;background:var(--nf-subtle)}
 
 .nf-sidebar-foot{margin-top:auto;display:flex;flex-direction:column;gap:2px;padding-top:12px;border-top:1px solid var(--nf-sidebar-border)}
 .nf-eu{display:flex;align-items:center;gap:8px;margin:0;padding:10px 10px 2px;font-size:12px;color:var(--nf-sidebar-muted)}
@@ -341,6 +340,59 @@ button.nf-drawer-close,button.nf-drawer-open{display:none}
 .nf-field-hint{margin:4px 0 0;font-size:12px;color:var(--nf-muted)}
 .nf-field-error{margin:4px 0 0;font-size:12px;color:var(--nf-danger)}
 .nf-key-input{font-family:var(--nf-font-mono);text-transform:uppercase;max-width:200px}
+/* Editor (Prototyp): bearbeitbarer Bereich, Seitenmenü links am Block, „/“-Menü, Auswahl, Formatleiste */
+.nf-ed-wrap{position:relative}
+.nf-editable{outline:none;min-height:1.65em;padding-bottom:40px}
+.nf-editable>*{position:relative}
+.nf-editable p{margin:3px 0 10px}
+/* Überschriften wie im Frontend (CLAUDE.md, Abschnitt 9): 24/20/17 px, 600, Zeilenhöhe 1,3, 28 px davor, 8 px danach */
+.nf-editable h1,.nf-editable h2,.nf-editable h3{margin:28px 0 8px;line-height:1.3;font-weight:600}
+.nf-editable h1{font-size:24px;letter-spacing:-.01em}
+.nf-editable h2{font-size:20px}
+.nf-editable h3{font-size:17px}
+.nf-editable ul,.nf-editable ol{margin:0 0 12px;padding-left:24px}
+.nf-editable blockquote{margin:6px 0 14px;padding:2px 0 2px 14px;border-left:3px solid var(--nf-control-border);color:var(--nf-muted)}
+.nf-editable hr{margin:18px 0;border:0;border-top:1px solid var(--nf-border)}
+.nf-editable a:not(.nf-page-link){color:var(--nf-accent);text-decoration:underline}
+.nf-editable .nf-code pre{min-height:1.6em}
+.nf-code-lang{position:absolute;top:6px;left:14px;font-size:12px;color:#fff;opacity:.8;user-select:none}
+.nf-editable .nf-check span{flex:1;min-width:0;outline:none}
+.nf-editable [data-ph]{position:relative}
+.nf-editable [data-ph]::before{content:attr(data-ph);position:absolute;left:0;top:0;color:var(--nf-placeholder);pointer-events:none;white-space:nowrap}
+.nf-editable li[data-ph]::before{left:0}
+.nf-editable .nf-callout-content p[data-ph]::before{left:0}
+.nf-img-upload{display:flex;flex-direction:column;align-items:center;gap:6px;margin:6px 0 16px;padding:24px;border:2px dashed var(--nf-control-border);border-radius:10px;background:var(--nf-surface);color:var(--nf-muted);font-size:13px;user-select:none}
+.nf-img-upload .nf-btn{margin-top:4px}
+.nf-side-menu{position:absolute;left:-58px;display:flex;gap:0;padding-top:2px;z-index:5}
+.nf-side-btn{display:grid;place-items:center;width:26px;height:26px;padding:0;border:0;border-radius:5px;background:none;color:var(--nf-editor-icons);cursor:pointer}
+.nf-side-btn:hover{background:var(--nf-subtle);color:var(--nf-text)}
+.nf-side-handle{cursor:grab}
+.nf-block-menu{left:-58px;min-width:220px;margin-top:30px}
+.nf-drop-line{position:absolute;left:0;right:0;height:3px;margin-top:-2px;border-radius:2px;background:var(--nf-accent);pointer-events:none}
+.nf-slash{position:fixed;z-index:65;width:330px;max-height:min(380px,60vh);overflow-y:auto;padding:4px;border:1px solid var(--nf-border);border-radius:10px;background:var(--nf-bg);box-shadow:var(--nf-shadow-pop)}
+.nf-slash-group{padding:8px 10px 4px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--nf-muted)}
+.nf-slash-item{display:flex;align-items:center;gap:10px;min-height:44px;padding:4px 8px;border-radius:7px;cursor:pointer}
+.nf-slash-item[aria-selected='true']{background:var(--nf-sidebar-selected)}
+.nf-slash-icon{display:grid;place-items:center;width:32px;height:32px;flex:none;border:1px solid var(--nf-border);border-radius:7px;background:var(--nf-bg);color:var(--nf-text);font-size:12px;font-weight:600;font-family:var(--nf-font-sans)}
+.nf-slash-text{flex:1;min-width:0;display:flex;flex-direction:column}
+.nf-slash-title{font-size:14px;font-weight:500;color:var(--nf-text)}
+.nf-slash-hint{font-size:12px;color:var(--nf-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-slash-md{flex:none;padding:0 5px;border:1px solid var(--nf-border);border-radius:4px;background:var(--nf-subtle);color:var(--nf-muted);font-family:var(--nf-font-mono);font-size:11px}
+.nf-slash-empty{padding:14px 10px;font-size:13px;color:var(--nf-muted)}
+.nf-picker .nf-slash-icon{border:0}
+.nf-format-bar{position:fixed;z-index:66;display:flex;align-items:center;gap:2px;padding:4px;border:1px solid var(--nf-border);border-radius:9px;background:var(--nf-bg);box-shadow:var(--nf-shadow-pop);transform:translate(-50%,calc(-100% - 8px));white-space:nowrap}
+.nf-fb-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:30px;height:30px;padding:0 6px;border:0;border-radius:6px;background:none;color:var(--nf-text);font-size:14px;cursor:pointer}
+.nf-fb-btn:hover{background:var(--nf-subtle)}
+.nf-fb-btn[aria-pressed='true']{background:var(--nf-sidebar-selected);color:var(--nf-sidebar-selected-text)}
+.nf-fb-text{padding:0 8px;font-size:13px}
+.nf-fb-sep{width:1px;height:20px;margin:0 3px;background:var(--nf-border)}
+.nf-fb-select{height:30px;padding:0 4px;border:0;border-radius:6px;background:none;color:var(--nf-text);font-size:13px;cursor:pointer}
+.nf-fb-select:hover{background:var(--nf-subtle)}
+.nf-fb-b{font-weight:700}.nf-fb-i{font-style:italic;font-family:Georgia,serif}.nf-fb-u{text-decoration:underline}.nf-fb-s{text-decoration:line-through}.nf-fb-c{font-family:var(--nf-font-mono);font-size:12px}
+.nf-fb-link{display:flex;align-items:center;gap:4px}
+.nf-fb-link input{width:240px;height:30px;padding:0 8px;border:1px solid var(--nf-input-border);border-radius:6px;background:var(--nf-bg);font-size:13px}
+@media (max-width:1023.98px){.nf-side-menu{left:-50px}}
+@media (max-width:599.98px){.nf-side-menu{display:none}.nf-slash{width:calc(100vw - 24px)}}
 /* Befehlspalette (Suche, Strg K) */
 .nf-cmd-overlay{position:fixed;inset:0;z-index:75;display:flex;justify-content:center;align-items:flex-start;padding:12vh 16px 16px;background:rgba(15,37,55,.28)}
 :root[data-theme='dark'] .nf-cmd-overlay{background:rgba(0,0,0,.5)}
@@ -358,7 +410,7 @@ button.nf-drawer-close,button.nf-drawer-open{display:none}
 .nf-cmd-limit{display:inline-flex;align-items:center;gap:6px;height:28px;margin-left:auto;padding:0 10px;border:1px dashed var(--nf-control-border);border-radius:999px;background:none;color:var(--nf-muted);font-size:13px;cursor:pointer}
 .nf-cmd-limit:hover{color:var(--nf-text);border-color:var(--nf-input-border)}
 .nf-cmd-limit[aria-pressed='true']{border-style:solid;border-color:transparent;background:var(--nf-sidebar-selected);color:var(--nf-sidebar-selected-text);font-weight:600}
-.nf-cmd-list{flex:1;min-height:0;overflow-y:auto;padding:6px}
+.nf-cmd-list{flex:1;min-height:0;overflow-y:auto;padding:6px 6px 8px}
 .nf-cmd-group{padding:10px 10px 4px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--nf-muted)}
 .nf-cmd-item{display:flex;align-items:center;gap:12px;min-height:44px;padding:6px 10px;border-radius:8px;cursor:pointer}
 .nf-cmd-item[aria-selected='true']{background:var(--nf-sidebar-selected)}
@@ -378,14 +430,10 @@ button.nf-drawer-close,button.nf-drawer-open{display:none}
 .nf-cmd-empty{padding:28px 20px;text-align:center;color:var(--nf-muted);font-size:13px}
 .nf-cmd-empty p{margin:0 0 6px}
 .nf-cmd-empty strong{color:var(--nf-text);font-size:14px}
-.nf-cmd-foot{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;padding:8px 14px;border-top:1px solid var(--nf-border);background:var(--nf-surface);font-size:12px;color:var(--nf-muted)}
-.nf-cmd-foot>span{display:inline-flex;align-items:center;gap:4px}
-.nf-cmd-foot-note{margin-left:auto}
 @media (max-width:599.98px){
   .nf-cmd-overlay{padding:8px}
   .nf-cmd{max-height:calc(100dvh - 16px)}
   .nf-cmd-meta{display:none}
-  .nf-cmd-foot{display:none}
 }
 /* Rückmeldung */
 .nf-toast{position:fixed;left:50%;bottom:24px;z-index:80;transform:translateX(-50%);padding:10px 16px;border-radius:8px;background:var(--nf-text);color:var(--nf-bg);font-size:14px;box-shadow:var(--nf-shadow-pop)}
@@ -430,8 +478,10 @@ button.nf-drawer-close,button.nf-drawer-open{display:none}
 .nf-editor ul{margin:0 0 12px;padding-left:24px}
 .nf-editor li{padding-block:1px}
 .nf-placeholder{color:var(--nf-placeholder)}
-.nf-comment-mark{background:transparent;color:inherit;padding:0 1px;border-bottom:2px solid transparent}
-.nf-comment-mark.nf-on{background:var(--nf-comment-mark);border-bottom-color:var(--nf-attention)}
+/* Markierte Textstelle: offen dezent, aktiv kräftiger, erledigt ohne Markierung */
+.nf-comment-mark{background:transparent;color:inherit;padding:0 1px;border-bottom:2px solid transparent;border-radius:2px}
+.nf-comment-mark.nf-on{background:color-mix(in srgb,var(--nf-comment-mark) 70%,transparent);border-bottom-color:color-mix(in srgb,var(--nf-attention) 55%,transparent);cursor:pointer}
+.nf-comment-mark.nf-on.nf-active{background:var(--nf-comment-mark);border-bottom-color:var(--nf-attention)}
 .nf-callout{display:flex;gap:.6rem;align-items:flex-start;width:100%;margin:6px 0 16px;padding:.6rem .8rem;border-left:4px solid var(--nf-callout-fg);border-radius:4px;background:var(--nf-callout-bg);--nf-callout-fg:var(--nf-accent);--nf-callout-bg:var(--nf-accent-soft)}
 .nf-callout[data-variant='note']{--nf-callout-fg:var(--nf-muted);--nf-callout-bg:var(--nf-neutral-soft)}
 .nf-callout[data-variant='success']{--nf-callout-fg:var(--nf-done-fg);--nf-callout-bg:var(--nf-done-bg)}
@@ -469,16 +519,49 @@ button.nf-drawer-close,button.nf-drawer-open{display:none}
 .nf-check[data-checked='true'] span{color:var(--nf-muted);text-decoration:line-through}
 .nf-checklist{margin:0 0 16px}
 
-/* Kommentare (Ausblick) */
-.nf-comments{flex:0 1 300px;min-width:260px}
-.nf-comments-heading{margin:56px 0 12px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--nf-muted)}
-.nf-thread{border:1px solid var(--nf-border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px}
-.nf-thread-quote{margin:0;padding:4px 8px;border-radius:4px;background:var(--nf-comment-mark);font-size:13px}
+/* Kommentare (Ausblick): Spalte rechts, unter 1280 px Schublade; Sprechblasen am Rand */
+.nf-main-inner>article{position:relative}
+.nf-comment-pin{position:absolute;right:-52px;display:inline-flex;align-items:center;gap:3px;height:24px;padding:0 6px;border:1px solid var(--nf-border);border-radius:12px;background:var(--nf-bg);color:var(--nf-muted);font-size:11px;font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(15,37,55,.06)}
+.nf-comment-pin:hover,.nf-comment-pin[data-active='true']{border-color:var(--nf-attention);color:var(--nf-attention);background:var(--nf-attention-soft)}
+.nf-comments-backdrop{display:none}
+.nf-comments{flex:0 0 320px;align-self:flex-start;position:sticky;top:76px;max-height:calc(100vh - 92px);overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:2px 2px 16px}
+.nf-comments-head{display:flex;align-items:center;justify-content:space-between}
+.nf-comments-title{margin:0;font-size:15px;font-weight:600}
+.nf-cm-close{display:grid;place-items:center;width:28px;height:28px;padding:0;border:0;border-radius:6px;background:none;color:var(--nf-muted);cursor:pointer}
+.nf-cm-close:hover{background:var(--nf-subtle);color:var(--nf-text)}
+.nf-cm-tabs{display:flex;align-items:center;gap:4px;margin-bottom:2px}
+.nf-thread-reply.nf-cm-page{display:flex;align-items:center;gap:8px;flex:none;height:auto;min-height:52px;margin-top:4px;padding:0 14px;border:1px solid var(--nf-control-border);border-radius:10px;background:var(--nf-bg);font-size:14px;line-height:1.4}
+.nf-thread-reply.nf-cm-page:hover{border-color:var(--nf-input-border)}
+.nf-thread-reply.nf-cm-page .nf-icon{color:var(--nf-muted)}
+.nf-thread{display:flex;flex-direction:column;gap:10px;padding:12px;border:1px solid var(--nf-border);border-radius:10px;background:var(--nf-bg);cursor:default;transition:border-color 120ms ease,box-shadow 120ms ease}
+.nf-thread[data-active='true']{border-color:var(--nf-control-border);box-shadow:var(--nf-shadow-pop)}
+.nf-thread[data-resolved='true']{background:var(--nf-surface)}
+.nf-thread-quote{align-self:flex-start;max-width:100%;margin:0;padding:3px 8px;border:0;border-left:3px solid var(--nf-attention);border-radius:3px;background:var(--nf-attention-soft);color:var(--nf-text);font-size:13px;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.nf-thread[data-resolved='true'] .nf-thread-quote{border-left-color:var(--nf-control-border);background:var(--nf-neutral-soft);color:var(--nf-muted)}
+.nf-thread-kind{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--nf-muted)}
 .nf-comment{display:flex;gap:10px}
-.nf-comment .nf-byline-avatar{width:26px;height:26px;font-size:10px}
-.nf-comment p{margin:2px 0 0;font-size:14px}
+.nf-comment .nf-byline-avatar{width:26px;height:26px;font-size:10px;margin-top:1px}
+.nf-comment-body{min-width:0}
+.nf-comment p{margin:2px 0 0;font-size:14px;line-height:1.5;overflow-wrap:anywhere}
 .nf-comment-meta{font-size:13px}.nf-comment-meta span{color:var(--nf-muted)}
+.nf-reply{display:flex;flex-direction:column;gap:6px}
+.nf-reply-input{width:100%;margin:0;min-height:60px;font-size:14px}
+.nf-reply-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px}
+.nf-reply-hint{margin-right:auto;font-size:11px;color:var(--nf-muted)}
+.nf-btn-sm{height:30px;padding:0 10px;font-size:13px}
+.nf-btn-primary:disabled{opacity:.5;cursor:default}
+.nf-thread-foot{display:flex;align-items:center;gap:8px}
+.nf-thread-reply{flex:1;min-width:0;height:30px;padding:0 10px;border:1px solid var(--nf-border);border-radius:8px;background:var(--nf-bg);color:var(--nf-placeholder);font-size:13px;text-align:left;cursor:text}
+.nf-thread-reply:hover{border-color:var(--nf-control-border)}
+.nf-cm-empty{margin:8px 2px;font-size:13px;color:var(--nf-muted)}
+@media (max-width:1279.98px){
+  .nf-main-inner.nf-with-comments{display:block;max-width:760px}
+  .nf-comments-backdrop{display:block;position:fixed;inset:0;z-index:44;background:var(--nf-backdrop)}
+  .nf-comments{position:fixed;top:0;right:0;bottom:0;align-self:stretch;z-index:45;width:min(380px,100vw);max-height:none;padding:14px 14px 24px;background:var(--nf-surface);border-left:1px solid var(--nf-border);box-shadow:var(--nf-shadow-dialog)}
+}
+@media (max-width:599.98px){.nf-comment-pin{display:none}}
 .nf-btn-done{height:36px;border:0;background:var(--nf-done-bg);color:var(--nf-done-fg);font-size:13px;font-weight:500}
+.nf-btn-done.nf-btn-sm{height:30px;margin-left:auto}
 .nf-btn-done:hover{background:color-mix(in srgb,var(--nf-done-bg) 85%,var(--nf-done-fg))}
 
 /* Dialog (im Frontend natives <dialog>, hier als Overlay) */
@@ -552,7 +635,6 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
 @media (max-width:599.98px){
   .nf-topbar,.nf-pagebar{padding:8px 12px}
   .nf-main{padding:12px 16px 48px}
-  .nf-search kbd{display:none}
   .nf-title{font-size:28px}
 }
 @media (prefers-reduced-motion:reduce){.nf-sidebar,.nf-twisty .nf-icon,.nf-switch span{transition:none!important}.nf-spin{animation:none}}
@@ -791,7 +873,6 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
       <button type="button" id="nf-search" class="nf-search" aria-haspopup="dialog" aria-keyshortcuts="Control+K" onClick="{{openPalette}}">
         <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
         <span class="nf-search-placeholder">Suchen oder Befehl …</span>
-        <kbd>Strg K</kbd>
       </button>
 
       <!-- Rechts: Konto der angemeldeten Person mit Profil, Einstellungen, Sprache, Abmelden -->
@@ -968,7 +1049,7 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
               <span>Deine Rolle: {{page.roleLabel}}</span>
             </p>
 
-            <div class="nf-editor" aria-label="Inhalt der Seite">
+            <div class="nf-editor" aria-label="Inhalt der Seite" onClick="{{cm.onEditorClick}}">
               <!-- Startseite von ENTW: Inhaltsverzeichnis, Seitenlinks, Hinweis, Erwähnung -->
               <sc-if value="{{body.home}}" hint-placeholder-val="{{ false }}">
                 <p>Hier dokumentiert das Entwicklungsteam von Alpenwerk Architektur, Abläufe und Betrieb.</p>
@@ -1009,7 +1090,7 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
               <!-- Datenmodell: Kommentar an einer Textstelle, Callout, Tabelle, Code, Aufgaben -->
               <sc-if value="{{body.dm}}" hint-placeholder-val="{{ true }}">
                 <h2>Überblick</h2>
-                <p><mark class="nf-comment-mark {{markCls}}">Jede Tabelle trägt <code>tenant_id</code></mark>. Row Level Security trennt die Mandanten in der Datenbank selbst; die API setzt den Mandanten zu Beginn jeder Transaktion.</p>
+                <p><mark class="nf-comment-mark {{markCls}}" data-thread="t1" data-static="true">Jede Tabelle trägt <code>tenant_id</code></mark>. Row Level Security trennt die Mandanten in der Datenbank selbst; die API setzt den Mandanten zu Beginn jeder Transaktion.</p>
                 <div class="nf-callout" data-variant="{{calloutDm.variant}}">
                   <span class="nf-callout-icon">
                     <sc-if value="{{page.editable}}" hint-placeholder-val="{{ true }}">
@@ -1066,50 +1147,115 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
                   <p>{{para.text}}</p>
                 </sc-for>
               </sc-if>
-              <sc-if value="{{body.empty}}" hint-placeholder-val="{{ false }}">
-                <p class="nf-placeholder">Text eingeben oder '/' für Befehle tippen</p>
-              </sc-if>
-            </div>
-          </article>
-
-          <!-- Ausblick: Kommentare in einer rechten Spalte, an der Textstelle markiert -->
-          <sc-if value="{{commentsOpen}}" hint-placeholder-val="{{ true }}">
-            <aside class="nf-comments" aria-label="Kommentare">
-              <h2 class="nf-comments-heading">Kommentare</h2>
-              <sc-if value="{{hasThread}}" hint-placeholder-val="{{ true }}">
-                <div class="nf-thread">
-                  <p class="nf-thread-quote">„Jede Tabelle trägt tenant_id“</p>
-                  <div class="nf-comment">
-                    <span class="nf-byline-avatar" style="background: #0E7490" aria-hidden="true">SB</span>
-                    <div>
-                      <div class="nf-comment-meta"><strong>Sophie Bauer</strong> <span>vor 1 Std.</span></div>
-                      <p>Gilt das auch für <code>page_links</code>? Dort hängen zwei Seiten dran.</p>
+              <!-- Editierbarer Bereich (Prototyp): leere Seiten ganz, andere ab dem Ende. Hier wirken
+                   „/“-Menü, „[“, „@“, die Leiste beim Markieren, „+“ und Ziehpunkt links am Block.
+                   Der Inhalt wird pro Seite gemerkt (nur in dieser Sitzung). -->
+              <sc-if value="{{page.editable}}" hint-placeholder-val="{{ true }}">
+                <div class="nf-ed-wrap" onMouseMove="{{ed.onMove}}" onMouseLeave="{{ed.onLeave}}">
+                  <sc-if value="{{ed.side.show}}" hint-placeholder-val="{{ false }}">
+                    <div class="nf-side-menu" style="top: {{ed.side.top}}px">
+                      <button type="button" class="nf-side-btn" aria-label="Block darunter einfügen" title="Klicken: Block darunter einfügen" onMouseDown="{{ed.keepFocus}}" onClick="{{ed.side.plus}}">
+                        <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+                      </button>
+                      <button type="button" class="nf-side-btn nf-side-handle" draggable="true" aria-label="Block-Menü öffnen oder Block ziehen" title="Ziehen: verschieben · Klicken: Menü" aria-haspopup="menu" aria-expanded="{{ed.blockMenu.expanded}}" onMouseDown="{{ed.keepFocus}}" onClick="{{ed.side.handle}}" onDragStart="{{ed.side.dragStart}}" onDragEnd="{{ed.side.dragEnd}}">
+                        <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="4" r="1.1" fill="currentColor" stroke="none"></circle><circle cx="10" cy="4" r="1.1" fill="currentColor" stroke="none"></circle><circle cx="6" cy="8" r="1.1" fill="currentColor" stroke="none"></circle><circle cx="10" cy="8" r="1.1" fill="currentColor" stroke="none"></circle><circle cx="6" cy="12" r="1.1" fill="currentColor" stroke="none"></circle><circle cx="10" cy="12" r="1.1" fill="currentColor" stroke="none"></circle></svg>
+                      </button>
                     </div>
-                  </div>
-                  <div class="nf-comment">
-                    <span class="nf-byline-avatar" style="background: #7C3AED" aria-hidden="true">LG</span>
-                    <div>
-                      <div class="nf-comment-meta"><strong>Lukas Gruber</strong> <span>vor 40 Min.</span></div>
-                      <p>Ja, ergänzt. Der Schematest prüft jetzt alle Tabellen.</p>
-                    </div>
-                  </div>
-                  <label>
-                    <span class="nf-visually-hidden">Antworten</span>
-                    <input type="text" class="nf-input nf-input-wide" placeholder="Antworten …">
-                  </label>
-                  <div style="display: flex; justify-content: flex-end">
-                    <button type="button" class="nf-btn nf-btn-done" onClick="{{resolveThread}}">
-                      <svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg>
-                      Erledigt
-                    </button>
-                  </div>
+                  </sc-if>
+                  <sc-if value="{{ed.blockMenu.open}}" hint-placeholder-val="{{ false }}">
+                    <ul class="nf-menu nf-block-menu" role="menu" aria-label="Block" style="top: {{ed.blockMenu.top}}px" onMouseDown="{{ed.keepFocus}}">
+                      <sc-for list="{{ed.blockMenu.items}}" as="bm" hint-placeholder-count="4">
+                        <li role="none"><button type="button" role="menuitem" class="nf-menu-item {{bm.cls}}" aria-disabled="{{bm.disabled}}" onClick="{{bm.run}}">
+                          <span class="nf-menu-label">{{bm.label}}</span><span class="nf-menu-shortcut">{{bm.keys}}</span></button></li>
+                      </sc-for>
+                    </ul>
+                  </sc-if>
+                  <div id="nf-editable" class="nf-editable" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Inhalt der Seite, bearbeitbar" spellcheck="true" onInput="{{ed.onInput}}" onKeyDown="{{ed.onKey}}" onClick="{{ed.onClick}}" onDragOver="{{ed.onDragOver}}" onDrop="{{ed.onDrop}}"></div>
+                  <sc-if value="{{ed.drop.show}}" hint-placeholder-val="{{ false }}">
+                    <div class="nf-drop-line" style="top: {{ed.drop.top}}px"></div>
+                  </sc-if>
                 </div>
               </sc-if>
-              <sc-if value="{{noComments}}" hint-placeholder-val="{{ false }}">
-                <p class="nf-muted" style="margin: 0 0 12px">Noch keine offenen Kommentare auf dieser Seite. Markiere Text, um ihn zu kommentieren.</p>
+              <sc-if value="{{body.emptyReadonly}}" hint-placeholder-val="{{ false }}">
+                <p class="nf-muted">Diese Seite ist noch leer.</p>
               </sc-if>
-              <sc-if value="{{hasResolved}}" hint-placeholder-val="{{ true }}">
-                <button type="button" class="nf-link-button" style="margin-top: 10px; height: 36px; padding: 0 4px; border: 0; background: none; color: var(--nf-done-fg); font-size: 13px; cursor: pointer">{{resolvedLabel}} anzeigen</button>
+            </div>
+            <!-- Sprechblasen am rechten Rand neben jeder Textstelle mit offenem Kommentar (Position aus dem DOM) -->
+            <sc-for list="{{cm.pins}}" as="pn" hint-placeholder-count="1">
+              <button type="button" class="nf-comment-pin" data-active="{{pn.active}}" style="top: {{pn.top}}px" aria-label="{{pn.label}}" title="{{pn.label}}" onClick="{{pn.open}}">
+                <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"></path></svg>
+                <span>{{pn.count}}</span>
+              </button>
+            </sc-for>
+          </article>
+
+          <!-- Kommentare (Ausblick): rechte Spalte, standardmäßig zu; unter 1280 px eine Schublade von rechts -->
+          <sc-if value="{{commentsOpen}}" hint-placeholder-val="{{ false }}">
+            <div class="nf-comments-backdrop" aria-hidden="true" onClick="{{toggleComments}}"></div>
+            <aside class="nf-comments" aria-labelledby="cm-title" onKeyDown="{{cm.onKey}}">
+              <div class="nf-comments-head">
+                <h2 id="cm-title" class="nf-comments-title">Kommentare</h2>
+                <button type="button" class="nf-cm-close" aria-label="Kommentare schließen" title="Schließen" onClick="{{toggleComments}}">
+                  <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+                </button>
+              </div>
+              <div class="nf-cm-tabs" role="tablist" aria-label="Kommentare filtern">
+                <button type="button" role="tab" class="nf-cmd-scope" aria-selected="{{cm.tabOpen}}" onClick="{{cm.showOpen}}">Offen<span class="nf-cmd-scope-count">{{cm.openCount}}</span></button>
+                <button type="button" role="tab" class="nf-cmd-scope" aria-selected="{{cm.tabResolved}}" onClick="{{cm.showResolved}}">Erledigt<span class="nf-cmd-scope-count">{{cm.resolvedCount}}</span></button>
+              </div>
+
+              <sc-for list="{{cm.threads}}" as="th" hint-placeholder-count="2">
+                <article class="nf-thread" data-active="{{th.active}}" data-resolved="{{th.resolvedAttr}}" aria-label="{{th.label}}" onClick="{{th.activate}}">
+                  <sc-if value="{{th.hasQuote}}" hint-placeholder-val="{{ true }}">
+                    <button type="button" class="nf-thread-quote" title="Zur Textstelle" onClick="{{th.jump}}">„{{th.quote}}“</button>
+                  </sc-if>
+                  <sc-if value="{{th.pageLevel}}" hint-placeholder-val="{{ false }}">
+                    <span class="nf-thread-kind">Kommentar zur Seite</span>
+                  </sc-if>
+                  <sc-for list="{{th.comments}}" as="c" hint-placeholder-count="2">
+                    <div class="nf-comment">
+                      <span class="nf-byline-avatar" style="background: {{c.color}}" aria-hidden="true">{{c.initials}}</span>
+                      <div class="nf-comment-body">
+                        <div class="nf-comment-meta"><strong>{{c.name}}</strong> <span>{{c.when}}</span></div>
+                        <p>{{c.text}}</p>
+                      </div>
+                    </div>
+                  </sc-for>
+                  <sc-if value="{{th.replyOpen}}" hint-placeholder-val="{{ false }}">
+                    <form class="nf-reply" onSubmit="{{th.send}}">
+                      <label class="nf-visually-hidden" for="{{th.replyId}}">{{th.replyLabel}}</label>
+                      <textarea id="{{th.replyId}}" class="nf-input nf-reply-input" rows="2" placeholder="{{th.replyPlaceholder}}" value="{{th.draft}}" onChange="{{th.onDraft}}" onKeyDown="{{th.replyKey}}"></textarea>
+                      <div class="nf-reply-actions">
+                        <span class="nf-reply-hint">Strg Enter</span>
+                        <button type="button" class="nf-btn nf-btn-sm" onClick="{{th.cancel}}">Abbrechen</button>
+                        <button type="submit" class="nf-btn nf-btn-primary nf-btn-sm" disabled="{{th.sendDisabled}}">{{th.sendLabel}}</button>
+                      </div>
+                    </form>
+                  </sc-if>
+                  <sc-if value="{{th.footer}}" hint-placeholder-val="{{ true }}">
+                    <div class="nf-thread-foot">
+                      <sc-if value="{{th.canReply}}" hint-placeholder-val="{{ true }}">
+                        <button type="button" class="nf-thread-reply" onClick="{{th.startReply}}">Antworten …</button>
+                      </sc-if>
+                      <sc-if value="{{th.canResolve}}" hint-placeholder-val="{{ true }}">
+                        <button type="button" class="nf-btn nf-btn-sm nf-btn-done" onClick="{{th.toggleResolved}}">
+                          <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg>
+                          {{th.resolveLabel}}
+                        </button>
+                      </sc-if>
+                    </div>
+                  </sc-if>
+                </article>
+              </sc-for>
+              <sc-if value="{{cm.empty}}" hint-placeholder-val="{{ false }}">
+                <p class="nf-cm-empty">{{cm.emptyText}}</p>
+              </sc-if>
+              <!-- Kommentar ohne Textstelle: Feld unten, sieht aus wie „Antworten …“ -->
+              <sc-if value="{{cm.showPageComposer}}" hint-placeholder-val="{{ true }}">
+                <button type="button" class="nf-thread-reply nf-cm-page" onClick="{{cm.newPageComment}}">
+                  <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"></path></svg>
+                  Kommentar zur ganzen Seite …
+                </button>
               </sc-if>
             </aside>
           </sc-if>
@@ -1575,6 +1721,82 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
     </div>
   </sc-if>
 
+  <!-- ============================== Editor: schwebende Elemente ============================== -->
+  <!-- „/“-Menü: Blöcke nach Gruppen, filtert beim Weitertippen; ↑↓ Enter Esc -->
+  <sc-if value="{{ed.slash.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-slash" role="listbox" aria-label="Blöcke" style="left: {{ed.slash.x}}px; top: {{ed.slash.y}}px" onMouseDown="{{ed.keepFocus}}">
+      <sc-for list="{{ed.slash.groups}}" as="g" hint-placeholder-count="2">
+        <div role="group" aria-label="{{g.label}}">
+          <div class="nf-slash-group">{{g.label}}</div>
+          <sc-for list="{{g.items}}" as="it" hint-placeholder-count="3">
+            <div id="{{it.domId}}" role="option" aria-selected="{{it.selected}}" class="nf-slash-item" onClick="{{it.run}}" onMouseMove="{{it.hover}}">
+              <span class="nf-slash-icon" aria-hidden="true">{{it.glyph}}</span>
+              <span class="nf-slash-text"><span class="nf-slash-title">{{it.title}}</span><span class="nf-slash-hint">{{it.hint}}</span></span>
+              <sc-if value="{{it.hasMd}}" hint-placeholder-val="{{ false }}"><kbd class="nf-slash-md">{{it.md}}</kbd></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+      <sc-if value="{{ed.slash.empty}}" hint-placeholder-val="{{ false }}">
+        <div class="nf-slash-empty">Kein Block passt zu „{{ed.slash.q}}“</div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <!-- Auswahl hinter „[“ (Seite) und „@“ (Person): nur lesbare Seiten bzw. Mitglieder des Workspaces -->
+  <sc-if value="{{ed.picker.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-slash nf-picker" role="listbox" aria-label="{{ed.picker.label}}" style="left: {{ed.picker.x}}px; top: {{ed.picker.y}}px" onMouseDown="{{ed.keepFocus}}">
+      <div class="nf-slash-group">{{ed.picker.label}}</div>
+      <sc-for list="{{ed.picker.items}}" as="it" hint-placeholder-count="4">
+        <div id="{{it.domId}}" role="option" aria-selected="{{it.selected}}" class="nf-slash-item" onClick="{{it.run}}" onMouseMove="{{it.hover}}">
+          <span class="nf-slash-icon" style="{{it.iconStyle}}" aria-hidden="true">{{it.glyph}}</span>
+          <span class="nf-slash-text"><span class="nf-slash-title">{{it.title}}</span><span class="nf-slash-hint">{{it.hint}}</span></span>
+        </div>
+      </sc-for>
+      <sc-if value="{{ed.picker.empty}}" hint-placeholder-val="{{ false }}">
+        <div class="nf-slash-empty">{{ed.picker.emptyText}}</div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <!-- Leiste beim Markieren: im bearbeitbaren Bereich Blocktyp, Formate, Link; überall „Kommentieren“ -->
+  <sc-if value="{{ed.bar.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-format-bar" role="toolbar" aria-label="Formatierung" style="left: {{ed.bar.x}}px; top: {{ed.bar.y}}px" onMouseDown="{{ed.keepFocus}}">
+      <sc-if value="{{ed.bar.full}}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ed.bar.linkMode}}" hint-placeholder-val="{{ false }}">
+          <form class="nf-fb-link" onSubmit="{{ed.bar.applyLink}}">
+            <input id="nf-fb-url" type="url" placeholder="https://…" aria-label="Adresse des Links" value="{{ed.bar.url}}" onChange="{{ed.bar.onUrl}}" onKeyDown="{{ed.bar.urlKey}}">
+            <button type="submit" class="nf-fb-btn nf-fb-text">Übernehmen</button>
+          </form>
+        </sc-if>
+        <sc-if value="{{ed.bar.normal}}" hint-placeholder-val="{{ true }}">
+          <select class="nf-fb-select" aria-label="Blocktyp" value="{{ed.bar.block}}" onChange="{{ed.bar.setBlock}}">
+            <option value="p">Absatz</option>
+            <option value="h1">Überschrift 1</option>
+            <option value="h2">Überschrift 2</option>
+            <option value="h3">Überschrift 3</option>
+            <option value="blockquote">Zitat</option>
+          </select>
+          <span class="nf-fb-sep" aria-hidden="true"></span>
+          <sc-for list="{{ed.bar.marks}}" as="mk" hint-placeholder-count="5">
+            <button type="button" class="nf-fb-btn" aria-pressed="{{mk.pressed}}" aria-label="{{mk.label}}" title="{{mk.title}}" onClick="{{mk.run}}"><span class="{{mk.cls}}">{{mk.glyph}}</span></button>
+          </sc-for>
+          <span class="nf-fb-sep" aria-hidden="true"></span>
+          <button type="button" class="nf-fb-btn" aria-label="Link einfügen" title="Link (Strg K im Text)" onClick="{{ed.bar.startLink}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.75 9.25a3 3 0 004.24 0l2-2a3 3 0 00-4.24-4.24l-.75.75"></path><path d="M9.25 6.75a3 3 0 00-4.24 0l-2 2a3 3 0 004.24 4.24l.75-.75"></path></svg>
+          </button>
+          <span class="nf-fb-sep" aria-hidden="true"></span>
+        </sc-if>
+      </sc-if>
+      <sc-if value="{{ed.bar.normal}}" hint-placeholder-val="{{ true }}">
+        <button type="button" class="nf-fb-btn nf-fb-text" onClick="{{ed.bar.comment}}">
+          <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"></path></svg>
+          Kommentieren
+        </button>
+      </sc-if>
+    </div>
+  </sc-if>
+
   <!-- ============================== Befehlspalette (Suche, Strg K) ==============================
        Volltext über Titel und Inhalt (im Frontend: page_search, nur Seiten mit Leserecht), dazu Spaces,
        Personen und Aktionen. Tastatur: ↑↓ auswählen, Enter öffnen, Tab Bereich wechseln, Esc schließen. -->
@@ -1584,7 +1806,6 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
         <div class="nf-cmd-input">
           <svg class="nf-icon" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
           <input id="nf-cmd-q" type="text" role="combobox" aria-expanded="true" aria-controls="nf-cmd-list" aria-activedescendant="{{cmd.activeId}}" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="{{cmd.placeholder}}" value="{{cmd.q}}" onChange="{{cmd.onInput}}" onKeyDown="{{cmd.onKey}}">
-          <kbd>Esc</kbd>
         </div>
         <div class="nf-cmd-scopes" role="tablist" aria-label="Bereich">
           <sc-for list="{{cmd.scopes}}" as="sc" hint-placeholder-count="4">
@@ -1636,13 +1857,6 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
               </sc-if>
             </div>
           </sc-if>
-        </div>
-        <div class="nf-cmd-foot" aria-hidden="true">
-          <span><kbd>↑</kbd><kbd>↓</kbd> auswählen</span>
-          <span><kbd>↵</kbd> öffnen</span>
-          <span><kbd>Tab</kbd> Bereich</span>
-          <span><kbd>Esc</kbd> schließen</span>
-          <span class="nf-cmd-foot-note">{{cmd.footNote}}</span>
         </div>
       </div>
     </div>
@@ -1715,6 +1929,27 @@ const SEARCH_TEXT = {
   home: 'Hier dokumentiert das Entwicklungsteam von Alpenwerk Architektur, Abläufe und Betrieb. Bereiche: Architektur – Frontend, API, Datenmodell und Rechte. Release-Prozess – vom Merge bis zum Pilot. Betrieb – Cluster, Backups und Bereitschaft. Mitmachen: Neue Seiten bitte unter dem passenden Bereich anlegen. Seiten mit eigenen Rechten sind mit einem Schloss markiert. Fragen zum Wiki an @Lukas Gruber.',
   dm: 'Überblick: Jede Tabelle trägt tenant_id. Row Level Security trennt die Mandanten in der Datenbank selbst; die API setzt den Mandanten zu Beginn jeder Transaktion. Maßgeblich ist schema.sql. Jede Änderung am Schema braucht einen Test in schema_test.sql. Kerntabellen: spaces – Bereich wie in Confluence, Einheit für Rechte und Import. pages – Seitenbaum mit Pfad und Position, Papierkorb. page_contents – Yjs-Zustand, BlockNote-JSON und Klartext für die Suche. grants – Rechte auf einen Space oder eine Seite. Mandant setzen: SELECT set_config(\'app.tenant_id\', $1, true). Offene Punkte: RLS-Tests für alle Lesepfade. Tabelle mit effektiven Rechten für große Seitenbäume. Wie Rechte vererbt werden, steht unter Rechte-Konzept. Fragen an @Sophie Bauer.'
 };
+// Blöcke im „/“-Menü (Namen wie im BlockNote-Wörterbuch, Gruppen wie im Frontend: components/editor/menus.tsx)
+const SLASH = [
+  { group: 'Überschriften', key: 'h1', title: 'Überschrift 1', hint: 'Große Überschrift', glyph: 'H1', md: '#', alias: 'h1 heading titel' },
+  { group: 'Überschriften', key: 'h2', title: 'Überschrift 2', hint: 'Mittlere Überschrift', glyph: 'H2', md: '##', alias: 'h2 heading' },
+  { group: 'Überschriften', key: 'h3', title: 'Überschrift 3', hint: 'Kleine Überschrift', glyph: 'H3', md: '###', alias: 'h3 heading' },
+  { group: 'Grundblöcke', key: 'p', title: 'Absatz', hint: 'Normaler Text', glyph: '¶', md: '', alias: 'text paragraph' },
+  { group: 'Grundblöcke', key: 'ul', title: 'Aufzählung', hint: 'Liste mit Punkten', glyph: '•', md: '-', alias: 'liste bullet punkte' },
+  { group: 'Grundblöcke', key: 'ol', title: 'Nummerierte Liste', hint: 'Liste mit Zahlen', glyph: '1.', md: '1.', alias: 'liste numbered zahlen' },
+  { group: 'Grundblöcke', key: 'todo', title: 'Aufgabe', hint: 'Liste mit Kästchen zum Abhaken', glyph: '☐', md: '[]', alias: 'checkliste todo check' },
+  { group: 'Grundblöcke', key: 'quote', title: 'Zitat', hint: 'Zitat oder Hervorhebung', glyph: '„', md: '>', alias: 'quote' },
+  { group: 'Grundblöcke', key: 'callout', title: 'Callout', hint: 'Hinweis: Info, Warnung, Erfolg, Fehler', glyph: 'ℹ', md: '', alias: 'hinweis info warnung box' },
+  { group: 'Grundblöcke', key: 'code', title: 'Code', hint: 'Code mit Sprachauswahl', glyph: '</>', md: '```', alias: 'code snippet programm' },
+  { group: 'Grundblöcke', key: 'table', title: 'Tabelle', hint: 'Tabelle mit Kopfzeile', glyph: '▦', md: '', alias: 'table' },
+  { group: 'Grundblöcke', key: 'hr', title: 'Trennlinie', hint: 'Horizontale Linie', glyph: '—', md: '---', alias: 'divider linie' },
+  { group: 'Medien', key: 'img', title: 'Bild', hint: 'PNG, JPEG, GIF oder WebP hochladen', glyph: '▣', md: '', alias: 'image foto upload' },
+  { group: 'Verknüpfen', key: 'pagelink', title: 'Link auf Seite', hint: 'Eine andere Seite verlinken (auch mit „[“)', glyph: '↗', md: '[', alias: 'seitenlink verlinken page' },
+  { group: 'Verknüpfen', key: 'mention', title: 'Person erwähnen', hint: 'Eine Person aus dem Workspace nennen (auch mit „@“)', glyph: '@', md: '@', alias: 'erwähnung mention person' },
+  { group: 'Verknüpfen', key: 'toc', title: 'Inhaltsverzeichnis', hint: 'Liste der Überschriften dieser Seite', glyph: '≡', md: '', alias: 'toc inhalt verzeichnis' }
+];
+const BLOCK_PH = { P: "Text eingeben oder '/' für Befehle tippen", H1: 'Überschrift 1', H2: 'Überschrift 2', H3: 'Überschrift 3', LI: 'Liste', BLOCKQUOTE: 'Zitat' };
+const esc = (t) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 /** Für den Vergleich: klein, ohne Akzente (ü → u); bei vorkomponierten Zeichen gleich lang wie das Original */
 const fold = (t) => t.normalize('NFC').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 // Farben für Spaces (weiße Schrift auf jeder Farbe >= 4,5:1, wie die Personenfarben)
@@ -1807,8 +2042,28 @@ class Component extends DCLogic {
       dialog: null,
       confirm: null,
       rightsDraft: null,
-      commentsOpen: true,
-      threadOpen: true,
+      // Kommentare: Spalte standardmäßig zu; Threads pro Seite (quote = markierte Stelle, ohne = zur Seite)
+      commentsOpen: false,
+      threads: {
+        dm: [
+          { id: 't1', quote: 'Jede Tabelle trägt tenant_id', resolved: false, comments: [
+            { who: 'sophie', when: 'vor 1 Std.', text: 'Gilt das auch für page_links? Dort hängen zwei Seiten dran.' },
+            { who: 'lukas', when: 'vor 40 Min.', text: 'Ja, ergänzt. Der Schematest prüft jetzt alle Tabellen.' }
+          ] },
+          { id: 't2', quote: '', resolved: false, comments: [
+            { who: 'markus', when: 'gestern', text: 'Sollten files und comments nicht auch in die Liste der Kerntabellen?' }
+          ] },
+          { id: 't3', quote: '', resolved: true, comments: [
+            { who: 'lukas', when: 'am 30. Oktober', text: 'Bitte das Rechte-Konzept verlinken.' },
+            { who: 'sophie', when: 'am 30. Oktober', text: 'Ist drin, ganz unten.' }
+          ] }
+        ]
+      },
+      activeThread: null,
+      commentTab: 'open',
+      replying: null,
+      replyDraft: {},
+      pins: [],
       tasks: { t1: true, t2: false },
       callouts: { dm: 'info', home: 'note' },
       drawer: false,
@@ -1844,6 +2099,21 @@ class Component extends DCLogic {
       window.addEventListener('online', () => this.setState({ online: true }));
       window.addEventListener('offline', () => this.setState({ online: false }));
     }
+    // Editor: Entwürfe pro Seite, Formatleiste und Platzhalter folgen der Auswahl
+    this._drafts = {};
+    this.state.ed = { slash: null, picker: null, bar: null, side: null, blockMenu: null, drop: null };
+    try { document.execCommand('defaultParagraphSeparator', false, 'p'); } catch (err) { /* älterer Browser */ }
+    document.addEventListener('selectionchange', () => {
+      if (this._selRaf) return;
+      this._selRaf = setTimeout(() => { this._selRaf = null; this.edUpdatePlaceholder(); this.edUpdateBar(); }, 16);
+    });
+    window.addEventListener('scroll', (e) => {
+      const t = e.target;
+      if (t && t.closest && t.closest('.nf-slash,.nf-cmd-list')) return;
+      const ed = this.state.ed;
+      if (ed.slash || ed.picker) this.setEd({ slash: null, picker: null });
+      if (ed.bar) { this.setEd({ bar: null }); this.edUpdateBar(); }
+    }, true);
   }
 
   // ---------- Hilfen ----------
@@ -1951,6 +2221,748 @@ class Component extends DCLogic {
   openSpaceSettings(key) {
     this.setState({ dialog: 'spaceSettings', settingsKey: key, settingsDraft: null, spaceMenu: false, spaceSub: null, sideMenu: null, drawer: false });
     this.focusLater('#st-name');
+  }
+
+  // ---------- Kommentare ----------
+  setThreads(pid, fn) {
+    this.setState((st) => ({ threads: { ...st.threads, [pid]: fn(st.threads[pid] || []) } }));
+  }
+  /** Spalte öffnen und einen Thread aktiv machen; mit focusReply das Antwortfeld */
+  openThread(id, { reply = false, tab } = {}) {
+    this.setState((st) => ({ commentsOpen: true, activeThread: id, replying: reply ? id : st.replying, commentTab: tab || st.commentTab }));
+    setTimeout(() => {
+      const card = document.querySelector('.nf-thread[data-active="true"]');
+      if (card) card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      if (reply) { const t = document.getElementById('nf-reply-' + id); if (t) t.focus(); }
+    }, 60);
+  }
+  /** Markierte Textstellen nach dem Rendern: Klassen setzen (außer der festen in der Vorlage) und Sprechblasen messen */
+  commentSync(pid) {
+    setTimeout(() => {
+      const art = document.querySelector('.nf-main-inner > article');
+      const s = this.state;
+      if (!art) { if (s.pins.length) this.setState({ pins: [] }); return; }
+      const threads = s.threads[pid] || [];
+      const ar = art.getBoundingClientRect();
+      const pins = [];
+      document.querySelectorAll('.nf-editor mark[data-thread]').forEach((m) => {
+        const t = threads.find((x) => x.id === m.dataset.thread);
+        const open = !!t && !t.resolved;
+        if (!m.dataset.static) {
+          m.classList.add('nf-comment-mark');
+          m.classList.toggle('nf-on', open);
+          m.classList.toggle('nf-active', open && s.activeThread === t.id && s.commentsOpen);
+        }
+        if (open && !pins.some((p) => p.id === t.id)) pins.push({ id: t.id, top: Math.round(m.getBoundingClientRect().top - ar.top), count: t.comments.length });
+      });
+      pins.sort((a, b) => a.top - b.top);
+      for (let i = 1; i < pins.length; i++) if (pins[i].top < pins[i - 1].top + 30) pins[i].top = pins[i - 1].top + 30;
+      const key = JSON.stringify(pins);
+      if (key !== this._pinsKey) { this._pinsKey = key; this.setState({ pins }); }
+    }, 0);
+  }
+  /** Markierung im bearbeitbaren Bereich entfernen (z. B. wenn ein neuer Kommentar verworfen wird) */
+  unwrapMark(id) {
+    document.querySelectorAll('.nf-editable mark[data-thread="' + id + '"]').forEach((m) => {
+      while (m.firstChild) m.parentNode.insertBefore(m.firstChild, m);
+      m.remove();
+    });
+    this.edSave();
+  }
+  /** Neuer Kommentar: aus einer Markierung (quote) oder zur Seite (ohne quote) */
+  newThread(pid, quote, range, inEditable) {
+    const id = 'c' + Date.now().toString(36);
+    if (range && inEditable) {
+      try {
+        const m = document.createElement('mark');
+        m.className = 'nf-comment-mark nf-on nf-active';
+        m.dataset.thread = id;
+        range.surroundContents(m);
+        this.edSave();
+      } catch (err) { /* über Blockgrenzen: Kommentar ohne Markierung, mit Zitat */ }
+    }
+    this.setThreads(pid, (list) => [...list, { id, quote: quote || '', resolved: false, comments: [] }]);
+    this.openThread(id, { reply: true, tab: 'open' });
+  }
+
+  cmVals(pid, role, archived, isPage) {
+    const s = this.state;
+    const all = isPage ? (s.threads[pid] || []) : [];
+    const canComment = isPage && !archived && !!role && role !== 'viewer';
+    const open = all.filter((t) => !t.resolved);
+    const resolved = all.filter((t) => t.resolved);
+    const list = s.commentTab === 'resolved' ? resolved : open;
+    const threads = list.map((t) => {
+      const active = s.activeThread === t.id;
+      const replyOpen = canComment && !t.resolved && (s.replying === t.id || t.comments.length === 0);
+      const draft = s.replyDraft[t.id] || '';
+      const isNew = t.comments.length === 0;
+      const send = (e) => {
+        this.prevent(e);
+        const text = (this.state.replyDraft[t.id] || '').trim();
+        if (!text) return;
+        this.setThreads(pid, (l) => l.map((x) => (x.id === t.id ? { ...x, comments: [...x.comments, { who: 'peter', when: 'gerade eben', text }] } : x)));
+        this.setState((st) => ({ replyDraft: { ...st.replyDraft, [t.id]: '' }, replying: null }));
+        this.showToast(isNew ? 'Kommentar gespeichert' : 'Antwort gespeichert');
+      };
+      return {
+        id: t.id,
+        label: (t.quote ? 'Kommentar zu „' + t.quote + '“' : 'Kommentar zur Seite') + (t.resolved ? ', erledigt' : ''),
+        quote: t.quote,
+        hasQuote: !!t.quote,
+        pageLevel: !t.quote,
+        active: active ? 'true' : 'false',
+        resolvedAttr: t.resolved ? 'true' : 'false',
+        comments: t.comments.map((c) => ({
+          name: c.who === 'peter' ? 'Peter Forster (du)' : PEOPLE[c.who].name,
+          initials: initials(PEOPLE[c.who].name), color: PEOPLE[c.who].color, when: c.when, text: c.text
+        })),
+        replyOpen,
+        replyId: 'nf-reply-' + t.id,
+        replyLabel: isNew ? 'Kommentar schreiben' : 'Antwort schreiben',
+        replyPlaceholder: isNew ? 'Kommentar schreiben … (@ erwähnt jemanden)' : 'Antworten …',
+        draft,
+        sendDisabled: !draft.trim(),
+        sendLabel: isNew ? 'Kommentieren' : 'Antworten',
+        onDraft: (e) => { const v = e.target.value; this.setState((st) => ({ replyDraft: { ...st.replyDraft, [t.id]: v } })); },
+        replyKey: (e) => {
+          if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) send(e);
+          if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.cancelReply(pid, t); }
+        },
+        send,
+        cancel: (e) => { this.stop(e); this.cancelReply(pid, t); },
+        footer: !replyOpen && (canComment || t.resolved),
+        canReply: canComment && !t.resolved,
+        startReply: (e) => { this.stop(e); this.openThread(t.id, { reply: true }); },
+        canResolve: canComment && !isNew,
+        resolveLabel: t.resolved ? 'Wieder öffnen' : 'Erledigt',
+        toggleResolved: (e) => {
+          this.stop(e);
+          this.setThreads(pid, (l) => l.map((x) => (x.id === t.id ? { ...x, resolved: !x.resolved } : x)));
+          this.setState({ activeThread: null, replying: null });
+          this.showToast(t.resolved ? 'Wieder geöffnet' : 'Als erledigt markiert');
+        },
+        activate: () => { if (s.activeThread !== t.id) this.setState({ activeThread: t.id }); },
+        jump: (e) => {
+          this.stop(e);
+          this.setState({ activeThread: t.id });
+          const m = document.querySelector('.nf-editor mark[data-thread="' + t.id + '"]');
+          if (m) m.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }
+      };
+    });
+    if (isPage) this.commentSync(pid);
+    const openCount = open.length;
+    return {
+      canComment,
+      tabOpen: s.commentTab === 'open' ? 'true' : 'false',
+      tabResolved: s.commentTab === 'resolved' ? 'true' : 'false',
+      openCount, resolvedCount: resolved.length,
+      showOpen: () => this.setState({ commentTab: 'open' }),
+      showResolved: () => this.setState({ commentTab: 'resolved', replying: null }),
+      threads,
+      empty: threads.length === 0,
+      emptyText: s.commentTab === 'resolved'
+        ? 'Noch nichts erledigt.'
+        : canComment ? 'Keine offenen Kommentare. Markiere Text und wähle „Kommentieren“, oder schreib unten einen Kommentar zur ganzen Seite.' : 'Keine offenen Kommentare.',
+      newPageComment: () => this.newThread(pid, '', null, false),
+      // Nur im Reiter „Offen“ und solange kein neuer Kommentar zur Seite gerade geschrieben wird
+      showPageComposer: canComment && s.commentTab === 'open' && !open.some((t) => !t.quote && t.comments.length === 0),
+      pins: s.pins.map((p) => ({
+        top: p.top, count: p.count, active: s.commentsOpen && s.activeThread === p.id ? 'true' : 'false',
+        label: p.count + (p.count === 1 ? ' Kommentar' : ' Kommentare') + ' an dieser Stelle',
+        open: () => this.openThread(p.id, { tab: 'open' })
+      })),
+      onEditorClick: (e) => {
+        const m = e.target.closest && e.target.closest('mark[data-thread]');
+        if (!m) return;
+        const t = all.find((x) => x.id === m.dataset.thread);
+        if (t && !t.resolved) this.openThread(t.id, { tab: 'open' });
+      },
+      onKey: (e) => { if (e.key === 'Escape' && !e.defaultPrevented) { this.stop(e); this.setState({ commentsOpen: false, activeThread: null }); } },
+      // Für den Knopf in der Leiste
+      openCountForButton: openCount
+    };
+  }
+  cancelReply(pid, t) {
+    if (t.comments.length === 0) {
+      this.setThreads(pid, (l) => l.filter((x) => x.id !== t.id));
+      this.unwrapMark(t.id);
+      this.setState({ activeThread: null, replying: null });
+    } else {
+      this.setState((st) => ({ replying: null, replyDraft: { ...st.replyDraft, [t.id]: '' } }));
+    }
+  }
+
+  // ---------- Editor (Prototyp) ----------
+  // Der bearbeitbare Bereich gehört nicht React: Sein Inhalt wird direkt im DOM bearbeitet und pro Seite
+  // in this._drafts gemerkt. React verwaltet nur die schwebenden Elemente (Menüs, Leiste) über state.ed.
+  setEd(patch) { this.setState((st) => ({ ed: { ...st.ed, ...patch } })); }
+  edEl() { return document.getElementById('nf-editable'); }
+  edSave() { const el = this.edEl(); if (el && this._edPid) this._drafts[this._edPid] = el.innerHTML; }
+  edSync(pid) {
+    setTimeout(() => {
+      const el = this.edEl();
+      if (!el) { this._edPid = null; this._edElRef = null; return; }
+      if (this._edPid !== pid || this._edElRef !== el) {
+        el.innerHTML = this._drafts[pid] || '<p><br></p>';
+        this._edPid = pid;
+        this._edElRef = el;
+        this._hoverBlock = null;
+        this.setEd({ slash: null, picker: null, bar: null, side: null, blockMenu: null, drop: null });
+        this.edUpdatePlaceholder();
+      } else if (!el.firstElementChild) {
+        el.innerHTML = '<p><br></p>';
+      }
+    }, 0);
+  }
+  /** Oberster Block im bearbeitbaren Bereich, in dem ein Knoten liegt */
+  edBlockOf(node) {
+    const el = this.edEl();
+    if (!el || !node) return null;
+    let n = node.nodeType === 3 ? node.parentNode : node;
+    while (n && n.parentNode !== el) { if (n === el || n === document.body) return null; n = n.parentNode; }
+    return n;
+  }
+  edFocusInto(node, atEnd = false) {
+    const el = this.edEl();
+    if (!el || !node) return;
+    el.focus({ preventScroll: true });
+    const r = document.createRange();
+    r.selectNodeContents(node);
+    r.collapse(!atEnd);
+    const sel = getSelection();
+    sel.removeAllRanges();
+    sel.addRange(r);
+  }
+  edCaretRect() {
+    const sel = getSelection();
+    if (!sel.rangeCount) return null;
+    const r = sel.getRangeAt(0).cloneRange();
+    r.collapse(true);
+    const rects = r.getClientRects();
+    if (rects.length) return rects[0];
+    const b = this.edBlockOf(r.startContainer) || (r.startContainer.nodeType === 1 ? r.startContainer : r.startContainer.parentElement);
+    return b ? b.getBoundingClientRect() : null;
+  }
+  edPopupPos(rect, h = 380, w = 330) {
+    if (!rect) return { x: 100, y: 100 };
+    const x = Math.max(12, Math.min(rect.left, innerWidth - w - 12));
+    let y = rect.bottom + 6;
+    if (y + h > innerHeight - 8) y = Math.max(8, rect.top - h - 6);
+    return { x: Math.round(x), y: Math.round(y) };
+  }
+  /** „/“, „[“ oder „@“ vor dem Cursor? Dann Menü bzw. Auswahl öffnen und mit dem Text danach filtern */
+  edCheckTrigger() {
+    const ed = this.state.ed;
+    const close = () => { if (ed.slash || ed.picker) this.setEd({ slash: null, picker: null }); };
+    const sel = getSelection();
+    const el = this.edEl();
+    if (!el || !sel.rangeCount || !sel.isCollapsed) return close();
+    const r = sel.getRangeAt(0);
+    const node = r.startContainer;
+    if (node.nodeType !== 3 || !el.contains(node)) return close();
+    if (node.parentElement && node.parentElement.closest('code')) return close();
+    const before = node.textContent.slice(0, r.startOffset);
+    let m = null;
+    let kind = null;
+    if ((m = before.match(/(?:^|[\s ])\/([^\s /]{0,24})$/))) kind = 'slash';
+    else if ((m = before.match(/\[([^\][]{0,40})$/))) kind = 'page';
+    else if ((m = before.match(/(?:^|[\s ])@([^\s @]{0,30})$/))) kind = 'person';
+    if (!kind) return close();
+    const q = m[1];
+    this._trigger = { node, end: r.startOffset, len: q.length + 1 };
+    const pos = this.edPopupPos(this.edCaretRect());
+    if (kind === 'slash') this.setEd({ slash: { q, active: ed.slash && ed.slash.q === q ? ed.slash.active : 0, ...pos }, picker: null, bar: null });
+    else this.setEd({ picker: { kind, q, active: ed.picker && ed.picker.q === q ? ed.picker.active : 0, ...pos }, slash: null, bar: null });
+  }
+  edRemoveTrigger() {
+    const t = this._trigger;
+    this._trigger = null;
+    if (!t || !t.node.isConnected) return null;
+    const start = Math.max(0, t.end - t.len);
+    const block = this.edBlockOf(t.node);
+    const r = document.createRange();
+    r.setStart(t.node, start);
+    r.setEnd(t.node, Math.min(t.end, t.node.length));
+    r.deleteContents();
+    const sel = getSelection();
+    const c = document.createRange();
+    c.setStart(t.node, start);
+    c.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(c);
+    return block;
+  }
+  edMakeBlock(key) {
+    const mk = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+    switch (key) {
+      case 'h1': case 'h2': case 'h3': case 'p': { const e = mk(key, '', '<br>'); return { el: e, focus: e }; }
+      case 'ul': case 'ol': { const e = mk(key, '', '<li><br></li>'); return { el: e, focus: e.firstChild }; }
+      case 'quote': { const e = mk('blockquote', '', '<br>'); return { el: e, focus: e }; }
+      case 'todo': { const e = mk('div', 'nf-check', '<input type="checkbox" contenteditable="false" aria-label="Erledigt"><span><br></span>'); e.dataset.checked = 'false'; return { el: e, focus: e.querySelector('span') }; }
+      case 'callout': {
+        const e = mk('div', 'nf-callout', '<span class="nf-callout-icon" contenteditable="false">ℹ Info</span><div class="nf-callout-content"><p><br></p></div>');
+        e.dataset.variant = 'info';
+        return { el: e, focus: e.querySelector('p') };
+      }
+      case 'code': { const e = mk('div', 'nf-code', '<span class="nf-code-lang" contenteditable="false">Text</span><pre><code><br></code></pre>'); return { el: e, focus: e.querySelector('code') }; }
+      case 'table': {
+        const row = (c) => '<tr>' + [1, 2, 3].map(() => '<' + c + '><br></' + c + '>').join('') + '</tr>';
+        const e = mk('div', 'nf-table-block', '<table><thead>' + row('th') + '</thead><tbody>' + row('td') + row('td') + '</tbody></table>');
+        return { el: e, focus: e.querySelector('th') };
+      }
+      case 'hr': { const e = mk('hr'); e.contentEditable = 'false'; return { el: e, after: true }; }
+      case 'img': {
+        const e = mk('div', 'nf-img-upload', '<svg class="nf-icon" width="22" height="22" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.5"></rect><circle cx="6" cy="6.5" r="1.2"></circle><path d="M2.5 12l3.5-3.5 2.5 2.5 2-2 3 3"></path></svg><strong>Bild hierher ziehen</strong><span>PNG, JPEG, GIF oder WebP</span><button type="button" class="nf-btn">Datei auswählen</button>');
+        e.contentEditable = 'false';
+        return { el: e, after: true };
+      }
+      case 'toc': {
+        const heads = [...document.querySelectorAll('.nf-editor h2, .nf-editable h1, .nf-editable h2, .nf-editable h3')].map((h) => h.textContent.trim()).filter(Boolean);
+        const list = heads.length ? '<ol>' + heads.map((h) => '<li><a href="#">' + esc(h) + '</a></li>').join('') + '</ol>' : '<p class="nf-muted">Noch keine Überschriften auf dieser Seite.</p>';
+        const e = mk('nav', 'nf-toc', '<p class="nf-toc-title">Inhalt</p>' + list);
+        e.contentEditable = 'false';
+        return { el: e, after: true };
+      }
+      default: return this.edMakeBlock('p');
+    }
+  }
+  /** Block an die Stelle eines leeren Absatzes setzen, sonst dahinter; Cursor hinein bzw. in den Absatz danach */
+  edPlace(cur, b) {
+    const el = this.edEl();
+    const empty = cur && cur.tagName === 'P' && !cur.textContent.replace(/[​ ]/g, '').trim() && !cur.querySelector('.nf-page-link,.nf-mention');
+    if (cur && empty) cur.replaceWith(b.el); else if (cur) cur.after(b.el); else el.appendChild(b.el);
+    let focus = b.focus;
+    if (b.after || !focus) {
+      let next = b.el.nextElementSibling;
+      if (!next || next.tagName !== 'P' || next.textContent.trim()) { next = document.createElement('p'); next.innerHTML = '<br>'; b.el.after(next); }
+      focus = next;
+    }
+    this.edFocusInto(focus);
+    this.edSave();
+    this.edUpdatePlaceholder();
+    this.markSaving();
+  }
+  edApplyBlock(key) {
+    if (key === 'pagelink' || key === 'mention') {
+      this.edRemoveTrigger();
+      document.execCommand('insertText', false, key === 'pagelink' ? '[' : '@');
+      this.edCheckTrigger();
+      return;
+    }
+    this.setEd({ slash: null });
+    const cur = this.edRemoveTrigger() || this.edBlockOf(getSelection().anchorNode);
+    if (cur && !cur.firstChild) cur.innerHTML = '<br>';
+    this.edPlace(cur, this.edMakeBlock(key));
+  }
+  edInsertChip(kind, item) {
+    this.edRemoveTrigger();
+    const chip = kind === 'page'
+      ? '<a class="nf-page-link" contenteditable="false" data-page-id="' + item.id + '" href="#">' + esc(item.title) + '</a>'
+      : '<span class="nf-mention" contenteditable="false" data-user-id="' + item.id + '">@' + esc(item.name) + '</span>';
+    // Direkt am Cursor einsetzen (insertHTML setzt ihn am Zeilenende in Chrome hinter den Absatz)
+    const tmp = document.createElement('div');
+    tmp.innerHTML = chip;
+    const chipEl = tmp.firstChild;
+    const space = document.createTextNode(' ');
+    const sel = getSelection();
+    if (sel.rangeCount) {
+      const r = sel.getRangeAt(0);
+      r.insertNode(space);
+      r.insertNode(chipEl);
+      const c = document.createRange();
+      c.setStartAfter(space);
+      c.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(c);
+    }
+    this.setEd({ picker: null });
+    this.edSave();
+    this.markSaving();
+  }
+  /** Markdown-Kürzel am Anfang eines Absatzes: #, ##, ###, -, 1., [], >, ```, --- und Leerzeichen */
+  edMarkdown() {
+    const sel = getSelection();
+    if (!sel.rangeCount || !sel.isCollapsed) return false;
+    const blk = this.edBlockOf(sel.anchorNode);
+    if (!blk || blk.tagName !== 'P') return false;
+    const m = blk.textContent.match(/^(#{1,3}|[-*]|1\.|\[\]|>|```|---)[\s ]$/);
+    if (!m) return false;
+    const map = { '#': 'h1', '##': 'h2', '###': 'h3', '-': 'ul', '*': 'ul', '1.': 'ol', '[]': 'todo', '>': 'quote', '```': 'code', '---': 'hr' };
+    blk.innerHTML = '<br>';
+    this._trigger = null;
+    this.edPlace(blk, this.edMakeBlock(map[m[1]]));
+    return true;
+  }
+  /** Platzhalter nur im Block mit dem Cursor (wie BlockNote); eine ganz leere Seite zeigt ihn immer */
+  edUpdatePlaceholder() {
+    const el = this.edEl();
+    if (!el) return;
+    el.querySelectorAll('[data-ph]').forEach((n) => n.removeAttribute('data-ph'));
+    const sel = getSelection();
+    let target = null;
+    if (document.activeElement === el && sel.rangeCount && sel.isCollapsed) {
+      const n = sel.anchorNode;
+      const start = n && (n.nodeType === 3 ? n.parentElement : n);
+      target = start && start.closest && start.closest('p,h1,h2,h3,li,blockquote');
+      if (target && !el.contains(target)) target = null;
+    } else if (el.children.length === 1) {
+      target = el.firstElementChild;
+    }
+    if (target && !target.textContent && !target.querySelector('img,.nf-page-link,.nf-mention')) {
+      target.setAttribute('data-ph', BLOCK_PH[target.tagName] || BLOCK_PH.P);
+    }
+  }
+  edOnInput() {
+    const el = this.edEl();
+    if (!el) return;
+    if (!el.firstElementChild) el.innerHTML = '<p><br></p>';
+    if (!this.edMarkdown()) this.edCheckTrigger();
+    this.edUpdatePlaceholder();
+    this.edSave();
+    this.markSaving();
+  }
+  edScrollOpt(prefix, i) {
+    setTimeout(() => { const o = document.getElementById(prefix + i); if (o) o.scrollIntoView({ block: 'nearest' }); }, 20);
+  }
+  edOnKey(e) {
+    const ed = this.state.ed;
+    const pop = ed.slash ? 'slash' : ed.picker ? 'picker' : null;
+    if (pop) {
+      const list = (pop === 'slash' ? this._slashFlat : this._pickerFlat) || [];
+      const n = list.length;
+      const cur = Math.min(ed[pop].active, Math.max(0, n - 1));
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (!n) return;
+        const next = (cur + (e.key === 'ArrowDown' ? 1 : -1) + n) % n;
+        this.setEd({ [pop]: { ...ed[pop], active: next } });
+        this.edScrollOpt('nf-' + pop + '-opt-', next);
+        return;
+      }
+      if ((e.key === 'Enter' || e.key === 'Tab') && n) { e.preventDefault(); list[cur].run(); return; }
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this._trigger = null; this.setEd({ slash: null, picker: null }); return; }
+    }
+    if (e.key === 'Escape') { e.stopPropagation(); if (ed.blockMenu) this.setEd({ blockMenu: null }); return; }
+    const sel = getSelection();
+    const blk = sel.rangeCount ? this.edBlockOf(sel.anchorNode) : null;
+    if (!blk) return;
+    const atEnd = () => {
+      const r = sel.getRangeAt(0);
+      const tail = document.createRange();
+      tail.selectNodeContents(blk);
+      tail.setStart(r.endContainer, r.endOffset);
+      return tail.toString() === '';
+    };
+    const para = () => { const p = document.createElement('p'); p.innerHTML = '<br>'; return p; };
+    if (e.key === 'Enter' && !e.shiftKey) {
+      if (blk.classList.contains('nf-check')) {
+        e.preventDefault();
+        if (!blk.textContent.trim()) { const p = para(); blk.replaceWith(p); this.edFocusInto(p); }
+        else { const b = this.edMakeBlock('todo'); blk.after(b.el); this.edFocusInto(b.focus); }
+        this.edSave();
+        return;
+      }
+      if (blk.classList.contains('nf-code')) { e.preventDefault(); document.execCommand('insertText', false, '\n'); return; }
+      if (/^(H1|H2|H3|BLOCKQUOTE)$/.test(blk.tagName) && atEnd()) { e.preventDefault(); const p = para(); blk.after(p); this.edFocusInto(p); this.edSave(); return; }
+    }
+    // Rücktaste in einem leeren besonderen Block: zurück zum Absatz
+    if (e.key === 'Backspace' && blk.tagName !== 'P' && !blk.textContent && !/^(UL|OL|HR|NAV|DIV)$/.test(blk.tagName)) {
+      e.preventDefault();
+      const p = para();
+      blk.replaceWith(p);
+      this.edFocusInto(p);
+      this.edSave();
+    }
+  }
+  edOnClick(e) {
+    const t = e.target;
+    const link = t.closest && t.closest('.nf-page-link[data-page-id]');
+    if (link) { e.preventDefault(); if (this.state.pages[link.dataset.pageId]) this.go(link.dataset.pageId); return; }
+    if (t.matches && t.matches('.nf-check input[type=checkbox]')) {
+      const box = t.closest('.nf-check');
+      box.dataset.checked = t.checked ? 'true' : 'false';
+      if (t.checked) t.setAttribute('checked', ''); else t.removeAttribute('checked');
+      this.edSave();
+      this.markSaving();
+      return;
+    }
+    if (this.state.ed.blockMenu) this.setEd({ blockMenu: null });
+  }
+  /** Formatleiste: zeigt sich bei markiertem Text in der Seite; voll nur im bearbeitbaren Bereich */
+  edUpdateBar() {
+    const ed = this.state.ed;
+    const active = document.activeElement;
+    if (active && active.closest && active.closest('.nf-format-bar')) return;
+    const sel = getSelection();
+    const close = () => { if (ed.bar) this.setEd({ bar: null }); };
+    if (!sel.rangeCount || sel.isCollapsed || !sel.toString().trim()) return close();
+    const r = sel.getRangeAt(0);
+    const article = document.querySelector('.nf-editor');
+    if (!article || !article.contains(r.commonAncestorContainer)) return close();
+    if (ed.slash || ed.picker) return close();
+    const rect = r.getBoundingClientRect();
+    const el = this.edEl();
+    const full = !!el && el.contains(r.startContainer) && el.contains(r.endContainer);
+    const blk = full ? this.edBlockOf(r.startContainer) : null;
+    const state = (c) => { try { return document.queryCommandState(c); } catch (err) { return false; } };
+    const pe = r.startContainer.nodeType === 3 ? r.startContainer.parentElement : r.startContainer;
+    this._savedRange = r.cloneRange();
+    const bar = {
+      x: Math.round(Math.min(Math.max(rect.left + rect.width / 2, 200), innerWidth - 200)),
+      y: Math.round(Math.max(rect.top, 120)),
+      full,
+      block: blk ? ({ H1: 'h1', H2: 'h2', H3: 'h3', BLOCKQUOTE: 'blockquote' })[blk.tagName] || 'p' : 'p',
+      b: full && state('bold'), i: full && state('italic'), u: full && state('underline'), s: full && state('strikeThrough'),
+      c: !!(pe && pe.closest && pe.closest('code')),
+      linkMode: false, url: ''
+    };
+    const old = ed.bar;
+    if (old && !old.linkMode && ['x', 'y', 'full', 'block', 'b', 'i', 'u', 's', 'c'].every((k) => old[k] === bar[k])) return;
+    this.setEd({ bar });
+  }
+  edRestore() {
+    const el = this.edEl();
+    if (!this._savedRange || !el) return;
+    el.focus({ preventScroll: true });
+    const sel = getSelection();
+    sel.removeAllRanges();
+    sel.addRange(this._savedRange);
+  }
+  edCmd(cmd, val) {
+    this.edRestore();
+    document.execCommand(cmd, false, val);
+    this.edSave();
+    this.markSaving();
+    this.setEd({ bar: null });
+    setTimeout(() => this.edUpdateBar(), 0);
+  }
+
+  edVals() {
+    const s = this.state;
+    const ed = s.ed;
+    const P = s.pages;
+    const shown = (t) => t || 'Ohne Titel';
+    const keepFocus = (e) => { const t = e.target; if (t.closest && t.closest('select,input')) return; e.preventDefault(); };
+
+    // „/“-Menü
+    let slash = { open: false };
+    this._slashFlat = [];
+    if (ed.slash) {
+      const words = fold(ed.slash.q).split(/\s+/).filter(Boolean);
+      const items = SLASH.filter((b) => words.every((w) => fold(b.title + ' ' + b.alias).includes(w)));
+      const active = Math.min(ed.slash.active, Math.max(0, items.length - 1));
+      const groups = [];
+      items.forEach((b, i) => {
+        let g = groups.find((x) => x.label === b.group);
+        if (!g) { g = { label: b.group, items: [] }; groups.push(g); }
+        g.items.push({
+          ...b, hasMd: !!b.md, domId: 'nf-slash-opt-' + i, selected: i === active ? 'true' : 'false',
+          run: () => this.edApplyBlock(b.key),
+          hover: () => { if (this.state.ed.slash && this.state.ed.slash.active !== i) this.setEd({ slash: { ...this.state.ed.slash, active: i } }); }
+        });
+      });
+      this._slashFlat = groups.flatMap((g) => g.items);
+      slash = { open: true, x: ed.slash.x, y: ed.slash.y, q: ed.slash.q, groups, empty: items.length === 0 };
+    }
+
+    // Auswahl hinter „[“ und „@“
+    let picker = { open: false };
+    this._pickerFlat = [];
+    if (ed.picker) {
+      const words = fold(ed.picker.q).split(/\s+/).filter(Boolean);
+      let list = [];
+      if (ed.picker.kind === 'page') {
+        const trashed = new Set(s.trash.map((t) => t.id));
+        list = Object.keys(P)
+          .filter((id) => this.role(id) && !this.chain(id).some((x) => trashed.has(x)) && id !== this._edPid)
+          .filter((id) => words.every((w) => fold(shown(P[id].title)).includes(w)))
+          .sort((a, b) => (P[b].space === s.space) - (P[a].space === s.space) || shown(P[a].title).localeCompare(shown(P[b].title), 'de'))
+          .slice(0, 10)
+          .map((id) => {
+            const sp = s.spaces[P[id].space];
+            return {
+              glyph: sp.key.slice(0, 2), iconStyle: 'background:' + (sp.color || '#1F5FD6') + ';color:#fff;font-size:10px',
+              title: shown(P[id].title), hint: [sp.name, ...this.chain(id).slice(1, -1).map((x) => shown(P[x].title))].join(' / '),
+              pick: () => this.edInsertChip('page', { id, title: shown(P[id].title) })
+            };
+          });
+      } else {
+        list = s.members
+          .filter((m) => words.every((w) => fold(PEOPLE[m.key].name + ' ' + m.email).includes(w)))
+          .slice(0, 8)
+          .map((m) => ({
+            glyph: initials(PEOPLE[m.key].name), iconStyle: 'background:' + PEOPLE[m.key].color + ';color:#fff;border-radius:50%;font-size:11px',
+            title: PEOPLE[m.key].name + (m.key === 'peter' ? ' (du)' : ''), hint: m.email + (m.role === 'guest' ? ' · Gast' : ''),
+            pick: () => this.edInsertChip('person', { id: m.key, name: PEOPLE[m.key].name })
+          }));
+      }
+      const active = Math.min(ed.picker.active, Math.max(0, list.length - 1));
+      const items = list.map((it, i) => ({
+        ...it, domId: 'nf-picker-opt-' + i, selected: i === active ? 'true' : 'false', run: it.pick,
+        hover: () => { if (this.state.ed.picker && this.state.ed.picker.active !== i) this.setEd({ picker: { ...this.state.ed.picker, active: i } }); }
+      }));
+      this._pickerFlat = items;
+      picker = {
+        open: true, x: ed.picker.x, y: ed.picker.y, items, empty: items.length === 0,
+        label: ed.picker.kind === 'page' ? 'Seite verlinken' : 'Person erwähnen',
+        emptyText: ed.picker.kind === 'page' ? 'Keine lesbare Seite mit „' + ed.picker.q + '“ im Titel' : 'Niemand im Workspace heißt „' + ed.picker.q + '“'
+      };
+    }
+
+    // Formatleiste
+    let bar = { open: false };
+    if (ed.bar) {
+      const b = ed.bar;
+      const mark = (key, cmd, glyph, cls, label, keys) => ({
+        glyph, cls, label, title: label + (keys ? ' (' + keys + ')' : ''), pressed: b[key] ? 'true' : 'false',
+        run: () => {
+          if (cmd === 'code') {
+            this.edRestore();
+            const sel = getSelection();
+            const pe = sel.anchorNode && (sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode);
+            const code = pe && pe.closest && pe.closest('code');
+            if (code && !code.closest('pre')) code.replaceWith(document.createTextNode(code.textContent));
+            else document.execCommand('insertHTML', false, '<code>' + esc(sel.toString()) + '</code>');
+            this.edSave();
+            this.setEd({ bar: null });
+            setTimeout(() => this.edUpdateBar(), 0);
+          } else this.edCmd(cmd);
+        }
+      });
+      bar = {
+        open: true, x: b.x, y: b.y, full: b.full, block: b.block,
+        linkMode: !!b.linkMode, normal: !b.linkMode, url: b.url,
+        marks: [
+          mark('b', 'bold', 'B', 'nf-fb-b', 'Fett', 'Strg B'),
+          mark('i', 'italic', 'I', 'nf-fb-i', 'Kursiv', 'Strg I'),
+          mark('u', 'underline', 'U', 'nf-fb-u', 'Unterstrichen', 'Strg U'),
+          mark('s', 'strikeThrough', 'S', 'nf-fb-s', 'Durchgestrichen', ''),
+          mark('c', 'code', '<>', 'nf-fb-c', 'Code', '')
+        ],
+        setBlock: (e) => { const v = e.target.value; this.edCmd('formatBlock', v === 'p' ? 'P' : v.toUpperCase()); },
+        startLink: () => { this.setEd({ bar: { ...b, linkMode: true, url: '' } }); this.focusLater('#nf-fb-url'); },
+        onUrl: (e) => this.setEd({ bar: { ...this.state.ed.bar, url: e.target.value } }),
+        urlKey: (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.setEd({ bar: null }); this.edRestore(); } },
+        applyLink: (e) => {
+          this.prevent(e);
+          const url = (this.state.ed.bar.url || '').trim();
+          if (url) this.edCmd('createLink', /^[a-z]+:/i.test(url) ? url : 'https://' + url);
+          else this.setEd({ bar: null });
+        },
+        comment: () => {
+          // Neuer Thread mit der markierten Stelle; im bearbeitbaren Bereich wird sie als <mark> umschlossen,
+          // im festen Inhalt der Vorlage nur zitiert. Danach Spalte auf, Cursor im Kommentarfeld.
+          const text = this._savedRange ? this._savedRange.toString().replace(/\s+/g, ' ').trim() : '';
+          const range = this._savedRange;
+          this.setEd({ bar: null });
+          getSelection().removeAllRanges();
+          this.newThread(this.state.current, text.length > 80 ? text.slice(0, 80) + ' …' : text, range, b.full);
+        }
+      };
+    }
+
+    // Seitenmenü links am Block und Blockmenü
+    const blockMenu = ed.blockMenu ? {
+      open: true, top: ed.blockMenu.top, expanded: 'true',
+      items: [
+        ['Nach oben', 'Strg ⇧ ↑', () => { const b = this._menuBlock; if (b && b.previousElementSibling) b.previousElementSibling.before(b); }],
+        ['Nach unten', 'Strg ⇧ ↓', () => { const b = this._menuBlock; if (b && b.nextElementSibling) b.nextElementSibling.after(b); }],
+        ['Duplizieren', '', () => { const b = this._menuBlock; if (b) b.after(b.cloneNode(true)); }],
+        ['Löschen', 'Entf', () => {
+          const b = this._menuBlock;
+          if (!b) return;
+          if (b.parentNode.children.length === 1) b.replaceWith(Object.assign(document.createElement('p'), { innerHTML: '<br>' }));
+          else b.remove();
+        }, 'nf-menu-item-danger']
+      ].map(([label, keys, fn, cls]) => ({
+        label, keys, cls: cls || '', disabled: 'false',
+        run: () => { fn(); this.edSave(); this.markSaving(); this.setEd({ blockMenu: null, side: null }); this._hoverBlock = null; }
+      }))
+    } : { open: false, expanded: 'false', items: [] };
+
+    const blockAt = (y) => {
+      const el = this.edEl();
+      if (!el) return null;
+      for (const c of el.children) { const r = c.getBoundingClientRect(); if (y >= r.top - 6 && y <= r.bottom + 6) return c; }
+      return null;
+    };
+    return {
+      keepFocus,
+      slash, picker, bar, blockMenu,
+      side: ed.side ? {
+        show: true, top: ed.side.top,
+        plus: () => {
+          const b = this._hoverBlock;
+          if (!b) return;
+          let p = b;
+          if (!(b.tagName === 'P' && !b.textContent)) { p = document.createElement('p'); b.after(p); }
+          p.textContent = '/';
+          // Cursor in den Textknoten hinter „/“, sonst erkennt edCheckTrigger den Auslöser nicht
+          const el = this.edEl();
+          el.focus({ preventScroll: true });
+          const r = document.createRange();
+          r.setStart(p.firstChild, 1);
+          r.collapse(true);
+          getSelection().removeAllRanges();
+          getSelection().addRange(r);
+          this.setEd({ side: null, blockMenu: null });
+          this.edCheckTrigger();
+          this.edSave();
+        },
+        handle: (e) => {
+          this.stop(e);
+          this._menuBlock = this._hoverBlock;
+          this.setEd({ blockMenu: ed.blockMenu ? null : { top: ed.side.top } });
+        },
+        dragStart: (e) => {
+          this._dragBlock = this._hoverBlock;
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', '');
+          try { e.dataTransfer.setDragImage(this._dragBlock, 0, 0); } catch (err) { /* ohne Vorschau */ }
+          this.setEd({ blockMenu: null });
+        },
+        dragEnd: () => { this._dragBlock = null; this.setEd({ drop: null }); }
+      } : { show: false },
+      drop: ed.drop ? { show: true, top: ed.drop.top } : { show: false },
+      onInput: () => this.edOnInput(),
+      onKey: (e) => this.edOnKey(e),
+      onClick: (e) => this.edOnClick(e),
+      onMove: (e) => {
+        if (ed.blockMenu || this._dragBlock) return;
+        const t = e.target;
+        if (t.closest && t.closest('.nf-side-menu')) return;
+        const b = blockAt(e.clientY);
+        if (!b || (b === this._hoverBlock && ed.side)) return;
+        this._hoverBlock = b;
+        const top = b.offsetTop + (/^H[1-3]$/.test(b.tagName) ? Math.max(0, (b.offsetHeight - 26) / 2) : 0);
+        this.setEd({ side: { top: Math.round(top) } });
+      },
+      onLeave: () => { if (!ed.blockMenu && ed.side) this.setEd({ side: null }); },
+      onDragOver: (e) => {
+        if (!this._dragBlock) return;
+        e.preventDefault();
+        const b = blockAt(e.clientY);
+        if (!b) return;
+        const r = b.getBoundingClientRect();
+        const before = e.clientY < r.top + r.height / 2;
+        this._dropTarget = { b, before };
+        const top = Math.round(before ? b.offsetTop - 5 : b.offsetTop + b.offsetHeight + 4);
+        if (!ed.drop || ed.drop.top !== top) this.setEd({ drop: { top } });
+      },
+      onDrop: (e) => {
+        if (!this._dragBlock) return;
+        e.preventDefault();
+        const t = this._dropTarget;
+        if (t && t.b !== this._dragBlock) { if (t.before) t.b.before(this._dragBlock); else t.b.after(this._dragBlock); }
+        this._dragBlock = null;
+        this._dropTarget = null;
+        this.edSave();
+        this.markSaving();
+        this.setEd({ drop: null, side: null });
+      }
+    };
   }
 
   // ---------- Befehlspalette (Suche, Strg K) ----------
@@ -2121,7 +3133,7 @@ class Component extends DCLogic {
     return {
       open: true,
       q: raw,
-      placeholder: 'Seiten, Spaces und Personen suchen – oder > für Befehle',
+      placeholder: 'Seiten, Spaces und Personen suchen',
       activeId: active >= 0 ? 'nf-cmd-opt-' + active : '',
       scopes: SCOPES.map(([key, label]) => ({
         label, count: counts[key] === '' ? '' : counts[key],
@@ -2138,7 +3150,6 @@ class Component extends DCLogic {
       groups: visible,
       empty: !!q && flat.length === 0,
       emptyWhere: pal.limit ? ' in ' + sp.name : '',
-      footNote: commandsOnly ? 'Nur Befehle' : q ? 'Titel und Inhalt · nur Seiten, die du lesen darfst' : 'Mit > nur Befehle',
       onInput: (e) => this.setPalette({ q: e.target.value, active: 0 }),
       onKey: (e) => {
         const k = e.key;
@@ -2425,8 +3436,11 @@ class Component extends DCLogic {
       home: p.body === 'home',
       dm: p.body === 'dm',
       plain: !p.body && p.text.length > 0,
-      empty: !p.body && p.text.length === 0
+      empty: !p.body && p.text.length === 0,
+      emptyReadonly: !editable && !p.body && p.text.length === 0
     };
+    // Bearbeitbaren Bereich mit dem Entwurf dieser Seite füllen (nach dem Rendern)
+    if (isPage && editable) this.edSync(pid);
     const link = (id, text) => ({
       title: shown(P[id].title),
       text,
@@ -2455,7 +3469,10 @@ class Component extends DCLogic {
     }));
 
     // Kommentare (Ausblick)
-    const threadVisible = pid === 'dm' && s.threadOpen;
+    const cm = this.cmVals(pid, myRole, sp.archived, isPage);
+    const t1 = (s.threads[pid] || []).find((t) => t.id === 't1');
+    const t1Open = !!t1 && !t1.resolved;
+    const openN = cm.openCountForButton;
 
     // Rechte-Dialog (Ausblick M3)
     let rights = {};
@@ -2651,6 +3668,7 @@ class Component extends DCLogic {
       inSpace: s.view !== 'overview',
       ...this.overviewVals(),
       cmd: this.paletteVals(),
+      ed: this.edVals(),
       openPalette: (e) => { this.stop(e); this.openPalette(); },
       presence,
       hasPresence: others.length > 0,
@@ -2664,12 +3682,13 @@ class Component extends DCLogic {
       togglePageMenu: (e) => { this.stop(e); this.setState((st) => ({ pageMenu: !st.pageMenu, menu: null, spaceMenu: false, spaceSub: null, userMenu: false })); },
       openRights: () => this.openRights(),
       commentsPressed: s.commentsOpen ? 'true' : 'false',
-      toggleComments: () => this.setState((st) => ({ commentsOpen: !st.commentsOpen })),
+      toggleComments: () => this.setState((st) => ({ commentsOpen: !st.commentsOpen, activeThread: st.commentsOpen ? null : st.activeThread, replying: null })),
       // Kommentare mit Zahl der offenen Threads
-      openComments: threadVisible ? 1 : 0,
-      hasOpenComments: threadVisible,
-      commentsCls: threadVisible ? 'nf-has-count' : '',
-      commentsLabel: 'Kommentarspalte ' + (s.commentsOpen ? 'ausblenden' : 'einblenden') + (threadVisible ? ' (1 offener Kommentar)' : ' (keine offenen Kommentare)'),
+      cm,
+      openComments: openN,
+      hasOpenComments: openN > 0,
+      commentsCls: openN > 0 ? 'nf-has-count' : '',
+      commentsLabel: 'Kommentare ' + (s.commentsOpen ? 'ausblenden' : 'anzeigen') + ' (' + (openN === 0 ? 'keine offenen' : openN + (openN === 1 ? ' offener' : ' offene')) + ')',
       // Teilen und Rechte: zeigt eigene Rechte direkt im Knopf
       share: restricted
         ? { cls: 'nf-share-restricted', restricted: true, open: false, label: 'Eingeschränkt', aria: 'Teilen und Rechte: eingeschränkt, eigene Rechte' }
@@ -2759,7 +3778,13 @@ class Component extends DCLogic {
         paragraphs: p.text.map((text) => ({ text }))
       },
       onTitle: (e) => this.setTitle(pid, e.target.value),
-      onTitleKey: (e) => { if (e.key === 'Enter') { this.prevent(e); } },
+      // Enter im Titel: weiter in den Inhalt (wie im Frontend)
+      onTitleKey: (e) => {
+        if (e.key !== 'Enter') return;
+        this.prevent(e);
+        const el = this.edEl();
+        if (el) { this.edFocusInto(el.firstElementChild || el); this.edUpdatePlaceholder(); }
+      },
       body,
       homeLinks: [
         link('arch', 'Frontend, API, Datenmodell und Rechte'),
@@ -2769,15 +3794,11 @@ class Component extends DCLogic {
       rechteLink: link('rechte'),
       calloutHome: callout('home'),
       calloutDm: callout('dm'),
-      markCls: threadVisible && s.commentsOpen ? 'nf-on' : '',
+      // Die feste Markierung in der Vorlage (Thread t1): offen dezent, aktiv kräftiger, erledigt unsichtbar
+      markCls: t1Open ? 'nf-on' + (s.commentsOpen && s.activeThread === 't1' ? ' nf-active' : '') : '',
       tasks,
 
-      commentsOpen: s.commentsOpen,
-      hasThread: threadVisible,
-      noComments: !threadVisible,
-      hasResolved: pid === 'dm',
-      resolvedLabel: s.threadOpen ? '1 erledigten Thread' : '2 erledigte Threads',
-      resolveThread: () => this.setState({ threadOpen: false }),
+      commentsOpen: s.commentsOpen && isPage,
 
       settings,
       spaceSettingsOpen: s.dialog === 'spaceSettings',

@@ -48,7 +48,7 @@ values (colors, font sizes, spacing, radii, shadows, layout).
       „Archiviert“; ersetzt den Offline-Hinweis über dem Inhalt. Unter 900 px nur das Icon.
     - **Anwesenheit nur der anderen** (man selbst steht oben rechts); bis drei Avatare, ab vier zwei
       plus „+N“. Allein auf der Seite: keine Avatare.
-    - **Kommentar-Knopf** ohne Rahmen, mit der Zahl offener Kommentare.
+    - **Kommentar-Knopf** ohne Rahmen, mit der Zahl offener Threads (siehe Kommentare unter „Ausblick“).
     - **„Teilen“** als normaler Knopf; mit eigenen Rechten orange mit Schloss und „Eingeschränkt“.
       Der Hinweis „Eingeschränkt“ über dem Titel entfällt dafür.
     - **„⋯“** ohne Rahmen, mit Link kopieren, Seiteninfo (Angaben, Rechte, Rückverweise), Versionen,
@@ -88,6 +88,36 @@ Erreichbar über das Logo, „Alle Spaces“ im Space-Umschalter oder direkt mit
   weichen aus, z. B. ENTW2; Prüfung wie in der Datenbank), Beschreibung, was alle im Workspace
   dürfen. Danach öffnet sich die leere Startseite des neuen Spaces.
 
+## Editor-Bedienung (Entwurf)
+
+Der vorhandene Seiteninhalt ist fester Teil der Vorlage. Darunter beginnt auf jeder bearbeitbaren
+Seite ein echt bearbeitbarer Bereich (leere Seiten sind es ganz); Enter im Titel springt hinein. Was
+man dort schreibt, merkt sich der Prototyp pro Seite bis zum Neuladen. Im Frontend übernimmt das
+BlockNote; dieser Entwurf legt fest, wie dessen Menüs aussehen und sich verhalten sollen.
+
+- **Platzhalter** „Text eingeben oder '/' für Befehle tippen“ nur im Block mit dem Cursor (Überschrift:
+  „Überschrift 1“ usw.), auf einer ganz leeren Seite immer.
+- **„/“-Menü** am Cursor (klappt nach oben, wenn unten kein Platz ist): Blöcke in Gruppen
+  Überschriften, Grundblöcke, Medien, Verknüpfen, je mit Icon, Kurzbeschreibung und Markdown-Kürzel;
+  filtert beim Weitertippen („/call“ → Callout). ↑↓ auswählen, Enter oder Tab einfügen, Esc schließen.
+  Ein leerer Absatz wird zum Block, sonst kommt der Block dahinter.
+- **Markdown-Kürzel** am Anfang eines Absatzes: `#`, `##`, `###`, `-`, `1.`, `[]`, `>`, ```` ``` ````, `---`
+  plus Leerzeichen.
+- **„[“ Seitenlink und „@“ Erwähnung:** Auswahl am Cursor, filtert beim Tippen; Seiten nur mit
+  Leserecht und nicht im Papierkorb, mit Space-Kürzel und Pfad, Seiten des aktuellen Spaces zuerst;
+  Personen aus dem Workspace mit Avatar und E-Mail. Eingefügt als Chip (Klick auf einen Seitenlink
+  öffnet die Seite).
+- **Leiste beim Markieren:** im bearbeitbaren Bereich Blocktyp (Absatz, Überschrift 1–3, Zitat), Fett,
+  Kursiv, Unterstrichen, Durchgestrichen, Code, Link (Adresse direkt in der Leiste) und Kommentieren;
+  im festen Inhalt (zum Beispiel für Lesende mit Kommentarrecht) nur „Kommentieren“.
+- **Links am Block** beim Darüberfahren: „+“ legt darunter einen Block an und öffnet das „/“-Menü,
+  der Ziehpunkt verschiebt den Block per Ziehen (blaue Linie zeigt das Ziel) oder öffnet per Klick
+  das Blockmenü (Nach oben, Nach unten, Duplizieren, Löschen). Auf dem Handy ausgeblendet.
+- Aufgaben zum Abhaken, Enter in einer Aufgabe gibt eine neue, Enter in einer leeren beendet die
+  Liste; Enter am Ende einer Überschrift gibt einen Absatz; Rücktaste in einem leeren besonderen
+  Block macht ihn zum Absatz.
+- Strg K bleibt global die Suche; einen Link setzt man über die Leiste.
+
 ## Ausblick (noch nicht im Frontend)
 
 - **Suche als Befehlspalette** (M3): Das Feld oben öffnet sie, ebenso Strg K (noch einmal: zu).
@@ -98,12 +128,29 @@ Erreichbar über das Logo, „Alle Spaces“ im Space-Umschalter oder direkt mit
     Schloss bei eigenen Rechten.
   - Bereiche Alles, Seiten, Spaces, Personen (mit Zahl der Treffer), dazu „Nur in <Space>“; ohne
     Treffer im Space ein Knopf „In allen Spaces suchen“.
-  - Ohne Eingabe: zuletzt angesehen und Befehle. Mit „>“ am Anfang nur Befehle (neue Seite, neuer
+  - Ohne Eingabe: zuletzt angesehen und Befehle. Mit „>“ am Anfang nur Befehle (ohne Hinweis in
+    der Palette; neue Seite, neuer
     Space, Übersicht, Link kopieren, Exportieren, Darstellung, Personen einladen, Tastenkürzel).
-  - Tastatur: ↑↓ auswählen, Enter öffnen, Tab bzw. Umschalt+Tab Bereich, Esc schließen (Fokus
+  - Tastatur (ohne Leiste mit Kürzeln unten): ↑↓ auswählen, Enter öffnen, Tab bzw. Umschalt+Tab Bereich, Esc schließen (Fokus
     zurück aufs Suchfeld). Als Combobox mit `aria-activedescendant` für Screenreader.
   - Personen öffnen noch nichts (Profile kommen später). Auf dem Handy fast bildschirmfüllend.
-- Kommentarspalte rechts mit Markierung an der Textstelle (Knopf mit Sprechblase im Kopfbereich)
+- **Kommentare** (M3):
+  - Die Spalte ist standardmäßig zu, der Text hat die volle Breite. Offene Kommentare an Textstellen
+    zeigen sich als Sprechblase mit Zahl am rechten Rand neben der Stelle; die Stelle ist dezent
+    hinterlegt. Klick auf Sprechblase oder Stelle öffnet die Spalte mit diesem Thread (Stelle und
+    Thread dann kräftiger hervorgehoben). Der Knopf in der Leiste zeigt die Zahl offener Threads.
+  - Spalte: Reiter „Offen“ und „Erledigt“ mit Zahl; unter den offenen Threads ein Feld „Kommentar
+    zur ganzen Seite …“ (sieht aus wie „Antworten …“) für einen Kommentar ohne Textstelle.
+    Jeder Thread mit Zitat (Klick springt zur Stelle) bzw. „Kommentar zur Seite“, den Kommentaren,
+    „Antworten …“ und „Erledigt“ bzw. „Wieder öffnen“.
+  - Neuer Kommentar über „Kommentieren“ in der Leiste beim Markieren: Im bearbeitbaren Bereich wird
+    die Stelle markiert, im festen Inhalt nur zitiert. Die Spalte öffnet sich mit dem Cursor im
+    Kommentarfeld; Strg Enter sendet, Abbrechen bzw. Esc verwirft einen leeren neuen Thread samt
+    Markierung.
+  - Wer nur lesen darf, kann nicht kommentieren; in archivierten Spaces auch niemand sonst.
+  - Ab 1280 px steht die Spalte rechts neben dem Text und läuft beim Scrollen mit, darunter ist sie
+    eine Schublade von rechts (Esc oder Klick daneben schließt). Auf dem Handy keine Sprechblasen am
+    Rand; die Stelle selbst ist antippbar.
 - Rechte-Dialog mit „Eigene Rechte für diese Seite“, Rollen pro Person/Gruppe, Hinzufügen (M3)
 - „Confluence-Import“ unten in der Seitenleiste, führt zu `../import/Import.dc.html` (M4)
 - Drag & Drop im Baum fehlt im Prototyp (im Frontend gebaut); das Zeilenmenü ersetzt es hier.
