@@ -39,6 +39,7 @@
   --nf-danger-hover:#912018;
   --nf-code-frame:#161616;
   --nf-check-bg:var(--nf-accent);
+  --nf-fav:#b45309;
   color-scheme:light;
 }
 /* Dunkles Farbschema (Vorschlag vom 25. November 2026, im Prototyp): gesetzt über data-theme an <html>,
@@ -54,7 +55,7 @@
   --nf-sidebar-bg:#10141a;--nf-sidebar-border:#252c36;--nf-sidebar-text:#e6e9ef;--nf-sidebar-muted:#9aa4b2;
   --nf-sidebar-hover:#1d232c;--nf-sidebar-selected:#1c2b48;--nf-sidebar-selected-text:#a8c4fa;
   --nf-backdrop:rgba(0,0,0,.6);--nf-shadow-pop:0 8px 24px rgba(0,0,0,.45);--nf-shadow-dialog:0 24px 64px rgba(0,0,0,.6);
-  --nf-comment-mark:#4a3320;--nf-danger-hover:#f48c84;--nf-code-frame:#2a313c;--nf-check-bg:#2f6fe0;
+  --nf-comment-mark:#4a3320;--nf-danger-hover:#f48c84;--nf-code-frame:#2a313c;--nf-check-bg:#2f6fe0;--nf-fav:#f5b93f;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -336,6 +337,49 @@ button.nf-drawer-close,button.nf-drawer-open{display:none}
 .nf-zone-title{margin:0;font-size:14px;font-weight:600}
 .nf-zone-text{margin:2px 0 0!important;font-size:13px;color:var(--nf-muted)}
 .nf-zone .nf-btn{flex:none}
+/* Favoriten: Stern an Kachel, Zeile und im Umschalter; gesetzt in --nf-fav (Ocker, hell 4,9:1, dunkel 9:1) */
+.nf-space-tile-wrap{position:relative}
+.nf-space-tile-wrap .nf-space-tile-top{padding-right:34px}
+.nf-tile-star{position:absolute;top:13px;right:12px;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:6px;background:none;color:var(--nf-muted);cursor:pointer;opacity:0;transition:opacity 120ms ease}
+.nf-space-tile-wrap:hover .nf-tile-star,.nf-tile-star:focus-visible,.nf-tile-star[aria-pressed='true']{opacity:1}
+@media (hover:none){.nf-tile-star{opacity:1}}
+/* Beim Darüberfahren nur der Stern in Ocker, ohne Hintergrund des Knopfs */
+.nf-tile-star:hover,.nf-tile-star:hover:not(:disabled){background:none;color:var(--nf-fav)}
+.nf-icon-button.nf-star-btn:hover:not(:disabled),.nf-side-space-row:hover .nf-icon-button.nf-star-btn:hover:not(:disabled),.nf-tree-row:hover .nf-icon-button.nf-star-btn:hover:not(:disabled){background:none;color:var(--nf-fav)}
+.nf-tile-star[aria-pressed='true'],.nf-star-btn[aria-pressed='true']{color:var(--nf-fav)}
+.nf-tile-star[aria-pressed='true'] svg,.nf-star-btn[aria-pressed='true'] svg,svg.nf-star-on{fill:currentColor}
+.nf-tile-star[aria-pressed='true']:hover{color:var(--nf-fav)}
+.nf-menu-item .nf-icon.nf-star-on{color:var(--nf-fav)}
+.nf-menu-star{display:grid;place-items:center;width:28px;height:28px;flex:none;padding:0;border:0;border-radius:6px;background:none;color:var(--nf-muted);cursor:pointer;opacity:0}
+.nf-menu-row:hover .nf-menu-star,.nf-menu-star:focus-visible,.nf-menu-star[aria-pressed='true']{opacity:1}
+@media (hover:none){.nf-menu-star{opacity:1}}
+.nf-menu-star:hover,.nf-menu-star[aria-pressed='true']{color:var(--nf-fav)}
+.nf-menu-star[aria-pressed='true'] svg{fill:currentColor}
+/* Seiten-Favoriten über dem Seitenbaum (ein-/ausklappbar wie der Papierkorb) */
+.nf-page-favs{display:flex;flex-direction:column;gap:2px;margin-bottom:-4px}
+svg.nf-icon.nf-fav-section-star{color:var(--nf-fav)!important;fill:currentColor}
+.nf-page-fav-list{list-style:none;margin:0;padding:0 0 4px 12px;display:flex;flex-direction:column;gap:2px}
+.nf-fav-row{padding-left:6px}
+.nf-fav-row .nf-actions{display:none}
+.nf-fav-row:hover .nf-actions,.nf-fav-row:focus-within .nf-actions{display:flex}
+/* Stern in der Leiste über der Seite: beim Darüberfahren nur der Stern ocker, als Favorit gefüllt */
+.nf-btn.nf-page-star:hover{background:none;color:var(--nf-fav)}
+.nf-btn.nf-btn-ghost.nf-page-star[aria-pressed='true']{background:none;color:var(--nf-fav)}
+/* Kein Favorit: grau (fällt sonst zu sehr auf); Favorit und Darüberfahren: ocker */
+.nf-btn.nf-btn-ghost.nf-page-star{color:var(--nf-muted)}
+.nf-btn.nf-btn-ghost.nf-page-star:hover,.nf-btn.nf-btn-ghost.nf-page-star[aria-pressed='true']{color:var(--nf-fav)}
+/* Immer mit Rahmen wie „Teilen“, beim Darüberfahren etwas dunkler */
+.nf-btn.nf-btn-ghost.nf-page-star,.nf-btn.nf-btn-ghost.nf-page-star[aria-pressed='true']{border-color:var(--nf-control-border)}
+.nf-btn.nf-btn-ghost.nf-page-star:hover{border-color:#b9c1cb}
+.nf-page-star[aria-pressed='true'] svg{fill:currentColor}
+/* Sterne in Listen (Spaces, Seiten-Favoriten): auch als Nicht-Favorit gleich ocker, nur als Umriss.
+   Ausnahme: der Stern über der Seite bleibt grau, solange sie kein Favorit ist (fällt sonst zu sehr auf) */
+.nf-tile-star,.nf-menu-star,.nf-icon-button.nf-star-btn{color:var(--nf-fav)}
+/* Alle Sterne beim Darüberfahren in Ocker: kein Favorit → gefüllt (Vorschau auf „hinzufügen“),
+   Favorit → leer mit Rand (Vorschau auf „entfernen“) */
+.nf-star-btn[aria-pressed='false']:hover svg,.nf-tile-star[aria-pressed='false']:hover svg,.nf-menu-star[aria-pressed='false']:hover svg,.nf-page-star[aria-pressed='false']:hover svg{fill:currentColor}
+.nf-star-btn[aria-pressed='true']:hover svg,.nf-tile-star[aria-pressed='true']:hover svg,.nf-menu-star[aria-pressed='true']:hover svg,.nf-page-star[aria-pressed='true']:hover svg{fill:none;stroke-width:1.75}
+.nf-star-btn:hover,.nf-tile-star:hover,.nf-menu-star:hover,.nf-btn.nf-page-star:hover{color:var(--nf-fav)}
 /* Neuer Space */
 .nf-field-hint{margin:4px 0 0;font-size:12px;color:var(--nf-muted)}
 .nf-field-error{margin:4px 0 0;font-size:12px;color:var(--nf-danger)}
@@ -662,14 +706,18 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
           <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 7.5L8 3l5.5 4.5M4 6.5V13h3V9.5h2V13h3V6.5"></path></svg>
           <span>Übersicht</span>
         </a>
+        <!-- Gruppen „Favoriten“ (mit Stern markierte Spaces) und „Spaces“ (alle übrigen) -->
+        <sc-for list="{{sideGroups}}" as="sg" hint-placeholder-count="2">
         <div class="nf-tree-head" style="margin-top: 10px">
-          <h2 class="nf-tree-heading">Spaces</h2>
-          <button type="button" class="nf-icon-button" aria-label="Neuer Space" title="Neuer Space" onClick="{{openNewSpace}}">
-            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
-          </button>
+          <h2 class="nf-tree-heading">{{sg.label}}</h2>
+          <sc-if value="{{sg.showNew}}" hint-placeholder-val="{{ false }}">
+            <button type="button" class="nf-icon-button" aria-label="Neuer Space" title="Neuer Space" onClick="{{openNewSpace}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+            </button>
+          </sc-if>
         </div>
         <ul class="nf-side-spaces">
-          <sc-for list="{{spaceCards}}" as="sc" hint-placeholder-count="4">
+          <sc-for list="{{sg.items}}" as="sc" hint-placeholder-count="2">
             <li class="nf-side-space-row">
               <a href="#" class="nf-nav-item {{sc.sideCls}}" onClick="{{sc.go}}">
                 <span class="nf-space-badge nf-space-badge-sm" style="background: {{sc.color}}" aria-hidden="true">{{sc.badge}}</span>
@@ -677,6 +725,9 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
                 <sc-if value="{{sc.archived}}" hint-placeholder-val="{{ false }}"><span class="nf-side-space-note">archiviert</span></sc-if>
               </a>
               <span class="nf-actions {{sc.moreCls}}">
+                <button type="button" class="nf-icon-button nf-star-btn" aria-pressed="{{sc.favPressed}}" aria-label="{{sc.favLabel}}" title="{{sc.favLabel}}" onClick="{{sc.toggleFav}}">
+                  <svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg>
+                </button>
                 <button type="button" class="nf-icon-button" aria-label="{{sc.actionsLabel}}" title="{{sc.actionsLabel}}" aria-haspopup="menu" aria-expanded="{{sc.menuExpanded}}" onClick="{{sc.toggleMenu}}">
                   <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3.5" cy="8" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="12.5" cy="8" r="1.3" fill="currentColor" stroke="none"></circle></svg>
                 </button>
@@ -698,6 +749,7 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
             </li>
           </sc-for>
         </ul>
+        </sc-for>
       </div>
     </sc-if>
 
@@ -720,6 +772,10 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
                 <span class="nf-space-badge" style="background: {{si.color}}" aria-hidden="true">{{si.badge}}</span>
                 <span class="nf-menu-label">{{si.label}}</span>
               </a>
+              <!-- Favorit direkt in der Zeile: gefüllt bei Favoriten, sonst beim Darüberfahren -->
+              <button type="button" class="nf-menu-star" aria-pressed="{{si.favPressed}}" aria-label="{{si.favAria}}" title="{{si.favAria}}" onClick="{{si.toggleFav}}">
+                <svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg>
+              </button>
               <sc-if value="{{si.manage}}" hint-placeholder-val="{{ true }}">
                 <button type="button" class="nf-menu-more" aria-label="{{si.actionsLabel}}" aria-haspopup="menu" aria-expanded="{{si.subExpanded}}" onClick="{{si.toggleSub}}">
                   <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3.5" cy="8" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="12.5" cy="8" r="1.3" fill="currentColor" stroke="none"></circle></svg>
@@ -749,6 +805,36 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
         <p class="nf-sidebar-note">Archiviert, nur lesbar</p>
       </sc-if>
     </div>
+
+    <!-- Seiten-Favoriten dieses Spaces: ein-/ausklappbar wie der Papierkorb; die Seiten stehen weiter im Baum -->
+    <sc-if value="{{pageFavs.show}}" hint-placeholder-val="{{ true }}">
+      <div class="nf-page-favs">
+        <button type="button" class="nf-nav-item" aria-expanded="{{pageFavs.expanded}}" onClick="{{pageFavs.toggle}}">
+          <svg class="nf-icon nf-fav-section-star" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg>
+          <span>Favoriten ({{pageFavs.count}})</span>
+        </button>
+        <sc-if value="{{pageFavs.open}}" hint-placeholder-val="{{ true }}">
+          <ul class="nf-page-fav-list" aria-label="Favoriten in diesem Space">
+            <sc-for list="{{pageFavs.items}}" as="pf" hint-placeholder-count="2">
+              <li class="nf-tree-row nf-fav-row {{pf.cls}}">
+                <a href="#" class="nf-tree-link" aria-current="{{pf.current}}" onClick="{{pf.go}}">
+                  <svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg>
+                  <span class="nf-tree-title {{pf.titleCls}}">{{pf.title}}</span>
+                  <sc-if value="{{pf.restricted}}" hint-placeholder-val="{{ false }}">
+                    <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" role="img" aria-label="eingeschränkt"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg>
+                  </sc-if>
+                </a>
+                <span class="nf-actions">
+                  <button type="button" class="nf-icon-button nf-star-btn" aria-pressed="true" aria-label="{{pf.unfavLabel}}" title="{{pf.unfavLabel}}" onClick="{{pf.unfav}}">
+                    <svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg>
+                  </button>
+                </span>
+              </li>
+            </sc-for>
+          </ul>
+        </sc-if>
+      </div>
+    </sc-if>
 
     <div class="nf-tree">
       <div class="nf-tree-head">
@@ -788,6 +874,9 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
             </sc-if>
             <sc-if value="{{row.menuOpen}}" hint-placeholder-val="{{ false }}">
               <ul class="nf-menu nf-row-menu" role="menu" aria-label="{{row.actionsLabel}}">
+                <li role="none"><button type="button" role="menuitem" class="nf-menu-item" onClick="{{row.toggleFav}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg>
+                  <span class="nf-menu-label">{{row.favLabel}}</span></button></li>
                 <li role="none"><button type="button" role="menuitem" class="nf-menu-item" onClick="{{row.rename}}">
                   <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.5 2.5l3 3-8 8h-3v-3z"></path></svg>
                   <span class="nf-menu-label">Umbenennen</span><span class="nf-menu-shortcut">F2</span></button></li>
@@ -983,6 +1072,10 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
               </sc-if>
             </div>
           </sc-if>
+          <!-- Seite als Favorit dieses Spaces markieren -->
+          <button type="button" class="nf-btn nf-btn-icon nf-btn-ghost nf-page-star" aria-pressed="{{pageFav.pressed}}" aria-label="{{pageFav.label}}" title="{{pageFav.label}}" onClick="{{pageFav.toggle}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg>
+          </button>
           <!-- Kommentare (Ausblick): Spalte ein/aus, mit Zahl der offenen Kommentare -->
           <button type="button" class="nf-btn nf-btn-icon nf-btn-ghost {{commentsCls}}" aria-pressed="{{commentsPressed}}" aria-label="{{commentsLabel}}" title="{{commentsLabel}}" onClick="{{toggleComments}}">
             <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"></path></svg>
@@ -1307,7 +1400,7 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
                 </div>
                 <ul class="nf-space-grid">
                   <sc-for list="{{spaceCardsShown}}" as="sc" hint-placeholder-count="3">
-                    <li><a href="#" class="nf-space-tile {{sc.tileCls}}" onClick="{{sc.go}}">
+                    <li class="nf-space-tile-wrap"><a href="#" class="nf-space-tile {{sc.tileCls}}" onClick="{{sc.go}}">
                       <span class="nf-space-tile-top">
                         <span class="nf-space-badge nf-space-badge-lg" style="background: {{sc.color}}" aria-hidden="true">{{sc.badge}}</span>
                         <span class="nf-space-tile-names">
@@ -1318,7 +1411,10 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
                       </span>
                       <span class="nf-space-tile-desc">{{sc.description}}</span>
                       <span class="nf-space-tile-meta">{{sc.meta}}</span>
-                    </a></li>
+                    </a>
+                    <button type="button" class="nf-tile-star" aria-pressed="{{sc.favPressed}}" aria-label="{{sc.favLabel}}" title="{{sc.favLabel}}" onClick="{{sc.toggleFav}}">
+                      <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg>
+                    </button></li>
                   </sc-for>
                   <li><button type="button" class="nf-space-tile nf-space-tile-new" onClick="{{openNewSpace}}">
                     <svg class="nf-icon" width="20" height="20" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
@@ -2071,6 +2167,11 @@ class Component extends DCLogic {
       saved: false,
       seq: 1,
       showArchived: false,
+      // Seiten-Favoriten pro Space (Seiten-IDs in der Reihenfolge des Markierens), pro Person; im Prototyp im Browser
+      pageFavs: (() => { try { const v = JSON.parse(localStorage.getItem('nf-proto-page-favs')); return v && typeof v === 'object' ? v : { ENTW: ['dm', 'backup'] }; } catch (err) { return { ENTW: ['dm', 'backup'] }; } })(),
+      pageFavsOpen: (() => { try { return localStorage.getItem('nf-proto-page-favs-open') !== 'false'; } catch (err) { return true; } })(),
+      // Favoriten (Space-Schlüssel), pro Person; im Prototyp im Browser gemerkt
+      favs: (() => { try { const v = JSON.parse(localStorage.getItem('nf-proto-favs')); return Array.isArray(v) ? v : ['ENTW']; } catch (err) { return ['ENTW']; } })(),
       ns: null,
       // Darstellung: 'light' | 'dark' | 'system'; im Browser gemerkt (nur Komfort, darf fehlen)
       theme: (() => { try { return localStorage.getItem('nf-proto-theme') || 'light'; } catch (e) { return 'light'; } })(),
@@ -3046,7 +3147,7 @@ class Component extends DCLogic {
     }));
 
     // Spaces und Personen
-    const spaces = Object.values(s.spaces).filter((x) => !words.length || all(fold(x.name + ' ' + x.key))).map((x) => {
+    const spaces = this.favFirst(Object.values(s.spaces), (x) => x.key).filter((x) => !words.length || all(fold(x.name + ' ' + x.key))).map((x) => {
       const [t1, t2, t3] = split(x.name);
       return {
         kind: 'space', t1, t2, t3, badge: x.key.slice(0, 2), iconStyle: 'background:' + (x.color || '#1F5FD6') + ';color:#fff',
@@ -3177,6 +3278,32 @@ class Component extends DCLogic {
     };
   }
 
+  /** Space als Favorit markieren oder nicht mehr */
+  toggleFav(key) {
+    const favs = this.state.favs;
+    const on = !favs.includes(key);
+    const next = on ? [...favs, key] : favs.filter((k) => k !== key);
+    try { localStorage.setItem('nf-proto-favs', JSON.stringify(next)); } catch (err) { /* nur diese Sitzung */ }
+    this.setState({ favs: next, sideMenu: null, spaceSub: null });
+    this.showToast('„' + this.state.spaces[key].name + '“ ' + (on ? 'zu den Favoriten hinzugefügt' : 'aus den Favoriten entfernt'));
+  }
+  /** Seite als Favorit ihres Spaces markieren oder nicht mehr */
+  toggleFavPage(id) {
+    const P = this.state.pages;
+    const key = P[id].space;
+    const list = this.state.pageFavs[key] || [];
+    const on = !list.includes(id);
+    const next = { ...this.state.pageFavs, [key]: on ? [...list, id] : list.filter((x) => x !== id) };
+    try { localStorage.setItem('nf-proto-page-favs', JSON.stringify(next)); } catch (err) { /* nur diese Sitzung */ }
+    this.setState({ pageFavs: next, menu: null, pageFavsOpen: on ? true : this.state.pageFavsOpen });
+    this.showToast('„' + (P[id].title || 'Ohne Titel') + '“ ' + (on ? 'zu den Favoriten hinzugefügt' : 'aus den Favoriten entfernt'));
+  }
+  /** Favoriten zuerst, sonst Reihenfolge wie bisher (nach Name) */
+  favFirst(list, keyOf) {
+    const favs = this.state.favs;
+    return [...list].sort((a, b) => (favs.includes(keyOf(b)) ? 1 : 0) - (favs.includes(keyOf(a)) ? 1 : 0));
+  }
+
   /** Archivieren aus einem Menü: mit Rückfrage; Zurückholen sofort (umkehrbar) */
   archiveFromMenu(key) {
     const x = this.state.spaces[key];
@@ -3199,10 +3326,15 @@ class Component extends DCLogic {
     const restricted = (id) => this.chain(id).some((x) => s.grants[x]);
     const sub = (x) => [x, ...P[x].kids.flatMap(sub)];
     const hour = new Date().getHours();
-    const cards = Object.values(s.spaces).map((x) => {
+    const cards = this.favFirst(Object.values(s.spaces), (x) => x.key).map((x) => {
       const role = this.role(x.home);
       const count = sub(x.home).length;
+      const fav = s.favs.includes(x.key);
       return {
+        fav,
+        favPressed: fav ? 'true' : 'false',
+        favLabel: fav ? '„' + x.name + '“ aus den Favoriten entfernen' : '„' + x.name + '“ als Favorit markieren',
+        toggleFav: (e) => { this.stop(e); this.prevent(e); this.toggleFav(x.key); },
         key: x.key,
         name: x.name,
         badge: x.key.slice(0, 2),
@@ -3279,6 +3411,11 @@ class Component extends DCLogic {
       greeting: (hour < 11 ? 'Guten Morgen' : hour < 18 ? 'Guten Tag' : 'Guten Abend') + ', Peter',
       spaceCount: cards.length,
       spaceCards: cards,
+      // Linke Liste: „Favoriten“ (nur wenn es welche gibt) und „Spaces“ (die übrigen)
+      sideGroups: [
+        ...(cards.some((c) => c.fav) ? [{ label: 'Favoriten', showNew: false, items: cards.filter((c) => c.fav) }] : []),
+        { label: cards.some((c) => c.fav) ? 'Weitere Spaces' : 'Spaces', showNew: true, items: cards.filter((c) => !c.fav) }
+      ],
       spaceCardsShown: cards.filter((c) => s.showArchived || !c.archived),
       showArchived: s.showArchived,
       toggleArchived: () => this.setState((st) => ({ showArchived: !st.showArchived })),
@@ -3362,6 +3499,8 @@ class Component extends DCLogic {
         downDisabled: next ? 'false' : 'true',
         outdentDisabled: parentIsHome ? 'true' : 'false',
         renaming: s.renaming === id,
+        favLabel: (s.pageFavs[p.space] || []).includes(id) ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen',
+        toggleFav: () => this.toggleFavPage(id),
         draft: s.draft,
         toggle: (e) => { this.stop(e); this.setState((st) => ({ expanded: { ...st.expanded, [id]: !st.expanded[id] } })); },
         go: (e) => { this.prevent(e); this.go(id); },
@@ -3391,7 +3530,12 @@ class Component extends DCLogic {
     P[homeId].kids.forEach((k, i) => walk(k, 0, P[homeId].kids, i));
 
     // Space-Umschalter (Organisations-Admins dürfen jeden Space verwalten)
-    const spaceItems = Object.values(s.spaces).map((x) => ({
+    const spaceItems = this.favFirst(Object.values(s.spaces), (x) => x.key).map((x) => ({
+      fav: s.favs.includes(x.key),
+      favPressed: s.favs.includes(x.key) ? 'true' : 'false',
+      favAria: s.favs.includes(x.key) ? '„' + x.name + '“ aus den Favoriten entfernen' : '„' + x.name + '“ als Favorit markieren',
+      favLabel: s.favs.includes(x.key) ? 'Aus Favoriten entfernen' : 'Als Favorit markieren',
+      toggleFav: (e) => { this.stop(e); this.toggleFav(x.key); },
       badge: x.key.slice(0, 2),
       color: x.color || '#1F5FD6',
       label: x.archived ? x.name + ' (archiviert)' : x.name,
@@ -3685,6 +3829,40 @@ class Component extends DCLogic {
       toggleComments: () => this.setState((st) => ({ commentsOpen: !st.commentsOpen, activeThread: st.commentsOpen ? null : st.activeThread, replying: null })),
       // Kommentare mit Zahl der offenen Threads
       cm,
+      // Seiten-Favoriten dieses Spaces (nur lesbare, nicht im Papierkorb)
+      pageFavs: (() => {
+        const trashed = new Set(s.trash.map((t) => t.id));
+        const ids = (s.pageFavs[s.space] || []).filter((id) => P[id] && this.role(id) && !this.chain(id).some((x) => trashed.has(x)));
+        return {
+          show: s.view !== 'overview' && ids.length > 0,
+          count: ids.length,
+          open: s.pageFavsOpen,
+          expanded: s.pageFavsOpen ? 'true' : 'false',
+          toggle: () => {
+            const next = !s.pageFavsOpen;
+            try { localStorage.setItem('nf-proto-page-favs-open', String(next)); } catch (err) { /* nur diese Sitzung */ }
+            this.setState({ pageFavsOpen: next });
+          },
+          items: ids.map((id) => ({
+            title: P[id].title || 'Ohne Titel',
+            titleCls: P[id].title ? '' : 'nf-untitled',
+            cls: isPage && cur === id ? 'nf-selected' : '',
+            current: isPage && cur === id ? 'page' : 'false',
+            restricted: this.chain(id).some((x) => s.grants[x]),
+            go: (e) => { this.prevent(e); this.go(id); },
+            unfavLabel: '„' + (P[id].title || 'Ohne Titel') + '“ aus den Favoriten entfernen',
+            unfav: (e) => { this.stop(e); this.toggleFavPage(id); }
+          }))
+        };
+      })(),
+      pageFav: (() => {
+        const on = isPage && (s.pageFavs[s.space] || []).includes(pid);
+        return {
+          pressed: on ? 'true' : 'false',
+          label: on ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen',
+          toggle: () => this.toggleFavPage(pid)
+        };
+      })(),
       openComments: openN,
       hasOpenComments: openN > 0,
       commentsCls: openN > 0 ? 'nf-has-count' : '',

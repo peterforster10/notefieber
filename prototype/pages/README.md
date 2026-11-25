@@ -81,6 +81,22 @@ Erreichbar über das Logo, „Alle Spaces“ im Space-Umschalter oder direkt mit
 - **Spaces** als Kacheln: Kürzel in eigener Farbe (`color` pro Space, Vorschlag; auch im
   Umschalter), Name, Schlüssel, Beschreibung, eigene Rolle als Chip, Zahl der Seiten, letzte
   Änderung. Archivierte nur mit „Archivierte zeigen“. Letzte Kachel „Neuer Space“.
+- **Seiten-Favoriten pro Space** (Ausblick, pro Person; im Prototyp im Browser gemerkt, Standard in
+  Entwicklung: Datenmodell und Backups): Bereich „Favoriten (n)“ über „Seiten“ in der Seitenleiste,
+  ein- und ausklappbar wie der Papierkorb (Zustand gemerkt), nur wenn es im Space Favoriten gibt. Die
+  Seiten stehen weiter ganz normal im Seitenbaum; die geöffnete Seite ist in beiden hervorgehoben.
+  Markieren über den Stern in der Leiste über der Seite (links neben den Kommentaren, für alle mit
+  Leserecht) oder „Zu Favoriten hinzufügen“ im „⋯“-Menü einer Baumzeile; entfernen auch über den
+  Stern, der im Bereich beim Darüberfahren erscheint. Seiten ohne Leserecht oder im Papierkorb
+  fallen aus der Liste.
+- **Favoriten** (Ausblick, pro Person; im Prototyp im Browser gemerkt, Standard: Entwicklung): Stern
+  oben rechts an jeder Kachel (bei Favoriten immer sichtbar und gefüllt, sonst beim Darüberfahren),
+  in der linken Liste beim Darüberfahren neben „⋯“; beim Darüberfahren wird nur der Stern ocker, ohne
+  Hintergrund. Favoriten stehen überall zuerst: als eigene
+  Gruppe „Favoriten“ in der linken Liste (die übrigen unter „Weitere Spaces“), in der Kachelansicht,
+  im Space-Umschalter (Stern direkt in jeder Zeile: gefüllt bei Favoriten, sonst beim
+  Darüberfahren; Klick schaltet um, ohne den Space zu wechseln) und bei den Spaces in der Suche. Farbe `--nf-fav` (Ocker #B45309, dunkel
+  #F5B93F).
 - Rechte Spalte: **Letzte Änderungen** in sichtbaren Spaces (Ausblick, aus den Ereignissen der
   Outbox) und für Owner/Admins eine Karte zum Workspace (Mitglieder, offene Einladungen, Knöpfe zu
   den Dialogen). Unter 1200 px rutscht die Spalte unter den Inhalt.
