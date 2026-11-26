@@ -3,44 +3,44 @@
 Klickbarer Prototyp der Seitenansicht. **Stand: Web-Client vom 25. November 2026** (helle
 Seitenleiste, Inter, Kopfbereich mit Brotkrume, Byline, Blöcke wie im Editor). Grundlage für die
 Überarbeitung der Oberfläche: Was hier geändert wird, lässt sich 1:1 ins Frontend übertragen, weil
-Klassennamen (`nf-…`) und Farb-Tokens dieselben sind wie in `apps/web/src/app/globals.css`.
+Klassennamen (`nf-…`) und Farb-Tokens dieselben sind wie in `../apps/web/src/app/globals.css`.
 
 Treat it as a REFERENCE MOCKUP, not production code: the markup and styles carry the design's
 values (colors, font sizes, spacing, radii, shadows, layout).
 
 ## Inhalt
 
-- `Main.dc.html` — the artboard (a Design Component: an `<x-dc>` template + a small logic class).
+- `pages/Main.dc.html` — the artboard (a Design Component: an `<x-dc>` template + a small logic class).
   Styles live in the `<helmet><style>` block (tokens on `:root`, same class names as the frontend),
   test data in the script (Alpenwerk from `database/scripts/seed/seed.sql`, signed in as Peter Forster).
   **Gebaut aus `src/`, nicht von Hand ändern** (siehe „Aufbau der Dateien“).
-- `src/` — die Quellen von `Main.dc.html`, aufgeteilt nach Bereichen.
-- `support.js`, `vendor/react*.js` — the runtime that renders the component; not part of the design.
-- `../fonts/` — Inter (variabel) und IBM Plex Mono als woff2 aus `@fontsource` (OFL-1.1, Lizenzen daneben).
-- `../brand/` — Logo-Entwürfe (`Logo.html` zum Vergleichen); das graue „NF“ ist in Seitenleiste, Import und als Browser-Icon eingesetzt.
+- `pages/src` — die Quellen von `Main.dc.html`, aufgeteilt nach Bereichen.
+- `pages/support.js`, `vendor/react*.js` — the runtime that renders the component; not part of the design.
+- `fonts` — Inter (variabel) und IBM Plex Mono als woff2 aus `@fontsource` (OFL-1.1, Lizenzen daneben).
+- `brand` — Logo-Entwürfe (`Logo.html` zum Vergleichen); das graue „NF“ ist in Seitenleiste, Import und als Browser-Icon eingesetzt.
 
 ## Aufbau der Dateien
 
-`Main.dc.html` bleibt eine einzelne Datei im x-dc-Format, damit das Design-Werkzeug sie öffnen kann.
+`pages/Main.dc.html` bleibt eine einzelne Datei im x-dc-Format, damit das Design-Werkzeug sie öffnen kann.
 Gepflegt wird sie in `src/` (seit 26. November 2026); `pnpm prototype:build` (`node prototype/build.mjs`)
 setzt die Teile zusammen, `pnpm prototype:check` meldet, ob `Main.dc.html` aktuell ist. Das prüft auch
 `pnpm check` und damit die CI (Job `apps`): Wer `src/` ändert, committet die neu gebaute `Main.dc.html` mit. Eine Zeile, die
 nur aus einer Einbindung besteht (`<!-- @include … -->`, `/* @include … */`, `// @include …`), wird
 durch die Datei ersetzt; Pfade relativ zur einbindenden Datei.
 
-- `src/Main.html` — Gerüst: Kopf, `<x-dc>`, die Reihenfolge aller Teile.
-- `src/styles/` — CSS nach Bereichen: `tokens.css` (Farben hell und dunkel), `shell.css`,
+- `pages/src/Main.html` — Gerüst: Kopf, `<x-dc>`, die Reihenfolge aller Teile.
+- `pages/src/styles` — CSS nach Bereichen: `tokens.css` (Farben hell und dunkel), `shell.css`,
   `sidebar.css`, `account-menus.css`, `pagebar.css`, `page.css`, `editor.css`, `comments.css`,
   `dialog.css`, `palette.css`, `overview.css`, `rights-trash.css`, je eine Datei für die neuen
   Bereiche (`versions.css`, `states.css`, `notifications.css`, `reactions.css`, `look.css`,
   `overview-favorites.css`, `page-foot.css`), am Ende `forms.css` und `responsive.css`. Die
   Reihenfolge zählt (Kaskade).
-- `src/template/` — Vorlage: `sidebar.html`, `topbar.html` (Suche, Glocke, Menüs), `pagebar.html`,
+- `pages/src/template` — Vorlage: `sidebar.html`, `topbar.html` (Suche, Glocke, Menüs), `pagebar.html`,
   `main/` (`page.html` mit `comments.html`, `versions.html`, `loading.html`, `overview.html`,
   `templates.html`, `import.html`),
   `dialogs/` (je Dialog eine Datei), `editor-floating.html` („/“-Menü, Auswahl, Formatleiste),
   `palette.html`, `toast.html`.
-- `src/logic/` — Daten (`data.js`, `data-content.js`, `versions-model.js` mit dem Vergleich,
+- `pages/src/logic` — Daten (`data.js`, `data-content.js`, `versions-model.js` mit dem Vergleich,
   `templates-model.js` mit den Vorlagen) und
   die Komponente in `component/`: `constructor.js` (Zustand), `helpers.js` (Rechte wie
   `app.page_rank`), je Bereich eine Datei (`pages.js`, `comments.js`, `editor.js`, `palette.js`,
@@ -49,7 +49,7 @@ durch die Datei ersetzt; Pfade relativ zur einbindenden Datei.
   `import.js`) und zuletzt
   `render.js` (`renderVals`, alle Werte für die Vorlage).
 
-Ändert jemand `Main.dc.html` im Design-Werkzeug, gehen diese Änderungen beim nächsten Bauen
+Ändert jemand `pages/Main.dc.html` im Design-Werkzeug, gehen diese Änderungen beim nächsten Bauen
 verloren; dann zuerst in `src/` übertragen. Die Teildateien sind kein eigenständiges JavaScript
 (Methoden stehen ohne Klasse), sie ergeben erst zusammengesetzt eine gültige Datei.
 
@@ -79,13 +79,13 @@ verloren; dann zuerst in `src/` übertragen. Die Teildateien sind kein eigenstä
     Entfernen mit Rückfrage, Knopf „Personen einladen“. Im Frontend gibt es dafür noch keine
     Oberfläche; die Datenbank kann es schon (`app.set_workspace_member_role`,
     `app.remove_workspace_member`).
-  - **Einladungen** (Dialog, wie `apps/web/src/components/invites.tsx` auf der Startseite): E-Mail
+  - **Einladungen** (Dialog, wie `../apps/web/src/components/invites.tsx` auf der Startseite): E-Mail
     und Rolle, danach den Link anzeigen und kopieren; Liste mit Status (offen, angenommen,
     zurückgenommen, abgelaufen), offene zurücknehmen. Im Menü zeigt eine Zahl die offenen Einladungen.
 - **Dunkles Farbschema (Vorschlag, nur im Prototyp):** dunkle Werte aller Tokens unter
   `:root[data-theme='dark']`; „System“ folgt `prefers-color-scheme`. Alle Text-Paare erreichen
   mindestens 4,5:1, Bedienelemente 3:1 (nachgerechnet, aber noch nicht in
-  `apps/web/src/app/contrast.test.mjs`). Die Auswahl merkt sich der Browser (`localStorage`,
+  `../apps/web/src/app/contrast.test.mjs`). Die Auswahl merkt sich der Browser (`localStorage`,
   `nf-proto-theme`), Standard ist Hell. Der Import-Assistent hat noch kein dunkles Schema.
   - Rechts, von links nach rechts:
     - **Speicherstatus** „Gespeichert“ / „Speichert …“ / „Offline“ (orange) / „Nur lesen“ bzw.
@@ -115,7 +115,7 @@ verloren; dann zuerst in `src/` übertragen. Die Teildateien sind kein eigenstä
 ## Übersicht (Startseite nach dem Login), neuer Entwurf
 
 Erreichbar über das Logo, „Alle Spaces“ im Space-Umschalter oder direkt mit
-`Main.dc.html#uebersicht`. Ersetzt die bisherige Liste mit Formularen (`apps/web/src/app/home.tsx`).
+`Main.dc.html#uebersicht`. Ersetzt die bisherige Liste mit Formularen (`../apps/web/src/app/home.tsx`).
 
 - Seitenleiste: „Übersicht“ und die Liste aller Spaces mit farbigem Kürzel (Archivierte gedämpft),
   „+“ für einen neuen Space; an jedem Space „⋯“ (wie im Seitenbaum beim Darüberfahren) mit
@@ -395,5 +395,5 @@ BlockNote; dieser Entwurf legt fest, wie dessen Menüs aussehen und sich verhalt
 
 ## Ansehen
 
-Nach Änderungen in `src/` zuerst `node prototype/build.mjs` (findet seine Dateien selbst, egal von wo aufgerufen). Den Ordner `prototype/` ausliefern, z. B. `py -m http.server 8090 --directory prototype`, und
+Nach Änderungen in `pages/src` zuerst `node prototype/build.mjs` (findet seine Dateien selbst, egal von wo aufgerufen). Den Ordner `prototype/` ausliefern, z. B. `py -m http.server 8090 --directory prototype`, und
 `http://localhost:8090/pages/Main.dc.html` öffnen; über file:// blockieren manche Browser die Skripte.
