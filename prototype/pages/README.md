@@ -36,7 +36,8 @@ durch die Datei ersetzt; Pfade relativ zur einbindenden Datei.
   `overview-favorites.css`, `page-foot.css`), am Ende `forms.css` und `responsive.css`. Die
   Reihenfolge zählt (Kaskade).
 - `src/template/` — Vorlage: `sidebar.html`, `topbar.html` (Suche, Glocke, Menüs), `pagebar.html`,
-  `main/` (`page.html` mit `comments.html`, `versions.html`, `loading.html`, `overview.html`),
+  `main/` (`page.html` mit `comments.html`, `versions.html`, `loading.html`, `overview.html`,
+  `templates.html`, `import.html`),
   `dialogs/` (je Dialog eine Datei), `editor-floating.html` („/“-Menü, Auswahl, Formatleiste),
   `palette.html`, `toast.html`.
 - `src/logic/` — Daten (`data.js`, `data-content.js`, `versions-model.js` mit dem Vergleich,
@@ -44,7 +45,8 @@ durch die Datei ersetzt; Pfade relativ zur einbindenden Datei.
   die Komponente in `component/`: `constructor.js` (Zustand), `helpers.js` (Rechte wie
   `app.page_rank`), je Bereich eine Datei (`pages.js`, `comments.js`, `editor.js`, `palette.js`,
   `versions.js`, `versions-view.js`, `notifications.js`, `reactions.js`, `look.js`,
-  `page-foot.js`, `dialogs.js`, `loading.js`, `favorites.js`, `overview.js`, `templates.js`) und zuletzt
+  `page-foot.js`, `dialogs.js`, `loading.js`, `favorites.js`, `overview.js`, `templates.js`,
+  `import.js`) und zuletzt
   `render.js` (`renderVals`, alle Werte für die Vorlage).
 
 Ändert jemand `Main.dc.html` im Design-Werkzeug, gehen diese Änderungen beim nächsten Bauen
@@ -57,7 +59,12 @@ verloren; dann zuerst in `src/` übertragen. Die Teildateien sind kein eigenstä
   Seitenbaum mit „Startseite“, Aufklappen, „+“ und Zeilenmenü (Umbenennen, Nach oben/unten,
   Einrücken, Ausrücken, In den Papierkorb), Papierkorb mit Wiederherstellen, „Daten gehostet in der
   EU“. Unter 1024 px eine Schublade. **Abweichend vom Frontend:** Abmelden und Sprache stehen nicht
-  mehr in der Seitenleiste, sondern im Konto-Menü (siehe unten).
+  mehr in der Seitenleiste, sondern im Konto-Menü (siehe unten). **Aufbau seit 26. November 2026:**
+  direkt unter dem Logo der Space-Umschalter als Karte (Kürzel, Name, „Space · ENTW“, Menü mit allen
+  Spaces), darunter Favoriten und Seitenbaum. „Übersicht“ und „Vorlagen“ stehen nur in der
+  Seitenleiste der Übersicht; aus dem Space erreicht man sie über das Logo bzw. die Suche. Eine
+  kompakte einzeilige Fassung des Umschalters und beide Einträge in der Seitenansicht waren
+  ausprobiert und sind verworfen.
 - Brotkrume, Anwesenheit, „Versionen“, „Exportieren“, „Teilen und Rechte“. Export öffnet wie im
   Frontend einen Dialog mit Ausblick, Versionen eine eigene Ansicht (siehe „Ausblick“). **Abweichend vom Frontend (25. November 2026):**
   - Sie stehen in einer eigenen Zeile unter der Leiste oben (`.nf-pagebar`, scrollt mit dem Inhalt);
@@ -212,9 +219,9 @@ BlockNote; dieser Entwurf legt fest, wie dessen Menüs aussehen und sich verhalt
     kommt er aus dem BlockNote-JSON der Versionen und gehört in eine Bibliothek (z. B. das npm-Paket
     `diff`), nicht in eigenen Code.
 - **Vorlagen** (Ausblick; Confluence-Ersatz, „was Geschäftskunden verlangen“): Menüpunkt „Vorlagen“
-  unter „Übersicht“ in der linken Navigation, auch „Vorlagen“ in der Suche. Beide Menüpunkte stehen
-  auch in der Seitenansicht ganz oben über dem Space-Umschalter; „Übersicht“ hat dafür ein eigenes
-  Icon (Kacheln), weil das Haus im Space für „Startseite“ steht.
+  unter „Übersicht“ in der linken Navigation, auch „Vorlagen“ in der Suche. „Übersicht“ hat ein Kachel-Icon, weil das
+  Haus im Space für „Startseite“ steht. Aus einem Space führen Logo und Suche („Vorlagen“) dorthin;
+  leere Seiten bieten Vorlagen selbst an.
   - **Galerie:** Karten mit verkleinerter Vorschau des Inhalts, Emoji, Name, Beschreibung,
     Geltungsbereich („Alle Spaces“ oder ein Space) und wie oft verwendet; Suche, Filter Alle /
     Alle Spaces / je Space mit Zahl. Sichtbar sind Vorlagen für alle Spaces und die der Spaces, die
@@ -360,7 +367,25 @@ BlockNote; dieser Entwurf legt fest, wie dessen Menüs aussehen und sich verhalt
 - **„Ansehen als …“** (`app.view_as`, E09): Person wählen, darunter der ganze Seitenbaum des Spaces
   mit ihrer Rolle pro Seite (ohne Zugriff gedämpft, eigene Rechte mit Schloss) und „sieht 8 von 9
   Seiten“. Nur Struktur, keine Inhalte, Hinweis aufs Audit-Log; zeigt den gespeicherten Stand.
-- „Confluence-Import“ unten in der Seitenleiste, führt zu `../import/Import.dc.html` (M4)
+- **Confluence-Import** (M4; seit 26. November 2026 eine Ansicht im gemeinsamen Rahmen statt der
+  eigenen Seite `../import/Import.dc.html`, die nur noch weiterleitet): „Confluence-Import“ unten in
+  der Seitenleiste, in der Suche oder direkt `Main.dc.html#import`; Brotkrume „<Space> /
+  Confluence-Import“, Farben und Dunkelmodus wie überall. Drei Schritte:
+  - **Export hochladen:** Ziel-Space (nur Spaces, die man verwaltet; Link „Neuen Space anlegen“),
+    Ablagefläche, Datei mit „Virenscan ohne Befund“.
+  - **Probelauf** (ändert nichts): Zahlen (gefunden, vollständig, mit Platzhalter, übersprungen),
+    **Gruppen zuordnen** (zu „Alle im Workspace“, einer Wiki-Gruppe, einer neuen Gruppe oder „Nicht
+    übernehmen“), **Personen** (per E-Mail zugeordnet, noch nicht im Workspace mit vorbereiteten
+    Einladungen, deaktiviert), **Rechte vorab** (je eingeschränkter Confluence-Seite, wer sie danach
+    lesen bzw. bearbeiten darf, mit „Wie vorher“, „Enger als vorher“ oder „Weiter als vorher“),
+    **Makros** (was wozu wird). Ist eine Gruppe nicht zugeordnet oder wäre eine Seite danach für mehr
+    Personen sichtbar als in Confluence (z. B. „entw-admins“ → „Alle im Workspace“), sperrt der
+    Assistent „Import starten“ und sagt, warum. „Bericht herunterladen“ als Ausblick.
+  - **Importieren:** Fortschritt in Phasen (Seiten, Anhänge, Rechte, Suchindex), danach legt der
+    Prototyp im Ziel-Space „Aus Confluence (Datum)“ mit vier Seiten an (eine mit Platzhalter für
+    „Jira-Vorgänge“, eine mit eigenen Rechten). Danach: importierte Seiten öffnen, Seiten mit
+    Platzhaltern, „Rechte prüfen“ (öffnet „Ansehen als …“ im Ziel-Space) und „Import rückgängig
+    machen“ (entfernt die angelegten Seiten).
 - Drag & Drop im Baum fehlt im Prototyp (im Frontend gebaut); das Zeilenmenü ersetzt es hier.
 
 ## Ansehen

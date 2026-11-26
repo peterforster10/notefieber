@@ -105,6 +105,7 @@
       { label: 'Neuer Space', kw: 'space anlegen erstellen neu', run: () => { this.setState({ dialog: 'newSpace', ns: null }); this.focusLater('#ns-name'); } },
       { label: 'Zur Übersicht', kw: 'startseite home übersicht spaces', run: () => this.setState({ view: 'overview' }) },
       { label: 'Vorlagen', kw: 'vorlage vorlagen muster template neue seite', run: () => this.openTemplates(null) },
+      { label: 'Confluence-Import', kw: 'import importieren confluence umzug export hochladen', run: () => this.openImport() },
       isPage && { label: 'Link zur Seite kopieren', kw: 'link kopieren teilen url adresse', run: () => this.showToast('Link kopiert') },
       isPage && { label: 'Versionen anzeigen', kw: 'versionen verlauf historie wiederherstellen vergleichen änderungen', run: () => this.openVersions(this.state.current) },
       isPage && { label: 'Seite exportieren', kw: 'export exportieren markdown download', run: () => this.setState({ dialog: 'export' }) },

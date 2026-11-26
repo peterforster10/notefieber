@@ -1,0 +1,54 @@
+      <!-- ---------- Vorlagen (Ausblick): Galerie mit Vorschau, Filter nach Geltungsbereich, Suche ---------- -->
+      <sc-if value="{{isTemplates}}" hint-placeholder-val="{{ false }}">
+        <div class="nf-overview nf-templates">
+          <sc-if value="{{tpl.hasTarget}}" hint-placeholder-val="{{ false }}">
+            <div class="nf-tpl-target" role="status">
+              <span>Vorlage für „{{tpl.targetTitle}}“ wählen</span>
+              <button type="button" class="nf-btn nf-btn-sm" onClick="{{tpl.cancelTarget}}">Zurück zur Seite</button>
+            </div>
+          </sc-if>
+          <header class="nf-ov-head">
+            <div>
+              <h1 class="nf-ov-greeting">Vorlagen</h1>
+              <p class="nf-muted">{{tpl.lead}}</p>
+            </div>
+          </header>
+          <div class="nf-tpl-tools">
+            <label class="nf-tpl-search">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+              <span class="nf-visually-hidden">Vorlagen suchen</span>
+              <input type="search" placeholder="Vorlagen suchen …" autocomplete="off" value="{{tpl.q}}" onInput="{{tpl.onQ}}">
+            </label>
+            <div class="nf-cm-tabs" role="group" aria-label="Geltungsbereich">
+              <sc-for list="{{tpl.filters}}" as="f" hint-placeholder-count="3">
+                <button type="button" class="nf-cmd-scope" aria-pressed="{{f.selected}}" aria-selected="{{f.selected}}" onClick="{{f.choose}}">{{f.label}}<span class="nf-cmd-scope-count">{{f.count}}</span></button>
+              </sc-for>
+            </div>
+          </div>
+          <ul class="nf-tpl-grid">
+            <sc-for list="{{tpl.cards}}" as="c" hint-placeholder-count="6">
+              <li>
+                <article class="nf-tpl-card" aria-label="{{c.name}}">
+                  <button type="button" class="nf-tpl-preview" aria-label="{{c.previewLabel}}" onClick="{{c.open}}">
+                    <span class="nf-tpl-preview-inner nf-editor nf-editable" data-tpl-preview="{{c.id}}" aria-hidden="true"></span>
+                  </button>
+                  <div class="nf-tpl-body">
+                    <h2 class="nf-tpl-name"><span class="nf-card-emoji" aria-hidden="true">{{c.icon}}</span><span>{{c.name}}</span></h2>
+                    <p class="nf-tpl-desc">{{c.desc}}</p>
+                    <div class="nf-tpl-meta"><span class="nf-chip {{c.scopeCls}}">{{c.scopeLabel}}</span><span>{{c.meta}}</span></div>
+                  </div>
+                  <div class="nf-tpl-actions">
+                    <button type="button" class="nf-btn nf-btn-sm" aria-haspopup="dialog" onClick="{{c.open}}">Vorschau</button>
+                    <button type="button" class="nf-btn nf-btn-sm nf-btn-primary" onClick="{{c.use}}">{{c.useLabel}}</button>
+                  </div>
+                </article>
+              </li>
+            </sc-for>
+          </ul>
+          <sc-if value="{{tpl.empty}}" hint-placeholder-val="{{ false }}">
+            <div class="nf-cm-empty"><span class="nf-empty-icon"><svg class="nf-icon" width="20" height="20" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"></rect><path d="M2.5 6h11M6 6v7.5"></path></svg></span><p class="nf-empty-title">Keine Vorlagen</p><p>{{tpl.emptyText}}</p></div>
+          </sc-if>
+          <p class="nf-tpl-hint">Eigene Vorlagen entstehen aus einer Seite: „⋯“ über der Seite, dann „Als Vorlage speichern“.</p>
+        </div>
+      </sc-if>
+

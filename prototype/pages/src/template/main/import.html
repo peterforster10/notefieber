@@ -1,0 +1,185 @@
+      <!-- ---------- Confluence-Import (Ausblick M4): Export hochladen, Probelauf prüfen, importieren ---------- -->
+      <sc-if value="{{isImport}}" hint-placeholder-val="{{ false }}">
+        <div class="nf-import">
+          <header class="nf-ov-head">
+            <div>
+              <h1 class="nf-ov-greeting">Confluence-Space importieren</h1>
+              <p class="nf-muted">Seiten, Hierarchie, Anhänge, Versionen und Rechte ziehen in einem Schritt um. Der Probelauf ändert nichts.</p>
+            </div>
+          </header>
+
+          <ol class="nf-imp-steps" aria-label="Schritte">
+            <sc-for list="{{imp.steps}}" as="st" hint-placeholder-count="3">
+              <li data-state="{{st.state}}" aria-current="{{st.current}}"><span class="nf-imp-dot">{{st.num}}</span><span>{{st.label}}</span></li>
+            </sc-for>
+          </ol>
+
+          <!-- Schritt 1: Ziel und Export -->
+          <sc-if value="{{imp.s1}}" hint-placeholder-val="{{ true }}">
+            <section class="nf-imp-card" aria-labelledby="imp-s1">
+              <h2 id="imp-s1" class="nf-imp-title">Export hochladen</h2>
+              <div class="nf-imp-field">
+                <label class="nf-label" for="imp-space" style="margin-top: 0">Ziel-Space</label>
+                <select id="imp-space" class="nf-input" value="{{imp.space}}" onChange="{{imp.onSpace}}">
+                  <sc-for list="{{imp.targets}}" as="o" hint-placeholder-count="2"><option value="{{o.key}}">{{o.label}}</option></sc-for>
+                </select>
+                <p class="nf-imp-help">Nur Spaces, die du verwaltest. Die Seiten kommen unter eine eigene Seite „Aus Confluence“. <button type="button" class="nf-link-btn" aria-haspopup="dialog" onClick="{{openNewSpace}}">Neuen Space anlegen</button></p>
+              </div>
+              <div class="nf-imp-drop">
+                <svg class="nf-icon" width="30" height="30" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11V3M4.5 6.5L8 3l3.5 3.5"></path><path d="M3 11v2h10v-2"></path></svg>
+                <strong>Space-Export hier ablegen</strong>
+                <span>HTML- oder XML-Export aus Confluence Data Center oder Server, als ZIP. In Confluence unter Space-Einstellungen › Export.</span>
+                <button type="button" class="nf-btn" onClick="{{imp.chooseFile}}">Datei auswählen</button>
+              </div>
+              <sc-if value="{{imp.file}}" hint-placeholder-val="{{ false }}">
+                <div class="nf-imp-file">
+                  <svg class="nf-icon" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg>
+                  <div class="nf-imp-file-main"><strong>ENTW-export-2026-10-28.zip</strong><span>1,2 GB · hochgeladen</span></div>
+                  <span class="nf-imp-tag nf-imp-tag-ok">Virenscan ohne Befund</span>
+                  <button type="button" class="nf-icon-button" aria-label="Datei entfernen" title="Datei entfernen" onClick="{{imp.removeFile}}"><svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg></button>
+                </div>
+              </sc-if>
+              <div class="nf-imp-actions">
+                <button type="button" class="nf-btn nf-btn-primary" disabled="{{imp.noFile}}" onClick="{{imp.runDry}}">Probelauf starten</button>
+              </div>
+            </section>
+          </sc-if>
+
+          <!-- Schritt 2: Probelauf mit Bericht -->
+          <sc-if value="{{imp.s2}}" hint-placeholder-val="{{ false }}">
+            <section class="nf-imp-card" aria-labelledby="imp-sum">
+              <div class="nf-imp-card-head"><h2 id="imp-sum" class="nf-imp-title">Probelauf abgeschlossen</h2><span class="nf-muted">ENTW-export-2026-10-28.zip → {{imp.spaceName}}</span></div>
+              <div class="nf-imp-stats">
+                <div class="nf-imp-stat"><strong>214</strong><span>Seiten gefunden</span></div>
+                <div class="nf-imp-stat" data-tone="ok"><strong>203</strong><span>vollständig übernommen</span></div>
+                <div class="nf-imp-stat" data-tone="warn"><strong>9</strong><span>mit Platzhalter</span></div>
+                <div class="nf-imp-stat"><strong>2</strong><span>übersprungen (Blogbeiträge)</span></div>
+              </div>
+              <ul class="nf-imp-list">
+                <li>486 Anhänge mit zusammen 1,1 GB, alle ohne Befund im Virenscan</li>
+                <li>Versionen: jeweils die letzten 20 pro Seite, mit Autorin oder Autor und Datum</li>
+                <li>Kommentare an der Seite und an Textstellen, erledigte als erledigt</li>
+              </ul>
+            </section>
+
+            <section class="nf-imp-card" aria-labelledby="imp-groups">
+              <div class="nf-imp-card-head">
+                <h2 id="imp-groups" class="nf-imp-title">Gruppen zuordnen</h2>
+                <sc-if value="{{imp.hasGroupNote}}" hint-placeholder-val="{{ true }}"><span class="nf-imp-tag nf-imp-tag-warn">{{imp.groupNote}}</span></sc-if>
+              </div>
+              <p class="nf-imp-help">Jede Confluence-Gruppe wird einer Gruppe im Wiki zugeordnet, neu angelegt oder nicht übernommen. Daraus rechnet der Import die Rechte unten aus.</p>
+              <div class="nf-imp-table-wrap">
+                <table class="nf-imp-table">
+                  <thead><tr><th>Confluence-Gruppe</th><th>Personen</th><th>Wird zu</th></tr></thead>
+                  <tbody>
+                    <sc-for list="{{imp.groups}}" as="g" hint-placeholder-count="4">
+                      <tr>
+                        <td><code>{{g.name}}</code></td>
+                        <td>{{g.count}}</td>
+                        <td>
+                          <select class="nf-input nf-imp-select" aria-label="{{g.label}}" data-missing="{{g.missing}}" value="{{g.target}}" onChange="{{g.change}}">
+                            <option value="">Bitte wählen</option>
+                            <option value="ws">Alle im Workspace</option>
+                            <option value="grp">Gruppe Entwicklung</option>
+                            <option value="new">Neue Gruppe „entw-admins“</option>
+                            <option value="skip">Nicht übernehmen</option>
+                          </select>
+                        </td>
+                      </tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="nf-imp-card" aria-labelledby="imp-people">
+              <h2 id="imp-people" class="nf-imp-title">Personen</h2>
+              <div class="nf-imp-stats">
+                <div class="nf-imp-stat" data-tone="ok"><strong>58</strong><span>über die E-Mail-Adresse zugeordnet</span></div>
+                <div class="nf-imp-stat" data-tone="warn"><strong>3</strong><span>noch nicht im Workspace</span></div>
+                <div class="nf-imp-stat"><strong>2</strong><span>in Confluence deaktiviert</span></div>
+              </div>
+              <label class="nf-imp-check"><input type="checkbox" checked="{{imp.invite}}" onChange="{{imp.toggleInvite}}"><span>Für die 3 Personen Einladungen in den Workspace vorbereiten (verschicken musst du sie selbst)</span></label>
+              <p class="nf-imp-help">Seiten und Kommentare deaktivierter Personen bleiben mit ihrem Namen erhalten. Neue Konten legt der Import nie an.</p>
+            </section>
+
+            <section class="nf-imp-card" aria-labelledby="imp-rights">
+              <h2 id="imp-rights" class="nf-imp-title">Rechte vorab</h2>
+              <p class="nf-imp-help">Seiten mit Einschränkungen in Confluence bekommen eigene Rechte. So sehen sie nach dem Import aus. Ist eine Seite danach für mehr Personen sichtbar als vorher, startet der Import nicht.</p>
+              <ul class="nf-imp-rights">
+                <sc-for list="{{imp.rows}}" as="r" hint-placeholder-count="4">
+                  <li data-state="{{r.state}}">
+                    <div class="nf-imp-rights-main">
+                      <strong><svg class="nf-icon" width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg>{{r.title}}</strong>
+                      <span>Confluence: {{r.what}}</span>
+                      <span>NoteFieber: {{r.result}}</span>
+                      <sc-if value="{{r.hint}}" hint-placeholder-val="{{ false }}"><span class="nf-imp-rights-hint">{{r.hint}}</span></sc-if>
+                    </div>
+                    <span class="nf-imp-tag nf-imp-state">{{r.stateLabel}}</span>
+                  </li>
+                </sc-for>
+              </ul>
+            </section>
+
+            <section class="nf-imp-card" aria-labelledby="imp-macros">
+              <h2 id="imp-macros" class="nf-imp-title">Makros</h2>
+              <div class="nf-imp-table-wrap">
+                <table class="nf-imp-table">
+                  <thead><tr><th>Confluence-Makro</th><th>Seiten</th><th>Wird zu</th></tr></thead>
+                  <tbody>
+                    <sc-for list="{{imp.macros}}" as="m" hint-placeholder-count="5">
+                      <tr><td>{{m.name}}</td><td>{{m.pages}}</td><td><span class="nf-imp-tag {{m.cls}}">{{m.target}}</span></td></tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+              </div>
+              <p class="nf-imp-help">Platzhalter zeigen, welches Makro dort stand, mit dem Originalinhalt im Bericht. Die betroffenen Seiten stehen nach dem Import in einer Liste.</p>
+            </section>
+
+            <sc-if value="{{imp.blocked}}" hint-placeholder-val="{{ false }}">
+              <div class="nf-imp-blockers" role="status">
+                <svg class="nf-icon" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5l6 11H2z"></path><path d="M8 6.5v3M8 11.5v.01"></path></svg>
+                <div><strong>Vor dem Import noch klären</strong><sc-for list="{{imp.blockers}}" as="b" hint-placeholder-count="1"><span>{{b.t}}</span></sc-for></div>
+              </div>
+            </sc-if>
+            <div class="nf-imp-actions nf-imp-actions-split">
+              <div class="nf-imp-actions-left">
+                <button type="button" class="nf-btn" onClick="{{imp.back}}">Zurück</button>
+                <button type="button" class="nf-btn" onClick="{{imp.reportToast}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v8M4.5 7.5L8 11l3.5-3.5"></path><path d="M3 13h10"></path></svg>
+                  <span>Bericht herunterladen</span>
+                </button>
+              </div>
+              <button type="button" class="nf-btn nf-btn-primary" disabled="{{imp.blocked}}" onClick="{{imp.startImport}}">Import starten</button>
+            </div>
+          </sc-if>
+
+          <!-- Schritt 3: läuft -->
+          <sc-if value="{{imp.s3}}" hint-placeholder-val="{{ false }}">
+            <section class="nf-imp-card" aria-labelledby="imp-run" aria-busy="true">
+              <div class="nf-imp-card-head"><h2 id="imp-run" class="nf-imp-title">Import läuft …</h2><span class="nf-muted">{{imp.progressLabel}}</span></div>
+              <div class="nf-imp-bar" role="progressbar" aria-label="Fortschritt des Imports" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{imp.progress}}"><span style="width: {{imp.progress}}%"></span></div>
+              <ol class="nf-imp-phases">
+                <sc-for list="{{imp.phases}}" as="ph" hint-placeholder-count="4"><li data-state="{{ph.state}}">{{ph.label}}</li></sc-for>
+              </ol>
+              <p class="nf-imp-help">Du kannst die Seite verlassen; der Import läuft im Hintergrund weiter, und du bekommst eine Benachrichtigung.</p>
+            </section>
+          </sc-if>
+
+          <!-- Fertig -->
+          <sc-if value="{{imp.s4}}" hint-placeholder-val="{{ false }}">
+            <section class="nf-imp-card nf-imp-done" aria-labelledby="imp-done">
+              <span class="nf-imp-done-icon"><svg class="nf-icon" width="26" height="26" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></span>
+              <h2 id="imp-done" class="nf-imp-title">Import abgeschlossen</h2>
+              <p>{{imp.doneText}}</p>
+              <div class="nf-imp-actions nf-imp-actions-center">
+                <button type="button" class="nf-btn nf-btn-primary" onClick="{{imp.openSpace}}">Importierte Seiten öffnen</button>
+                <button type="button" class="nf-btn" onClick="{{imp.openPlaceholders}}">Seiten mit Platzhaltern</button>
+                <button type="button" class="nf-btn" aria-haspopup="dialog" onClick="{{imp.checkRights}}">Rechte prüfen („Ansehen als …“)</button>
+              </div>
+              <button type="button" class="nf-link-btn nf-imp-undo" onClick="{{imp.undo}}">Import rückgängig machen (7 Tage möglich)</button>
+            </section>
+          </sc-if>
+        </div>
+      </sc-if>
+

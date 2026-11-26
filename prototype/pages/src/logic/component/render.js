@@ -118,7 +118,7 @@
       crumbCurrent = vmode ? 'Versionen' : shown(P[cur].title);
     } else {
       crumbs = [{ title: sp.name, go: (e) => { this.prevent(e); this.go(homeId); } }];
-      crumbCurrent = 'Einstellungen';
+      crumbCurrent = s.view === 'import' ? 'Confluence-Import' : 'Einstellungen';
     }
 
     // Seite
@@ -533,6 +533,11 @@
       isSettings: s.view === 'settings',
       isOverview: s.view === 'overview',
       isTemplates: s.view === 'templates',
+      isImport: s.view === 'import',
+      impNavCls: s.view === 'import' ? 'nf-nav-current' : '',
+      impNavCurrent: s.view === 'import' ? 'page' : 'false',
+      goImport: (e) => { this.prevent(e); this.openImport(); },
+      imp: s.view === 'import' ? this.importVals() : {},
       ovNav,
       ovNavCls: s.view === 'overview' ? 'nf-nav-current' : '',
       ovNavCurrent: s.view === 'overview' ? 'page' : 'false',

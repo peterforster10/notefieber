@@ -117,8 +117,6 @@ button.nf-drawer-close,button.nf-drawer-open{display:none}
 .nf-nav-item .nf-icon{color:var(--nf-sidebar-muted)}
 
 /* Space-Umschalter */
-/* Übersicht und Vorlagen über dem Space-Umschalter (Seitenansicht) */
-.nf-side-nav{display:flex;flex-direction:column;gap:2px;margin:0 0 10px}
 .nf-switcher{position:relative;display:flex;flex-direction:column;gap:6px}
 .nf-space-card{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border:1px solid var(--nf-sidebar-border);border-radius:8px;background:var(--nf-bg);color:var(--nf-sidebar-text);text-align:left;cursor:pointer}
 .nf-space-card:hover,.nf-space-card[aria-expanded='true']{border-color:var(--nf-control-border);background:var(--nf-surface)}
@@ -1002,6 +1000,86 @@ span.nf-page-emoji{cursor:default}
 .nf-tpl-chip:hover{border-color:var(--nf-control-border);background:var(--nf-subtle)}
 .nf-tpl-chip-more{border-style:dashed;color:var(--nf-muted)}
 @media (max-width:760px){.nf-tpl-dialog-body{grid-template-columns:1fr}.nf-tpl-full{max-height:36vh}}
+/* ---------- Confluence-Import (Ausblick M4) im gemeinsamen Rahmen ---------- */
+.nf-import{max-width:880px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.nf-import .nf-ov-head{margin-bottom:0}
+.nf-imp-steps{display:flex;flex-wrap:wrap;gap:8px 28px;margin:4px 0 2px;padding:0;list-style:none;font-size:14px;color:var(--nf-muted)}
+.nf-imp-steps li{display:flex;align-items:center;gap:10px}
+.nf-imp-dot{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--nf-neutral-soft);color:var(--nf-muted);font-size:13px;font-weight:600}
+.nf-imp-steps li[data-state='current']{color:var(--nf-text);font-weight:600}
+.nf-imp-steps li[data-state='current'] .nf-imp-dot,.nf-imp-steps li[data-state='done'] .nf-imp-dot{background:var(--nf-accent);color:var(--nf-on-accent)}
+.nf-imp-card{display:flex;flex-direction:column;gap:14px;padding:22px 24px;border:1px solid var(--nf-border);border-radius:12px;background:var(--nf-bg)}
+.nf-imp-card-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 12px}
+.nf-imp-title{margin:0;font-size:17px;font-weight:600}
+.nf-imp-help{margin:0;font-size:13.5px;line-height:1.55;color:var(--nf-muted)}
+.nf-imp-field .nf-input{min-width:260px}
+.nf-imp-field .nf-imp-help{margin-top:6px}
+.nf-link-btn{padding:0;border:0;background:none;color:var(--nf-accent);font:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.nf-imp-drop{display:flex;flex-direction:column;align-items:center;gap:8px;padding:32px 24px;border:2px dashed var(--nf-control-border);border-radius:12px;background:var(--nf-surface);text-align:center}
+.nf-imp-drop .nf-icon{color:var(--nf-accent)}
+.nf-imp-drop strong{font-size:16px}
+.nf-imp-drop span{max-width:460px;font-size:13.5px;color:var(--nf-muted)}
+.nf-imp-drop .nf-btn{margin-top:6px}
+.nf-imp-file{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--nf-border);border-radius:8px}
+.nf-imp-file>.nf-icon{color:var(--nf-muted)}
+.nf-imp-file-main{display:flex;flex-direction:column;flex:1;min-width:180px}
+.nf-imp-file-main strong{font-weight:500}
+.nf-imp-file-main span{font-size:12px;color:var(--nf-muted)}
+.nf-imp-tag{display:inline-flex;align-items:center;padding:2px 10px;border-radius:999px;background:var(--nf-neutral-soft);color:var(--nf-muted);font-size:12px;font-weight:500;white-space:nowrap}
+.nf-imp-tag-ok{background:var(--nf-done-bg);color:var(--nf-done-fg)}
+.nf-imp-tag-warn{background:var(--nf-attention-soft);color:var(--nf-attention)}
+.nf-imp-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
+.nf-imp-actions-split{justify-content:space-between}
+.nf-imp-actions-left{display:flex;flex-wrap:wrap;gap:8px}
+.nf-imp-actions-center{justify-content:center}
+.nf-imp-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.nf-imp-stat{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:10px;background:var(--nf-subtle)}
+.nf-imp-stat strong{font-size:26px;font-weight:600;line-height:1.2}
+.nf-imp-stat span{font-size:13px;color:var(--nf-muted)}
+.nf-imp-stat[data-tone='ok']{background:var(--nf-done-bg)}
+.nf-imp-stat[data-tone='ok'] strong,.nf-imp-stat[data-tone='ok'] span{color:var(--nf-done-fg)}
+.nf-imp-stat[data-tone='warn']{background:var(--nf-attention-soft)}
+.nf-imp-stat[data-tone='warn'] strong,.nf-imp-stat[data-tone='warn'] span{color:var(--nf-attention)}
+.nf-imp-list{display:flex;flex-direction:column;gap:4px;margin:0;padding-left:18px;font-size:14px}
+.nf-imp-table-wrap{overflow-x:auto}
+.nf-imp-table{width:100%;min-width:520px;border-collapse:collapse;font-size:14px}
+.nf-imp-table th{padding:8px 12px 8px 0;border-bottom:1px solid var(--nf-border);text-align:left;font-size:12px;font-weight:600;color:var(--nf-muted)}
+.nf-imp-table td{padding:8px 12px 8px 0;border-bottom:1px solid var(--nf-border)}
+.nf-imp-table tr:last-child td{border-bottom:0}
+.nf-imp-table code{font-family:var(--nf-font-mono);font-size:13px}
+.nf-imp-select{width:100%;max-width:280px;margin:0}
+.nf-imp-select[data-missing='true']{border-color:var(--nf-attention);box-shadow:0 0 0 1px var(--nf-attention)}
+.nf-imp-check{display:flex;align-items:flex-start;gap:10px;font-size:14px;cursor:pointer}
+.nf-imp-check input{margin-top:3px;width:16px;height:16px;accent-color:var(--nf-accent)}
+.nf-imp-rights{display:flex;flex-direction:column;margin:0;padding:0;list-style:none;border:1px solid var(--nf-border);border-radius:10px;overflow:hidden}
+.nf-imp-rights li{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:10px 14px;border-left:3px solid transparent}
+.nf-imp-rights li+li{border-top:1px solid var(--nf-border)}
+.nf-imp-rights-main{display:flex;flex-direction:column;gap:2px;min-width:0;font-size:13.5px;color:var(--nf-muted)}
+.nf-imp-rights-main strong{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--nf-text)}
+.nf-imp-rights-main strong .nf-icon{color:var(--nf-muted)}
+.nf-imp-rights-hint{color:var(--nf-text)}
+.nf-imp-rights li[data-state='same'] .nf-imp-state{background:var(--nf-done-bg);color:var(--nf-done-fg)}
+.nf-imp-rights li[data-state='narrower']{border-left-color:var(--nf-attention)}
+.nf-imp-rights li[data-state='narrower'] .nf-imp-state{background:var(--nf-attention-soft);color:var(--nf-attention)}
+.nf-imp-rights li[data-state='wider']{border-left-color:var(--nf-danger);background:var(--nf-danger-soft)}
+.nf-imp-rights li[data-state='wider'] .nf-imp-state{background:var(--nf-danger);color:var(--nf-on-accent)}
+.nf-imp-blockers{display:flex;gap:10px;padding:12px 14px;border-radius:10px;background:var(--nf-attention-soft);color:var(--nf-attention);font-size:14px}
+.nf-imp-blockers .nf-icon{flex:none;margin-top:2px}
+.nf-imp-blockers div{display:flex;flex-direction:column;gap:2px}
+.nf-imp-blockers strong{color:var(--nf-text)}
+.nf-imp-blockers span{color:var(--nf-text)}
+.nf-imp-bar{height:8px;border-radius:4px;background:var(--nf-neutral-soft);overflow:hidden}
+.nf-imp-bar span{display:block;height:100%;border-radius:4px;background:var(--nf-accent);transition:width 120ms linear}
+.nf-imp-phases{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0;padding:0;list-style:none;font-size:13.5px;color:var(--nf-muted)}
+.nf-imp-phases li::before{content:'○';margin-right:6px}
+.nf-imp-phases li[data-state='current']{color:var(--nf-text);font-weight:500}
+.nf-imp-phases li[data-state='current']::before{content:'◐';color:var(--nf-accent)}
+.nf-imp-phases li[data-state='done']::before{content:'✓';color:var(--nf-done-fg)}
+.nf-imp-done{align-items:center;padding:36px 24px;text-align:center}
+.nf-imp-done p{max-width:540px;margin:0;font-size:15px;line-height:1.55;color:var(--nf-muted)}
+.nf-imp-done-icon{display:grid;place-items:center;width:56px;height:56px;border-radius:50%;background:var(--nf-done-bg);color:var(--nf-done-fg)}
+.nf-imp-undo{margin-top:6px;color:var(--nf-attention);font-size:13px}
+@media (prefers-reduced-motion:reduce){.nf-imp-bar span{transition:none}}
 /* Formulare */
 .nf-label{display:block;margin:12px 0 6px;font-weight:500}
 .nf-input{height:38px;padding:0 10px;margin-right:8px;border:1px solid var(--nf-input-border);border-radius:8px;background:var(--nf-bg);font-size:14px}
@@ -1123,17 +1201,7 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
     </sc-if>
 
     <sc-if value="{{inSpace}}" hint-placeholder-val="{{ true }}">
-    <!-- Übersicht und Vorlagen auch in der Seitenansicht, über dem Space-Umschalter -->
-    <div class="nf-side-nav">
-      <a href="#" class="nf-nav-item" onClick="{{goOverview}}">
-        <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="4.75" height="5.5" rx="1"></rect><rect x="8.75" y="2.5" width="4.75" height="3.5" rx="1"></rect><rect x="8.75" y="7.5" width="4.75" height="6" rx="1"></rect><rect x="2.5" y="9.5" width="4.75" height="4" rx="1"></rect></svg>
-        <span>Übersicht</span>
-      </a>
-      <a href="#" class="nf-nav-item" onClick="{{goTemplates}}">
-        <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"></rect><path d="M2.5 6h11M6 6v7.5"></path></svg>
-        <span>Vorlagen</span>
-      </a>
-    </div>
+    <!-- Space-Umschalter als Karte direkt unter dem Logo: Kürzel, Name, Schlüssel; Menü mit allen Spaces -->
     <div class="nf-switcher">
       <button type="button" class="nf-space-card" aria-haspopup="menu" aria-expanded="{{spaceMenuExpanded}}" onClick="{{toggleSpaceMenu}}">
         <span class="nf-space-badge" style="background: {{space.color}}" aria-hidden="true">{{space.badge}}</span>
@@ -1320,8 +1388,8 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
         <span>Papierkorb ({{trashCount}})</span>
       </button>
       </sc-if>
-      <!-- Ausblick M4: Confluence-Import -->
-      <a href="Import.dc.html" class="nf-nav-item">
+      <!-- Ausblick M4: Confluence-Import als Ansicht im selben Rahmen -->
+      <a href="#" class="nf-nav-item {{impNavCls}}" aria-current="{{impNavCurrent}}" onClick="{{goImport}}">
         <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11V3M4.5 6.5L8 3l3.5 3.5"></path><path d="M3 11v2h10v-2"></path></svg>
         Confluence-Import
       </a>
@@ -1791,7 +1859,7 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
                 <sc-if value="{{welcome.canEdit}}" hint-placeholder-val="{{ true }}">
                   <div class="nf-welcome-actions">
                     <button type="button" class="nf-welcome-card" onClick="{{welcome.create}}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg><strong>Erste Seite anlegen</strong><span>Unter der Startseite, etwa für ein Thema oder ein Team</span></button>
-                    <a class="nf-welcome-card" href="../import/Import.dc.html"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 10.5V2.5M4.5 6L8 2.5 11.5 6"></path><path d="M3 10v3.5h10V10"></path></svg><strong>Aus Confluence importieren</strong><span>Space-Export hochladen, Probelauf mit Bericht</span></a>
+                    <a href="#" class="nf-welcome-card" onClick="{{goImport}}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 10.5V2.5M4.5 6L8 2.5 11.5 6"></path><path d="M3 10v3.5h10V10"></path></svg><strong>Aus Confluence importieren</strong><span>Space-Export hochladen, Probelauf mit Bericht</span></a>
                     <button type="button" class="nf-welcome-card" aria-haspopup="dialog" onClick="{{welcome.invite}}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="5.5" r="2.5"></circle><path d="M2 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4"></path><path d="M12.5 5v4M10.5 7h4"></path></svg><strong>Personen einladen</strong><span>Link in den Workspace „{{ws.name}}“</span></button>
                   </div>
                   <p class="nf-welcome-hint">Oder schreib direkt hier auf der Startseite los.</p>
@@ -2283,6 +2351,191 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
             <div class="nf-cm-empty"><span class="nf-empty-icon"><svg class="nf-icon" width="20" height="20" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"></rect><path d="M2.5 6h11M6 6v7.5"></path></svg></span><p class="nf-empty-title">Keine Vorlagen</p><p>{{tpl.emptyText}}</p></div>
           </sc-if>
           <p class="nf-tpl-hint">Eigene Vorlagen entstehen aus einer Seite: „⋯“ über der Seite, dann „Als Vorlage speichern“.</p>
+        </div>
+      </sc-if>
+
+      <!-- ---------- Confluence-Import (Ausblick M4): Export hochladen, Probelauf prüfen, importieren ---------- -->
+      <sc-if value="{{isImport}}" hint-placeholder-val="{{ false }}">
+        <div class="nf-import">
+          <header class="nf-ov-head">
+            <div>
+              <h1 class="nf-ov-greeting">Confluence-Space importieren</h1>
+              <p class="nf-muted">Seiten, Hierarchie, Anhänge, Versionen und Rechte ziehen in einem Schritt um. Der Probelauf ändert nichts.</p>
+            </div>
+          </header>
+
+          <ol class="nf-imp-steps" aria-label="Schritte">
+            <sc-for list="{{imp.steps}}" as="st" hint-placeholder-count="3">
+              <li data-state="{{st.state}}" aria-current="{{st.current}}"><span class="nf-imp-dot">{{st.num}}</span><span>{{st.label}}</span></li>
+            </sc-for>
+          </ol>
+
+          <!-- Schritt 1: Ziel und Export -->
+          <sc-if value="{{imp.s1}}" hint-placeholder-val="{{ true }}">
+            <section class="nf-imp-card" aria-labelledby="imp-s1">
+              <h2 id="imp-s1" class="nf-imp-title">Export hochladen</h2>
+              <div class="nf-imp-field">
+                <label class="nf-label" for="imp-space" style="margin-top: 0">Ziel-Space</label>
+                <select id="imp-space" class="nf-input" value="{{imp.space}}" onChange="{{imp.onSpace}}">
+                  <sc-for list="{{imp.targets}}" as="o" hint-placeholder-count="2"><option value="{{o.key}}">{{o.label}}</option></sc-for>
+                </select>
+                <p class="nf-imp-help">Nur Spaces, die du verwaltest. Die Seiten kommen unter eine eigene Seite „Aus Confluence“. <button type="button" class="nf-link-btn" aria-haspopup="dialog" onClick="{{openNewSpace}}">Neuen Space anlegen</button></p>
+              </div>
+              <div class="nf-imp-drop">
+                <svg class="nf-icon" width="30" height="30" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11V3M4.5 6.5L8 3l3.5 3.5"></path><path d="M3 11v2h10v-2"></path></svg>
+                <strong>Space-Export hier ablegen</strong>
+                <span>HTML- oder XML-Export aus Confluence Data Center oder Server, als ZIP. In Confluence unter Space-Einstellungen › Export.</span>
+                <button type="button" class="nf-btn" onClick="{{imp.chooseFile}}">Datei auswählen</button>
+              </div>
+              <sc-if value="{{imp.file}}" hint-placeholder-val="{{ false }}">
+                <div class="nf-imp-file">
+                  <svg class="nf-icon" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg>
+                  <div class="nf-imp-file-main"><strong>ENTW-export-2026-10-28.zip</strong><span>1,2 GB · hochgeladen</span></div>
+                  <span class="nf-imp-tag nf-imp-tag-ok">Virenscan ohne Befund</span>
+                  <button type="button" class="nf-icon-button" aria-label="Datei entfernen" title="Datei entfernen" onClick="{{imp.removeFile}}"><svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg></button>
+                </div>
+              </sc-if>
+              <div class="nf-imp-actions">
+                <button type="button" class="nf-btn nf-btn-primary" disabled="{{imp.noFile}}" onClick="{{imp.runDry}}">Probelauf starten</button>
+              </div>
+            </section>
+          </sc-if>
+
+          <!-- Schritt 2: Probelauf mit Bericht -->
+          <sc-if value="{{imp.s2}}" hint-placeholder-val="{{ false }}">
+            <section class="nf-imp-card" aria-labelledby="imp-sum">
+              <div class="nf-imp-card-head"><h2 id="imp-sum" class="nf-imp-title">Probelauf abgeschlossen</h2><span class="nf-muted">ENTW-export-2026-10-28.zip → {{imp.spaceName}}</span></div>
+              <div class="nf-imp-stats">
+                <div class="nf-imp-stat"><strong>214</strong><span>Seiten gefunden</span></div>
+                <div class="nf-imp-stat" data-tone="ok"><strong>203</strong><span>vollständig übernommen</span></div>
+                <div class="nf-imp-stat" data-tone="warn"><strong>9</strong><span>mit Platzhalter</span></div>
+                <div class="nf-imp-stat"><strong>2</strong><span>übersprungen (Blogbeiträge)</span></div>
+              </div>
+              <ul class="nf-imp-list">
+                <li>486 Anhänge mit zusammen 1,1 GB, alle ohne Befund im Virenscan</li>
+                <li>Versionen: jeweils die letzten 20 pro Seite, mit Autorin oder Autor und Datum</li>
+                <li>Kommentare an der Seite und an Textstellen, erledigte als erledigt</li>
+              </ul>
+            </section>
+
+            <section class="nf-imp-card" aria-labelledby="imp-groups">
+              <div class="nf-imp-card-head">
+                <h2 id="imp-groups" class="nf-imp-title">Gruppen zuordnen</h2>
+                <sc-if value="{{imp.hasGroupNote}}" hint-placeholder-val="{{ true }}"><span class="nf-imp-tag nf-imp-tag-warn">{{imp.groupNote}}</span></sc-if>
+              </div>
+              <p class="nf-imp-help">Jede Confluence-Gruppe wird einer Gruppe im Wiki zugeordnet, neu angelegt oder nicht übernommen. Daraus rechnet der Import die Rechte unten aus.</p>
+              <div class="nf-imp-table-wrap">
+                <table class="nf-imp-table">
+                  <thead><tr><th>Confluence-Gruppe</th><th>Personen</th><th>Wird zu</th></tr></thead>
+                  <tbody>
+                    <sc-for list="{{imp.groups}}" as="g" hint-placeholder-count="4">
+                      <tr>
+                        <td><code>{{g.name}}</code></td>
+                        <td>{{g.count}}</td>
+                        <td>
+                          <select class="nf-input nf-imp-select" aria-label="{{g.label}}" data-missing="{{g.missing}}" value="{{g.target}}" onChange="{{g.change}}">
+                            <option value="">Bitte wählen</option>
+                            <option value="ws">Alle im Workspace</option>
+                            <option value="grp">Gruppe Entwicklung</option>
+                            <option value="new">Neue Gruppe „entw-admins“</option>
+                            <option value="skip">Nicht übernehmen</option>
+                          </select>
+                        </td>
+                      </tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="nf-imp-card" aria-labelledby="imp-people">
+              <h2 id="imp-people" class="nf-imp-title">Personen</h2>
+              <div class="nf-imp-stats">
+                <div class="nf-imp-stat" data-tone="ok"><strong>58</strong><span>über die E-Mail-Adresse zugeordnet</span></div>
+                <div class="nf-imp-stat" data-tone="warn"><strong>3</strong><span>noch nicht im Workspace</span></div>
+                <div class="nf-imp-stat"><strong>2</strong><span>in Confluence deaktiviert</span></div>
+              </div>
+              <label class="nf-imp-check"><input type="checkbox" checked="{{imp.invite}}" onChange="{{imp.toggleInvite}}"><span>Für die 3 Personen Einladungen in den Workspace vorbereiten (verschicken musst du sie selbst)</span></label>
+              <p class="nf-imp-help">Seiten und Kommentare deaktivierter Personen bleiben mit ihrem Namen erhalten. Neue Konten legt der Import nie an.</p>
+            </section>
+
+            <section class="nf-imp-card" aria-labelledby="imp-rights">
+              <h2 id="imp-rights" class="nf-imp-title">Rechte vorab</h2>
+              <p class="nf-imp-help">Seiten mit Einschränkungen in Confluence bekommen eigene Rechte. So sehen sie nach dem Import aus. Ist eine Seite danach für mehr Personen sichtbar als vorher, startet der Import nicht.</p>
+              <ul class="nf-imp-rights">
+                <sc-for list="{{imp.rows}}" as="r" hint-placeholder-count="4">
+                  <li data-state="{{r.state}}">
+                    <div class="nf-imp-rights-main">
+                      <strong><svg class="nf-icon" width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg>{{r.title}}</strong>
+                      <span>Confluence: {{r.what}}</span>
+                      <span>NoteFieber: {{r.result}}</span>
+                      <sc-if value="{{r.hint}}" hint-placeholder-val="{{ false }}"><span class="nf-imp-rights-hint">{{r.hint}}</span></sc-if>
+                    </div>
+                    <span class="nf-imp-tag nf-imp-state">{{r.stateLabel}}</span>
+                  </li>
+                </sc-for>
+              </ul>
+            </section>
+
+            <section class="nf-imp-card" aria-labelledby="imp-macros">
+              <h2 id="imp-macros" class="nf-imp-title">Makros</h2>
+              <div class="nf-imp-table-wrap">
+                <table class="nf-imp-table">
+                  <thead><tr><th>Confluence-Makro</th><th>Seiten</th><th>Wird zu</th></tr></thead>
+                  <tbody>
+                    <sc-for list="{{imp.macros}}" as="m" hint-placeholder-count="5">
+                      <tr><td>{{m.name}}</td><td>{{m.pages}}</td><td><span class="nf-imp-tag {{m.cls}}">{{m.target}}</span></td></tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+              </div>
+              <p class="nf-imp-help">Platzhalter zeigen, welches Makro dort stand, mit dem Originalinhalt im Bericht. Die betroffenen Seiten stehen nach dem Import in einer Liste.</p>
+            </section>
+
+            <sc-if value="{{imp.blocked}}" hint-placeholder-val="{{ false }}">
+              <div class="nf-imp-blockers" role="status">
+                <svg class="nf-icon" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5l6 11H2z"></path><path d="M8 6.5v3M8 11.5v.01"></path></svg>
+                <div><strong>Vor dem Import noch klären</strong><sc-for list="{{imp.blockers}}" as="b" hint-placeholder-count="1"><span>{{b.t}}</span></sc-for></div>
+              </div>
+            </sc-if>
+            <div class="nf-imp-actions nf-imp-actions-split">
+              <div class="nf-imp-actions-left">
+                <button type="button" class="nf-btn" onClick="{{imp.back}}">Zurück</button>
+                <button type="button" class="nf-btn" onClick="{{imp.reportToast}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v8M4.5 7.5L8 11l3.5-3.5"></path><path d="M3 13h10"></path></svg>
+                  <span>Bericht herunterladen</span>
+                </button>
+              </div>
+              <button type="button" class="nf-btn nf-btn-primary" disabled="{{imp.blocked}}" onClick="{{imp.startImport}}">Import starten</button>
+            </div>
+          </sc-if>
+
+          <!-- Schritt 3: läuft -->
+          <sc-if value="{{imp.s3}}" hint-placeholder-val="{{ false }}">
+            <section class="nf-imp-card" aria-labelledby="imp-run" aria-busy="true">
+              <div class="nf-imp-card-head"><h2 id="imp-run" class="nf-imp-title">Import läuft …</h2><span class="nf-muted">{{imp.progressLabel}}</span></div>
+              <div class="nf-imp-bar" role="progressbar" aria-label="Fortschritt des Imports" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{imp.progress}}"><span style="width: {{imp.progress}}%"></span></div>
+              <ol class="nf-imp-phases">
+                <sc-for list="{{imp.phases}}" as="ph" hint-placeholder-count="4"><li data-state="{{ph.state}}">{{ph.label}}</li></sc-for>
+              </ol>
+              <p class="nf-imp-help">Du kannst die Seite verlassen; der Import läuft im Hintergrund weiter, und du bekommst eine Benachrichtigung.</p>
+            </section>
+          </sc-if>
+
+          <!-- Fertig -->
+          <sc-if value="{{imp.s4}}" hint-placeholder-val="{{ false }}">
+            <section class="nf-imp-card nf-imp-done" aria-labelledby="imp-done">
+              <span class="nf-imp-done-icon"><svg class="nf-icon" width="26" height="26" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></span>
+              <h2 id="imp-done" class="nf-imp-title">Import abgeschlossen</h2>
+              <p>{{imp.doneText}}</p>
+              <div class="nf-imp-actions nf-imp-actions-center">
+                <button type="button" class="nf-btn nf-btn-primary" onClick="{{imp.openSpace}}">Importierte Seiten öffnen</button>
+                <button type="button" class="nf-btn" onClick="{{imp.openPlaceholders}}">Seiten mit Platzhaltern</button>
+                <button type="button" class="nf-btn" aria-haspopup="dialog" onClick="{{imp.checkRights}}">Rechte prüfen („Ansehen als …“)</button>
+              </div>
+              <button type="button" class="nf-link-btn nf-imp-undo" onClick="{{imp.undo}}">Import rückgängig machen (7 Tage möglich)</button>
+            </section>
+          </sc-if>
         </div>
       </sc-if>
 
@@ -3522,7 +3775,7 @@ class Component extends DCLogic {
     this.state = {
       space: 'ENTW',
       // Mit #uebersicht in der Adresse startet der Prototyp in der Übersicht
-      view: typeof location !== 'undefined' && location.hash === '#uebersicht' ? 'overview' : 'page',
+      view: typeof location === 'undefined' ? 'page' : location.hash === '#uebersicht' ? 'overview' : location.hash === '#import' ? 'import' : 'page',
       current: 'dm',
       expanded: { arch: true, betrieb: true },
       pages: JSON.parse(JSON.stringify(PAGES)),
@@ -3561,6 +3814,8 @@ class Component extends DCLogic {
       tplTarget: null,
       tplUse: null,
       tplSaveDraft: null,
+      // Confluence-Import: Schritt (1 Hochladen, 2 Probelauf, 3 läuft, 4 fertig), Ziel, Zuordnungen, angelegte Seiten
+      imp: { step: 1, space: 'ENTW', file: false, groups: { users: 'ws', team: 'grp', admins: '', extern: 'skip' }, invite: true, progress: 0, phase: 0, created: null },
       // Reaktionen pro Seite: Emoji → Personen (Reihenfolge wie REACTIONS)
       reactions: { dm: { '👍': ['sophie', 'lukas', 'markus'], '🎉': ['lukas'] }, home: { '👍': ['max', 'elena'], '❤️': ['sophie'] }, arch: { '👀': ['markus'] } },
       reactPicker: false,
@@ -5081,6 +5336,7 @@ class Component extends DCLogic {
       { label: 'Neuer Space', kw: 'space anlegen erstellen neu', run: () => { this.setState({ dialog: 'newSpace', ns: null }); this.focusLater('#ns-name'); } },
       { label: 'Zur Übersicht', kw: 'startseite home übersicht spaces', run: () => this.setState({ view: 'overview' }) },
       { label: 'Vorlagen', kw: 'vorlage vorlagen muster template neue seite', run: () => this.openTemplates(null) },
+      { label: 'Confluence-Import', kw: 'import importieren confluence umzug export hochladen', run: () => this.openImport() },
       isPage && { label: 'Link zur Seite kopieren', kw: 'link kopieren teilen url adresse', run: () => this.showToast('Link kopiert') },
       isPage && { label: 'Versionen anzeigen', kw: 'versionen verlauf historie wiederherstellen vergleichen änderungen', run: () => this.openVersions(this.state.current) },
       isPage && { label: 'Seite exportieren', kw: 'export exportieren markdown download', run: () => this.setState({ dialog: 'export' }) },
@@ -5581,6 +5837,167 @@ class Component extends DCLogic {
       submit: (e) => { this.prevent(e); if (d && d.name.trim()) this.saveAsTemplate(); }
     };
   }
+  // ---------- Confluence-Import (Ausblick M4) ----------
+  // Drei Schritte: Export hochladen, Probelauf prüfen (Gruppen, Personen, Rechte vorab, Makros), importieren.
+  // Der Probelauf ändert nichts. Die Rechte rechnet der Importer vorher aus; „weiter als vorher“ sperrt den Import.
+  openImport() {
+    this.edSave();
+    this.setState((st) => ({
+      view: 'import', drawer: false, menu: null, palette: null, versions: null,
+      imp: st.imp
+    }));
+    setTimeout(() => { try { window.scrollTo(0, 0); } catch (err) { /* egal */ } }, 0);
+  }
+  setImp(patch) { this.setState((st) => ({ imp: { ...st.imp, ...patch } })); }
+  /** Import „laufen“ lassen: Fortschritt in Phasen, danach Seiten im Ziel-Space anlegen */
+  runImport() {
+    const phases = 4;
+    this.setImp({ step: 3, progress: 0, phase: 0 });
+    clearInterval(this._impT);
+    this._impT = setInterval(() => {
+      const p = Math.min(100, (this.state.imp.progress || 0) + 7);
+      this.setImp({ progress: p, phase: Math.min(phases - 1, Math.floor(p / (100 / phases))) });
+      if (p >= 100) { clearInterval(this._impT); this.finishImport(); }
+    }, 120);
+  }
+  finishImport() {
+    const s = this.state, key = s.imp.space, home = s.spaces[key].home;
+    const n = s.seq;
+    const ids = { root: 'imp' + n, onb: 'imp' + n + 'a', api: 'imp' + n + 'b', jira: 'imp' + n + 'c', vert: 'imp' + n + 'd' };
+    const g = s.imp.groups;
+    const pageOf = (title, parent, kids, text) => ({ space: key, title, parent, kids, author: 'peter', editor: 'peter', when: 'gerade eben', text: text || [] });
+    this.setState((st) => {
+      const pages = { ...st.pages };
+      pages[ids.root] = pageOf('Aus Confluence (' + tplDate() + ')', home, [ids.onb, ids.api, ids.jira, ids.vert], ['Importiert aus dem Confluence-Space ENTW (Export vom 28.10.2026). 212 Seiten, 486 Anhänge.']);
+      pages[ids.onb] = pageOf('Onboarding', ids.root, [], ['Erste Schritte im Entwicklungsteam: Zugänge, Werkzeuge und Ansprechpersonen.']);
+      pages[ids.api] = pageOf('API-Richtlinien', ids.root, [], ['Versionierung, Fehlerformat und Pagination für alle internen APIs.']);
+      pages[ids.jira] = pageOf('Jira-Übersicht', ids.root, []);
+      pages[ids.vert] = pageOf('Lieferanten-Verträge', ids.root, [], ['Rahmenverträge mit Dienstleistern. Eingeschränkt wie in Confluence.']);
+      pages[home] = { ...pages[home], kids: [...pages[home].kids, ids.root] };
+      const grants = { ...st.grants };
+      // Eingeschränkte Seite wie im Probelauf berechnet: Gruppe Entwicklung, agentur-nord nur wenn zugeordnet
+      grants[ids.vert] = [{ key: 'peter', role: 'admin' }, ...(g.team && g.team !== 'skip' ? [{ key: g.team === 'ws' ? 'ws' : 'grp', role: 'viewer' }] : [])];
+      return {
+        pages, grants, seq: st.seq + 1,
+        restoredBody: { ...st.restoredBody, [ids.jira]: [vB.p('Offene Vorgänge des Teams, wie sie in Confluence eingebunden waren:'), vB.co('warning', 'Platzhalter: Confluence-Makro „Jira-Vorgänge“ (project = ENTW AND status != Done). Den Originalinhalt und den Link zur Quelle zeigt der Import-Bericht.'), vB.p('Stand der Liste: 28.10.2026.')] },
+        pageIcons: { ...st.pageIcons, [ids.root]: '📦' },
+        expanded: { ...st.expanded, [ids.root]: true },
+        imp: { ...st.imp, step: 4, created: { key, ids: Object.values(ids), root: ids.root, jira: ids.jira, home } }
+      };
+    });
+  }
+  undoImport() {
+    const c = this.state.imp.created;
+    this.setState((st) => {
+      if (!c) return { imp: { ...st.imp, step: 1, file: false } };
+      const pages = { ...st.pages };
+      c.ids.forEach((id) => { delete pages[id]; });
+      pages[c.home] = { ...pages[c.home], kids: pages[c.home].kids.filter((k) => k !== c.root) };
+      const grants = { ...st.grants };
+      c.ids.forEach((id) => { delete grants[id]; });
+      return { pages, grants, current: c.ids.includes(st.current) ? c.home : st.current, imp: { ...st.imp, step: 1, file: false, progress: 0, created: null } };
+    });
+    this.showToast('Import rückgängig gemacht: ' + c.ids.length + ' Seiten entfernt');
+  }
+  importVals() {
+    const s = this.state, imp = s.imp;
+    if (!imp) return {};
+    const names = ['Export hochladen', 'Probelauf prüfen', 'Importieren'];
+    const stepNo = Math.min(imp.step, 3);
+    const steps = names.map((label, i) => ({
+      num: i + 1 < stepNo || imp.step === 4 ? '✓' : String(i + 1),
+      label,
+      state: imp.step === 4 || i + 1 < stepNo ? 'done' : i + 1 === stepNo ? 'current' : 'todo',
+      current: i + 1 === stepNo && imp.step !== 4 ? 'step' : 'false'
+    }));
+    // Ziel: Spaces, die man verwaltet (Admin), nicht archiviert
+    const targets = Object.values(s.spaces).filter((x) => !x.archived && this.role(x.home) === 'admin');
+    const target = s.spaces[imp.space] || targets[0];
+    const T = { ws: 'Alle im Workspace', grp: 'Gruppe Entwicklung', new: 'Neue Gruppe „entw-admins“', skip: 'Nicht übernehmen', '': 'Bitte wählen' };
+    const defs = [
+      { key: 'users', name: 'confluence-users', count: 48 },
+      { key: 'team', name: 'entw-team', count: 12 },
+      { key: 'admins', name: 'entw-admins', count: 3 },
+      { key: 'extern', name: 'agentur-nord', count: 2 }
+    ];
+    const g = imp.groups;
+    const groups = defs.map((d) => ({
+      ...d,
+      target: g[d.key],
+      label: 'Zuordnung für ' + d.name,
+      missing: !g[d.key] ? 'true' : 'false',
+      change: (e) => { const v = e.target.value; this.setState((st) => ({ imp: { ...st.imp, groups: { ...st.imp.groups, [d.key]: v } } })); }
+    }));
+    const missingCount = defs.filter((d) => !g[d.key]).length;
+    // Rechte vorab: eingeschränkte Confluence-Seiten und was daraus wird
+    const restricted = [
+      { title: 'Personalplanung (alt)', what: 'Lesen nur entw-admins', groups: ['admins'] },
+      { title: 'Lieferanten-Verträge', what: 'Lesen nur entw-team und agentur-nord', groups: ['team', 'extern'] },
+      { title: 'Bereitschaftsplan', what: 'Bearbeiten nur entw-team, lesen alle', groups: ['team'], editOnly: true },
+      { title: 'Gehaltsrunde 2025', what: 'Lesen nur 2 Personen', groups: [], people: 'Peter Forster, Sophie Bauer' }
+    ];
+    const rows = restricted.map((r) => {
+      const mapped = r.groups.map((k) => ({ k, t: g[k] }));
+      const open = mapped.some((m) => !m.t);
+      const wider = !r.editOnly && mapped.some((m) => m.t === 'ws');
+      const narrower = mapped.some((m) => m.t === 'skip');
+      const who = r.people ? r.people : mapped.filter((m) => m.t && m.t !== 'skip').map((m) => T[m.t]).join(', ') || 'nur du (Admin der Seite)';
+      const state = open ? 'open' : wider ? 'wider' : narrower ? 'narrower' : 'same';
+      return {
+        title: r.title, what: r.what,
+        result: open ? 'Zuordnung fehlt' : (r.editOnly ? 'Bearbeiten: ' : 'Lesen: ') + who,
+        state,
+        stateLabel: { open: 'Offen', wider: 'Weiter als vorher', narrower: 'Enger als vorher', same: 'Wie vorher' }[state],
+        hint: wider ? 'Alle im Workspace könnten die Seite lesen. Ordne die Gruppe anders zu.' : narrower ? 'Wer nur über „Nicht übernehmen“ Zugriff hatte, sieht die Seite nicht mehr.' : ''
+      };
+    });
+    const widerCount = rows.filter((r) => r.state === 'wider').length;
+    const ok = { cls: 'nf-imp-tag-ok' };
+    const warn = { cls: 'nf-imp-tag-warn' };
+    const macros = [
+      { name: 'Code-Block', pages: 58, target: 'Code-Block', ...ok },
+      { name: 'Info, Hinweis, Warnung', pages: 41, target: 'Callout', ...ok },
+      { name: 'Inhaltsverzeichnis', pages: 17, target: 'Inhaltsverzeichnis', ...ok },
+      { name: 'Jira-Vorgänge', pages: 6, target: 'Platzhalter mit Link', ...warn },
+      { name: 'Seiteneigenschaften-Bericht', pages: 3, target: 'Platzhalter', ...warn }
+    ];
+    const blockers = [missingCount ? (missingCount === 1 ? '1 Gruppe ist noch nicht zugeordnet.' : missingCount + ' Gruppen sind noch nicht zugeordnet.') : '', widerCount ? (widerCount === 1 ? '1 Seite wäre danach für mehr Personen sichtbar als in Confluence.' : widerCount + ' Seiten wären danach für mehr Personen sichtbar als in Confluence.') : ''].filter(Boolean);
+    const phases = ['Seiten anlegen', 'Anhänge übertragen', 'Rechte setzen', 'Suchindex aufbauen'];
+    const c = imp.created;
+    return {
+      steps,
+      s1: imp.step === 1, s2: imp.step === 2, s3: imp.step === 3, s4: imp.step === 4,
+      targets: targets.map((x) => ({ key: x.key, label: x.name + ' (' + x.key + ')' })),
+      space: target ? target.key : '',
+      spaceName: target ? target.name : '',
+      noTarget: targets.length === 0,
+      onSpace: (e) => this.setImp({ space: e.target.value }),
+      file: imp.file, noFile: !imp.file,
+      chooseFile: () => this.setImp({ file: true }),
+      removeFile: () => this.setImp({ file: false }),
+      runDry: () => { this.setImp({ step: 2 }); setTimeout(() => { try { window.scrollTo(0, 0); } catch (err) { /* egal */ } }, 0); },
+      back: () => this.setImp({ step: 1 }),
+      groups,
+      groupNote: missingCount ? (missingCount === 1 ? '1 Gruppe noch nicht zugeordnet' : missingCount + ' Gruppen noch nicht zugeordnet') : '',
+      hasGroupNote: missingCount > 0,
+      invite: imp.invite,
+      toggleInvite: () => this.setImp({ invite: !imp.invite }),
+      rows,
+      macros,
+      blocked: blockers.length > 0,
+      blockers: blockers.map((t) => ({ t })),
+      startImport: () => { if (!blockers.length) this.runImport(); },
+      reportToast: () => this.showToast('Bericht als PDF und CSV (Ausblick)'),
+      progress: imp.progress || 0,
+      progressLabel: (imp.progress || 0) + ' %',
+      phases: phases.map((label, i) => ({ label, state: (imp.progress || 0) >= 100 || i < imp.phase ? 'done' : i === imp.phase ? 'current' : 'todo' })),
+      doneText: c ? '212 Seiten und 486 Anhänge sind jetzt im Space ' + s.spaces[c.key].name + ', unter „Aus Confluence (' + tplDate() + ')“. 9 Seiten enthalten Platzhalter für Makros, 1 Seite hat eigene Rechte wie in Confluence.' : '',
+      openSpace: () => c && this.go(c.root),
+      openPlaceholders: () => c && this.go(c.jira),
+      checkRights: () => { if (!c) return; this.go(c.root); setTimeout(() => this.openViewAs(false), 0); },
+      undo: () => this.undoImport()
+    };
+  }
   // ---------- Werte für die Vorlage ----------
   renderVals() {
     const s = this.state;
@@ -5701,7 +6118,7 @@ class Component extends DCLogic {
       crumbCurrent = vmode ? 'Versionen' : shown(P[cur].title);
     } else {
       crumbs = [{ title: sp.name, go: (e) => { this.prevent(e); this.go(homeId); } }];
-      crumbCurrent = 'Einstellungen';
+      crumbCurrent = s.view === 'import' ? 'Confluence-Import' : 'Einstellungen';
     }
 
     // Seite
@@ -6116,6 +6533,11 @@ class Component extends DCLogic {
       isSettings: s.view === 'settings',
       isOverview: s.view === 'overview',
       isTemplates: s.view === 'templates',
+      isImport: s.view === 'import',
+      impNavCls: s.view === 'import' ? 'nf-nav-current' : '',
+      impNavCurrent: s.view === 'import' ? 'page' : 'false',
+      goImport: (e) => { this.prevent(e); this.openImport(); },
+      imp: s.view === 'import' ? this.importVals() : {},
       ovNav,
       ovNavCls: s.view === 'overview' ? 'nf-nav-current' : '',
       ovNavCurrent: s.view === 'overview' ? 'page' : 'false',

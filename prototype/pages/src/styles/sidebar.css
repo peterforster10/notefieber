@@ -1,6 +1,4 @@
 /* Space-Umschalter */
-/* Übersicht und Vorlagen über dem Space-Umschalter (Seitenansicht) */
-.nf-side-nav{display:flex;flex-direction:column;gap:2px;margin:0 0 10px}
 .nf-switcher{position:relative;display:flex;flex-direction:column;gap:6px}
 .nf-space-card{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border:1px solid var(--nf-sidebar-border);border-radius:8px;background:var(--nf-bg);color:var(--nf-sidebar-text);text-align:left;cursor:pointer}
 .nf-space-card:hover,.nf-space-card[aria-expanded='true']{border-color:var(--nf-control-border);background:var(--nf-surface)}

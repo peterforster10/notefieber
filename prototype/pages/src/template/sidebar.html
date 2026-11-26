@@ -73,17 +73,7 @@
     </sc-if>
 
     <sc-if value="{{inSpace}}" hint-placeholder-val="{{ true }}">
-    <!-- Übersicht und Vorlagen auch in der Seitenansicht, über dem Space-Umschalter -->
-    <div class="nf-side-nav">
-      <a href="#" class="nf-nav-item" onClick="{{goOverview}}">
-        <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="4.75" height="5.5" rx="1"></rect><rect x="8.75" y="2.5" width="4.75" height="3.5" rx="1"></rect><rect x="8.75" y="7.5" width="4.75" height="6" rx="1"></rect><rect x="2.5" y="9.5" width="4.75" height="4" rx="1"></rect></svg>
-        <span>Übersicht</span>
-      </a>
-      <a href="#" class="nf-nav-item" onClick="{{goTemplates}}">
-        <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"></rect><path d="M2.5 6h11M6 6v7.5"></path></svg>
-        <span>Vorlagen</span>
-      </a>
-    </div>
+    <!-- Space-Umschalter als Karte direkt unter dem Logo: Kürzel, Name, Schlüssel; Menü mit allen Spaces -->
     <div class="nf-switcher">
       <button type="button" class="nf-space-card" aria-haspopup="menu" aria-expanded="{{spaceMenuExpanded}}" onClick="{{toggleSpaceMenu}}">
         <span class="nf-space-badge" style="background: {{space.color}}" aria-hidden="true">{{space.badge}}</span>
@@ -270,8 +260,8 @@
         <span>Papierkorb ({{trashCount}})</span>
       </button>
       </sc-if>
-      <!-- Ausblick M4: Confluence-Import -->
-      <a href="Import.dc.html" class="nf-nav-item">
+      <!-- Ausblick M4: Confluence-Import als Ansicht im selben Rahmen -->
+      <a href="#" class="nf-nav-item {{impNavCls}}" aria-current="{{impNavCurrent}}" onClick="{{goImport}}">
         <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11V3M4.5 6.5L8 3l3.5 3.5"></path><path d="M3 11v2h10v-2"></path></svg>
         Confluence-Import
       </a>

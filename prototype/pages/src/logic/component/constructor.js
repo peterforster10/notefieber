@@ -3,7 +3,7 @@
     this.state = {
       space: 'ENTW',
       // Mit #uebersicht in der Adresse startet der Prototyp in der Übersicht
-      view: typeof location !== 'undefined' && location.hash === '#uebersicht' ? 'overview' : 'page',
+      view: typeof location === 'undefined' ? 'page' : location.hash === '#uebersicht' ? 'overview' : location.hash === '#import' ? 'import' : 'page',
       current: 'dm',
       expanded: { arch: true, betrieb: true },
       pages: JSON.parse(JSON.stringify(PAGES)),
@@ -42,6 +42,8 @@
       tplTarget: null,
       tplUse: null,
       tplSaveDraft: null,
+      // Confluence-Import: Schritt (1 Hochladen, 2 Probelauf, 3 läuft, 4 fertig), Ziel, Zuordnungen, angelegte Seiten
+      imp: { step: 1, space: 'ENTW', file: false, groups: { users: 'ws', team: 'grp', admins: '', extern: 'skip' }, invite: true, progress: 0, phase: 0, created: null },
       // Reaktionen pro Seite: Emoji → Personen (Reihenfolge wie REACTIONS)
       reactions: { dm: { '👍': ['sophie', 'lukas', 'markus'], '🎉': ['lukas'] }, home: { '👍': ['max', 'elena'], '❤️': ['sophie'] }, arch: { '👀': ['markus'] } },
       reactPicker: false,

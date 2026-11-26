@@ -113,7 +113,7 @@
                 <sc-if value="{{welcome.canEdit}}" hint-placeholder-val="{{ true }}">
                   <div class="nf-welcome-actions">
                     <button type="button" class="nf-welcome-card" onClick="{{welcome.create}}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg><strong>Erste Seite anlegen</strong><span>Unter der Startseite, etwa für ein Thema oder ein Team</span></button>
-                    <a class="nf-welcome-card" href="../import/Import.dc.html"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 10.5V2.5M4.5 6L8 2.5 11.5 6"></path><path d="M3 10v3.5h10V10"></path></svg><strong>Aus Confluence importieren</strong><span>Space-Export hochladen, Probelauf mit Bericht</span></a>
+                    <a href="#" class="nf-welcome-card" onClick="{{goImport}}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 10.5V2.5M4.5 6L8 2.5 11.5 6"></path><path d="M3 10v3.5h10V10"></path></svg><strong>Aus Confluence importieren</strong><span>Space-Export hochladen, Probelauf mit Bericht</span></a>
                     <button type="button" class="nf-welcome-card" aria-haspopup="dialog" onClick="{{welcome.invite}}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="5.5" r="2.5"></circle><path d="M2 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4"></path><path d="M12.5 5v4M10.5 7h4"></path></svg><strong>Personen einladen</strong><span>Link in den Workspace „{{ws.name}}“</span></button>
                   </div>
                   <p class="nf-welcome-hint">Oder schreib direkt hier auf der Startseite los.</p>

@@ -1,0 +1,72 @@
+  <!-- Vorlage: Vorschau und wohin die neue Seite kommt (bzw. in die gewählte leere Seite einfügen) -->
+  <sc-if value="{{tplDlg.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <form class="nf-dialog nf-tpl-dialog" role="dialog" aria-modal="true" aria-labelledby="tpl-dlg-title" onSubmit="{{tplDlg.submit}}">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="tpl-dlg-title" class="nf-dialog-title"><span class="nf-card-emoji" aria-hidden="true">{{tplDlg.icon}}</span> {{tplDlg.name}}</h2>
+            <p class="nf-dialog-description">{{tplDlg.desc}} {{tplDlg.scopeNote}}.</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body nf-tpl-dialog-body">
+          <div class="nf-tpl-full" aria-label="Vorschau">
+            <div class="nf-editor nf-editable" data-tpl-preview="{{tplDlg.id}}"></div>
+          </div>
+          <sc-if value="{{tplDlg.noTarget}}" hint-placeholder-val="{{ true }}">
+            <div class="nf-tpl-form">
+              <label class="nf-label" for="tpl-page-title" style="margin-top: 0">Titel der neuen Seite</label>
+              <input id="tpl-page-title" class="nf-input nf-input-wide" maxlength="255" placeholder="Ohne Titel" value="{{tplDlg.title}}" onInput="{{tplDlg.onTitle}}">
+              <label class="nf-label" for="tpl-space">Space</label>
+              <select id="tpl-space" class="nf-input nf-input-wide" value="{{tplDlg.space}}" disabled="{{tplDlg.spaceFixed}}" onChange="{{tplDlg.onSpace}}">
+                <sc-for list="{{tplDlg.spaces}}" as="o" hint-placeholder-count="2"><option value="{{o.key}}">{{o.label}}</option></sc-for>
+              </select>
+              <label class="nf-label" for="tpl-parent">Unter der Seite</label>
+              <select id="tpl-parent" class="nf-input nf-input-wide" value="{{tplDlg.parent}}" onChange="{{tplDlg.onParent}}">
+                <sc-for list="{{tplDlg.parents}}" as="o" hint-placeholder-count="3"><option value="{{o.id}}">{{o.label}}</option></sc-for>
+              </select>
+              <sc-if value="{{tplDlg.noSpace}}" hint-placeholder-val="{{ false }}"><p class="nf-vhint">Du darfst in keinem passenden Space Seiten anlegen.</p></sc-if>
+            </div>
+          </sc-if>
+        </div>
+        <div class="nf-dialog-foot">
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Abbrechen</button>
+          <button type="submit" class="nf-btn nf-btn-primary" disabled="{{tplDlg.cantSubmit}}">{{tplDlg.submitLabel}}</button>
+        </div>
+      </form>
+    </div>
+  </sc-if>
+
+  <!-- Als Vorlage speichern: jetziger Inhalt der Seite, Name, Beschreibung, für alle Spaces oder nur diesen -->
+  <sc-if value="{{tplSave.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <form class="nf-dialog" role="dialog" aria-modal="true" aria-labelledby="tpl-save-title" onSubmit="{{tplSave.submit}}">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="tpl-save-title" class="nf-dialog-title">Als Vorlage speichern</h2>
+            <p class="nf-dialog-description">Die Vorlage übernimmt den jetzigen Inhalt der Seite mit Emoji, ohne Kommentare und Versionen. Die Seite selbst bleibt, wie sie ist.</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body">
+          <label class="nf-label" for="tpl-save-name" style="margin-top: 0">Name</label>
+          <input id="tpl-save-name" class="nf-input nf-input-wide" maxlength="80" required value="{{tplSave.name}}" onInput="{{tplSave.onName}}">
+          <label class="nf-label" for="tpl-save-desc">Beschreibung (optional)</label>
+          <input id="tpl-save-desc" class="nf-input nf-input-wide" maxlength="200" placeholder="Wofür ist die Vorlage gedacht?" value="{{tplSave.desc}}" onInput="{{tplSave.onDesc}}">
+          <label class="nf-label" for="tpl-save-scope">Gilt für</label>
+          <select id="tpl-save-scope" class="nf-input nf-input-wide" value="{{tplSave.scope}}" onChange="{{tplSave.onScope}}">
+            <sc-for list="{{tplSave.scopes}}" as="o" hint-placeholder-count="2"><option value="{{o.value}}">{{o.label}}</option></sc-for>
+          </select>
+        </div>
+        <div class="nf-dialog-foot">
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Abbrechen</button>
+          <button type="submit" class="nf-btn nf-btn-primary" disabled="{{tplSave.cantSave}}">Vorlage speichern</button>
+        </div>
+      </form>
+    </div>
+  </sc-if>
+
