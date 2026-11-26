@@ -39,11 +39,12 @@ durch die Datei ersetzt; Pfade relativ zur einbindenden Datei.
   `main/` (`page.html` mit `comments.html`, `versions.html`, `loading.html`, `overview.html`),
   `dialogs/` (je Dialog eine Datei), `editor-floating.html` („/“-Menü, Auswahl, Formatleiste),
   `palette.html`, `toast.html`.
-- `src/logic/` — Daten (`data.js`, `data-content.js`, `versions-model.js` mit dem Vergleich) und
+- `src/logic/` — Daten (`data.js`, `data-content.js`, `versions-model.js` mit dem Vergleich,
+  `templates-model.js` mit den Vorlagen) und
   die Komponente in `component/`: `constructor.js` (Zustand), `helpers.js` (Rechte wie
   `app.page_rank`), je Bereich eine Datei (`pages.js`, `comments.js`, `editor.js`, `palette.js`,
   `versions.js`, `versions-view.js`, `notifications.js`, `reactions.js`, `look.js`,
-  `page-foot.js`, `dialogs.js`, `loading.js`, `favorites.js`, `overview.js`) und zuletzt
+  `page-foot.js`, `dialogs.js`, `loading.js`, `favorites.js`, `overview.js`, `templates.js`) und zuletzt
   `render.js` (`renderVals`, alle Werte für die Vorlage).
 
 Ändert jemand `Main.dc.html` im Design-Werkzeug, gehen diese Änderungen beim nächsten Bauen
@@ -210,6 +211,32 @@ BlockNote; dieser Entwurf legt fest, wie dessen Menüs aussehen und sich verhalt
     rechnet der Prototyp selbst (längste gemeinsame Teilfolge über Blöcke und Wörter); im Frontend
     kommt er aus dem BlockNote-JSON der Versionen und gehört in eine Bibliothek (z. B. das npm-Paket
     `diff`), nicht in eigenen Code.
+- **Vorlagen** (Ausblick; Confluence-Ersatz, „was Geschäftskunden verlangen“): Menüpunkt „Vorlagen“
+  unter „Übersicht“ in der linken Navigation, auch „Vorlagen“ in der Suche. Beide Menüpunkte stehen
+  auch in der Seitenansicht ganz oben über dem Space-Umschalter; „Übersicht“ hat dafür ein eigenes
+  Icon (Kacheln), weil das Haus im Space für „Startseite“ steht.
+  - **Galerie:** Karten mit verkleinerter Vorschau des Inhalts, Emoji, Name, Beschreibung,
+    Geltungsbereich („Alle Spaces“ oder ein Space) und wie oft verwendet; Suche, Filter Alle /
+    Alle Spaces / je Space mit Zahl. Sichtbar sind Vorlagen für alle Spaces und die der Spaces, die
+    man lesen darf. Mitgeliefert: Besprechungsnotizen, Anleitung, Entscheidung, Retrospektive,
+    Projektsteckbrief (alle Spaces), Störungsbericht und Release-Notizen (Entwicklung), Angebot
+    (Vertrieb).
+  - **Verwenden:** Dialog mit großer Vorschau, Titel (aus einem Muster wie „Besprechung am
+    25.11.2026“), Space (bei Space-Vorlagen fest) und Elternseite (nur Seiten mit
+    Bearbeitungsrecht). Die neue Seite bekommt Inhalt und Emoji der Vorlage; der Inhalt steht im
+    bearbeitbaren Bereich, ist also gleich änderbar.
+  - **Leere Seite:** unter der Byline „Mit einer Vorlage beginnen:“ mit den vier häufigsten
+    Vorlagen des Spaces und „Alle Vorlagen …“. Die Galerie zeigt dann „Vorlage für „…“ wählen“,
+    „Einfügen“ setzt die Vorlage in diese Seite (Titel nur, wenn er noch leer ist, Cursor ans
+    Ende, z. B. hinter „Anleitung: “). Sobald die Seite Inhalt hat, verschwinden die Vorschläge.
+  - **Als Vorlage speichern** im „⋯“-Menü der Seite: Name, Beschreibung, „Gilt für“ (nur dieser
+    Space, wenn man ihn verwaltet; alle Spaces für Organisations-Admins). Übernimmt Inhalt und
+    Emoji, nicht Kommentare und Versionen; die neue Vorlage steht in der Galerie oben mit „Neu“.
+  - **Vorschlag:** Dafür braucht es eine Tabelle (z. B. `templates` mit Mandant, optional Space,
+    Name, Beschreibung, Emoji, Inhalt als BlockNote-JSON, Zähler) mit Leseregel wie der Space bzw.
+    für alle im Mandanten und Funktionen zum Anlegen (Space-Admins bzw. Organisations-Admins); eine
+    Schemaänderung, zuerst Test und Migration, Peter liest den Diff. Bearbeiten und Löschen von
+    Vorlagen fehlen im Prototyp noch.
 - **Laden statt „Einen Moment …“:** Beim ersten Öffnen einer Seite steht kurz ein Platzhalter-Skelett
   (Titel, Byline, Zeilen, ein Block) mit sanftem Schimmer, beim ersten Öffnen eines Spaces eines im
   Seitenbaum. Danach kommt die Seite sofort aus dem Zwischenspeicher (wie mit TanStack Query im

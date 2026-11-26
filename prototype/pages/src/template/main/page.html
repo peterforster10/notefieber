@@ -94,6 +94,16 @@
               </span>
             </p>
 
+            <!-- Leere Seite: mit einer Vorlage beginnen (die häufigsten für diesen Space, dazu alle) -->
+            <sc-if value="{{tplSuggest.show}}" hint-placeholder-val="{{ false }}">
+              <div class="nf-tpl-suggest" role="group" aria-label="Mit einer Vorlage beginnen">
+                <span class="nf-tpl-suggest-label">Mit einer Vorlage beginnen:</span>
+                <sc-for list="{{tplSuggest.items}}" as="ts" hint-placeholder-count="4">
+                  <button type="button" class="nf-tpl-chip" title="{{ts.desc}}" onClick="{{ts.apply}}"><span class="nf-card-emoji" aria-hidden="true">{{ts.icon}}</span><span>{{ts.name}}</span></button>
+                </sc-for>
+                <button type="button" class="nf-tpl-chip nf-tpl-chip-more" onClick="{{tplSuggest.all}}">Alle Vorlagen …</button>
+              </div>
+            </sc-if>
             <!-- Leerer Space: Startseite ohne Inhalt und ohne Unterseiten -->
             <sc-if value="{{welcome.show}}" hint-placeholder-val="{{ false }}">
               <section class="nf-welcome" aria-labelledby="welcome-title">

@@ -13,12 +13,17 @@
       </button>
     </div>
 
-    <!-- Übersicht: statt Umschalter und Seitenbaum die Liste aller Spaces -->
-    <sc-if value="{{isOverview}}" hint-placeholder-val="{{ false }}">
+    <!-- Übersicht und Vorlagen: statt Umschalter und Seitenbaum die Liste aller Spaces -->
+    <sc-if value="{{ovNav}}" hint-placeholder-val="{{ false }}">
       <div class="nf-tree">
-        <a href="#" class="nf-nav-item nf-nav-current" aria-current="page" onClick="{{goOverview}}">
-          <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 7.5L8 3l5.5 4.5M4 6.5V13h3V9.5h2V13h3V6.5"></path></svg>
+        <a href="#" class="nf-nav-item {{ovNavCls}}" aria-current="{{ovNavCurrent}}" onClick="{{goOverview}}">
+          <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="4.75" height="5.5" rx="1"></rect><rect x="8.75" y="2.5" width="4.75" height="3.5" rx="1"></rect><rect x="8.75" y="7.5" width="4.75" height="6" rx="1"></rect><rect x="2.5" y="9.5" width="4.75" height="4" rx="1"></rect></svg>
           <span>Übersicht</span>
+        </a>
+        <!-- Vorlagen (Ausblick): Galerie für alle Spaces und pro Space -->
+        <a href="#" class="nf-nav-item {{tplNavCls}}" aria-current="{{tplNavCurrent}}" onClick="{{goTemplates}}">
+          <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"></rect><path d="M2.5 6h11M6 6v7.5"></path></svg>
+          <span>Vorlagen</span>
         </a>
         <!-- Gruppen „Favoriten“ (mit Stern markierte Spaces) und „Spaces“ (alle übrigen) -->
         <sc-for list="{{sideGroups}}" as="sg" hint-placeholder-count="2">
@@ -68,6 +73,17 @@
     </sc-if>
 
     <sc-if value="{{inSpace}}" hint-placeholder-val="{{ true }}">
+    <!-- Übersicht und Vorlagen auch in der Seitenansicht, über dem Space-Umschalter -->
+    <div class="nf-side-nav">
+      <a href="#" class="nf-nav-item" onClick="{{goOverview}}">
+        <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="4.75" height="5.5" rx="1"></rect><rect x="8.75" y="2.5" width="4.75" height="3.5" rx="1"></rect><rect x="8.75" y="7.5" width="4.75" height="6" rx="1"></rect><rect x="2.5" y="9.5" width="4.75" height="4" rx="1"></rect></svg>
+        <span>Übersicht</span>
+      </a>
+      <a href="#" class="nf-nav-item" onClick="{{goTemplates}}">
+        <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"></rect><path d="M2.5 6h11M6 6v7.5"></path></svg>
+        <span>Vorlagen</span>
+      </a>
+    </div>
     <div class="nf-switcher">
       <button type="button" class="nf-space-card" aria-haspopup="menu" aria-expanded="{{spaceMenuExpanded}}" onClick="{{toggleSpaceMenu}}">
         <span class="nf-space-badge" style="background: {{space.color}}" aria-hidden="true">{{space.badge}}</span>

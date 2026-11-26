@@ -35,6 +35,13 @@
       // Benachrichtigungen (Glocke oben rechts)
       notifs: NOTIFS.map((n) => ({ ...n })),
       notifOpen: false,
+      // Vorlagen: Liste (mitgeliefert und eigene), Suche, Filter, Zielseite beim Einfügen, offene Dialoge
+      templates: TEMPLATES.map((t) => ({ ...t })),
+      tplQ: '',
+      tplFilter: 'all',
+      tplTarget: null,
+      tplUse: null,
+      tplSaveDraft: null,
       // Reaktionen pro Seite: Emoji → Personen (Reihenfolge wie REACTIONS)
       reactions: { dm: { '👍': ['sophie', 'lukas', 'markus'], '🎉': ['lukas'] }, home: { '👍': ['max', 'elena'], '❤️': ['sophie'] }, arch: { '👀': ['markus'] } },
       reactPicker: false,

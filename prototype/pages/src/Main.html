@@ -34,6 +34,7 @@
 /* @include styles/look.css */
 /* @include styles/overview-favorites.css */
 /* @include styles/page-foot.css */
+/* @include styles/templates.css */
 /* @include styles/forms.css */
 /* @include styles/responsive.css */
 </style>
@@ -51,6 +52,7 @@
 <!-- @include template/main/loading.html -->
 <!-- @include template/main/page.html -->
 <!-- @include template/main/overview.html -->
+<!-- @include template/main/templates.html -->
       <!-- Die Einstellungen eines Spaces sind ein Dialog (siehe unten), keine eigene Seite mehr -->
     </main>
   </div>
@@ -67,6 +69,7 @@
 <!-- @include template/dialogs/invites.html -->
 <!-- @include template/dialogs/new-space.html -->
 <!-- @include template/dialogs/space-settings.html -->
+<!-- @include template/dialogs/template-use.html -->
 <!-- @include template/editor-floating.html -->
 <!-- @include template/palette.html -->
 <!-- @include template/toast.html -->
@@ -79,6 +82,7 @@
 // @include logic/data.js
 // @include logic/versions-model.js
 // @include logic/data-content.js
+// @include logic/templates-model.js
 class Component extends DCLogic {
 // @include logic/component/constructor.js
 // @include logic/component/helpers.js
@@ -96,6 +100,7 @@ class Component extends DCLogic {
 // @include logic/component/palette.js
 // @include logic/component/favorites.js
 // @include logic/component/overview.js
+// @include logic/component/templates.js
 // @include logic/component/render.js
 }
 </script>

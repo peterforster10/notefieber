@@ -15,7 +15,9 @@
     // Versionsansicht der aktuellen Seite (ersetzt Seite und Knöpfe im Kopfbereich)
     const vmode = isPage && !!s.versions && s.versions.pid === cur;
     // Erstes Öffnen eines Spaces: Platzhalter im Seitenbaum
-    const treeLoading = s.view !== 'overview' && !this._loadedSpaces.has(s.space);
+    // Übersicht und Vorlagen: Navigation ohne Space (Liste aller Spaces statt Seitenbaum)
+    const ovNav = s.view === 'overview' || s.view === 'templates';
+    const treeLoading = !ovNav && !this._loadedSpaces.has(s.space);
     if (treeLoading) { const key = s.space; this.scheduleLoad('s:' + key, 450, () => this._loadedSpaces.add(key)); }
     const spaceEditable = !sp.archived && this.canEdit(homeId);
     const shown = (t) => t || 'Ohne Titel';
@@ -143,6 +145,7 @@
     if (isPage && editable && !vmode && !pageLoading) this.edSync(pid);
     // Leerer Space: Startseite ohne Inhalt und ohne lesbare Unterseiten
     const welcomeShow = isPage && pid === homeId && body.empty && !P[homeId].kids.some((k) => this.role(k));
+    const tplSave = this.tplSaveVals(pid, sp);
     const link = (id, text) => ({
       title: shown(P[id].title),
       text,
@@ -529,7 +532,14 @@
       isPage,
       isSettings: s.view === 'settings',
       isOverview: s.view === 'overview',
-      inSpace: s.view !== 'overview',
+      isTemplates: s.view === 'templates',
+      ovNav,
+      ovNavCls: s.view === 'overview' ? 'nf-nav-current' : '',
+      ovNavCurrent: s.view === 'overview' ? 'page' : 'false',
+      tplNavCls: s.view === 'templates' ? 'nf-nav-current' : '',
+      tplNavCurrent: s.view === 'templates' ? 'page' : 'false',
+      goTemplates: (e) => { this.prevent(e); this.openTemplates(null); },
+      inSpace: !ovNav,
       ...this.overviewVals(),
       cmd: this.paletteVals(),
       ed: this.edVals(),
@@ -544,7 +554,7 @@
       showPage: isPage && !vmode && !pageLoading,
       pageLoading,
       treeLoading,
-      treeEmpty: !treeLoading && s.view !== 'overview' && rows.length === 0,
+      treeEmpty: !treeLoading && !ovNav && rows.length === 0,
       treeEmptyText: spaceEditable ? 'Noch keine Seiten unter der Startseite.' : 'Hier gibt es noch keine Seiten.',
       welcome: {
         show: welcomeShow,
@@ -555,6 +565,23 @@
         invite: () => this.setState({ dialog: 'invites', inviteLink: null })
       },
       notif: this.notifVals(),
+      tpl: s.view === 'templates' ? this.templatesVals() : {},
+      tplDlg: this.tplDialogVals(),
+      tplSave: tplSave,
+      openTplSave: tplSave.open_,
+      // Leere Seite: die häufigsten Vorlagen dieses Spaces als Einstieg
+      tplSuggest: (() => {
+        const draft = this._drafts[pid] || '';
+        const draftEmpty = !draft.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, '').trim();
+        const show = isPage && editable && !vmode && !pageLoading && pid !== homeId && body.empty && draftEmpty;
+        if (!show) return { show: false };
+        const items = this.templatesFor(null).filter((t) => !t.scope || t.scope === sp.key).sort((a, b) => b.uses - a.uses).slice(0, 4);
+        return {
+          show: true,
+          items: items.map((t) => ({ name: t.name, icon: t.icon, desc: t.desc, apply: () => this.applyTemplate(pid, t.id) })),
+          all: () => this.openTemplates(pid)
+        };
+      })(),
       reactions: this.reactionVals(pid, myRole, sp.archived),
       look: this.lookVals(pid, editable),
       foot: (() => {
@@ -584,7 +611,7 @@
         const trashed = new Set(s.trash.map((t) => t.id));
         const ids = (s.pageFavs[s.space] || []).filter((id) => P[id] && this.role(id) && !this.chain(id).some((x) => trashed.has(x)));
         return {
-          show: s.view !== 'overview' && ids.length > 0,
+          show: !ovNav && ids.length > 0,
           count: ids.length,
           open: s.pageFavsOpen,
           expanded: s.pageFavsOpen ? 'true' : 'false',
