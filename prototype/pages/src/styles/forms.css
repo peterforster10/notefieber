@@ -1,0 +1,16 @@
+/* Formulare */
+.nf-label{display:block;margin:12px 0 6px;font-weight:500}
+.nf-input{height:38px;padding:0 10px;margin-right:8px;border:1px solid var(--nf-input-border);border-radius:8px;background:var(--nf-bg);font-size:14px}
+textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
+.nf-input-wide{display:block;width:100%;max-width:560px;margin-right:0}
+.nf-input:disabled{background:var(--nf-subtle);color:var(--nf-muted)}
+.nf-button{display:inline-flex;align-items:center;justify-content:center;height:38px;padding:0 16px;border:0;border-radius:8px;background:var(--nf-accent);color:var(--nf-on-accent);font-size:14px;font-weight:500;cursor:pointer}
+.nf-button:hover:not(:disabled){background:var(--nf-accent-hover)}
+.nf-button-secondary{border:1px solid var(--nf-control-border);background:var(--nf-bg);color:var(--nf-text);font-weight:400}
+.nf-button-secondary:hover:not(:disabled){background:var(--nf-subtle);color:var(--nf-text)}
+.nf-button-attention{background:var(--nf-attention)}
+.nf-button-attention:hover:not(:disabled){background:var(--nf-restricted-fg)}
+.nf-saved{color:var(--nf-done-fg);margin-left:8px}
+.nf-form{margin-top:32px;padding-top:16px;border-top:1px solid var(--nf-border)}
+.nf-muted{color:var(--nf-muted)}
+

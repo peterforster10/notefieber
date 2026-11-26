@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="de">
+<!-- Erzeugt mit „node prototype/build.mjs“ aus pages/src/ (Einstieg pages/src/Main.html). Nicht hier ändern, sondern dort und neu bauen. -->
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -13,6 +14,7 @@
 <x-dc>
 <helmet>
 <style>
+/* Reihenfolge zählt (Kaskade): Tokens zuerst, Bildschirmbreiten zuletzt. Neue Bereiche vor forms.css einfügen. */
 /*
  * Prototyp nach dem Stand des Web-Clients vom 25. November 2026 (apps/web/src/app/globals.css).
  * Klassennamen und Tokens wie im Frontend (nf-…), damit sich Änderungen 1:1 übertragen lassen.
@@ -2890,6 +2892,8 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1040}}'>
+// Daten zuerst (Konstanten, die die Komponente nutzt), dann die Komponente; ihre Methoden nach Bereichen,
+// render.js (renderVals: alle Werte für die Vorlage) zuletzt.
 // Daten wie in database/scripts/seed/seed.sql (Mandant Alpenwerk); angemeldet ist Peter Forster
 const PEOPLE = {
   peter: { name: 'Peter Forster', color: '#1F5FD6' },

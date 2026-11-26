@@ -1,0 +1,25 @@
+/* Bis Tablet: Seitenleiste als Schublade */
+@media (max-width:1023.98px){
+  .nf-sidebar{position:fixed;inset:0 auto 0 0;z-index:50;width:min(360px,calc(100vw - 48px));transform:translateX(-100%);visibility:hidden;transition:transform 160ms ease,visibility 0s linear 160ms;overflow-y:auto}
+  .nf-shell[data-drawer='open'] .nf-sidebar{transform:none;visibility:visible;transition:transform 160ms ease;box-shadow:var(--nf-shadow-dialog)}
+  .nf-shell[data-drawer='open'] .nf-backdrop{display:block;position:fixed;inset:0;z-index:40;background:var(--nf-backdrop)}
+  button.nf-drawer-close,button.nf-drawer-open{display:inline-flex;flex:none}
+  .nf-topbar,.nf-pagebar{padding:10px 20px}
+  .nf-main{padding:16px 48px 64px}
+}
+@media (max-width:1199.98px){
+  .nf-btn-label-secondary{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+  .nf-btn:has(>.nf-btn-label-secondary){width:38px;padding:0}
+}
+@media (max-width:899.98px){
+  .nf-btn-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+  .nf-topbar-end .nf-btn{width:38px;padding:0}
+  .nf-topbar-end .nf-btn.nf-has-count{width:auto;padding:0 8px}
+  .nf-save-status>span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+}
+@media (max-width:599.98px){
+  .nf-topbar,.nf-pagebar{padding:8px 12px}
+  .nf-main{padding:12px 16px 48px}
+  .nf-title{font-size:28px}
+}
+@media (prefers-reduced-motion:reduce){.nf-sidebar,.nf-twisty .nf-icon,.nf-switch span{transition:none!important}.nf-spin{animation:none}}

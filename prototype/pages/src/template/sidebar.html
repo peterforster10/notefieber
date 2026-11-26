@@ -1,0 +1,269 @@
+  <!-- ============================== Seitenleiste ============================== -->
+  <nav class="nf-sidebar" aria-label="Navigation">
+    <div class="nf-sidebar-top">
+      <a href="#" class="nf-brand" onClick="{{goOverview}}">
+        <span class="nf-brand-mark" aria-hidden="true">NF</span>
+        <span class="nf-brand-text">
+          <span class="nf-logo">NoteFieber</span>
+          <span class="nf-tenant">Alpenwerk</span>
+        </span>
+      </a>
+      <button type="button" class="nf-icon-button nf-drawer-close" aria-label="Navigation schließen" onClick="{{closeDrawer}}">
+        <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+      </button>
+    </div>
+
+    <!-- Übersicht: statt Umschalter und Seitenbaum die Liste aller Spaces -->
+    <sc-if value="{{isOverview}}" hint-placeholder-val="{{ false }}">
+      <div class="nf-tree">
+        <a href="#" class="nf-nav-item nf-nav-current" aria-current="page" onClick="{{goOverview}}">
+          <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 7.5L8 3l5.5 4.5M4 6.5V13h3V9.5h2V13h3V6.5"></path></svg>
+          <span>Übersicht</span>
+        </a>
+        <!-- Gruppen „Favoriten“ (mit Stern markierte Spaces) und „Spaces“ (alle übrigen) -->
+        <sc-for list="{{sideGroups}}" as="sg" hint-placeholder-count="2">
+        <div class="nf-tree-head" style="margin-top: 10px">
+          <h2 class="nf-tree-heading">{{sg.label}}</h2>
+          <sc-if value="{{sg.showNew}}" hint-placeholder-val="{{ false }}">
+            <button type="button" class="nf-icon-button" aria-label="Neuer Space" title="Neuer Space" onClick="{{openNewSpace}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+            </button>
+          </sc-if>
+        </div>
+        <ul class="nf-side-spaces">
+          <sc-for list="{{sg.items}}" as="sc" hint-placeholder-count="2">
+            <li class="nf-side-space-row">
+              <a href="#" class="nf-nav-item {{sc.sideCls}}" onClick="{{sc.go}}">
+                <span class="nf-space-badge nf-space-badge-sm" style="background: {{sc.color}}" aria-hidden="true">{{sc.badge}}</span>
+                <span class="nf-side-space-name">{{sc.name}}</span>
+                <sc-if value="{{sc.archived}}" hint-placeholder-val="{{ false }}"><span class="nf-side-space-note">archiviert</span></sc-if>
+              </a>
+              <span class="nf-actions {{sc.moreCls}}">
+                <button type="button" class="nf-icon-button nf-star-btn" aria-pressed="{{sc.favPressed}}" aria-label="{{sc.favLabel}}" title="{{sc.favLabel}}" onClick="{{sc.toggleFav}}">
+                  <svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg>
+                </button>
+                <button type="button" class="nf-icon-button" aria-label="{{sc.actionsLabel}}" title="{{sc.actionsLabel}}" aria-haspopup="menu" aria-expanded="{{sc.menuExpanded}}" onClick="{{sc.toggleMenu}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3.5" cy="8" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="12.5" cy="8" r="1.3" fill="currentColor" stroke="none"></circle></svg>
+                </button>
+              </span>
+              <sc-if value="{{sc.menuOpen}}" hint-placeholder-val="{{ false }}">
+                <ul class="nf-menu nf-row-menu" role="menu" aria-label="{{sc.actionsLabel}}">
+                  <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{sc.settings}}">
+                    <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.69 3.28L6.89 1.7H9.11L9.31 3.28L10.41 3.74L11.67 2.76L13.24 4.33L12.26 5.59L12.72 6.69L14.3 6.89V9.11L12.72 9.31L12.26 10.41L13.24 11.67L11.67 13.24L10.41 12.26L9.31 12.72L9.11 14.3H6.89L6.69 12.72L5.59 12.26L4.33 13.24L2.76 11.67L3.74 10.41L3.28 9.31L1.7 9.11V6.89L3.28 6.69L3.74 5.59L2.76 4.33L4.33 2.76L5.59 3.74Z"></path><circle cx="8" cy="8" r="2.1"></circle></svg>
+                    <span class="nf-menu-label">Einstellungen</span></button></li>
+                  <li role="none"><button type="button" role="menuitem" class="nf-menu-item" onClick="{{sc.copyLink}}">
+                    <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.75 9.25a3 3 0 004.24 0l2-2a3 3 0 00-4.24-4.24l-.75.75"></path><path d="M9.25 6.75a3 3 0 00-4.24 0l-2 2a3 3 0 004.24 4.24l.75-.75"></path></svg>
+                    <span class="nf-menu-label">Link kopieren</span></button></li>
+                  <li role="separator" class="nf-menu-separator"></li>
+                  <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="{{sc.archivePopup}}" onClick="{{sc.archive}}">
+                    <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="3" rx="1"></rect><path d="M3 6v7h10V6M6.5 9h3"></path></svg>
+                    <span class="nf-menu-label">{{sc.archiveLabel}}</span></button></li>
+                </ul>
+              </sc-if>
+            </li>
+          </sc-for>
+        </ul>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{inSpace}}" hint-placeholder-val="{{ true }}">
+    <div class="nf-switcher">
+      <button type="button" class="nf-space-card" aria-haspopup="menu" aria-expanded="{{spaceMenuExpanded}}" onClick="{{toggleSpaceMenu}}">
+        <span class="nf-space-badge" style="background: {{space.color}}" aria-hidden="true">{{space.badge}}</span>
+        <span class="nf-space-names">
+          <span class="nf-visually-hidden">Space wechseln: </span>
+          <span class="nf-space-name">{{space.name}}</span>
+          <span class="nf-space-key">Space · {{space.key}}</span>
+        </span>
+        <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 6l3-3 3 3M5 10l3 3 3-3"></path></svg>
+      </button>
+      <sc-if value="{{spaceMenuOpen}}" hint-placeholder-val="{{ false }}">
+        <ul class="nf-menu nf-space-menu" role="menu">
+          <sc-for list="{{spaceItems}}" as="si" hint-placeholder-count="4">
+            <li role="none" class="nf-menu-row">
+              <a href="#" role="menuitem" class="nf-menu-item" aria-current="{{si.current}}" onClick="{{si.go}}">
+                <span class="nf-space-badge" style="background: {{si.color}}" aria-hidden="true">{{si.badge}}</span>
+                <span class="nf-menu-label">{{si.label}}</span>
+              </a>
+              <!-- Favorit direkt in der Zeile: gefüllt bei Favoriten, sonst beim Darüberfahren -->
+              <button type="button" class="nf-menu-star" aria-pressed="{{si.favPressed}}" aria-label="{{si.favAria}}" title="{{si.favAria}}" onClick="{{si.toggleFav}}">
+                <svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg>
+              </button>
+              <sc-if value="{{si.manage}}" hint-placeholder-val="{{ true }}">
+                <button type="button" class="nf-menu-more" aria-label="{{si.actionsLabel}}" aria-haspopup="menu" aria-expanded="{{si.subExpanded}}" onClick="{{si.toggleSub}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3.5" cy="8" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="12.5" cy="8" r="1.3" fill="currentColor" stroke="none"></circle></svg>
+                </button>
+              </sc-if>
+              <sc-if value="{{si.subOpen}}" hint-placeholder-val="{{ false }}">
+                <ul class="nf-menu nf-submenu" role="menu" aria-label="{{si.actionsLabel}}">
+                  <li role="none">
+                    <a href="#" role="menuitem" class="nf-menu-item" onClick="{{si.settings}}">
+                      <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.69 3.28L6.89 1.7H9.11L9.31 3.28L10.41 3.74L11.67 2.76L13.24 4.33L12.26 5.59L12.72 6.69L14.3 6.89V9.11L12.72 9.31L12.26 10.41L13.24 11.67L11.67 13.24L10.41 12.26L9.31 12.72L9.11 14.3H6.89L6.69 12.72L5.59 12.26L4.33 13.24L2.76 11.67L3.74 10.41L3.28 9.31L1.7 9.11V6.89L3.28 6.69L3.74 5.59L2.76 4.33L4.33 2.76L5.59 3.74Z"></path><circle cx="8" cy="8" r="2.1"></circle></svg>
+                      <span class="nf-menu-label">Einstellungen</span>
+                    </a>
+                  </li>
+                  <li role="separator" class="nf-menu-separator"></li>
+                  <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="{{si.archivePopup}}" onClick="{{si.archive}}">
+                    <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="3" rx="1"></rect><path d="M3 6v7h10V6M6.5 9h3"></path></svg>
+                    <span class="nf-menu-label">{{si.archiveLabel}}</span></button></li>
+                </ul>
+              </sc-if>
+            </li>
+          </sc-for>
+          <li role="separator" class="nf-menu-separator"></li>
+          <li role="none"><a href="#" role="menuitem" class="nf-menu-item" onClick="{{goOverview}}"><span class="nf-menu-label">Alle Spaces</span></a></li>
+        </ul>
+      </sc-if>
+      <sc-if value="{{space.archived}}" hint-placeholder-val="{{ false }}">
+        <p class="nf-sidebar-note">Archiviert, nur lesbar</p>
+      </sc-if>
+    </div>
+
+    <!-- Seiten-Favoriten dieses Spaces: ein-/ausklappbar wie der Papierkorb; die Seiten stehen weiter im Baum -->
+    <sc-if value="{{pageFavs.show}}" hint-placeholder-val="{{ true }}">
+      <div class="nf-page-favs">
+        <button type="button" class="nf-nav-item" aria-expanded="{{pageFavs.expanded}}" onClick="{{pageFavs.toggle}}">
+          <svg class="nf-icon nf-fav-section-star" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg>
+          <span>Favoriten ({{pageFavs.count}})</span>
+        </button>
+        <sc-if value="{{pageFavs.open}}" hint-placeholder-val="{{ true }}">
+          <ul class="nf-page-fav-list" aria-label="Favoriten in diesem Space">
+            <sc-for list="{{pageFavs.items}}" as="pf" hint-placeholder-count="2">
+              <li class="nf-tree-row nf-fav-row {{pf.cls}}">
+                <a href="#" class="nf-tree-link" aria-current="{{pf.current}}" onClick="{{pf.go}}">
+                  <sc-if value="{{pf.hasIcon}}" hint-placeholder-val="{{ false }}"><span class="nf-tree-emoji" aria-hidden="true">{{pf.icon}}</span></sc-if><sc-if value="{{pf.noIcon}}" hint-placeholder-val="{{ true }}"><svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg></sc-if>
+                  <span class="nf-tree-title {{pf.titleCls}}">{{pf.title}}</span>
+                  <sc-if value="{{pf.restricted}}" hint-placeholder-val="{{ false }}">
+                    <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" role="img" aria-label="eingeschränkt"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg>
+                  </sc-if>
+                </a>
+                <span class="nf-actions">
+                  <button type="button" class="nf-icon-button nf-star-btn" aria-pressed="true" aria-label="{{pf.unfavLabel}}" title="{{pf.unfavLabel}}" onClick="{{pf.unfav}}">
+                    <svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg>
+                  </button>
+                </span>
+              </li>
+            </sc-for>
+          </ul>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <div class="nf-tree">
+      <div class="nf-tree-head">
+        <h2 class="nf-tree-heading" id="tree-heading">Seiten</h2>
+        <sc-if value="{{spaceEditable}}" hint-placeholder-val="{{ true }}">
+          <button type="button" class="nf-icon-button" aria-label="Neue Seite" title="Neue Seite" onClick="{{createTop}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+          </button>
+        </sc-if>
+      </div>
+      <div role="tree" aria-label="{{treeLabel}}" aria-describedby="tree-heading">
+        <div class="nf-tree-row {{homeCls}}">
+          <span class="nf-home-icon"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 7.5L8 3l5.5 4.5M4 6.5V13h3V9.5h2V13h3V6.5"></path></svg></span>
+          <a href="#" class="nf-tree-link" aria-current="{{homeCurrent}}" onClick="{{goHome}}"><span class="nf-tree-title">Startseite</span></a>
+        </div>
+        <!-- Laden (erstes Öffnen des Spaces): Platzhalter statt „Einen Moment …“ -->
+        <sc-if value="{{treeLoading}}" hint-placeholder-val="{{ false }}">
+          <div class="nf-skel-tree" role="none" aria-hidden="true">
+            <span class="nf-skel" style="width: 62%"></span>
+            <span class="nf-skel" style="width: 48%; margin-left: 22px"></span>
+            <span class="nf-skel" style="width: 54%; margin-left: 22px"></span>
+            <span class="nf-skel" style="width: 70%"></span>
+            <span class="nf-skel" style="width: 40%"></span>
+          </div>
+          <span class="nf-visually-hidden" role="status">Seiten werden geladen …</span>
+        </sc-if>
+        <!-- Space ohne Seiten unter der Startseite -->
+        <sc-if value="{{treeEmpty}}" hint-placeholder-val="{{ false }}">
+          <div class="nf-tree-empty" role="none">
+            <p>{{treeEmptyText}}</p>
+            <sc-if value="{{spaceEditable}}" hint-placeholder-val="{{ true }}">
+              <button type="button" onClick="{{createTop}}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg><span>Erste Seite anlegen</span></button>
+            </sc-if>
+          </div>
+        </sc-if>
+        <sc-for list="{{rows}}" as="row" hint-placeholder-count="8">
+          <div class="nf-tree-row {{row.cls}}" style="margin-left: {{row.pad}}px">
+            <button type="button" class="nf-twisty" tabindex="-1" data-open="{{row.openAttr}}" aria-label="{{row.toggleLabel}}" onClick="{{row.toggle}}" style="visibility: {{row.twisty}}">
+              <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 4l4 4-4 4"></path></svg>
+            </button>
+            <a href="#" class="nf-tree-link" aria-current="{{row.current}}" onClick="{{row.go}}">
+              <sc-if value="{{row.hasIcon}}" hint-placeholder-val="{{ false }}"><span class="nf-tree-emoji" aria-hidden="true">{{row.icon}}</span></sc-if><sc-if value="{{row.noIcon}}" hint-placeholder-val="{{ true }}"><svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg></sc-if>
+              <span class="nf-tree-title {{row.titleCls}}">{{row.title}}</span>
+              <sc-if value="{{row.restricted}}" hint-placeholder-val="{{ false }}">
+                <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" role="img" aria-label="eingeschränkt"><title>eingeschränkt</title><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg>
+              </sc-if>
+            </a>
+            <sc-if value="{{row.editable}}" hint-placeholder-val="{{ true }}">
+              <span class="nf-actions {{row.actionsCls}}">
+                <button type="button" class="nf-icon-button" aria-label="Neue Unterseite" title="Neue Unterseite" onClick="{{row.create}}">
+                  <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+                </button>
+                <button type="button" class="nf-icon-button" aria-label="{{row.actionsLabel}}" aria-haspopup="menu" aria-expanded="{{row.menuExpanded}}" onClick="{{row.toggleMenu}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="3.5" cy="8" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none"></circle><circle cx="12.5" cy="8" r="1.3" fill="currentColor" stroke="none"></circle></svg>
+                </button>
+              </span>
+            </sc-if>
+            <sc-if value="{{row.menuOpen}}" hint-placeholder-val="{{ false }}">
+              <ul class="nf-menu nf-row-menu" role="menu" aria-label="{{row.actionsLabel}}">
+                <li role="none"><button type="button" role="menuitem" class="nf-menu-item" onClick="{{row.toggleFav}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg>
+                  <span class="nf-menu-label">{{row.favLabel}}</span></button></li>
+                <li role="none"><button type="button" role="menuitem" class="nf-menu-item" onClick="{{row.rename}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.5 2.5l3 3-8 8h-3v-3z"></path></svg>
+                  <span class="nf-menu-label">Umbenennen</span><span class="nf-menu-shortcut">F2</span></button></li>
+                <li role="separator" class="nf-menu-separator"></li>
+                <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-disabled="{{row.upDisabled}}" onClick="{{row.up}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13V3M4.5 6.5L8 3l3.5 3.5"></path></svg>
+                  <span class="nf-menu-label">Nach oben</span></button></li>
+                <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-disabled="{{row.downDisabled}}" onClick="{{row.down}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M4.5 9.5L8 13l3.5-3.5"></path></svg>
+                  <span class="nf-menu-label">Nach unten</span></button></li>
+                <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-disabled="{{row.upDisabled}}" onClick="{{row.indent}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3v10M6 8h7M10 5l3 3-3 3"></path></svg>
+                  <span class="nf-menu-label">Einrücken (unter die vorige Seite)</span></button></li>
+                <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-disabled="{{row.outdentDisabled}}" onClick="{{row.outdent}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M13 3v10M10 8H3M6 5L3 8l3 3"></path></svg>
+                  <span class="nf-menu-label">Ausrücken (hinter die Elternseite)</span></button></li>
+                <li role="separator" class="nf-menu-separator"></li>
+                <li role="none"><button type="button" role="menuitem" class="nf-menu-item nf-menu-item-danger" onClick="{{row.trash}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.5 9h6l.5-9"></path></svg>
+                  <span class="nf-menu-label">In den Papierkorb</span><span class="nf-menu-shortcut">Entf</span></button></li>
+              </ul>
+            </sc-if>
+          </div>
+          <sc-if value="{{row.renaming}}" hint-placeholder-val="{{ false }}">
+            <form class="nf-new-page" style="margin-left: {{row.pad}}px" onSubmit="{{row.submitRename}}">
+              <input aria-label="Neuer Titel" placeholder="Titel" maxlength="255" value="{{row.draft}}" onChange="{{row.onDraft}}">
+              <button type="submit" class="nf-button">Umbenennen</button>
+              <button type="button" class="nf-button nf-button-secondary" onClick="{{row.cancelRename}}">Abbrechen</button>
+            </form>
+          </sc-if>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+
+    <div class="nf-sidebar-foot">
+      <sc-if value="{{inSpace}}" hint-placeholder-val="{{ true }}">
+      <!-- Papierkorb: öffnet einen Dialog mit Suche, Herkunft, Restzeit und Wiederherstellen -->
+      <button type="button" class="nf-nav-item" aria-haspopup="dialog" onClick="{{openTrash}}">
+        <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.5 9h6l.5-9"></path></svg>
+        <span>Papierkorb ({{trashCount}})</span>
+      </button>
+      </sc-if>
+      <!-- Ausblick M4: Confluence-Import -->
+      <a href="Import.dc.html" class="nf-nav-item">
+        <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11V3M4.5 6.5L8 3l3.5 3.5"></path><path d="M3 11v2h10v-2"></path></svg>
+        Confluence-Import
+      </a>
+      <p class="nf-eu">
+        <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2l5 2v4c0 3-2.2 5-5 6-2.8-1-5-3-5-6V4z"></path></svg>
+        Daten gehostet in der EU
+      </p>
+    </div>
+  </nav>
+  <div class="nf-backdrop" aria-hidden="true" onClick="{{closeDrawer}}"></div>
+

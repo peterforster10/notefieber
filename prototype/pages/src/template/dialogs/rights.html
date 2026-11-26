@@ -1,0 +1,112 @@
+  <!-- Teilen und Rechte (Ausblick M3; im Frontend vorerst ein Dialog mit Ausblick) -->
+  <sc-if value="{{rightsOpen}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <div class="nf-dialog" role="dialog" aria-modal="true" aria-labelledby="rights-title">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="rights-title" class="nf-dialog-title">Rechte für „{{page.shownTitle}}“</h2>
+            <p class="nf-dialog-description">Wer diese Seite und ihre Unterseiten sehen und bearbeiten darf.</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <!-- Zusammenfassung: wie viele Personen im Workspace welche Rolle haben (mit den Änderungen im Entwurf) -->
+        <div class="nf-rights-summary">
+          <span class="nf-rights-summary-label">Zugriff</span>
+          <sc-for list="{{rights.summary}}" as="sm" hint-placeholder-count="3">
+            <span class="nf-access-chip" data-role="{{sm.role}}" title="{{sm.names}}"><strong>{{sm.count}}</strong> {{sm.label}}</span>
+          </sc-for>
+          <button type="button" class="nf-view-as-link" onClick="{{rights.viewAs}}">
+            <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 8s2.4-4.5 6.5-4.5S14.5 8 14.5 8s-2.4 4.5-6.5 4.5S1.5 8 1.5 8z"></path><circle cx="8" cy="8" r="2"></circle></svg>
+            Ansehen als …
+          </button>
+        </div>
+        <div class="nf-dialog-band">
+          <div>
+            <strong>Eigene Rechte für diese Seite</strong>
+            <span>{{rights.inheritText}}</span>
+          </div>
+          <button type="button" class="nf-switch" aria-pressed="{{rights.ownPressed}}" aria-label="Eigene Rechte für diese Seite" disabled="{{rights.locked}}" onClick="{{rights.toggleOwn}}"><span></span></button>
+        </div>
+        <div class="nf-dialog-body" style="padding-top: 4px">
+          <sc-for list="{{rights.grants}}" as="g" hint-placeholder-count="3">
+            <div class="nf-grant">
+              <span class="nf-byline-avatar" style="background: {{g.bg}}" aria-hidden="true">{{g.initials}}</span>
+              <div class="nf-grant-names"><div>{{g.name}}</div><div>{{g.sub}}</div></div>
+              <sc-if value="{{g.selectAdmin}}" hint-placeholder-val="{{ false }}">
+                <select aria-label="{{g.selectLabel}}" value="{{g.role}}" onChange="{{g.change}}">
+                  <option value="admin">Admin</option>
+                  <option value="editor">Bearbeiten</option>
+                  <option value="commenter">Kommentieren</option>
+                  <option value="viewer">Lesen</option>
+                  <option value="none">Kein Zugriff</option>
+                </select>
+              </sc-if>
+              <sc-if value="{{g.selectNoAdmin}}" hint-placeholder-val="{{ false }}">
+                <select aria-label="{{g.selectLabel}}" value="{{g.role}}" onChange="{{g.change}}">
+                  <option value="editor">Bearbeiten</option>
+                  <option value="commenter">Kommentieren</option>
+                  <option value="viewer">Lesen</option>
+                  <option value="none">Kein Zugriff</option>
+                </select>
+              </sc-if>
+              <sc-if value="{{g.readonly}}" hint-placeholder-val="{{ true }}">
+                <span class="nf-grant-role">{{g.roleLabel}}</span>
+              </sc-if>
+              <sc-if value="{{g.removable}}" hint-placeholder-val="{{ false }}">
+                <button type="button" class="nf-grant-remove" aria-label="{{g.removeLabel}}" title="Entfernen" onClick="{{g.remove}}">
+                  <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+                </button>
+              </sc-if>
+            </div>
+          </sc-for>
+          <!-- Hinzufügen: Vorschläge beim Tippen (Personen, Gruppen, „Alle im Workspace“), Rolle vorab wählen -->
+          <sc-if value="{{rights.canAdd}}" hint-placeholder-val="{{ false }}">
+            <div class="nf-grant-add">
+              <div class="nf-grant-search">
+                <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+                <input id="nf-grant-q" type="text" class="nf-input" role="combobox" aria-expanded="{{rights.suggestExpanded}}" aria-controls="nf-grant-list" aria-activedescendant="{{rights.activeId}}" aria-autocomplete="list" autocomplete="off" placeholder="Person oder Gruppe hinzufügen …" value="{{rights.query}}" onChange="{{rights.onQuery}}" onFocus="{{rights.onFocus}}" onBlur="{{rights.onBlur}}" onKeyDown="{{rights.onKey}}">
+                <sc-if value="{{rights.suggestOpen}}" hint-placeholder-val="{{ false }}">
+                  <ul id="nf-grant-list" class="nf-grant-suggest" role="listbox" aria-label="Vorschläge">
+                    <sc-for list="{{rights.suggestions}}" as="sg" hint-placeholder-count="3">
+                      <li id="{{sg.domId}}" role="option" aria-selected="{{sg.selected}}" onMouseDown="{{rights.keep}}" onClick="{{sg.add}}">
+                        <span class="nf-byline-avatar" style="background: {{sg.bg}}" aria-hidden="true">{{sg.initials}}</span>
+                        <span class="nf-grant-names"><span>{{sg.name}}</span><span>{{sg.sub}}</span></span>
+                        <span class="nf-grant-suggest-role">als {{sg.roleLabel}}</span>
+                      </li>
+                    </sc-for>
+                    <sc-if value="{{rights.noSuggest}}" hint-placeholder-val="{{ false }}">
+                      <li class="nf-grant-suggest-empty" role="option" aria-disabled="true">{{rights.noSuggestText}}</li>
+                    </sc-if>
+                  </ul>
+                </sc-if>
+              </div>
+              <select class="nf-input nf-grant-addrole" aria-label="Rolle für neue Einträge" value="{{rights.addRole}}" onChange="{{rights.onAddRole}}">
+                <option value="viewer">Lesen</option>
+                <option value="commenter">Kommentieren</option>
+                <option value="editor">Bearbeiten</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          </sc-if>
+          <sc-if value="{{rights.selfWarn}}" hint-placeholder-val="{{ false }}">
+            <p class="nf-rights-warn" role="status">Du nimmst dir selbst die Admin-Rechte. Danach kannst du die Rechte dieser Seite nicht mehr ändern; zurückgeben kann sie dir nur ein anderer Admin.</p>
+          </sc-if>
+          <sc-if value="{{rights.noAdmin}}" hint-placeholder-val="{{ false }}">
+            <p class="nf-rights-error" role="alert">Mindestens eine Person oder Gruppe muss Admin bleiben, sonst lassen sich die Rechte nicht mehr ändern.</p>
+          </sc-if>
+          <sc-if value="{{rights.hint}}" hint-placeholder-val="{{ true }}">
+            <p class="nf-hint">{{rights.hintText}}</p>
+          </sc-if>
+        </div>
+        <div class="nf-dialog-foot">
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Abbrechen</button>
+          <sc-if value="{{rights.canSave}}" hint-placeholder-val="{{ true }}">
+            <button type="button" class="nf-btn {{rights.saveCls}}" disabled="{{rights.saveDisabled}}" onClick="{{rights.save}}">{{rights.saveLabel}}</button>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+

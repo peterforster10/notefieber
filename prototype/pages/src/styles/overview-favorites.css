@@ -1,0 +1,23 @@
+/* ---------- Übersicht: Seiten-Favoriten nach Space (Ausblick) ---------- */
+.nf-favgroups{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin:0;padding:0;list-style:none}
+.nf-favgroup{container-type:inline-size;display:flex;flex-direction:column;padding:6px;border:1px solid var(--nf-border);border-radius:10px;background:var(--nf-bg)}
+.nf-favgroup-head{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;color:var(--nf-text);font-size:13px;font-weight:600;text-decoration:none}
+.nf-favgroup-head:hover{background:var(--nf-subtle);color:var(--nf-text)}
+.nf-favgroup-count{margin-left:auto;font-size:12px;font-weight:500;color:var(--nf-muted)}
+.nf-favgroup-list{margin:2px 0 0;padding:0;list-style:none}
+.nf-favpage-row{display:flex;align-items:center;border-radius:6px}
+.nf-favpage-row:hover,.nf-favpage-row:focus-within{background:var(--nf-subtle)}
+.nf-favpage{flex:1;min-width:0;display:flex;align-items:center;gap:8px;min-height:34px;padding:4px 8px;color:var(--nf-text);font-size:14px;text-decoration:none}
+.nf-favpage:hover{color:var(--nf-text)}
+.nf-favpage>.nf-icon:first-child{flex:none;color:var(--nf-muted)}
+.nf-favpage-title{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-favpage-lock{flex:none;color:var(--nf-muted)}
+.nf-favpage-path{flex:0 100 auto;min-width:0;max-width:45%;margin-left:auto;padding-left:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--nf-muted)}
+.nf-favpage-row .nf-star-btn{flex:none;margin-right:4px;opacity:0}
+.nf-favpage-row:hover .nf-star-btn,.nf-favpage-row:focus-within .nf-star-btn{opacity:1}
+.nf-favgroup-more{display:block;padding:6px 8px 4px;font-size:12.5px;color:var(--nf-muted);text-decoration:none}
+.nf-favgroup-more:hover{color:var(--nf-text);text-decoration:underline}
+.nf-fav-hint{display:flex;align-items:center;gap:10px;margin:0;padding:12px 14px;border:1px dashed var(--nf-border);border-radius:10px;font-size:13px;line-height:1.5;color:var(--nf-muted)}
+.nf-fav-hint .nf-icon{flex:none;color:var(--nf-fav)}
+@media (hover:none){.nf-favpage-row .nf-star-btn{opacity:1}}
+@container (max-width:360px){.nf-favpage-path{display:none}}

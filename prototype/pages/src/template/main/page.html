@@ -1,0 +1,341 @@
+      <!-- ---------- Seite ---------- -->
+      <sc-if value="{{showPage}}" hint-placeholder-val="{{ true }}">
+        <!-- Titelbild (Ausblick): Farbverlauf aus der Auswahl oder ein hochgeladenes Bild -->
+        <sc-if value="{{look.hasCover}}" hint-placeholder-val="{{ false }}">
+          <div class="nf-cover" style="background-image: {{look.coverBg}}" role="img" aria-label="{{look.coverLabel}}">
+            <sc-if value="{{look.canEdit}}" hint-placeholder-val="{{ true }}">
+              <div class="nf-cover-tools">
+                <button type="button" class="nf-cover-btn" aria-haspopup="dialog" aria-expanded="{{look.coverExpanded}}" onClick="{{look.openCover}}">Titelbild ändern</button>
+                <button type="button" class="nf-cover-btn" onClick="{{look.removeCover}}">Entfernen</button>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+        <div class="nf-main-inner {{innerCls}}">
+          <article>
+            <!-- „Eingeschränkt“ steht jetzt im Knopf „Teilen und Rechte“, nicht mehr über dem Titel -->
+            <!-- Emoji und Titelbild (Ausblick): Knöpfe über dem Titel beim Darüberfahren, nur mit Bearbeitungsrecht -->
+            <div class="nf-title-area">
+              <sc-if value="{{look.canEdit}}" hint-placeholder-val="{{ true }}">
+                <div class="nf-title-tools">
+                  <sc-if value="{{look.noIcon}}" hint-placeholder-val="{{ true }}">
+                    <button type="button" class="nf-title-tool" aria-haspopup="dialog" aria-expanded="{{look.emojiExpanded}}" onClick="{{look.openEmoji}}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.75"></circle><path d="M5.6 9.4c.6.9 1.4 1.4 2.4 1.4s1.8-.5 2.4-1.4"></path><path d="M6 6.6h.01M10 6.6h.01" stroke-width="2"></path></svg><span>Emoji hinzufügen</span></button>
+                  </sc-if>
+                  <sc-if value="{{look.noCover}}" hint-placeholder-val="{{ true }}">
+                    <button type="button" class="nf-title-tool" aria-haspopup="dialog" aria-expanded="{{look.coverExpanded}}" onClick="{{look.openCover}}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.5"></rect><circle cx="5.75" cy="6.5" r="1.1"></circle><path d="M2.5 11.5l3.5-3 2.5 2 2-1.5 3 2.5"></path></svg><span>Titelbild hinzufügen</span></button>
+                  </sc-if>
+                </div>
+                <sc-if value="{{look.emojiOpen}}" hint-placeholder-val="{{ false }}">
+                  <div class="nf-look-pop" role="dialog" aria-label="Emoji wählen" onClick="{{look.keep}}" onKeyDown="{{look.gridKey}}">
+                    <div class="nf-look-pop-head">
+                      <input id="nf-emoji-q" class="nf-input" type="search" placeholder="Emoji suchen …" aria-label="Emoji suchen" autocomplete="off" value="{{look.emojiQ}}" onInput="{{look.onEmojiQ}}">
+                      <sc-if value="{{look.hasIcon}}" hint-placeholder-val="{{ false }}"><button type="button" class="nf-btn nf-btn-ghost nf-btn-sm" onClick="{{look.removeIcon}}">Entfernen</button></sc-if>
+                    </div>
+                    <div class="nf-emoji-grid">
+                      <sc-for list="{{look.emojis}}" as="em" hint-placeholder-count="16"><button type="button" class="nf-emoji-choice" aria-pressed="{{em.pressed}}" aria-label="{{em.name}}" title="{{em.name}}" onClick="{{em.choose}}">{{em.emoji}}</button></sc-for>
+                    </div>
+                    <sc-if value="{{look.emojiEmpty}}" hint-placeholder-val="{{ false }}"><p class="nf-look-empty">Kein Emoji passt zu „{{look.emojiQ}}“.</p></sc-if>
+                  </div>
+                </sc-if>
+                <sc-if value="{{look.coverOpen}}" hint-placeholder-val="{{ false }}">
+                  <div class="nf-look-pop" role="dialog" aria-label="Titelbild wählen" onClick="{{look.keep}}">
+                    <p class="nf-look-pop-title">Titelbild</p>
+                    <div class="nf-cover-grid">
+                      <sc-for list="{{look.covers}}" as="cv" hint-placeholder-count="8"><button type="button" class="nf-cover-choice" style="background: {{cv.bg}}" aria-pressed="{{cv.pressed}}" aria-label="{{cv.name}}" title="{{cv.name}}" onClick="{{cv.choose}}"></button></sc-for>
+                    </div>
+                    <div class="nf-look-pop-foot">
+                      <button type="button" class="nf-btn nf-btn-sm" onClick="{{look.pickFile}}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.5"></rect><circle cx="5.75" cy="6.5" r="1.1"></circle><path d="M2.5 11.5l3.5-3 2.5 2 2-1.5 3 2.5"></path></svg><span>Bild hochladen …</span></button>
+                      <input id="nf-cover-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden onChange="{{look.onUpload}}">
+                      <sc-if value="{{look.hasCover}}" hint-placeholder-val="{{ false }}"><button type="button" class="nf-btn nf-btn-ghost nf-btn-sm" onClick="{{look.removeCover}}">Entfernen</button></sc-if>
+                    </div>
+                    <p class="nf-look-hint">PNG, JPEG, GIF oder WebP wie Bilder im Text, am besten im Querformat. Es bleibt bei dieser Seite und ist für alle mit Leserecht sichtbar.</p>
+                  </div>
+                </sc-if>
+              </sc-if>
+              <div class="nf-title-row">
+                <sc-if value="{{look.editIcon}}" hint-placeholder-val="{{ false }}">
+                  <button type="button" class="nf-page-emoji" aria-label="{{look.iconLabel}}" title="Emoji ändern" aria-haspopup="dialog" aria-expanded="{{look.emojiExpanded}}" onClick="{{look.openEmoji}}">{{look.icon}}</button>
+                </sc-if>
+                <sc-if value="{{look.showIcon}}" hint-placeholder-val="{{ false }}">
+                  <span class="nf-page-emoji" role="img" aria-label="{{look.iconName}}">{{look.icon}}</span>
+                </sc-if>
+                <sc-if value="{{page.editable}}" hint-placeholder-val="{{ true }}">
+                  <h1 class="nf-title"><input id="nf-title" aria-label="Titel" class="nf-title-input" maxlength="255" placeholder="Ohne Titel" value="{{page.title}}" onChange="{{onTitle}}" onKeyDown="{{onTitleKey}}"></h1>
+                </sc-if>
+                <sc-if value="{{page.readonly}}" hint-placeholder-val="{{ false }}">
+                  <h1 class="nf-title">{{page.shownTitle}}</h1>
+                </sc-if>
+              </div>
+            </div>
+            <p class="nf-page-meta">
+              <span class="nf-byline-author">
+                <span class="nf-byline-avatar" style="background: {{page.authorColor}}" aria-hidden="true">{{page.authorInitials}}</span>
+                <span>Von {{page.authorName}}</span>
+              </span>
+              <button type="button" class="nf-byline-link" title="Versionen ansehen" onClick="{{openVersions}}"><time title="{{page.editedAt}}">Zuletzt bearbeitet von {{page.editorName}} {{page.when}}</time></button>
+              <span>Deine Rolle: {{page.roleLabel}}</span>
+              <!-- Reaktionen auf die Seite (Ausblick): ab Kommentieren, Namen beim Darüberfahren -->
+              <span class="nf-reactions" role="group" aria-label="Reaktionen">
+                <sc-for list="{{reactions.items}}" as="r" hint-placeholder-count="2">
+                  <button type="button" class="nf-reaction" aria-pressed="{{r.pressed}}" aria-label="{{r.aria}}" title="{{r.title}}" disabled="{{reactions.locked}}" onClick="{{r.toggle}}"><span class="nf-reaction-emoji" aria-hidden="true">{{r.emoji}}</span><span>{{r.count}}</span></button>
+                </sc-for>
+                <sc-if value="{{reactions.canReact}}" hint-placeholder-val="{{ true }}">
+                  <span class="nf-reaction-add-wrap">
+                    <button type="button" class="nf-reaction nf-reaction-add" aria-label="Reaktion hinzufügen" title="Reaktion hinzufügen" aria-haspopup="true" aria-expanded="{{reactions.expanded}}" onClick="{{reactions.togglePicker}}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="8.5" r="5.25"></circle><path d="M4.9 10.1c.5.8 1.2 1.2 2.1 1.2s1.6-.4 2.1-1.2"></path><path d="M5.3 7.2h.01M8.7 7.2h.01" stroke-width="2"></path><path d="M13 1.5v4M11 3.5h4"></path></svg></button>
+                    <sc-if value="{{reactions.pickerOpen}}" hint-placeholder-val="{{ false }}">
+                      <span class="nf-reaction-picker" role="group" aria-label="Reaktion wählen" onClick="{{reactions.keep}}">
+                        <sc-for list="{{reactions.choices}}" as="c" hint-placeholder-count="8">
+                          <button type="button" class="nf-reaction-choice" aria-pressed="{{c.pressed}}" aria-label="{{c.label}}" title="{{c.label}}" onClick="{{c.choose}}">{{c.emoji}}</button>
+                        </sc-for>
+                      </span>
+                    </sc-if>
+                  </span>
+                </sc-if>
+              </span>
+            </p>
+
+            <!-- Leerer Space: Startseite ohne Inhalt und ohne Unterseiten -->
+            <sc-if value="{{welcome.show}}" hint-placeholder-val="{{ false }}">
+              <section class="nf-welcome" aria-labelledby="welcome-title">
+                <span class="nf-welcome-icon" aria-hidden="true"><svg class="nf-icon" width="24" height="24" viewBox="0 0 16 16"><path d="M5 1.5h5l3 3v8.5H5z"></path><path d="M10 1.5v3h3"></path><path d="M3 4v10.5h8"></path></svg></span>
+                <h2 id="welcome-title" class="nf-welcome-title">{{welcome.title}}</h2>
+                <p class="nf-welcome-text">{{welcome.text}}</p>
+                <sc-if value="{{welcome.canEdit}}" hint-placeholder-val="{{ true }}">
+                  <div class="nf-welcome-actions">
+                    <button type="button" class="nf-welcome-card" onClick="{{welcome.create}}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg><strong>Erste Seite anlegen</strong><span>Unter der Startseite, etwa für ein Thema oder ein Team</span></button>
+                    <a class="nf-welcome-card" href="../import/Import.dc.html"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 10.5V2.5M4.5 6L8 2.5 11.5 6"></path><path d="M3 10v3.5h10V10"></path></svg><strong>Aus Confluence importieren</strong><span>Space-Export hochladen, Probelauf mit Bericht</span></a>
+                    <button type="button" class="nf-welcome-card" aria-haspopup="dialog" onClick="{{welcome.invite}}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="5.5" r="2.5"></circle><path d="M2 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4"></path><path d="M12.5 5v4M10.5 7h4"></path></svg><strong>Personen einladen</strong><span>Link in den Workspace „{{ws.name}}“</span></button>
+                  </div>
+                  <p class="nf-welcome-hint">Oder schreib direkt hier auf der Startseite los.</p>
+                </sc-if>
+              </section>
+            </sc-if>
+            <div class="nf-editor" aria-label="Inhalt der Seite" onClick="{{cm.onEditorClick}}">
+              <!-- Startseite von ENTW: Inhaltsverzeichnis, Seitenlinks, Hinweis, Erwähnung -->
+              <sc-if value="{{body.home}}" hint-placeholder-val="{{ false }}">
+                <p>Hier dokumentiert das Entwicklungsteam von Alpenwerk Architektur, Abläufe und Betrieb.</p>
+                <nav class="nf-toc" aria-label="Inhaltsverzeichnis">
+                  <p class="nf-toc-title">Inhalt</p>
+                  <ol>
+                    <li><a href="#h-bereiche">Bereiche</a></li>
+                    <li><a href="#h-mitmachen">Mitmachen</a></li>
+                  </ol>
+                </nav>
+                <h2 id="h-bereiche">Bereiche</h2>
+                <ul>
+                  <sc-for list="{{homeLinks}}" as="hl" hint-placeholder-count="3">
+                    <li><a href="#" class="{{hl.cls}}" onClick="{{hl.go}}">{{hl.title}}</a> – {{hl.text}}</li>
+                  </sc-for>
+                </ul>
+                <h2 id="h-mitmachen">Mitmachen</h2>
+                <div class="nf-callout" data-variant="{{calloutHome.variant}}">
+                  <span class="nf-callout-icon">
+                    <sc-if value="{{page.editable}}" hint-placeholder-val="{{ true }}">
+                      <select aria-label="Art des Callouts" title="{{calloutHome.label}}" value="{{calloutHome.variant}}" onChange="{{calloutHome.change}}">
+                        <option value="info">ℹ Info</option>
+                        <option value="note">✎ Hinweis</option>
+                        <option value="success">✓ Erfolg</option>
+                        <option value="warning">⚠ Warnung</option>
+                        <option value="error">✕ Fehler</option>
+                      </select>
+                    </sc-if>
+                    <sc-if value="{{page.readonly}}" hint-placeholder-val="{{ false }}">
+                      <span role="img" aria-label="{{calloutHome.label}}" title="{{calloutHome.label}}">{{calloutHome.icon}}</span>
+                    </sc-if>
+                  </span>
+                  <div class="nf-callout-content"><p>Neue Seiten bitte unter dem passenden Bereich anlegen. Seiten mit eigenen Rechten sind mit einem Schloss markiert.</p></div>
+                </div>
+                <p>Fragen zum Wiki an <span class="nf-mention">@Lukas Gruber</span>.</p>
+              </sc-if>
+
+              <!-- Datenmodell: Kommentar an einer Textstelle, Callout, Tabelle, Code, Aufgaben -->
+              <sc-if value="{{body.dm}}" hint-placeholder-val="{{ true }}">
+                <h2>Überblick</h2>
+                <p><mark class="nf-comment-mark {{markCls}}" data-thread="t1" data-static="true">Jede Tabelle trägt <code>tenant_id</code></mark>. Row Level Security trennt die Mandanten in der Datenbank selbst; die API setzt den Mandanten zu Beginn jeder Transaktion.</p>
+                <div class="nf-callout" data-variant="{{calloutDm.variant}}">
+                  <span class="nf-callout-icon">
+                    <sc-if value="{{page.editable}}" hint-placeholder-val="{{ true }}">
+                      <select aria-label="Art des Callouts" title="{{calloutDm.label}}" value="{{calloutDm.variant}}" onChange="{{calloutDm.change}}">
+                        <option value="info">ℹ Info</option>
+                        <option value="note">✎ Hinweis</option>
+                        <option value="success">✓ Erfolg</option>
+                        <option value="warning">⚠ Warnung</option>
+                        <option value="error">✕ Fehler</option>
+                      </select>
+                    </sc-if>
+                    <sc-if value="{{page.readonly}}" hint-placeholder-val="{{ false }}">
+                      <span role="img" aria-label="{{calloutDm.label}}" title="{{calloutDm.label}}">{{calloutDm.icon}}</span>
+                    </sc-if>
+                  </span>
+                  <div class="nf-callout-content"><p>Maßgeblich ist <code>schema.sql</code>. Jede Änderung am Schema braucht einen Test in <code>schema_test.sql</code>.</p></div>
+                </div>
+
+                <h2>Kerntabellen</h2>
+                <div class="nf-table-block">
+                  <table>
+                    <thead><tr><th>Tabelle</th><th>Zweck</th></tr></thead>
+                    <tbody>
+                      <tr><td><code>spaces</code></td><td>Bereich wie in Confluence, Einheit für Rechte und Import</td></tr>
+                      <tr><td><code>pages</code></td><td>Seitenbaum mit Pfad und Position, Papierkorb</td></tr>
+                      <tr><td><code>page_contents</code></td><td>Yjs-Zustand, BlockNote-JSON und Klartext für die Suche</td></tr>
+                      <tr><td><code>grants</code></td><td>Rechte auf einen Space oder eine Seite</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <h2>Mandant setzen</h2>
+                <div class="nf-code">
+                  <select aria-label="Sprache des Codes"><option>SQL</option><option>TypeScript</option><option>Text</option></select>
+                  <pre><code><span class="k">SELECT</span> <span class="f">set_config</span>(<span class="s">'app.tenant_id'</span>, $1, <span class="c">true</span>);
+<span class="k">SELECT</span> <span class="f">set_config</span>(<span class="s">'app.user_id'</span>,   $2, <span class="c">true</span>);</code></pre>
+                </div>
+
+                <h2>Offene Punkte</h2>
+                <div class="nf-checklist">
+                  <sc-for list="{{tasks}}" as="t" hint-placeholder-count="2">
+                    <label class="nf-check" data-checked="{{t.checkedAttr}}">
+                      <input type="checkbox" checked="{{t.done}}" disabled="{{t.disabled}}" onChange="{{t.toggle}}">
+                      <span>{{t.text}}</span>
+                    </label>
+                  </sc-for>
+                </div>
+                <p>Wie Rechte vererbt werden, steht unter <a href="#" class="{{rechteLink.cls}}" onClick="{{rechteLink.go}}">{{rechteLink.title}}</a>. Fragen an <span class="nf-mention">@Sophie Bauer</span>.</p>
+              </sc-if>
+
+              <!-- Nach „Wiederherstellen“ (Prototyp): Inhalt der wiederhergestellten Version statt der festen Vorlage -->
+              <sc-if value="{{body.restored}}" hint-placeholder-val="{{ false }}">
+                <sc-for list="{{restoredBlocks}}" as="b" hint-placeholder-count="3">
+                  <sc-if value="{{b.isH2}}" hint-placeholder-val="{{ true }}"><h2 class="nf-vb {{b.cls}}"><sc-for list="{{b.segs}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for></h2></sc-if>
+                  <sc-if value="{{b.isP}}" hint-placeholder-val="{{ false }}"><p class="nf-vb {{b.cls}}"><sc-for list="{{b.segs}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for></p></sc-if>
+                  <sc-if value="{{b.isCallout}}" hint-placeholder-val="{{ false }}"><div class="nf-callout nf-vb {{b.cls}}" data-variant="{{b.variant}}"><span class="nf-callout-icon"><span role="img" aria-label="{{b.variantLabel}}" title="{{b.variantLabel}}">{{b.icon}}</span></span><div class="nf-callout-content"><p><sc-for list="{{b.segs}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for><sc-if value="{{b.hasNote}}" hint-placeholder-val="{{ false }}"><span class="nf-vnote">{{b.note}}</span></sc-if></p></div></div></sc-if>
+                  <sc-if value="{{b.isCode}}" hint-placeholder-val="{{ false }}"><div class="nf-code nf-vb {{b.cls}}"><pre><code><sc-for list="{{b.segs}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for></code></pre></div></sc-if>
+                  <sc-if value="{{b.isTask}}" hint-placeholder-val="{{ false }}"><div class="nf-check nf-vcheck nf-vb {{b.cls}}" data-checked="{{b.doneAttr}}"><input type="checkbox" checked="{{b.done}}" disabled="{{b.locked}}" tabindex="-1" aria-label="{{b.doneLabel}}"><span><sc-for list="{{b.segs}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for><sc-if value="{{b.hasNote}}" hint-placeholder-val="{{ false }}"><span class="nf-vnote">{{b.note}}</span></sc-if></span></div></sc-if>
+                  <sc-if value="{{b.isRow}}" hint-placeholder-val="{{ false }}"><div class="nf-vrow nf-vb {{b.cls}} {{b.rowCls}}"><span><sc-for list="{{b.c1}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for></span><span><sc-for list="{{b.c2}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for></span></div></sc-if>
+                </sc-for>
+              </sc-if>
+              <!-- Alle anderen Seiten: Absätze; leere Seiten zeigen den Platzhalter von BlockNote -->
+              <sc-if value="{{body.plain}}" hint-placeholder-val="{{ false }}">
+                <sc-for list="{{page.paragraphs}}" as="para" hint-placeholder-count="2">
+                  <p>{{para.text}}</p>
+                </sc-for>
+              </sc-if>
+              <!-- Editierbarer Bereich (Prototyp): leere Seiten ganz, andere ab dem Ende. Hier wirken
+                   „/“-Menü, „[“, „@“, die Leiste beim Markieren, „+“ und Ziehpunkt links am Block.
+                   Der Inhalt wird pro Seite gemerkt (nur in dieser Sitzung). -->
+              <sc-if value="{{page.editable}}" hint-placeholder-val="{{ true }}">
+                <div class="nf-ed-wrap" onMouseMove="{{ed.onMove}}" onMouseLeave="{{ed.onLeave}}">
+                  <sc-if value="{{ed.side.show}}" hint-placeholder-val="{{ false }}">
+                    <div class="nf-side-menu" style="top: {{ed.side.top}}px">
+                      <button type="button" class="nf-side-btn" aria-label="Block darunter einfügen" title="Klicken: Block darunter einfügen" onMouseDown="{{ed.keepFocus}}" onClick="{{ed.side.plus}}">
+                        <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+                      </button>
+                      <button type="button" class="nf-side-btn nf-side-handle" draggable="true" aria-label="Block-Menü öffnen oder Block ziehen" title="Ziehen: verschieben · Klicken: Menü" aria-haspopup="menu" aria-expanded="{{ed.blockMenu.expanded}}" onMouseDown="{{ed.keepFocus}}" onClick="{{ed.side.handle}}" onDragStart="{{ed.side.dragStart}}" onDragEnd="{{ed.side.dragEnd}}">
+                        <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="4" r="1.1" fill="currentColor" stroke="none"></circle><circle cx="10" cy="4" r="1.1" fill="currentColor" stroke="none"></circle><circle cx="6" cy="8" r="1.1" fill="currentColor" stroke="none"></circle><circle cx="10" cy="8" r="1.1" fill="currentColor" stroke="none"></circle><circle cx="6" cy="12" r="1.1" fill="currentColor" stroke="none"></circle><circle cx="10" cy="12" r="1.1" fill="currentColor" stroke="none"></circle></svg>
+                      </button>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ed.blockMenu.open}}" hint-placeholder-val="{{ false }}">
+                    <ul class="nf-menu nf-block-menu" role="menu" aria-label="Block" style="top: {{ed.blockMenu.top}}px" onMouseDown="{{ed.keepFocus}}">
+                      <sc-for list="{{ed.blockMenu.items}}" as="bm" hint-placeholder-count="4">
+                        <li role="none"><button type="button" role="menuitem" class="nf-menu-item {{bm.cls}}" aria-disabled="{{bm.disabled}}" onClick="{{bm.run}}">
+                          <span class="nf-menu-label">{{bm.label}}</span><span class="nf-menu-shortcut">{{bm.keys}}</span></button></li>
+                      </sc-for>
+                    </ul>
+                  </sc-if>
+                  <div id="nf-editable" class="nf-editable" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Inhalt der Seite, bearbeitbar" spellcheck="true" onInput="{{ed.onInput}}" onKeyDown="{{ed.onKey}}" onClick="{{ed.onClick}}" onDragOver="{{ed.onDragOver}}" onDrop="{{ed.onDrop}}"></div>
+                  <sc-if value="{{ed.drop.show}}" hint-placeholder-val="{{ false }}">
+                    <div class="nf-drop-line" style="top: {{ed.drop.top}}px"></div>
+                  </sc-if>
+                </div>
+              </sc-if>
+              <sc-if value="{{body.emptyReadonly}}" hint-placeholder-val="{{ false }}">
+                <p class="nf-muted">Diese Seite ist noch leer.</p>
+              </sc-if>
+            </div>
+            <!-- Fuß der Seite (Ausblick): Unterseiten und Rückverweise, die zwei häufigsten Wege durch ein Wiki.
+                 Nur Seiten mit Leserecht und nicht im Papierkorb; was fehlt, fehlt ohne Hinweis. -->
+            <sc-if value="{{foot.show}}" hint-placeholder-val="{{ true }}">
+              <footer class="nf-page-foot">
+                <sc-if value="{{foot.hasKids}}" hint-placeholder-val="{{ true }}">
+                  <section aria-labelledby="foot-kids">
+                    <div class="nf-foot-head">
+                      <h2 id="foot-kids" class="nf-foot-title">Unterseiten<span class="nf-foot-count">{{foot.kidCount}}</span></h2>
+                      <div class="nf-foot-tools">
+                        <div class="nf-seg" role="group" aria-label="Darstellung der Unterseiten">
+                          <button type="button" class="nf-seg-btn" aria-pressed="{{foot.cardsPressed}}" aria-label="Als Karten" title="Als Karten" onClick="{{foot.showCards}}">
+                            <svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"></rect><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"></rect><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"></rect><rect x="9" y="9" width="4.5" height="4.5" rx="1"></rect></svg>
+                          </button>
+                          <button type="button" class="nf-seg-btn" aria-pressed="{{foot.listPressed}}" aria-label="Als Liste" title="Als Liste" onClick="{{foot.showList}}">
+                            <svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8"></path><path d="M2.5 4h.01M2.5 8h.01M2.5 12h.01" stroke-width="2"></path></svg>
+                          </button>
+                        </div>
+                        <sc-if value="{{foot.canCreate}}" hint-placeholder-val="{{ true }}">
+                          <button type="button" class="nf-btn nf-btn-ghost nf-foot-add" onClick="{{foot.create}}">
+                            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+                            <span>Unterseite</span>
+                          </button>
+                        </sc-if>
+                      </div>
+                    </div>
+                    <sc-if value="{{foot.cards}}" hint-placeholder-val="{{ true }}">
+                      <ul class="nf-subcards">
+                        <sc-for list="{{foot.kids}}" as="k" hint-placeholder-count="2">
+                          <li><a href="#" class="nf-subcard" onClick="{{k.go}}">
+                            <span class="nf-subcard-title"><sc-if value="{{k.hasIcon}}" hint-placeholder-val="{{ false }}"><span class="nf-card-emoji" aria-hidden="true">{{k.icon}}</span></sc-if><sc-if value="{{k.noIcon}}" hint-placeholder-val="{{ true }}"><svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg></sc-if><span class="nf-subcard-name {{k.titleCls}}">{{k.title}}</span><sc-if value="{{k.restricted}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon nf-foot-lock" width="13" height="13" viewBox="0 0 16 16" role="img" aria-label="Eigene Rechte"><title>Eigene Rechte</title><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></sc-if></span>
+                            <sc-if value="{{k.hasExcerpt}}" hint-placeholder-val="{{ true }}"><span class="nf-subcard-text">{{k.excerpt}}</span></sc-if>
+                            <span class="nf-subcard-meta">
+                              <span class="nf-byline-avatar" style="background: {{k.color}}" aria-hidden="true">{{k.initials}}</span>
+                              <span>{{k.meta}}</span>
+                              <sc-if value="{{k.hasKids}}" hint-placeholder-val="{{ false }}"><span class="nf-subcard-kids">{{k.kidsLabel}}</span></sc-if>
+                            </span>
+                          </a></li>
+                        </sc-for>
+                      </ul>
+                    </sc-if>
+                    <sc-if value="{{foot.list}}" hint-placeholder-val="{{ false }}">
+                      <ul class="nf-sublist">
+                        <sc-for list="{{foot.kids}}" as="k" hint-placeholder-count="2">
+                          <li><a href="#" class="nf-subrow" onClick="{{k.go}}"><sc-if value="{{k.hasIcon}}" hint-placeholder-val="{{ false }}"><span class="nf-card-emoji" aria-hidden="true">{{k.icon}}</span></sc-if><sc-if value="{{k.noIcon}}" hint-placeholder-val="{{ true }}"><svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg></sc-if><span class="nf-subrow-title {{k.titleCls}}">{{k.title}}</span><sc-if value="{{k.restricted}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon nf-foot-lock" width="13" height="13" viewBox="0 0 16 16" role="img" aria-label="Eigene Rechte"><title>Eigene Rechte</title><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></sc-if><span class="nf-subrow-text">{{k.excerpt}}</span><span class="nf-subrow-meta">{{k.meta}}</span></a></li>
+                        </sc-for>
+                      </ul>
+                    </sc-if>
+                  </section>
+                </sc-if>
+                <sc-if value="{{foot.onlyCreate}}" hint-placeholder-val="{{ false }}">
+                  <button type="button" class="nf-foot-new" onClick="{{foot.create}}">
+                    <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+                    <span>Unterseite anlegen</span>
+                  </button>
+                </sc-if>
+                <sc-if value="{{foot.hasLinks}}" hint-placeholder-val="{{ true }}">
+                  <section aria-labelledby="foot-links">
+                    <div class="nf-foot-head">
+                      <h2 id="foot-links" class="nf-foot-title">Verlinkt von<span class="nf-foot-count">{{foot.linkCount}}</span></h2>
+                    </div>
+                    <ul class="nf-backlinks">
+                      <sc-for list="{{foot.links}}" as="l" hint-placeholder-count="1">
+                        <li><a href="#" class="nf-backlink" onClick="{{l.go}}"><svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.75 9.25a3 3 0 004.24 0l2-2a3 3 0 00-4.24-4.24l-.75.75"></path><path d="M9.25 6.75a3 3 0 00-4.24 0l-2 2a3 3 0 004.24 4.24l.75-.75"></path></svg>
+                          <span class="nf-backlink-body">
+                            <span class="nf-backlink-top"><span class="nf-backlink-title">{{l.title}}</span><sc-if value="{{l.restricted}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon nf-foot-lock" width="13" height="13" viewBox="0 0 16 16" role="img" aria-label="Eigene Rechte"><title>Eigene Rechte</title><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></sc-if><span class="nf-backlink-path">{{l.path}}</span></span>
+                            <sc-if value="{{l.hasSnippet}}" hint-placeholder-val="{{ true }}"><span class="nf-backlink-snippet">„{{l.pre}}<mark class="nf-backlink-hit">{{l.hit}}</mark>{{l.post}}“</span></sc-if>
+                          </span>
+                        </a></li>
+                      </sc-for>
+                    </ul>
+                  </section>
+                </sc-if>
+              </footer>
+            </sc-if>
+            <!-- Sprechblasen am rechten Rand neben jeder Textstelle mit offenem Kommentar (Position aus dem DOM) -->
+            <sc-for list="{{cm.pins}}" as="pn" hint-placeholder-count="1">
+              <button type="button" class="nf-comment-pin" data-active="{{pn.active}}" style="top: {{pn.top}}px" aria-label="{{pn.label}}" title="{{pn.label}}" onClick="{{pn.open}}">
+                <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"></path></svg>
+                <span>{{pn.count}}</span>
+              </button>
+            </sc-for>
+          </article>
+
+<!-- @include comments.html -->
+        </div>
+      </sc-if>
+

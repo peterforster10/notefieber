@@ -1,0 +1,82 @@
+      <!-- ---------- Versionen (Ausblick, E08): Inhalt der gewählten Version, Änderungen gegenüber einer älteren hervorgehoben ---------- -->
+      <sc-if value="{{vmode}}" hint-placeholder-val="{{ false }}">
+        <div class="nf-main-inner nf-with-versions">
+          <article class="nf-vdoc" aria-labelledby="v-heading">
+            <header class="nf-vhead">
+              <div class="nf-vhead-row">
+                <div>
+                  <h2 id="v-heading" class="nf-vhead-title"><span>{{vv.sel.label}}</span><sc-if value="{{vv.sel.isCurrent}}" hint-placeholder-val="{{ false }}"><span class="nf-vtag">Aktuell</span></sc-if></h2>
+                  <p class="nf-vhead-meta">{{vv.sel.dateLong}} · {{vv.sel.people}}</p>
+                  <sc-if value="{{vv.sel.hasNote}}" hint-placeholder-val="{{ false }}"><p class="nf-vhead-note">{{vv.sel.note}}</p></sc-if>
+                </div>
+                <div class="nf-vhead-actions">
+                  <sc-if value="{{vv.canRestore}}" hint-placeholder-val="{{ true }}">
+                    <button type="button" class="nf-btn nf-btn-primary" aria-haspopup="dialog" onClick="{{vv.restore}}">
+                      <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3.5v3.5h3.5"></path><path d="M3.4 7A5 5 0 118 13"></path></svg>
+                      <span>Wiederherstellen</span>
+                    </button>
+                  </sc-if>
+                  <sc-if value="{{vv.restoreHint}}" hint-placeholder-val="{{ false }}"><span class="nf-vhint">{{vv.restoreHintText}}</span></sc-if>
+                </div>
+              </div>
+              <div class="nf-vcompare">
+                <label class="nf-vtoggle"><input type="checkbox" checked="{{vv.changes}}" disabled="{{vv.noCompare}}" onChange="{{vv.toggleChanges}}"><span>Änderungen hervorheben</span></label>
+                <sc-if value="{{vv.hasCompare}}" hint-placeholder-val="{{ true }}">
+                  <label class="nf-vcmp-label"><span>gegenüber</span>
+                    <select value="{{vv.cmp}}" disabled="{{vv.cmpDisabled}}" onChange="{{vv.onCmp}}">
+                      <sc-for list="{{vv.cmpOptions}}" as="o" hint-placeholder-count="2"><option value="{{o.value}}">{{o.label}}</option></sc-for>
+                    </select>
+                  </label>
+                </sc-if>
+                <sc-if value="{{vv.showStats}}" hint-placeholder-val="{{ true }}"><span class="nf-vstats" title="{{vv.statsLabel}}"><sc-if value="{{vv.hasPlus}}" hint-placeholder-val="{{ true }}"><span class="nf-vstat-ins">+{{vv.plus}}</span></sc-if><sc-if value="{{vv.hasMinus}}" hint-placeholder-val="{{ true }}"><span class="nf-vstat-del">−{{vv.minus}}</span></sc-if><span> Wörter</span></span></sc-if>
+                <sc-if value="{{vv.noCompare}}" hint-placeholder-val="{{ false }}"><span class="nf-vhint">Erste Version, es gibt nichts zum Vergleichen.</span></sc-if>
+                <sc-if value="{{vv.noChange}}" hint-placeholder-val="{{ false }}"><span class="nf-vhint">Keine Änderung am Inhalt.</span></sc-if>
+              </div>
+            </header>
+            <h1 class="nf-title nf-vb"><sc-for list="{{vv.titleSegs}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for></h1>
+            <div class="nf-editor nf-vbody" aria-label="Inhalt der Version">
+              <sc-for list="{{vv.blocks}}" as="b" hint-placeholder-count="3">
+                <sc-if value="{{b.isH2}}" hint-placeholder-val="{{ true }}"><h2 class="nf-vb {{b.cls}}"><sc-for list="{{b.segs}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for></h2></sc-if>
+                <sc-if value="{{b.isP}}" hint-placeholder-val="{{ false }}"><p class="nf-vb {{b.cls}}"><sc-for list="{{b.segs}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for></p></sc-if>
+                <sc-if value="{{b.isCallout}}" hint-placeholder-val="{{ false }}"><div class="nf-callout nf-vb {{b.cls}}" data-variant="{{b.variant}}"><span class="nf-callout-icon"><span role="img" aria-label="{{b.variantLabel}}" title="{{b.variantLabel}}">{{b.icon}}</span></span><div class="nf-callout-content"><p><sc-for list="{{b.segs}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for><sc-if value="{{b.hasNote}}" hint-placeholder-val="{{ false }}"><span class="nf-vnote">{{b.note}}</span></sc-if></p></div></div></sc-if>
+                <sc-if value="{{b.isCode}}" hint-placeholder-val="{{ false }}"><div class="nf-code nf-vb {{b.cls}}"><pre><code><sc-for list="{{b.segs}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for></code></pre></div></sc-if>
+                <sc-if value="{{b.isTask}}" hint-placeholder-val="{{ false }}"><div class="nf-check nf-vcheck nf-vb {{b.cls}}" data-checked="{{b.doneAttr}}"><input type="checkbox" checked="{{b.done}}" disabled="{{b.locked}}" tabindex="-1" aria-label="{{b.doneLabel}}"><span><sc-for list="{{b.segs}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for><sc-if value="{{b.hasNote}}" hint-placeholder-val="{{ false }}"><span class="nf-vnote">{{b.note}}</span></sc-if></span></div></sc-if>
+                <sc-if value="{{b.isRow}}" hint-placeholder-val="{{ false }}"><div class="nf-vrow nf-vb {{b.cls}} {{b.rowCls}}"><span><sc-for list="{{b.c1}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for></span><span><sc-for list="{{b.c2}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for></span></div></sc-if>
+              </sc-for>
+              <sc-if value="{{vv.empty}}" hint-placeholder-val="{{ false }}"><p class="nf-muted">Diese Version ist leer.</p></sc-if>
+            </div>
+          </article>
+
+          <aside class="nf-versions" aria-labelledby="vl-title">
+            <div class="nf-versions-head">
+              <h2 id="vl-title" class="nf-comments-title">Versionen<span class="nf-vcount">{{vv.count}}</span></h2>
+              <sc-if value="{{vv.canSave}}" hint-placeholder-val="{{ true }}">
+                <button type="button" class="nf-btn nf-btn-ghost" aria-haspopup="dialog" onClick="{{vv.openSave}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+                  <span>Version sichern</span>
+                </button>
+              </sc-if>
+            </div>
+            <nav aria-label="Versionen dieser Seite">
+              <sc-for list="{{vv.groups}}" as="gr" hint-placeholder-count="2">
+                <h3 class="nf-vgroup">{{gr.label}}</h3>
+                <ul class="nf-vlist">
+                  <sc-for list="{{gr.items}}" as="it" hint-placeholder-count="2">
+                    <li><button type="button" class="nf-vitem" aria-current="{{it.current}}" aria-label="{{it.aria}}" onClick="{{it.select}}">
+                      <span class="nf-vitem-top"><strong>{{it.label}}</strong><sc-if value="{{it.isCurrent}}" hint-placeholder-val="{{ false }}"><span class="nf-vtag">Aktuell</span></sc-if><span class="nf-vitem-time">{{it.time}}</span></span>
+                      <sc-if value="{{it.hasName}}" hint-placeholder-val="{{ false }}"><span class="nf-vitem-name">„{{it.name}}“</span></sc-if>
+                      <sc-if value="{{it.hasKind}}" hint-placeholder-val="{{ false }}"><span class="nf-vitem-kind">{{it.kind}}</span></sc-if>
+                      <span class="nf-vitem-foot">
+                        <span class="nf-vavs" aria-hidden="true"><sc-for list="{{it.avatars}}" as="a" hint-placeholder-count="2"><span style="background: {{a.color}}">{{a.initials}}</span></sc-for></span>
+                        <span class="nf-vitem-names">{{it.names}}</span>
+                        <sc-if value="{{it.hasDelta}}" hint-placeholder-val="{{ true }}"><span class="nf-vitem-delta"><sc-if value="{{it.hasPlus}}" hint-placeholder-val="{{ true }}"><span class="nf-vstat-ins">+{{it.plus}}</span></sc-if><sc-if value="{{it.hasMinus}}" hint-placeholder-val="{{ true }}"><span class="nf-vstat-del">−{{it.minus}}</span></sc-if></span></sc-if>
+                      </span>
+                    </button></li>
+                  </sc-for>
+                </ul>
+              </sc-for>
+            </nav>
+          </aside>
+        </div>
+      </sc-if>
+

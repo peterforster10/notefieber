@@ -1,0 +1,45 @@
+  // ---------- Hilfen ----------
+  chain(id) { const out = []; let x = id; while (x) { out.unshift(x); x = this.state.pages[x].parent; } return out; }
+  /** Nächste Seite mit eigenen Rechten (die Seite selbst eingeschlossen), sonst der Space */
+  source(id, includeSelf = true) {
+    const ch = this.chain(id);
+    if (!includeSelf) ch.pop();
+    const own = ch.reverse().find((x) => this.state.grants[x]);
+    return own || 'space:' + this.state.pages[id].space;
+  }
+  role(id) {
+    const s = this.state; const p = s.pages[id];
+    let best = null;
+    for (const g of s.grants[this.source(id)] || []) {
+      if (g.role !== 'none' && (g.key === 'peter' || g.key === 'ws') && (!best || RANK[g.role] > RANK[best])) best = g.role;
+    }
+    if (best && s.spaces[p.space].archived) best = 'viewer';
+    return best;
+  }
+  canEdit(id) { const r = this.role(id); return r === 'editor' || r === 'admin'; }
+  /** Wirksame Rolle einer Person aus einer Liste von Grants (wie app.page_rank: Person, Gruppen,
+      „Alle im Workspace“ ohne Gäste; nur Mitglieder des Workspaces; archiviert höchstens Lesen) */
+  effRole(list, who, archived) {
+    const m = this.state.members.find((x) => x.key === who);
+    if (!m) return null;
+    let best = null;
+    for (const g of list || []) {
+      if (g.role === 'none') continue;
+      const hit = g.key === who || (g.key === 'ws' && m.role !== 'guest') || (GROUPS[g.key] || []).includes(who);
+      if (hit && (!best || RANK[g.role] > RANK[best])) best = g.role;
+    }
+    if (best && archived) best = 'viewer';
+    return best;
+  }
+  /** Wirksame Rolle einer beliebigen Person auf einer Seite (für „Ansehen als …“) */
+  roleFor(id, who) {
+    const s = this.state;
+    return this.effRole(s.grants[this.source(id)], who, s.spaces[s.pages[id].space].archived);
+  }
+  set(patch) { this.setState(patch); }
+  stop(e) { if (e && e.stopPropagation) e.stopPropagation(); }
+  prevent(e) { if (e && e.preventDefault) e.preventDefault(); }
+  focusLater(sel) { setTimeout(() => { const el = document.querySelector(sel); if (el) el.focus(); }, 30); }
+
+  go(id) { this.setState((st) => ({ current: id, space: st.pages[id].space, view: 'page', menu: null, spaceMenu: false, drawer: false, versions: null, reactPicker: false, lookPop: null })); }
+

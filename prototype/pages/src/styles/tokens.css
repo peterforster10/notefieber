@@ -1,0 +1,60 @@
+/*
+ * Prototyp nach dem Stand des Web-Clients vom 25. November 2026 (apps/web/src/app/globals.css).
+ * Klassennamen und Tokens wie im Frontend (nf-…), damit sich Änderungen 1:1 übertragen lassen.
+ * Schriften liegen unter ../fonts (OFL-1.1), nie von Google.
+ */
+@font-face{font-family:'Inter Variable';font-style:normal;font-display:swap;font-weight:100 900;src:url(../fonts/inter-latin-wght-normal.woff2) format('woff2-variations')}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-display:swap;font-weight:400;src:url(../fonts/ibm-plex-mono-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-display:swap;font-weight:500;src:url(../fonts/ibm-plex-mono-latin-500-normal.woff2) format('woff2')}
+
+:root{
+  --nf-font-sans:'Inter Variable',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --nf-font-mono:'IBM Plex Mono',ui-monospace,'Cascadia Mono',monospace;
+  --nf-bg:#ffffff;--nf-text:#1a2230;--nf-muted:#5b6573;--nf-subtle:#f5f7fa;--nf-surface:#f8f9fb;
+  --nf-border:#e2e5ea;--nf-control-border:#d5dae1;--nf-input-border:#7d8796;--nf-code-bg:#f0f2f5;
+  --nf-placeholder:#6e7783;--nf-editor-icons:#7d8692;
+  --nf-accent:#1f5fd6;--nf-accent-hover:#174bb0;--nf-accent-soft:#eef3fc;--nf-on-accent:#ffffff;--nf-focus:#1f5fd6;
+  --nf-attention:#c2410c;--nf-attention-soft:#fff4ec;--nf-restricted-bg:#fff1e6;--nf-restricted-fg:#9a3412;
+  --nf-done-bg:#e3f1e8;--nf-done-fg:#1e5135;--nf-danger:#b42318;--nf-danger-soft:#fdecea;--nf-neutral-soft:#f1f3f6;
+  --nf-sidebar-bg:#f3f5f8;--nf-sidebar-border:#e2e5ea;--nf-sidebar-text:#1a2230;--nf-sidebar-muted:#5b6573;
+  --nf-sidebar-hover:#e6eaf0;--nf-sidebar-press:rgba(26,34,48,.09);--nf-sidebar-selected:#dce6f8;--nf-sidebar-selected-text:#174bb0;
+  --nf-backdrop:rgba(15,37,55,.45);--nf-shadow-pop:0 8px 24px rgba(15,37,55,.16);--nf-shadow-dialog:0 24px 64px rgba(15,37,55,.28);
+  --nf-sidebar-width:320px;
+  /* Kommentare (Ausblick, wie im ersten Prototyp) */
+  --nf-comment-mark:#ffead5;
+  --nf-danger-hover:#912018;
+  --nf-code-frame:#161616;
+  --nf-check-bg:var(--nf-accent);
+  --nf-fav:#b45309;
+  color-scheme:light;
+}
+/* Dunkles Farbschema (Vorschlag vom 25. November 2026, im Prototyp): gesetzt über data-theme an <html>,
+   „System“ folgt prefers-color-scheme. Alle Textpaare >= 4,5:1, Bedienelemente >= 3:1; vor der Übernahme
+   ins Frontend in contrast.test.mjs eintragen */
+:root[data-theme='dark']{
+  --nf-bg:#14181f;--nf-text:#e6e9ef;--nf-muted:#9aa4b2;--nf-subtle:#1c222b;--nf-surface:#1a2029;
+  --nf-border:#2a313c;--nf-control-border:#3e4754;--nf-input-border:#6b7584;--nf-code-bg:#252c37;
+  --nf-placeholder:#8a94a3;--nf-editor-icons:#7d8796;
+  --nf-accent:#6b9cf5;--nf-accent-hover:#8db3f8;--nf-accent-soft:#1b2840;--nf-on-accent:#0b1220;--nf-focus:#8db3f8;
+  --nf-attention:#f0844a;--nf-attention-soft:#33221a;--nf-restricted-bg:#3a2418;--nf-restricted-fg:#f5a373;
+  --nf-done-bg:#16301f;--nf-done-fg:#7fd19b;--nf-danger:#f07167;--nf-danger-soft:#3a1c1c;--nf-neutral-soft:#222933;
+  --nf-sidebar-bg:#10141a;--nf-sidebar-border:#252c36;--nf-sidebar-text:#e6e9ef;--nf-sidebar-muted:#9aa4b2;
+  --nf-sidebar-hover:#1d232c;--nf-sidebar-press:rgba(255,255,255,.08);--nf-sidebar-selected:#1c2b48;--nf-sidebar-selected-text:#a8c4fa;
+  --nf-backdrop:rgba(0,0,0,.6);--nf-shadow-pop:0 8px 24px rgba(0,0,0,.45);--nf-shadow-dialog:0 24px 64px rgba(0,0,0,.6);
+  --nf-comment-mark:#4a3320;--nf-danger-hover:#f48c84;--nf-code-frame:#2a313c;--nf-check-bg:#2f6fe0;--nf-fav:#f5b93f;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--nf-font-sans);font-size:14px;line-height:1.5;color:var(--nf-text);background:var(--nf-bg);-webkit-font-smoothing:antialiased}
+h1{font-size:28px;line-height:1.2;font-weight:600;letter-spacing:-.01em}
+h2{font-size:18px;font-weight:600}
+code,pre,kbd{font-family:var(--nf-font-mono)}
+:not(pre)>code{font-size:.88em;background:var(--nf-code-bg);padding:1px 5px;border-radius:4px}
+a{color:var(--nf-accent)}a:hover{color:var(--nf-accent-hover)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--nf-focus);outline-offset:2px}
+svg.nf-icon{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.nf-visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+.nf-skip{position:absolute;left:12px;top:-100px;z-index:100;padding:8px 14px;border-radius:8px;background:var(--nf-accent);color:var(--nf-on-accent);font-weight:500;text-decoration:none}
+.nf-skip:focus{top:12px;color:var(--nf-on-accent)}
+

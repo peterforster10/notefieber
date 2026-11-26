@@ -1,0 +1,36 @@
+  <!-- Seiteninfo: Angaben zur Seite und Rückverweise -->
+  <sc-if value="{{infoOpen}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <div class="nf-dialog" role="dialog" aria-modal="true" aria-labelledby="info-title">
+        <div class="nf-dialog-head">
+          <h2 id="info-title" class="nf-dialog-title">Seiteninfo</h2>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body" style="padding-bottom: 20px">
+          <dl class="nf-info">
+            <dt>Titel</dt><dd>{{page.shownTitle}}</dd>
+            <dt>Space</dt><dd>{{space.name}} ({{space.key}})</dd>
+            <dt>Angelegt von</dt><dd>{{page.authorName}}</dd>
+            <dt>Zuletzt bearbeitet</dt><dd>{{page.editorName}} {{page.when}}</dd>
+            <dt>Rechte</dt><dd>{{info.rights}}</dd>
+            <dt>Deine Rolle</dt><dd>{{page.roleLabel}}</dd>
+            <dt>Versionen</dt><dd>{{info.versions}}</dd>
+            <dt>Verlinkt von</dt>
+            <dd>
+              <sc-if value="{{info.hasBacklinks}}" hint-placeholder-val="{{ true }}">
+                <ul class="nf-info-links">
+                  <sc-for list="{{info.backlinks}}" as="bl" hint-placeholder-count="1">
+                    <li><a href="#" class="nf-page-link" onClick="{{bl.go}}">{{bl.title}}</a></li>
+                  </sc-for>
+                </ul>
+              </sc-if>
+              <sc-if value="{{info.noBacklinks}}" hint-placeholder-val="{{ false }}"><span class="nf-muted">Keine andere Seite verlinkt hierher.</span></sc-if>
+            </dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+

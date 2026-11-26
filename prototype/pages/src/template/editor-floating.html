@@ -1,0 +1,76 @@
+  <!-- ============================== Editor: schwebende Elemente ============================== -->
+  <!-- „/“-Menü: Blöcke nach Gruppen, filtert beim Weitertippen; ↑↓ Enter Esc -->
+  <sc-if value="{{ed.slash.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-slash" role="listbox" aria-label="Blöcke" style="left: {{ed.slash.x}}px; top: {{ed.slash.y}}px" onMouseDown="{{ed.keepFocus}}">
+      <sc-for list="{{ed.slash.groups}}" as="g" hint-placeholder-count="2">
+        <div role="group" aria-label="{{g.label}}">
+          <div class="nf-slash-group">{{g.label}}</div>
+          <sc-for list="{{g.items}}" as="it" hint-placeholder-count="3">
+            <div id="{{it.domId}}" role="option" aria-selected="{{it.selected}}" class="nf-slash-item" onClick="{{it.run}}" onMouseMove="{{it.hover}}">
+              <span class="nf-slash-icon" aria-hidden="true">{{it.glyph}}</span>
+              <span class="nf-slash-text"><span class="nf-slash-title">{{it.title}}</span><span class="nf-slash-hint">{{it.hint}}</span></span>
+              <sc-if value="{{it.hasMd}}" hint-placeholder-val="{{ false }}"><kbd class="nf-slash-md">{{it.md}}</kbd></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+      <sc-if value="{{ed.slash.empty}}" hint-placeholder-val="{{ false }}">
+        <div class="nf-slash-empty">Kein Block passt zu „{{ed.slash.q}}“</div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <!-- Auswahl hinter „[“ (Seite) und „@“ (Person): nur lesbare Seiten bzw. Mitglieder des Workspaces -->
+  <sc-if value="{{ed.picker.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-slash nf-picker" role="listbox" aria-label="{{ed.picker.label}}" style="left: {{ed.picker.x}}px; top: {{ed.picker.y}}px" onMouseDown="{{ed.keepFocus}}">
+      <div class="nf-slash-group">{{ed.picker.label}}</div>
+      <sc-for list="{{ed.picker.items}}" as="it" hint-placeholder-count="4">
+        <div id="{{it.domId}}" role="option" aria-selected="{{it.selected}}" class="nf-slash-item" onClick="{{it.run}}" onMouseMove="{{it.hover}}">
+          <span class="nf-slash-icon" style="{{it.iconStyle}}" aria-hidden="true">{{it.glyph}}</span>
+          <span class="nf-slash-text"><span class="nf-slash-title">{{it.title}}</span><span class="nf-slash-hint">{{it.hint}}</span></span>
+        </div>
+      </sc-for>
+      <sc-if value="{{ed.picker.empty}}" hint-placeholder-val="{{ false }}">
+        <div class="nf-slash-empty">{{ed.picker.emptyText}}</div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <!-- Leiste beim Markieren: im bearbeitbaren Bereich Blocktyp, Formate, Link; überall „Kommentieren“ -->
+  <sc-if value="{{ed.bar.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-format-bar" role="toolbar" aria-label="Formatierung" style="left: {{ed.bar.x}}px; top: {{ed.bar.y}}px" onMouseDown="{{ed.keepFocus}}">
+      <sc-if value="{{ed.bar.full}}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ed.bar.linkMode}}" hint-placeholder-val="{{ false }}">
+          <form class="nf-fb-link" onSubmit="{{ed.bar.applyLink}}">
+            <input id="nf-fb-url" type="url" placeholder="https://…" aria-label="Adresse des Links" value="{{ed.bar.url}}" onChange="{{ed.bar.onUrl}}" onKeyDown="{{ed.bar.urlKey}}">
+            <button type="submit" class="nf-fb-btn nf-fb-text">Übernehmen</button>
+          </form>
+        </sc-if>
+        <sc-if value="{{ed.bar.normal}}" hint-placeholder-val="{{ true }}">
+          <select class="nf-fb-select" aria-label="Blocktyp" value="{{ed.bar.block}}" onChange="{{ed.bar.setBlock}}">
+            <option value="p">Absatz</option>
+            <option value="h1">Überschrift 1</option>
+            <option value="h2">Überschrift 2</option>
+            <option value="h3">Überschrift 3</option>
+            <option value="blockquote">Zitat</option>
+          </select>
+          <span class="nf-fb-sep" aria-hidden="true"></span>
+          <sc-for list="{{ed.bar.marks}}" as="mk" hint-placeholder-count="5">
+            <button type="button" class="nf-fb-btn" aria-pressed="{{mk.pressed}}" aria-label="{{mk.label}}" title="{{mk.title}}" onClick="{{mk.run}}"><span class="{{mk.cls}}">{{mk.glyph}}</span></button>
+          </sc-for>
+          <span class="nf-fb-sep" aria-hidden="true"></span>
+          <button type="button" class="nf-fb-btn" aria-label="Link einfügen" title="Link (Strg K im Text)" onClick="{{ed.bar.startLink}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.75 9.25a3 3 0 004.24 0l2-2a3 3 0 00-4.24-4.24l-.75.75"></path><path d="M9.25 6.75a3 3 0 00-4.24 0l-2 2a3 3 0 004.24 4.24l.75-.75"></path></svg>
+          </button>
+          <span class="nf-fb-sep" aria-hidden="true"></span>
+        </sc-if>
+      </sc-if>
+      <sc-if value="{{ed.bar.normal}}" hint-placeholder-val="{{ true }}">
+        <button type="button" class="nf-fb-btn nf-fb-text" onClick="{{ed.bar.comment}}">
+          <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"></path></svg>
+          Kommentieren
+        </button>
+      </sc-if>
+    </div>
+  </sc-if>
+

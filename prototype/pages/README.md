@@ -13,9 +13,42 @@ values (colors, font sizes, spacing, radii, shadows, layout).
 - `Main.dc.html` — the artboard (a Design Component: an `<x-dc>` template + a small logic class).
   Styles live in the `<helmet><style>` block (tokens on `:root`, same class names as the frontend),
   test data in the script (Alpenwerk from `database/scripts/seed/seed.sql`, signed in as Peter Forster).
+  **Gebaut aus `src/`, nicht von Hand ändern** (siehe „Aufbau der Dateien“).
+- `src/` — die Quellen von `Main.dc.html`, aufgeteilt nach Bereichen.
 - `support.js`, `vendor/react*.js` — the runtime that renders the component; not part of the design.
 - `../fonts/` — Inter (variabel) und IBM Plex Mono als woff2 aus `@fontsource` (OFL-1.1, Lizenzen daneben).
 - `../brand/` — Logo-Entwürfe (`Logo.html` zum Vergleichen); das graue „NF“ ist in Seitenleiste, Import und als Browser-Icon eingesetzt.
+
+## Aufbau der Dateien
+
+`Main.dc.html` bleibt eine einzelne Datei im x-dc-Format, damit das Design-Werkzeug sie öffnen kann.
+Gepflegt wird sie in `src/` (seit 26. November 2026); `pnpm prototype:build` (`node prototype/build.mjs`)
+setzt die Teile zusammen, `pnpm prototype:check` meldet, ob `Main.dc.html` aktuell ist. Das prüft auch
+`pnpm check` und damit die CI (Job `apps`): Wer `src/` ändert, committet die neu gebaute `Main.dc.html` mit. Eine Zeile, die
+nur aus einer Einbindung besteht (`<!-- @include … -->`, `/* @include … */`, `// @include …`), wird
+durch die Datei ersetzt; Pfade relativ zur einbindenden Datei.
+
+- `src/Main.html` — Gerüst: Kopf, `<x-dc>`, die Reihenfolge aller Teile.
+- `src/styles/` — CSS nach Bereichen: `tokens.css` (Farben hell und dunkel), `shell.css`,
+  `sidebar.css`, `account-menus.css`, `pagebar.css`, `page.css`, `editor.css`, `comments.css`,
+  `dialog.css`, `palette.css`, `overview.css`, `rights-trash.css`, je eine Datei für die neuen
+  Bereiche (`versions.css`, `states.css`, `notifications.css`, `reactions.css`, `look.css`,
+  `overview-favorites.css`, `page-foot.css`), am Ende `forms.css` und `responsive.css`. Die
+  Reihenfolge zählt (Kaskade).
+- `src/template/` — Vorlage: `sidebar.html`, `topbar.html` (Suche, Glocke, Menüs), `pagebar.html`,
+  `main/` (`page.html` mit `comments.html`, `versions.html`, `loading.html`, `overview.html`),
+  `dialogs/` (je Dialog eine Datei), `editor-floating.html` („/“-Menü, Auswahl, Formatleiste),
+  `palette.html`, `toast.html`.
+- `src/logic/` — Daten (`data.js`, `data-content.js`, `versions-model.js` mit dem Vergleich) und
+  die Komponente in `component/`: `constructor.js` (Zustand), `helpers.js` (Rechte wie
+  `app.page_rank`), je Bereich eine Datei (`pages.js`, `comments.js`, `editor.js`, `palette.js`,
+  `versions.js`, `versions-view.js`, `notifications.js`, `reactions.js`, `look.js`,
+  `page-foot.js`, `dialogs.js`, `loading.js`, `favorites.js`, `overview.js`) und zuletzt
+  `render.js` (`renderVals`, alle Werte für die Vorlage).
+
+Ändert jemand `Main.dc.html` im Design-Werkzeug, gehen diese Änderungen beim nächsten Bauen
+verloren; dann zuerst in `src/` übertragen. Die Teildateien sind kein eigenständiges JavaScript
+(Methoden stehen ohne Klasse), sie ergeben erst zusammengesetzt eine gültige Datei.
 
 ## Was wie im Frontend ist
 
@@ -305,5 +338,5 @@ BlockNote; dieser Entwurf legt fest, wie dessen Menüs aussehen und sich verhalt
 
 ## Ansehen
 
-Den Ordner `prototype/` ausliefern, z. B. `py -m http.server 8090 --directory prototype`, und
+Nach Änderungen in `src/` zuerst `node prototype/build.mjs` (findet seine Dateien selbst, egal von wo aufgerufen). Den Ordner `prototype/` ausliefern, z. B. `py -m http.server 8090 --directory prototype`, und
 `http://localhost:8090/pages/Main.dc.html` öffnen; über file:// blockieren manche Browser die Skripte.

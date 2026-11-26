@@ -1,0 +1,16 @@
+/* Dialog (im Frontend natives <dialog>, hier als Overlay) */
+.nf-overlay{position:fixed;inset:0;z-index:70;display:flex;align-items:flex-start;justify-content:center;padding:96px 16px 16px;background:var(--nf-backdrop);overflow:auto}
+.nf-dialog{width:min(560px,100%);border-radius:12px;background:var(--nf-bg);color:var(--nf-text);box-shadow:var(--nf-shadow-dialog)}
+.nf-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px 24px 16px}
+.nf-dialog-title{margin:0;font-size:18px;font-weight:600}
+.nf-dialog-description{margin:4px 0 0;font-size:13px;color:var(--nf-muted)}
+.nf-dialog-close{border-color:transparent;color:var(--nf-muted)}
+.nf-dialog-close:hover{background:var(--nf-subtle);color:var(--nf-text)}
+.nf-dialog-band{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 24px;border-top:1px solid var(--nf-border);border-bottom:1px solid var(--nf-border);background:var(--nf-surface)}
+.nf-dialog-band strong{display:block;font-weight:600}
+.nf-dialog-band span:not(.sc-interp){font-size:13px;color:var(--nf-muted)}
+.nf-dialog-body{padding:16px 24px 4px}
+.nf-dialog-body p{margin:0 0 12px}
+.nf-dialog-soon{display:flex;gap:12px;padding:12px 14px;border-radius:8px;background:var(--nf-accent-soft);font-size:14px}
+.nf-dialog-soon p{margin:0!important}
+.nf-dialog-soon .nf-icon{color:var(--nf-accent);margin-top:2px}

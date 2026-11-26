@@ -1,0 +1,70 @@
+          <!-- Kommentare (Ausblick): rechte Spalte, standardmäßig zu; unter 1280 px eine Schublade von rechts -->
+          <sc-if value="{{commentsOpen}}" hint-placeholder-val="{{ false }}">
+            <div class="nf-comments-backdrop" aria-hidden="true" onClick="{{toggleComments}}"></div>
+            <aside class="nf-comments" aria-labelledby="cm-title" onKeyDown="{{cm.onKey}}">
+              <div class="nf-comments-head">
+                <h2 id="cm-title" class="nf-comments-title">Kommentare</h2>
+                <button type="button" class="nf-cm-close" aria-label="Kommentare schließen" title="Schließen" onClick="{{toggleComments}}">
+                  <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+                </button>
+              </div>
+              <div class="nf-cm-tabs" role="tablist" aria-label="Kommentare filtern">
+                <button type="button" role="tab" class="nf-cmd-scope" aria-selected="{{cm.tabOpen}}" onClick="{{cm.showOpen}}">Offen<span class="nf-cmd-scope-count">{{cm.openCount}}</span></button>
+                <button type="button" role="tab" class="nf-cmd-scope" aria-selected="{{cm.tabResolved}}" onClick="{{cm.showResolved}}">Erledigt<span class="nf-cmd-scope-count">{{cm.resolvedCount}}</span></button>
+              </div>
+
+              <sc-for list="{{cm.threads}}" as="th" hint-placeholder-count="2">
+                <article class="nf-thread" data-active="{{th.active}}" data-resolved="{{th.resolvedAttr}}" aria-label="{{th.label}}" onClick="{{th.activate}}">
+                  <sc-if value="{{th.hasQuote}}" hint-placeholder-val="{{ true }}">
+                    <button type="button" class="nf-thread-quote" title="Zur Textstelle" onClick="{{th.jump}}">„{{th.quote}}“</button>
+                  </sc-if>
+                  <sc-if value="{{th.pageLevel}}" hint-placeholder-val="{{ false }}">
+                    <span class="nf-thread-kind">Kommentar zur Seite</span>
+                  </sc-if>
+                  <sc-for list="{{th.comments}}" as="c" hint-placeholder-count="2">
+                    <div class="nf-comment">
+                      <span class="nf-byline-avatar" style="background: {{c.color}}" aria-hidden="true">{{c.initials}}</span>
+                      <div class="nf-comment-body">
+                        <div class="nf-comment-meta"><strong>{{c.name}}</strong> <span>{{c.when}}</span></div>
+                        <p>{{c.text}}</p>
+                      </div>
+                    </div>
+                  </sc-for>
+                  <sc-if value="{{th.replyOpen}}" hint-placeholder-val="{{ false }}">
+                    <form class="nf-reply" onSubmit="{{th.send}}">
+                      <label class="nf-visually-hidden" for="{{th.replyId}}">{{th.replyLabel}}</label>
+                      <textarea id="{{th.replyId}}" class="nf-input nf-reply-input" rows="2" placeholder="{{th.replyPlaceholder}}" value="{{th.draft}}" onChange="{{th.onDraft}}" onKeyDown="{{th.replyKey}}"></textarea>
+                      <div class="nf-reply-actions">
+                        <span class="nf-reply-hint">Strg Enter</span>
+                        <button type="button" class="nf-btn nf-btn-sm" onClick="{{th.cancel}}">Abbrechen</button>
+                        <button type="submit" class="nf-btn nf-btn-primary nf-btn-sm" disabled="{{th.sendDisabled}}">{{th.sendLabel}}</button>
+                      </div>
+                    </form>
+                  </sc-if>
+                  <sc-if value="{{th.footer}}" hint-placeholder-val="{{ true }}">
+                    <div class="nf-thread-foot">
+                      <sc-if value="{{th.canReply}}" hint-placeholder-val="{{ true }}">
+                        <button type="button" class="nf-thread-reply" onClick="{{th.startReply}}">Antworten …</button>
+                      </sc-if>
+                      <sc-if value="{{th.canResolve}}" hint-placeholder-val="{{ true }}">
+                        <button type="button" class="nf-btn nf-btn-sm nf-btn-done" onClick="{{th.toggleResolved}}">
+                          <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg>
+                          {{th.resolveLabel}}
+                        </button>
+                      </sc-if>
+                    </div>
+                  </sc-if>
+                </article>
+              </sc-for>
+              <sc-if value="{{cm.empty}}" hint-placeholder-val="{{ false }}">
+                <div class="nf-cm-empty"><span class="nf-empty-icon"><svg class="nf-icon" width="20" height="20" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"></path></svg></span><p class="nf-empty-title">{{cm.emptyTitle}}</p><p>{{cm.emptyText}}</p></div>
+              </sc-if>
+              <!-- Kommentar ohne Textstelle: Feld unten, sieht aus wie „Antworten …“ -->
+              <sc-if value="{{cm.showPageComposer}}" hint-placeholder-val="{{ true }}">
+                <button type="button" class="nf-thread-reply nf-cm-page" onClick="{{cm.newPageComment}}">
+                  <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"></path></svg>
+                  Kommentar zur ganzen Seite …
+                </button>
+              </sc-if>
+            </aside>
+          </sc-if>

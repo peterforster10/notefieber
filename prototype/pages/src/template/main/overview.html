@@ -1,0 +1,136 @@
+      <!-- ---------- Übersicht (Startseite nach dem Login) ---------- -->
+      <sc-if value="{{isOverview}}" hint-placeholder-val="{{ false }}">
+        <div class="nf-overview">
+          <header class="nf-ov-head">
+            <div>
+              <h1 class="nf-ov-greeting">{{greeting}}</h1>
+              <p class="nf-muted">{{ws.name}} · {{spaceCount}} Spaces, in denen du etwas sehen darfst</p>
+            </div>
+            <button type="button" class="nf-btn nf-btn-primary" onClick="{{openNewSpace}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+              Neuer Space
+            </button>
+          </header>
+
+          <div class="nf-ov-grid">
+            <div class="nf-ov-main">
+              <!-- Zuletzt angesehen (Ausblick: merkt sich die API pro Person) -->
+              <section aria-labelledby="ov-recent">
+                <h2 id="ov-recent" class="nf-section-title">Zuletzt angesehen</h2>
+                <ul class="nf-recent">
+                  <sc-for list="{{recent}}" as="r" hint-placeholder-count="4">
+                    <li><a href="#" class="nf-recent-card" onClick="{{r.go}}">
+                      <span class="nf-recent-space"><span class="nf-space-badge nf-space-badge-xs" style="background: {{r.color}}" aria-hidden="true">{{r.badge}}</span><span>{{r.spaceName}}</span></span>
+                      <span class="nf-recent-title">
+                        <span>{{r.title}}</span>
+                        <sc-if value="{{r.restricted}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon" width="13" height="13" viewBox="0 0 16 16" role="img" aria-label="eingeschränkt"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></sc-if>
+                      </span>
+                      <span class="nf-recent-excerpt">{{r.excerpt}}</span>
+                      <span class="nf-recent-meta">{{r.meta}}</span>
+                    </a></li>
+                  </sc-for>
+                </ul>
+              </section>
+
+              <!-- Seiten-Favoriten nach Space (Ausblick): dieselben wie oben in der Seitenleiste jedes Spaces -->
+              <section aria-labelledby="ov-favs">
+                <h2 id="ov-favs" class="nf-section-title">Favoriten</h2>
+                <sc-if value="{{hasFavGroups}}" hint-placeholder-val="{{ true }}">
+                  <ul class="nf-favgroups">
+                    <sc-for list="{{favGroups}}" as="fg" hint-placeholder-count="2">
+                      <li class="nf-favgroup">
+                        <a href="#" class="nf-favgroup-head" aria-label="{{fg.goLabel}}" onClick="{{fg.go}}">
+                          <span class="nf-space-badge nf-space-badge-xs" style="background: {{fg.color}}" aria-hidden="true">{{fg.badge}}</span>
+                          <span>{{fg.name}}</span>
+                          <span class="nf-favgroup-count">{{fg.count}}</span>
+                        </a>
+                        <ul class="nf-favgroup-list">
+                          <sc-for list="{{fg.items}}" as="fp" hint-placeholder-count="2">
+                            <li class="nf-favpage-row">
+                              <a href="#" class="nf-favpage" onClick="{{fp.go}}">
+                                <sc-if value="{{fp.hasIcon}}" hint-placeholder-val="{{ false }}"><span class="nf-tree-emoji" aria-hidden="true">{{fp.icon}}</span></sc-if><sc-if value="{{fp.noIcon}}" hint-placeholder-val="{{ true }}"><svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg></sc-if>
+                                <span class="nf-favpage-title {{fp.titleCls}}">{{fp.title}}</span>
+                                <sc-if value="{{fp.restricted}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon nf-favpage-lock" width="13" height="13" viewBox="0 0 16 16" role="img" aria-label="Eigene Rechte"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></sc-if>
+                                <sc-if value="{{fp.hasPath}}" hint-placeholder-val="{{ true }}"><span class="nf-favpage-path">{{fp.path}}</span></sc-if>
+                              </a>
+                              <button type="button" class="nf-icon-button nf-star-btn" aria-pressed="true" aria-label="{{fp.unfavLabel}}" title="Aus Favoriten entfernen" onClick="{{fp.unfav}}"><svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg></button>
+                            </li>
+                          </sc-for>
+                        </ul>
+                        <sc-if value="{{fg.hasMore}}" hint-placeholder-val="{{ false }}"><a href="#" class="nf-favgroup-more" onClick="{{fg.go}}">{{fg.moreLabel}}</a></sc-if>
+                      </li>
+                    </sc-for>
+                  </ul>
+                </sc-if>
+                <sc-if value="{{noFavGroups}}" hint-placeholder-val="{{ false }}">
+                  <p class="nf-fav-hint"><svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg><span>Markiere Seiten mit dem Stern über der Seite. Sie stehen dann hier, nach Space sortiert, und oben in der Seitenleiste ihres Spaces.</span></p>
+                </sc-if>
+              </section>
+
+              <!-- Spaces als Kacheln -->
+              <section aria-labelledby="ov-spaces">
+                <div class="nf-ov-section-head">
+                  <h2 id="ov-spaces" class="nf-section-title">Spaces</h2>
+                  <label class="nf-ov-toggle">
+                    <input type="checkbox" checked="{{showArchived}}" onChange="{{toggleArchived}}">
+                    <span>Archivierte zeigen</span>
+                  </label>
+                </div>
+                <ul class="nf-space-grid">
+                  <sc-for list="{{spaceCardsShown}}" as="sc" hint-placeholder-count="3">
+                    <li class="nf-space-tile-wrap"><a href="#" class="nf-space-tile {{sc.tileCls}}" onClick="{{sc.go}}">
+                      <span class="nf-space-tile-top">
+                        <span class="nf-space-badge nf-space-badge-lg" style="background: {{sc.color}}" aria-hidden="true">{{sc.badge}}</span>
+                        <span class="nf-space-tile-names">
+                          <span class="nf-space-tile-name">{{sc.name}}</span>
+                          <span class="nf-space-tile-key">{{sc.key}}</span>
+                        </span>
+                        <span class="nf-chip {{sc.chipCls}}">{{sc.chip}}</span>
+                      </span>
+                      <span class="nf-space-tile-desc">{{sc.description}}</span>
+                      <span class="nf-space-tile-meta">{{sc.meta}}</span>
+                    </a>
+                    <button type="button" class="nf-tile-star" aria-pressed="{{sc.favPressed}}" aria-label="{{sc.favLabel}}" title="{{sc.favLabel}}" onClick="{{sc.toggleFav}}">
+                      <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg>
+                    </button></li>
+                  </sc-for>
+                  <li><button type="button" class="nf-space-tile nf-space-tile-new" onClick="{{openNewSpace}}">
+                    <svg class="nf-icon" width="20" height="20" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+                    <span>Neuer Space</span>
+                    <span class="nf-space-tile-meta">Mit Startseite, Rechte gleich festlegen</span>
+                  </button></li>
+                </ul>
+              </section>
+            </div>
+
+            <aside class="nf-ov-side" aria-label="Neuigkeiten">
+              <!-- Letzte Änderungen in sichtbaren Spaces (Ausblick: aus den Ereignissen der Outbox) -->
+              <section class="nf-ov-panel" aria-labelledby="ov-activity">
+                <h2 id="ov-activity" class="nf-section-title" style="margin-top: 0">Letzte Änderungen</h2>
+                <ul class="nf-activity">
+                  <sc-for list="{{activity}}" as="a" hint-placeholder-count="4">
+                    <li>
+                      <span class="nf-byline-avatar" style="background: {{a.color}}" aria-hidden="true">{{a.initials}}</span>
+                      <span class="nf-activity-text">
+                        <a href="#" onClick="{{a.go}}">{{a.title}}</a>
+                        <span class="nf-activity-meta">{{a.who}} · {{a.when}}</span>
+                        <span class="nf-activity-meta">{{a.what}} in {{a.where}}</span>
+                      </span>
+                    </li>
+                  </sc-for>
+                </ul>
+              </section>
+              <!-- Nur für Owner und Admins des Workspaces -->
+              <section class="nf-ov-panel" aria-labelledby="ov-ws">
+                <h2 id="ov-ws" class="nf-section-title" style="margin-top: 0">Workspace {{ws.name}}</h2>
+                <p class="nf-ov-stat">{{ws.statLine}}</p>
+                <div class="nf-ov-actions">
+                  <button type="button" class="nf-btn" onClick="{{openInvites}}">Personen einladen</button>
+                  <button type="button" class="nf-btn nf-btn-ghost" onClick="{{openWorkspace}}">Mitglieder</button>
+                </div>
+              </section>
+            </aside>
+          </div>
+        </div>
+      </sc-if>
+

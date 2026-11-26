@@ -1,0 +1,25 @@
+  <!-- Version sichern (app.save_version, editor): optionaler Name (Vorschlag, braucht eine Spalte im Schema) -->
+  <sc-if value="{{vSave.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <form class="nf-dialog" role="dialog" aria-modal="true" aria-labelledby="sv-title" onSubmit="{{vSave.submit}}">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="sv-title" class="nf-dialog-title">Version sichern</h2>
+            <p class="nf-dialog-description">Sichert den jetzigen Stand von „{{page.shownTitle}}“ als eigene Version. Ohne das entsteht automatisch eine Version nach 10 Minuten Ruhe.</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body">
+          <label class="nf-label" for="nf-vname" style="margin-top: 0">Name (optional)</label>
+          <input id="nf-vname" class="nf-input nf-input-wide" maxlength="80" placeholder="z. B. Vor dem Review" value="{{vSave.name}}" onInput="{{vSave.onName}}">
+        </div>
+        <div class="nf-dialog-foot">
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Abbrechen</button>
+          <button type="submit" class="nf-btn nf-btn-primary">Version sichern</button>
+        </div>
+      </form>
+    </div>
+  </sc-if>
+

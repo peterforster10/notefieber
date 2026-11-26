@@ -1,0 +1,75 @@
+  <!-- Papierkorb des Spaces: Suche, gelöscht von/wann, Herkunft, Restzeit, Unterseiten, Wiederherstellen.
+       Endgültig löscht nur der Worker nach 30 Tagen (es gibt bewusst kein sofortiges Löschen). -->
+  <sc-if value="{{trashDlg.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <div class="nf-dialog nf-dialog-wide" role="dialog" aria-modal="true" aria-labelledby="tr-title">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="tr-title" class="nf-dialog-title">Papierkorb von „{{trashDlg.spaceName}}“</h2>
+            <p class="nf-dialog-description">Gelöschte Seiten bleiben 30 Tage hier und werden danach endgültig gelöscht. Wiederherstellen holt eine Seite mit allen Unterseiten zurück, die mit ihr gelöscht wurden.</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body">
+          <sc-if value="{{trashDlg.hasItems}}" hint-placeholder-val="{{ true }}">
+            <label class="nf-trash-search">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+              <span class="nf-visually-hidden">Im Papierkorb suchen</span>
+              <input id="nf-trash-q" type="search" class="nf-input" placeholder="Im Papierkorb suchen" value="{{trashDlg.q}}" onChange="{{trashDlg.onQ}}">
+            </label>
+          </sc-if>
+          <ul class="nf-trash-list" aria-label="Gelöschte Seiten">
+            <sc-for list="{{trashDlg.items}}" as="ti" hint-placeholder-count="2">
+              <li class="nf-trash-item">
+                <div class="nf-trash-row">
+                  <svg class="nf-icon nf-trash-page" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg>
+                  <div class="nf-trash-main">
+                    <div class="nf-trash-title">
+                      <span>{{ti.title}}</span>
+                      <sc-if value="{{ti.restricted}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon nf-va-lock" width="13" height="13" viewBox="0 0 16 16" role="img" aria-label="eigene Rechte"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></sc-if>
+                    </div>
+                    <div class="nf-trash-meta">Gelöscht von {{ti.by}} {{ti.when}} · aus {{ti.from}}</div>
+                    <sc-if value="{{ti.hasKids}}" hint-placeholder-val="{{ false }}">
+                      <button type="button" class="nf-trash-kids-toggle" aria-expanded="{{ti.kidsExpanded}}" onClick="{{ti.toggleKids}}">
+                        <svg class="nf-icon" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true" style="transform: rotate({{ti.kidsRot}}deg)"><path d="M6 4l4 4-4 4"></path></svg>
+                        {{ti.kidsLabel}}
+                      </button>
+                    </sc-if>
+                  </div>
+                  <span class="nf-days" data-soon="{{ti.soon}}" title="{{ti.daysTitle}}">{{ti.daysLabel}}</span>
+                  <sc-if value="{{ti.canRestore}}" hint-placeholder-val="{{ true }}">
+                    <button type="button" class="nf-btn nf-btn-sm" onClick="{{ti.restore}}">
+                      <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 7.5a5 5 0 1 1 1.3 4.1M3 3.5v4h4"></path></svg>
+                      Wiederherstellen
+                    </button>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ti.kidsOpen}}" hint-placeholder-val="{{ false }}">
+                  <ul class="nf-trash-kids">
+                    <sc-for list="{{ti.kids}}" as="kd" hint-placeholder-count="2">
+                      <li style="padding-left: {{kd.pad}}px">
+                        <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg>
+                        {{kd.title}}
+                      </li>
+                    </sc-for>
+                  </ul>
+                </sc-if>
+              </li>
+            </sc-for>
+          </ul>
+          <sc-if value="{{trashDlg.empty}}" hint-placeholder-val="{{ false }}">
+            <div class="nf-trash-empty-state">
+              <svg class="nf-icon" width="28" height="28" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.5 9h6l.5-9"></path></svg>
+              <p>{{trashDlg.emptyText}}</p>
+            </div>
+          </sc-if>
+        </div>
+        <div class="nf-dialog-foot">
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Schließen</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+

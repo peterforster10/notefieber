@@ -1,0 +1,30 @@
+  <!-- Verschieben: neue Elternseite im selben Space wählen (Seite und ihre Unterseiten fehlen in der Liste) -->
+  <sc-if value="{{moveOpen}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <form class="nf-dialog" role="dialog" aria-modal="true" aria-labelledby="move-title" onSubmit="{{move.submit}}">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="move-title" class="nf-dialog-title">„{{page.shownTitle}}“ verschieben</h2>
+            <p class="nf-dialog-description">Die Seite kommt samt Unterseiten ans Ende der gewählten Seite.</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body">
+          <label class="nf-label" for="move-target" style="margin-top: 0">Neue übergeordnete Seite</label>
+          <select id="move-target" class="nf-input nf-input-wide" value="{{move.target}}" onChange="{{move.change}}">
+            <sc-for list="{{move.options}}" as="o" hint-placeholder-count="4">
+              <option value="{{o.id}}">{{o.label}}</option>
+            </sc-for>
+          </select>
+          <p class="nf-hint">Danach erbt die Seite die Rechte ihrer neuen Umgebung, außer sie hat eigene Rechte.</p>
+        </div>
+        <div class="nf-dialog-foot">
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Abbrechen</button>
+          <button type="submit" class="nf-btn nf-btn-primary">Verschieben</button>
+        </div>
+      </form>
+    </div>
+  </sc-if>
+

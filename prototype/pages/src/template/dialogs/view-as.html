@@ -1,0 +1,44 @@
+  <!-- „Ansehen als …“ (app.view_as): Seitenbaum des Spaces mit der Rolle einer Person; nur Struktur, im Audit-Log -->
+  <sc-if value="{{viewAs.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <div class="nf-dialog" role="dialog" aria-modal="true" aria-labelledby="va-title">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="va-title" class="nf-dialog-title">Ansehen als …</h2>
+            <p class="nf-dialog-description">Welche Seiten in „{{viewAs.spaceName}}“ eine Person sieht und mit welcher Rolle. Nur Struktur, keine Inhalte; jeder Aufruf steht im Audit-Log.</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body">
+          <label class="nf-label" for="va-who" style="margin-top: 0">Person</label>
+          <select id="va-who" class="nf-input nf-input-wide" value="{{viewAs.who}}" onChange="{{viewAs.onWho}}">
+            <sc-for list="{{viewAs.people}}" as="pp" hint-placeholder-count="4">
+              <option value="{{pp.key}}">{{pp.label}}</option>
+            </sc-for>
+          </select>
+          <p class="nf-va-summary">{{viewAs.summary}}</p>
+          <ul class="nf-va-list" aria-label="Seiten mit Rolle">
+            <sc-for list="{{viewAs.rows}}" as="vr" hint-placeholder-count="6">
+              <li class="nf-va-row" data-none="{{vr.none}}" style="padding-left: {{vr.pad}}px">
+                <svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg>
+                <span class="nf-va-title">{{vr.title}}</span>
+                <sc-if value="{{vr.restricted}}" hint-placeholder-val="{{ false }}">
+                  <svg class="nf-icon nf-va-lock" width="13" height="13" viewBox="0 0 16 16" role="img" aria-label="eigene Rechte"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg>
+                </sc-if>
+                <span class="nf-access-chip" data-role="{{vr.role}}">{{vr.roleLabel}}</span>
+              </li>
+            </sc-for>
+          </ul>
+        </div>
+        <div class="nf-dialog-foot">
+          <sc-if value="{{viewAs.back}}" hint-placeholder-val="{{ true }}">
+            <button type="button" class="nf-btn" onClick="{{viewAs.goBack}}">Zurück zu den Rechten</button>
+          </sc-if>
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Schließen</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+

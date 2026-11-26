@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="de">
+<!-- Erzeugt mit „node prototype/build.mjs“ aus pages/src/ (Einstieg pages/src/Main.html). Nicht hier ändern, sondern dort und neu bauen. -->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NoteFieber – Seite</title>
+<link rel="icon" href="../brand/logo-mark-nf.svg" type="image/svg+xml">
+<script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* Reihenfolge zählt (Kaskade): Tokens zuerst, Bildschirmbreiten zuletzt. Neue Bereiche vor forms.css einfügen. */
+/* @include styles/tokens.css */
+/* @include styles/shell.css */
+/* @include styles/sidebar.css */
+/* @include styles/account-menus.css */
+/* @include styles/pagebar.css */
+/* @include styles/overview.css */
+/* @include styles/rights-trash.css */
+/* @include styles/editor.css */
+/* @include styles/palette.css */
+/* @include styles/page.css */
+/* @include styles/comments.css */
+/* @include styles/dialog.css */
+/* @include styles/versions.css */
+/* @include styles/states.css */
+/* @include styles/notifications.css */
+/* @include styles/reactions.css */
+/* @include styles/look.css */
+/* @include styles/overview-favorites.css */
+/* @include styles/page-foot.css */
+/* @include styles/forms.css */
+/* @include styles/responsive.css */
+</style>
+</helmet>
+<div class="nf-shell" data-drawer="{{drawerAttr}}" onClick="{{closeMenus}}" onKeyDown="{{onKey}}">
+  <a href="#content" class="nf-skip">Zum Inhalt springen</a>
+
+<!-- @include template/sidebar.html -->
+  <!-- ============================== Kopfbereich und Inhalt ============================== -->
+  <div class="nf-column">
+<!-- @include template/topbar.html -->
+<!-- @include template/pagebar.html -->
+    <main id="content" tabindex="-1" class="nf-main">
+<!-- @include template/main/versions.html -->
+<!-- @include template/main/loading.html -->
+<!-- @include template/main/page.html -->
+<!-- @include template/main/overview.html -->
+      <!-- Die Einstellungen eines Spaces sind ein Dialog (siehe unten), keine eigene Seite mehr -->
+    </main>
+  </div>
+
+  <!-- ============================== Dialoge ============================== -->
+<!-- @include template/dialogs/rights.html -->
+<!-- @include template/dialogs/view-as.html -->
+<!-- @include template/dialogs/trash.html -->
+<!-- @include template/dialogs/export.html -->
+<!-- @include template/dialogs/save-version.html -->
+<!-- @include template/dialogs/move.html -->
+<!-- @include template/dialogs/info.html -->
+<!-- @include template/dialogs/workspace.html -->
+<!-- @include template/dialogs/invites.html -->
+<!-- @include template/dialogs/new-space.html -->
+<!-- @include template/dialogs/space-settings.html -->
+<!-- @include template/editor-floating.html -->
+<!-- @include template/palette.html -->
+<!-- @include template/toast.html -->
+<!-- @include template/dialogs/confirm.html -->
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1040}}'>
+// Daten zuerst (Konstanten, die die Komponente nutzt), dann die Komponente; ihre Methoden nach Bereichen,
+// render.js (renderVals: alle Werte für die Vorlage) zuletzt.
+// @include logic/data.js
+// @include logic/versions-model.js
+// @include logic/data-content.js
+class Component extends DCLogic {
+// @include logic/component/constructor.js
+// @include logic/component/helpers.js
+// @include logic/component/versions.js
+// @include logic/component/look.js
+// @include logic/component/reactions.js
+// @include logic/component/dialogs.js
+// @include logic/component/loading.js
+// @include logic/component/notifications.js
+// @include logic/component/page-foot.js
+// @include logic/component/versions-view.js
+// @include logic/component/pages.js
+// @include logic/component/comments.js
+// @include logic/component/editor.js
+// @include logic/component/palette.js
+// @include logic/component/favorites.js
+// @include logic/component/overview.js
+// @include logic/component/render.js
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+  <!-- Rückfrage (ConfirmDialog): Fokus zuerst auf „Abbrechen“, Bestätigen rot bzw. orange -->
+  <sc-if value="{{confirmOpen}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <div class="nf-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-text">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="confirm-title" class="nf-dialog-title">{{confirm.title}}</h2>
+            <p id="confirm-text" class="nf-dialog-description">{{confirm.text}}</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-foot">
+          <button type="button" id="nf-confirm-cancel" class="nf-btn" onClick="{{closeDialog}}">Abbrechen</button>
+          <button type="button" class="nf-btn {{confirm.cls}}" onClick="{{confirm.ok}}">{{confirm.label}}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>

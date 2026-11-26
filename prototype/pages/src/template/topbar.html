@@ -1,0 +1,143 @@
+    <!-- Leiste oben: nur die Suche (Ausblick M3), linksbündig; unter 1024 px davor der Menü-Knopf -->
+    <header class="nf-topbar">
+      <button type="button" class="nf-btn nf-btn-icon nf-drawer-open" aria-label="Navigation öffnen" aria-expanded="{{drawerExpanded}}" onClick="{{openDrawer}}">
+        <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"></path></svg>
+      </button>
+      <!-- Sieht aus wie ein Feld, öffnet die Befehlspalette (auch mit Strg K) -->
+      <button type="button" id="nf-search" class="nf-search" aria-haspopup="dialog" aria-keyshortcuts="Control+K" onClick="{{openPalette}}">
+        <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+        <span class="nf-search-placeholder">Suchen oder Befehl …</span>
+      </button>
+
+      <!-- Rechts: Einstellungen (Zahnrad) und Konto (Avatar), je mit eigenem Menü -->
+      <div class="nf-topbar-right">
+      <!-- Benachrichtigungen (Ausblick, E16): Erwähnungen, Antworten, geteilte Seiten, Kommentare an eigenen Seiten -->
+      <div class="nf-user">
+        <button type="button" class="nf-gear-btn nf-bell-btn" aria-label="{{notif.label}}" title="Benachrichtigungen" aria-haspopup="dialog" aria-expanded="{{notif.expanded}}" onClick="{{notif.toggle}}">
+          <svg class="nf-icon" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 11V7.5a4 4 0 018 0V11l1.25 1.5H2.75z"></path><path d="M6.5 13.5a1.5 1.5 0 003 0"></path></svg>
+          <sc-if value="{{notif.hasUnread}}" hint-placeholder-val="{{ true }}"><span class="nf-bell-count" aria-hidden="true">{{notif.unread}}</span></sc-if>
+        </button>
+        <sc-if value="{{notif.open}}" hint-placeholder-val="{{ false }}">
+          <div class="nf-notif" role="dialog" aria-labelledby="notif-title" tabindex="-1" onClick="{{notif.keep}}">
+            <div class="nf-notif-head">
+              <h2 id="notif-title" class="nf-notif-title">Benachrichtigungen</h2>
+              <button type="button" class="nf-notif-readall" disabled="{{notif.noneUnread}}" onClick="{{notif.readAll}}">Alle als gelesen markieren</button>
+            </div>
+            <div class="nf-cm-tabs" role="tablist" aria-label="Benachrichtigungen filtern">
+              <button type="button" role="tab" class="nf-cmd-scope" aria-selected="{{notif.tabAll}}" onClick="{{notif.showAll}}">Alle</button>
+              <button type="button" role="tab" class="nf-cmd-scope" aria-selected="{{notif.tabUnread}}" onClick="{{notif.showUnread}}">Ungelesen<span class="nf-cmd-scope-count">{{notif.unread}}</span></button>
+            </div>
+            <sc-if value="{{notif.hasItems}}" hint-placeholder-val="{{ true }}">
+              <ul class="nf-notif-list">
+                <sc-for list="{{notif.items}}" as="n" hint-placeholder-count="3">
+                  <li><button type="button" class="nf-notif-item" data-unread="{{n.unreadAttr}}" aria-label="{{n.aria}}" onClick="{{n.open}}">
+                    <span class="nf-notif-avatar" aria-hidden="true">
+                      <span class="nf-byline-avatar" style="background: {{n.color}}">{{n.initials}}</span>
+                      <span class="nf-notif-kind" data-kind="{{n.kind}}"><sc-if value="{{n.isMention}}" hint-placeholder-val="{{ true }}"><svg class="nf-icon" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.5"></circle><path d="M10.5 8v1a2 2 0 004 0V8a6.5 6.5 0 10-2.6 5.2"></path></svg></sc-if><sc-if value="{{n.isReply}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 4L2.5 7.5 6 11"></path><path d="M2.5 7.5H10a3.5 3.5 0 013.5 3.5v1"></path></svg></sc-if><sc-if value="{{n.isShare}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg></sc-if><sc-if value="{{n.isComment}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"></path></svg></sc-if></span>
+                    </span>
+                    <span class="nf-notif-body">
+                      <span class="nf-notif-text"><strong>{{n.who}}</strong> {{n.pre}} <strong>„{{n.target}}“</strong> {{n.post}}</span>
+                      <sc-if value="{{n.hasSnippet}}" hint-placeholder-val="{{ true }}"><span class="nf-notif-snippet">{{n.snippet}}</span></sc-if>
+                      <span class="nf-notif-meta"><span>{{n.space}} · {{n.when}}</span><sc-if value="{{n.hasRole}}" hint-placeholder-val="{{ false }}"><span class="nf-notif-role">{{n.role}}</span></sc-if></span>
+                    </span>
+                    <sc-if value="{{n.unread}}" hint-placeholder-val="{{ true }}"><span class="nf-notif-dot" aria-hidden="true"></span></sc-if>
+                  </button></li>
+                </sc-for>
+              </ul>
+            </sc-if>
+            <sc-if value="{{notif.empty}}" hint-placeholder-val="{{ false }}">
+              <div class="nf-notif-empty">
+                <span class="nf-empty-icon"><svg class="nf-icon" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 11V7.5a4 4 0 018 0V11l1.25 1.5H2.75z"></path><path d="M6.5 13.5a1.5 1.5 0 003 0"></path></svg></span>
+                <p class="nf-empty-title">{{notif.emptyTitle}}</p>
+                <p>Neue Erwähnungen, Antworten und geteilte Seiten erscheinen hier.</p>
+              </div>
+            </sc-if>
+            <div class="nf-notif-foot">
+              <button type="button" class="nf-notif-settings" aria-haspopup="dialog" onClick="{{notif.settings}}">
+                <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.69 3.28L6.89 1.7H9.11L9.31 3.28L10.41 3.74L11.67 2.76L13.24 4.33L12.26 5.59L12.72 6.69L14.3 6.89V9.11L12.72 9.31L12.26 10.41L13.24 11.67L11.67 13.24L10.41 12.26L9.31 12.72L9.11 14.3H6.89L6.69 12.72L5.59 12.26L4.33 13.24L2.76 11.67L3.74 10.41L3.28 9.31L1.7 9.11V6.89L3.28 6.69L3.74 5.59L2.76 4.33L4.33 2.76L5.59 3.74Z"></path><circle cx="8" cy="8" r="2.1"></circle></svg>
+                <span>Einstellungen für Benachrichtigungen</span>
+              </button>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+      <div class="nf-user">
+        <button type="button" class="nf-gear-btn" aria-label="Einstellungen" title="Einstellungen" aria-haspopup="menu" aria-expanded="{{settingsMenuExpanded}}" onClick="{{toggleSettingsMenu}}">
+          <svg class="nf-icon" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.69 3.28L6.89 1.7H9.11L9.31 3.28L10.41 3.74L11.67 2.76L13.24 4.33L12.26 5.59L12.72 6.69L14.3 6.89V9.11L12.72 9.31L12.26 10.41L13.24 11.67L11.67 13.24L10.41 12.26L9.31 12.72L9.11 14.3H6.89L6.69 12.72L5.59 12.26L4.33 13.24L2.76 11.67L3.74 10.41L3.28 9.31L1.7 9.11V6.89L3.28 6.69L3.74 5.59L2.76 4.33L4.33 2.76L5.59 3.74Z"></path><circle cx="8" cy="8" r="2.1"></circle></svg>
+        </button>
+        <sc-if value="{{settingsMenuOpen}}" hint-placeholder-val="{{ false }}">
+          <ul class="nf-menu nf-user-menu" role="menu" aria-label="Einstellungen">
+            <li role="none" class="nf-menu-group-label" id="nf-theme-label">Darstellung</li>
+            <li role="none">
+              <ul role="group" aria-labelledby="nf-theme-label" class="nf-theme-switch">
+                <sc-for list="{{themes}}" as="th" hint-placeholder-count="3">
+                  <li role="none"><button type="button" role="menuitemradio" class="nf-theme-option" aria-checked="{{th.checked}}" onClick="{{th.choose}}">
+                    <sc-if value="{{th.isLight}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2.75"></circle><path d="M8 1.75v1.5M8 12.75v1.5M1.75 8h1.5M12.75 8h1.5M3.6 3.6l1.05 1.05M11.35 11.35l1.05 1.05M3.6 12.4l1.05-1.05M11.35 4.65l1.05-1.05"></path></svg></sc-if>
+                    <sc-if value="{{th.isDark}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M13 9.5A5.5 5.5 0 116.5 3a4.5 4.5 0 006.5 6.5z"></path></svg></sc-if>
+                    <sc-if value="{{th.isSystem}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="8" rx="1.25"></rect><path d="M6 13.5h4M8 11v2.5"></path></svg></sc-if>
+                    <span>{{th.label}}</span>
+                  </button></li>
+                </sc-for>
+              </ul>
+            </li>
+            <li role="separator" class="nf-menu-separator"></li>
+            <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openUserSettings}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.69 3.28L6.89 1.7H9.11L9.31 3.28L10.41 3.74L11.67 2.76L13.24 4.33L12.26 5.59L12.72 6.69L14.3 6.89V9.11L12.72 9.31L12.26 10.41L13.24 11.67L11.67 13.24L10.41 12.26L9.31 12.72L9.11 14.3H6.89L6.69 12.72L5.59 12.26L4.33 13.24L2.76 11.67L3.74 10.41L3.28 9.31L1.7 9.11V6.89L3.28 6.69L3.74 5.59L2.76 4.33L4.33 2.76L5.59 3.74Z"></path><circle cx="8" cy="8" r="2.1"></circle></svg>
+              <span class="nf-menu-label">Persönliche Einstellungen</span></button></li>
+            <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openShortcuts}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.75" y="4" width="12.5" height="8" rx="1.5"></rect><path d="M4.5 6.5h.01M7 6.5h.01M9.5 6.5h.01M12 6.5h.01M5 9.5h6"></path></svg>
+              <span class="nf-menu-label">Tastenkürzel</span></button></li>
+            <!-- Nur für Owner und Admins des Workspaces (wie die Einladungen im Frontend) -->
+            <li role="separator" class="nf-menu-separator"></li>
+            <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openWorkspace}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"></rect><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"></rect><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"></rect><rect x="9" y="9" width="4.5" height="4.5" rx="1"></rect></svg>
+              <span class="nf-menu-label">Workspace</span><span class="nf-menu-shortcut nf-menu-meta">{{ws.name}}</span></button></li>
+            <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openInvites}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="5.5" r="2.5"></circle><path d="M2 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4"></path><path d="M12.5 5v4M10.5 7h4"></path></svg>
+              <span class="nf-menu-label">Einladungen</span>
+              <sc-if value="{{ws.hasOpenInvites}}" hint-placeholder-val="{{ true }}"><span class="nf-count" aria-label="{{ws.openInvitesLabel}}">{{ws.openInvites}}</span></sc-if>
+            </button></li>
+          </ul>
+        </sc-if>
+      </div>
+      <div class="nf-user">
+        <button type="button" class="nf-avatar-btn" aria-label="Konto: Peter Forster" title="Peter Forster" aria-haspopup="menu" aria-expanded="{{userMenuExpanded}}" onClick="{{toggleUserMenu}}">
+          <span aria-hidden="true">PF</span>
+        </button>
+        <sc-if value="{{userMenuOpen}}" hint-placeholder-val="{{ false }}">
+          <ul class="nf-menu nf-user-menu nf-account-menu" role="menu" aria-label="Konto">
+            <li role="none" class="nf-menu-header">
+              <span class="nf-byline-avatar" style="background: #1F5FD6" aria-hidden="true">PF</span>
+              <span class="nf-menu-header-names">
+                <strong>Peter Forster</strong>
+                <span>peter.forster@alpenwerk.example</span>
+                <span>Alpenwerk · Organisations-Admin</span>
+              </span>
+            </li>
+            <li role="separator" class="nf-menu-separator"></li>
+            <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openProfile}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5.5" r="2.75"></circle><path d="M2.75 13.75c.6-2.7 2.7-4.25 5.25-4.25s4.65 1.55 5.25 4.25"></path></svg>
+              <span class="nf-menu-label">Benutzerprofil</span></button></li>
+            <li role="separator" class="nf-menu-separator"></li>
+            <li role="none" class="nf-menu-group-label" id="nf-lang-label">Sprache</li>
+            <li role="none">
+              <ul role="group" aria-labelledby="nf-lang-label" class="nf-menu-group">
+                <sc-for list="{{locales}}" as="lo" hint-placeholder-count="2">
+                  <li role="none"><button type="button" role="menuitemradio" class="nf-menu-item" aria-checked="{{lo.checked}}" lang="{{lo.lang}}" onClick="{{lo.choose}}">
+                    <span class="nf-menu-radio" aria-hidden="true">
+                      <sc-if value="{{lo.on}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if>
+                    </span>
+                    <span class="nf-menu-label">{{lo.label}}</span></button></li>
+                </sc-for>
+              </ul>
+            </li>
+            <li role="separator" class="nf-menu-separator"></li>
+            <li role="none"><button type="button" role="menuitem" class="nf-menu-item" onClick="{{closeUserMenu}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 3H3.5v10h6M7 8h6.5M11 5.5L13.5 8 11 10.5"></path></svg>
+              <span class="nf-menu-label">Abmelden</span></button></li>
+          </ul>
+        </sc-if>
+      </div>
+      </div>
+    </header>
+

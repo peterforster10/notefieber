@@ -1,0 +1,58 @@
+  <!-- Einstellungen eines Spaces (statt der Seite /s/<schlüssel>/settings): Name, Beschreibung, Farbe, Archivieren -->
+  <sc-if value="{{spaceSettingsOpen}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <form class="nf-dialog" role="dialog" aria-modal="true" aria-labelledby="st-title" onSubmit="{{settings.save}}">
+        <div class="nf-dialog-head">
+          <div class="nf-st-head">
+            <span class="nf-space-badge nf-space-badge-lg" style="background: {{settings.color}}" aria-hidden="true">{{settings.badge}}</span>
+            <div>
+              <h2 id="st-title" class="nf-dialog-title">Einstellungen für „{{settings.title}}“</h2>
+              <p class="nf-dialog-description">Space {{settings.key}} · {{settings.pageCount}}</p>
+            </div>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body">
+          <sc-if value="{{settings.locked}}" hint-placeholder-val="{{ false }}">
+            <p class="nf-st-locked">{{settings.lockedText}}</p>
+          </sc-if>
+          <label class="nf-label" for="st-name" style="margin-top: 0">Name</label>
+          <input id="st-name" class="nf-input nf-input-wide" maxlength="200" required value="{{settings.name}}" disabled="{{settings.locked}}" onChange="{{settings.onName}}">
+          <label class="nf-label" for="st-desc">Beschreibung</label>
+          <textarea id="st-desc" class="nf-input nf-input-wide" rows="3" maxlength="2000" value="{{settings.description}}" disabled="{{settings.locked}}" onChange="{{settings.onDescription}}"></textarea>
+          <span class="nf-label" id="st-color-label">Farbe</span>
+          <div class="nf-swatches" role="radiogroup" aria-labelledby="st-color-label">
+            <sc-for list="{{settings.colors}}" as="c" hint-placeholder-count="8">
+              <button type="button" role="radio" class="nf-swatch" style="background: {{c.color}}" aria-checked="{{c.checked}}" aria-label="{{c.label}}" title="{{c.label}}" disabled="{{settings.locked}}" onClick="{{c.choose}}">
+                <sc-if value="{{c.on}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if>
+              </button>
+            </sc-for>
+          </div>
+          <span class="nf-label">Schlüssel</span>
+          <p class="nf-st-key"><code>{{settings.key}}</code><span>Adresse {{settings.address}} · bleibt fest</span></p>
+
+          <section class="nf-zone" aria-labelledby="st-zone">
+            <div>
+              <h3 id="st-zone" class="nf-zone-title">{{settings.zoneTitle}}</h3>
+              <p class="nf-zone-text">{{settings.zoneText}}</p>
+            </div>
+            <sc-if value="{{settings.active}}" hint-placeholder-val="{{ true }}">
+              <button type="button" class="nf-btn nf-btn-attention" onClick="{{settings.askArchive}}">Archivieren</button>
+            </sc-if>
+            <sc-if value="{{settings.archived}}" hint-placeholder-val="{{ false }}">
+              <button type="button" class="nf-btn" onClick="{{settings.unarchive}}">Zurückholen</button>
+            </sc-if>
+          </section>
+        </div>
+        <div class="nf-dialog-foot">
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">{{settings.cancelLabel}}</button>
+          <sc-if value="{{settings.editable}}" hint-placeholder-val="{{ true }}">
+            <button type="submit" class="nf-btn nf-btn-primary">Speichern</button>
+          </sc-if>
+        </div>
+      </form>
+    </div>
+  </sc-if>
+

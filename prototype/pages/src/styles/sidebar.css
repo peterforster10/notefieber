@@ -1,0 +1,48 @@
+/* Space-Umschalter */
+.nf-switcher{position:relative;display:flex;flex-direction:column;gap:6px}
+.nf-space-card{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border:1px solid var(--nf-sidebar-border);border-radius:8px;background:var(--nf-bg);color:var(--nf-sidebar-text);text-align:left;cursor:pointer}
+.nf-space-card:hover,.nf-space-card[aria-expanded='true']{border-color:var(--nf-control-border);background:var(--nf-surface)}
+.nf-space-badge{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;flex:none;border-radius:6px;background:var(--nf-accent);color:#fff;font-size:11px;font-weight:600}
+.nf-menu .nf-space-badge{width:24px;height:24px;font-size:10px;border-radius:5px}
+.nf-space-names{flex:1;min-width:0}
+.nf-space-name{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-space-key{display:block;font-size:12px;color:var(--nf-sidebar-muted)}
+.nf-sidebar-note{margin:0;padding:0 10px;font-size:12px;color:var(--nf-sidebar-muted)}
+
+/* Seitenbaum */
+.nf-tree{display:flex;flex-direction:column;gap:2px}
+.nf-tree-head{display:flex;align-items:center;justify-content:space-between;padding:4px 4px 4px 10px}
+.nf-tree-heading{margin:0;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--nf-sidebar-muted)}
+.nf-tree-row{position:relative;display:flex;align-items:center;gap:2px;min-height:36px;padding:0 4px 0 0;border-radius:6px;color:var(--nf-sidebar-text)}
+.nf-tree-row:hover,.nf-tree-row:focus-within{background:var(--nf-sidebar-hover)}
+.nf-tree-row.nf-selected{background:var(--nf-sidebar-selected);color:var(--nf-sidebar-selected-text)}
+.nf-twisty{display:inline-flex;align-items:center;justify-content:center;width:24px;height:32px;flex:none;padding:0;border:0;border-radius:4px;background:none;color:var(--nf-sidebar-muted);cursor:pointer}
+.nf-twisty .nf-icon{transition:transform 120ms ease}
+.nf-twisty[data-open='true'] .nf-icon{transform:rotate(90deg)}
+.nf-tree-link{flex:1;min-width:0;display:flex;align-items:center;gap:8px;min-height:32px;padding:0 4px 0 2px;border-radius:4px;color:inherit;font-size:14px;text-decoration:none;cursor:pointer}
+.nf-tree-link:hover{color:inherit}
+.nf-tree-link:focus-visible{outline-offset:0}
+.nf-tree-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-tree-title.nf-untitled{color:var(--nf-sidebar-muted);font-style:italic}
+.nf-selected .nf-tree-link{font-weight:600}
+.nf-tree-link .nf-icon{color:var(--nf-sidebar-muted)}
+.nf-selected .nf-tree-link .nf-icon{color:inherit}
+.nf-home-icon{width:24px;display:inline-flex;justify-content:center;flex:none}
+.nf-actions{display:none;gap:2px}
+.nf-tree-row:hover .nf-actions,.nf-tree-row:focus-within .nf-actions,.nf-actions.nf-open{display:flex}
+@media (hover:none){.nf-tree-row.nf-selected .nf-actions{display:flex}}
+.nf-icon-button{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;flex:none;padding:0;border:0;border-radius:6px;background:none;color:var(--nf-sidebar-muted);cursor:pointer}
+.nf-icon-button:hover:not(:disabled){background:var(--nf-sidebar-hover);color:var(--nf-sidebar-text)}
+/* Knöpfe in einer Zeile beim Darüberfahren: leicht dunkler als die Zeile statt weiß (auch auf der ausgewählten Zeile) */
+.nf-tree-row:hover .nf-icon-button:hover:not(:disabled){background:var(--nf-sidebar-press)}
+.nf-icon-button:disabled{opacity:.4;cursor:default}
+.nf-new-page{display:flex;flex-wrap:wrap;gap:4px;padding:4px 0 6px 26px}
+.nf-new-page input{flex:1 1 100%;min-width:0;height:32px;padding:0 8px;border:1px solid var(--nf-input-border);border-radius:6px;background:var(--nf-bg);font-size:13px}
+.nf-new-page .nf-button{height:30px;padding:0 10px;font-size:13px}
+
+/* Papierkorb */
+.nf-trash ul{list-style:none;padding:2px 0 6px 36px;margin:0;font-size:13px}
+.nf-trash li{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:32px;padding:0 4px 0 0}
+.nf-trash li>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-trash-empty{color:var(--nf-sidebar-muted)}
+

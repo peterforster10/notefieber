@@ -1,0 +1,54 @@
+/* Konto rechts in der Leiste oben: Avatar als Knopf, Menü rechtsbündig darunter */
+.nf-topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;flex:none}
+.nf-topbar-right .nf-user{margin-left:0}
+.nf-gear-btn{display:grid;place-items:center;width:36px;height:36px;padding:0;border:0;border-radius:50%;background:none;color:var(--nf-muted);cursor:pointer}
+.nf-gear-btn:hover,.nf-gear-btn[aria-expanded='true']{background:var(--nf-subtle);color:var(--nf-text)}
+.nf-account-menu{min-width:260px}
+.nf-user{position:relative;margin-left:auto;flex:none}
+/* Ohne Rahmen und Ring; beim Darüberfahren und bei offenem Menü etwas dunkler. Den Fokusring gibt es
+   nur bei Tastaturbedienung (:focus-visible, WCAG 2.4.7) */
+.nf-avatar-btn{display:grid;place-items:center;width:34px;height:34px;padding:0;border:0;border-radius:50%;background:#1f5fd6;color:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:background-color 120ms ease}
+.nf-avatar-btn:hover,.nf-avatar-btn[aria-expanded='true']{background:#174bb0}
+.nf-user-menu{top:calc(100% + 8px);right:0;min-width:280px}
+.nf-menu-header{display:flex;align-items:flex-start;gap:10px;padding:10px 10px 8px}
+.nf-menu-header .nf-byline-avatar{width:36px;height:36px;font-size:12px}
+.nf-menu-header-names{display:flex;flex-direction:column;min-width:0}
+.nf-menu-header-names span{font-size:12px;color:var(--nf-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-menu-group-label{padding:6px 10px 2px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--nf-muted)}
+.nf-menu-group{list-style:none;margin:0;padding:0}
+.nf-menu-radio{display:inline-flex;width:16px;flex:none;color:var(--nf-accent)}
+.nf-menu-item[aria-checked='true']{font-weight:600}
+/* Darstellung: drei Optionen nebeneinander, die gewählte hinterlegt (ohne Rahmen) */
+.nf-theme-switch{display:flex;gap:4px;list-style:none;margin:0;padding:2px 6px 6px}
+.nf-theme-switch>li{flex:1}
+.nf-theme-option{display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;padding:8px 4px;border:0;border-radius:6px;background:none;color:var(--nf-text);font-size:12px;cursor:pointer}
+.nf-theme-option .nf-icon{color:var(--nf-muted)}
+.nf-theme-option:hover{background:var(--nf-subtle)}
+.nf-theme-option[aria-checked='true']{background:var(--nf-sidebar-selected);color:var(--nf-sidebar-selected-text);font-weight:600}
+.nf-theme-option[aria-checked='true'] .nf-icon{color:inherit}
+
+/* Menü */
+.nf-menu{position:absolute;z-index:60;min-width:240px;max-width:320px;margin:0;padding:4px;list-style:none;border:1px solid var(--nf-border);border-radius:8px;background:var(--nf-bg);box-shadow:var(--nf-shadow-pop);font-size:14px;color:var(--nf-text);font-weight:400}
+.nf-menu li{position:relative}
+.nf-space-menu{top:calc(100% + 4px);left:0;right:0;max-width:none}
+.nf-row-menu{top:calc(100% - 2px);right:0}
+.nf-submenu{top:-5px;left:calc(100% + 6px);min-width:200px;z-index:61}
+.nf-menu-item{display:flex;align-items:center;gap:10px;width:100%;min-height:34px;padding:0 10px;border:0;border-radius:6px;background:none;color:var(--nf-text);text-align:left;text-decoration:none;cursor:pointer}
+.nf-menu-item:hover,.nf-menu-item:focus{background:var(--nf-subtle);color:var(--nf-text);outline:none}
+.nf-menu-item:focus-visible{outline:2px solid var(--nf-focus);outline-offset:-2px}
+.nf-menu-item[aria-disabled='true']{color:var(--nf-muted);cursor:default;background:none}
+.nf-menu-item[aria-disabled='true'] .nf-icon{opacity:.6}
+.nf-menu-item[aria-current='true']{font-weight:600}
+.nf-menu-item .nf-icon{color:var(--nf-muted)}
+.nf-menu-item-danger,.nf-menu-item-danger .nf-icon{color:var(--nf-danger)}
+.nf-menu-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-menu-shortcut{color:var(--nf-muted);font-family:var(--nf-font-mono);font-size:12px}
+.nf-menu-row{display:flex;align-items:center;gap:2px;border-radius:6px}
+.nf-menu-row:hover{background:var(--nf-subtle)}
+.nf-menu-row .nf-menu-item{flex:1;min-width:0}
+.nf-menu-more{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;flex:none;margin-right:3px;padding:0;border:0;border-radius:6px;background:none;color:var(--nf-muted);cursor:pointer;opacity:0}
+.nf-menu-row:hover .nf-menu-more,.nf-menu-row:focus-within .nf-menu-more,.nf-menu-more[aria-expanded='true']{opacity:1}
+.nf-menu-more:hover,.nf-menu-more[aria-expanded='true']{background:var(--nf-sidebar-hover);color:var(--nf-text)}
+@media (hover:none){.nf-menu-more{opacity:1}}
+.nf-menu-separator{height:1px;margin:4px 6px;background:var(--nf-border)}
+

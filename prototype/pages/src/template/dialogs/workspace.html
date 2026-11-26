@@ -1,0 +1,51 @@
+  <!-- Workspace: Name und Mitglieder mit Rolle (app.set_workspace_member_role, app.remove_workspace_member) -->
+  <sc-if value="{{workspaceOpen}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <div class="nf-dialog nf-dialog-wide" role="dialog" aria-modal="true" aria-labelledby="ws-title">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="ws-title" class="nf-dialog-title">Workspace „{{ws.name}}“</h2>
+            <p class="nf-dialog-description">Mitglieder sehen alle Spaces, in denen „Alle im Workspace“ Rechte hat. Gäste sehen nur, was ihnen einzeln freigegeben ist.</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body">
+          <form class="nf-inline-row" onSubmit="{{ws.saveName}}">
+            <label class="nf-label" for="ws-name" style="margin: 0">Name</label>
+            <input id="ws-name" class="nf-input" maxlength="200" value="{{ws.draftName}}" onChange="{{ws.onName}}">
+            <button type="submit" class="nf-btn">Speichern</button>
+          </form>
+          <h3 class="nf-section-title">Mitglieder ({{ws.memberCount}})</h3>
+          <ul class="nf-people" aria-label="Mitglieder">
+            <sc-for list="{{ws.members}}" as="m" hint-placeholder-count="4">
+              <li class="nf-person">
+                <span class="nf-byline-avatar" style="background: {{m.color}}" aria-hidden="true">{{m.initials}}</span>
+                <span class="nf-person-names"><span>{{m.name}}</span><span>{{m.email}}</span></span>
+                <sc-if value="{{m.editable}}" hint-placeholder-val="{{ true }}">
+                  <select class="nf-person-role" aria-label="{{m.roleLabel}}" value="{{m.role}}" onChange="{{m.change}}">
+                    <option value="admin">Admin</option>
+                    <option value="member">Mitglied</option>
+                    <option value="guest">Gast</option>
+                  </select>
+                  <button type="button" class="nf-link-danger" aria-label="{{m.removeLabel}}" onClick="{{m.remove}}">Entfernen</button>
+                </sc-if>
+                <sc-if value="{{m.fixed}}" hint-placeholder-val="{{ false }}">
+                  <span class="nf-person-role-text">{{m.roleText}}</span>
+                </sc-if>
+              </li>
+            </sc-for>
+          </ul>
+        </div>
+        <div class="nf-dialog-foot nf-dialog-foot-split">
+          <button type="button" class="nf-btn" onClick="{{openInvites}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="5.5" r="2.5"></circle><path d="M2 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4"></path><path d="M12.5 5v4M10.5 7h4"></path></svg>
+            Personen einladen
+          </button>
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Schließen</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+

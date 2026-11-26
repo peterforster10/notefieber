@@ -19,7 +19,9 @@
     "format:check": "prettier --check apps packages scripts",
     "licenses:check": "node scripts/check-licenses.mjs",
     "notices:check": "node scripts/check-notices.mjs",
-    "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm licenses:check && pnpm notices:check && pnpm build",
+    "prototype:build": "node prototype/build.mjs",
+    "prototype:check": "node prototype/build.mjs --check",
+    "check": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm test && pnpm licenses:check && pnpm notices:check && pnpm prototype:check && pnpm build",
     "test": "pnpm -r --if-present test && node --test \"scripts/**/*.test.mjs\"",
     "test:db": "pnpm -r --workspace-concurrency=1 --if-present test:db"
   },

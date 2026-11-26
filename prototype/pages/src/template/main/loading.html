@@ -1,0 +1,18 @@
+      <!-- ---------- Seite lädt (erstes Öffnen; danach aus dem Zwischenspeicher wie mit TanStack Query) ---------- -->
+      <sc-if value="{{pageLoading}}" hint-placeholder-val="{{ false }}">
+        <div class="nf-main-inner" aria-busy="true">
+          <div class="nf-skel-page" aria-hidden="true">
+            <span class="nf-skel nf-skel-title"></span>
+            <div class="nf-skel-meta"><span class="nf-skel nf-skel-avatar"></span><span class="nf-skel" style="width: 120px"></span><span class="nf-skel" style="width: 190px"></span></div>
+            <span class="nf-skel nf-skel-line" style="width: 100%"></span>
+            <span class="nf-skel nf-skel-line" style="width: 94%"></span>
+            <span class="nf-skel nf-skel-line" style="width: 62%"></span>
+            <span class="nf-skel nf-skel-h"></span>
+            <span class="nf-skel nf-skel-line" style="width: 97%"></span>
+            <span class="nf-skel nf-skel-line" style="width: 88%"></span>
+            <span class="nf-skel nf-skel-block"></span>
+            <span class="nf-skel nf-skel-line" style="width: 76%"></span>
+          </div>
+          <p class="nf-visually-hidden" role="status">Seite wird geladen …</p>
+        </div>
+      </sc-if>

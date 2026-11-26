@@ -1,0 +1,71 @@
+  <!-- ============================== Befehlspalette (Suche, Strg K) ==============================
+       Volltext über Titel und Inhalt (im Frontend: page_search, nur Seiten mit Leserecht), dazu Spaces,
+       Personen und Aktionen. Tastatur: ↑↓ auswählen, Enter öffnen, Tab Bereich wechseln, Esc schließen. -->
+  <sc-if value="{{cmd.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-cmd-overlay" onClick="{{cmd.backdrop}}">
+      <div class="nf-cmd" role="dialog" aria-modal="true" aria-label="Suchen und Befehle">
+        <div class="nf-cmd-input">
+          <svg class="nf-icon" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+          <input id="nf-cmd-q" type="text" role="combobox" aria-expanded="true" aria-controls="nf-cmd-list" aria-activedescendant="{{cmd.activeId}}" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="{{cmd.placeholder}}" value="{{cmd.q}}" onChange="{{cmd.onInput}}" onKeyDown="{{cmd.onKey}}">
+        </div>
+        <div class="nf-cmd-scopes" role="tablist" aria-label="Bereich">
+          <sc-for list="{{cmd.scopes}}" as="sc" hint-placeholder-count="4">
+            <button type="button" role="tab" class="nf-cmd-scope" aria-selected="{{sc.selected}}" tabindex="-1" onClick="{{sc.choose}}">{{sc.label}}<span class="nf-cmd-scope-count">{{sc.count}}</span></button>
+          </sc-for>
+          <sc-if value="{{cmd.canLimit}}" hint-placeholder-val="{{ true }}">
+            <button type="button" class="nf-cmd-limit" aria-pressed="{{cmd.limitPressed}}" tabindex="-1" onClick="{{cmd.toggleLimit}}">
+              <span class="nf-space-badge nf-space-badge-xs" style="background: {{cmd.limitColor}}" aria-hidden="true">{{cmd.limitBadge}}</span>
+              <span>Nur in {{cmd.limitName}}</span>
+            </button>
+          </sc-if>
+        </div>
+        <div id="nf-cmd-list" class="nf-cmd-list" role="listbox" aria-label="Treffer">
+          <sc-for list="{{cmd.groups}}" as="g" hint-placeholder-count="2">
+            <div role="group" aria-label="{{g.label}}">
+              <div class="nf-cmd-group" aria-hidden="true">{{g.label}}</div>
+              <sc-for list="{{g.items}}" as="it" hint-placeholder-count="3">
+                <div id="{{it.domId}}" role="option" aria-selected="{{it.selected}}" class="nf-cmd-item" onClick="{{it.run}}" onMouseMove="{{it.hover}}">
+                  <span class="nf-cmd-icon" style="{{it.iconStyle}}">
+                    <sc-if value="{{it.isPage}}" hint-placeholder-val="{{ true }}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg></sc-if>
+                    <sc-if value="{{it.isSpace}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true">{{it.badge}}</span></sc-if>
+                    <sc-if value="{{it.isPerson}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true">{{it.badge}}</span></sc-if>
+                    <sc-if value="{{it.isAction}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M9 4.5L12.5 8 9 11.5"></path></svg></sc-if>
+                  </span>
+                  <span class="nf-cmd-text">
+                    <span class="nf-cmd-title">
+                      <span class="nf-cmd-title-text">{{it.t1}}<mark>{{it.t2}}</mark>{{it.t3}}</span>
+                      <sc-if value="{{it.restricted}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon nf-cmd-lock" width="13" height="13" viewBox="0 0 16 16" role="img" aria-label="eingeschränkt"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></sc-if>
+                    </span>
+                    <sc-if value="{{it.hasSnippet}}" hint-placeholder-val="{{ false }}">
+                      <span class="nf-cmd-snippet">{{it.s1}}<mark>{{it.s2}}</mark>{{it.s3}}</span>
+                    </sc-if>
+                  </span>
+                  <span class="nf-cmd-meta">{{it.meta}}</span>
+                  <span class="nf-cmd-enter" aria-hidden="true">↵</span>
+                </div>
+              </sc-for>
+              <sc-if value="{{g.hasMore}}" hint-placeholder-val="{{ false }}">
+                <button type="button" class="nf-cmd-more" tabindex="-1" onClick="{{g.more}}">{{g.moreLabel}}</button>
+              </sc-if>
+            </div>
+          </sc-for>
+          <sc-if value="{{cmd.empty}}" hint-placeholder-val="{{ false }}">
+            <div class="nf-cmd-empty">
+              <span class="nf-empty-icon"><svg class="nf-icon" width="20" height="20" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14M5.5 7h3"></path></svg></span>
+              <p><strong>Keine Treffer für „{{cmd.q}}“{{cmd.emptyWhere}}</strong></p>
+              <p>Gesucht wird in Titel und Inhalt aller Seiten, die du lesen darfst. Weniger oder andere Wörter helfen oft; neue Änderungen sind nach etwa 30 Sekunden auffindbar.</p>
+              <div class="nf-cmd-empty-actions">
+                <sc-if value="{{cmd.limitPressedBool}}" hint-placeholder-val="{{ false }}">
+                  <button type="button" class="nf-btn" onClick="{{cmd.toggleLimit}}">In allen Spaces suchen</button>
+                </sc-if>
+                <sc-if value="{{cmd.canCreate}}" hint-placeholder-val="{{ true }}">
+                  <button type="button" class="nf-btn" onClick="{{cmd.createFromQuery}}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg><span>Seite „{{cmd.q}}“ anlegen</span></button>
+                </sc-if>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+

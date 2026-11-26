@@ -1,0 +1,54 @@
+  <!-- Einladungen: Link pro E-Mail-Adresse (E-Mails verschickt NoteFieber noch nicht), offene zurücknehmen -->
+  <sc-if value="{{invitesOpen}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <div class="nf-dialog nf-dialog-wide" role="dialog" aria-modal="true" aria-labelledby="inv-title">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="inv-title" class="nf-dialog-title">Einladungen in „{{ws.name}}“</h2>
+            <p class="nf-dialog-description">Die eingeladene Person öffnet den Link und meldet sich mit dem Konto für genau diese Adresse an.</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body">
+          <form class="nf-inline-row" onSubmit="{{inv.submit}}">
+            <label class="nf-visually-hidden" for="inv-email">E-Mail-Adresse</label>
+            <input id="inv-email" type="email" required class="nf-input" placeholder="E-Mail-Adresse" value="{{inv.email}}" onChange="{{inv.onEmail}}">
+            <label class="nf-visually-hidden" for="inv-role">Rolle</label>
+            <select id="inv-role" class="nf-input nf-input-narrow" value="{{inv.role}}" onChange="{{inv.onRole}}">
+              <option value="member">Mitglied</option>
+              <option value="admin">Admin</option>
+              <option value="guest">Gast</option>
+            </select>
+            <button type="submit" class="nf-btn nf-btn-primary">Einladen</button>
+          </form>
+          <sc-if value="{{inv.hasLink}}" hint-placeholder-val="{{ false }}">
+            <div class="nf-invite-link" role="status">
+              <p>Link für <strong>{{inv.linkEmail}}</strong>, sieben Tage gültig. Er wird nur jetzt angezeigt; bitte selbst weitergeben (E-Mails verschickt NoteFieber noch nicht).</p>
+              <div class="nf-invite-link-row">
+                <code>{{inv.link}}</code>
+                <button type="button" class="nf-btn" onClick="{{inv.copy}}">{{inv.copyLabel}}</button>
+              </div>
+            </div>
+          </sc-if>
+          <h3 class="nf-section-title">Einladungen ({{inv.count}})</h3>
+          <ul class="nf-people" aria-label="Einladungen">
+            <sc-for list="{{inv.items}}" as="iv" hint-placeholder-count="3">
+              <li class="nf-person">
+                <span class="nf-person-names"><span>{{iv.email}}</span><span>{{iv.meta}}</span></span>
+                <span class="nf-status" data-status="{{iv.status}}">{{iv.statusText}}</span>
+                <sc-if value="{{iv.open}}" hint-placeholder-val="{{ true }}">
+                  <button type="button" class="nf-link-danger" aria-label="{{iv.revokeLabel}}" onClick="{{iv.revoke}}">Zurücknehmen</button>
+                </sc-if>
+              </li>
+            </sc-for>
+          </ul>
+        </div>
+        <div class="nf-dialog-foot">
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Schließen</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+

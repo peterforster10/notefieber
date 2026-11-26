@@ -1,0 +1,121 @@
+/* Übersicht (Startseite nach dem Login) */
+.nf-nav-current{background:var(--nf-sidebar-selected);color:var(--nf-sidebar-selected-text);font-weight:600}
+.nf-nav-current:hover{background:var(--nf-sidebar-selected);color:var(--nf-sidebar-selected-text)}
+.nf-nav-current .nf-icon{color:inherit!important}
+.nf-side-spaces{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.nf-side-spaces .nf-nav-item{min-height:36px;flex:1;min-width:0}
+/* Zeile mit „⋯“ wie im Seitenbaum: Knopf beim Darüberfahren, mit dem Fokus und bei offenem Menü */
+.nf-side-space-row{position:relative;display:flex;align-items:center;gap:2px;padding-right:4px;border-radius:6px}
+.nf-side-space-row:hover,.nf-side-space-row:focus-within{background:var(--nf-sidebar-hover)}
+.nf-side-space-row .nf-nav-item:hover{background:transparent}
+.nf-side-space-row:hover .nf-actions,.nf-side-space-row:focus-within .nf-actions{display:flex}
+.nf-side-space-row:hover .nf-icon-button:hover{background:var(--nf-sidebar-press)}
+@media (hover:none){.nf-side-space-row .nf-actions{display:flex}}
+.nf-side-space-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-side-space-note{font-size:12px;color:var(--nf-sidebar-muted)}
+.nf-side-archived{color:var(--nf-sidebar-muted)}
+.nf-space-badge-sm{width:22px;height:22px;font-size:9px;border-radius:5px}
+.nf-space-badge-xs{width:18px;height:18px;font-size:8px;border-radius:4px}
+.nf-space-badge-lg{width:40px;height:40px;font-size:13px;border-radius:9px}
+.nf-overview{max-width:1120px;margin:0 auto}
+.nf-ov-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin:12px 0 8px}
+.nf-ov-head p{margin:4px 0 0}
+.nf-ov-greeting{margin:0;font-size:30px}
+.nf-ov-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:40px;align-items:start}
+.nf-ov-main>section+section{margin-top:12px}
+.nf-ov-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.nf-ov-toggle{display:inline-flex;align-items:center;gap:6px;margin-top:16px;font-size:13px;color:var(--nf-muted);cursor:pointer}
+.nf-ov-toggle input{accent-color:var(--nf-accent)}
+.nf-recent{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.nf-recent-card{display:flex;flex-direction:column;gap:6px;height:100%;padding:14px;border:1px solid var(--nf-border);border-radius:10px;background:var(--nf-bg);color:var(--nf-text);text-decoration:none;transition:border-color 120ms ease,box-shadow 120ms ease}
+.nf-recent-card:hover{color:var(--nf-text);border-color:var(--nf-control-border);box-shadow:var(--nf-shadow-pop)}
+.nf-recent-space{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--nf-muted)}
+.nf-recent-title{display:flex;align-items:center;gap:6px;font-weight:600;font-size:15px;line-height:1.3}
+.nf-recent-title .nf-icon{color:var(--nf-restricted-fg)}
+.nf-recent-excerpt{font-size:13px;color:var(--nf-muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nf-recent-meta{margin-top:auto;font-size:12px;color:var(--nf-muted)}
+.nf-space-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.nf-space-tile{display:flex;flex-direction:column;gap:8px;width:100%;height:100%;min-height:150px;padding:16px;border:1px solid var(--nf-border);border-radius:12px;background:var(--nf-bg);color:var(--nf-text);text-align:left;text-decoration:none;cursor:pointer;transition:border-color 120ms ease,box-shadow 120ms ease}
+.nf-space-tile:hover{color:var(--nf-text);border-color:var(--nf-control-border);box-shadow:var(--nf-shadow-pop)}
+.nf-space-tile-top{display:flex;align-items:center;gap:12px}
+.nf-space-tile-names{flex:1;min-width:0;display:flex;flex-direction:column}
+.nf-space-tile-name{font-size:16px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-space-tile-key{font-size:12px;color:var(--nf-muted);font-family:var(--nf-font-mono)}
+.nf-space-tile-desc{font-size:14px;color:var(--nf-muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nf-space-tile-meta{margin-top:auto;font-size:12px;color:var(--nf-muted)}
+.nf-space-tile.nf-archived{background:var(--nf-surface)}
+.nf-space-tile.nf-archived .nf-space-badge{filter:grayscale(1);opacity:.7}
+.nf-space-tile-new{align-items:center;justify-content:center;gap:6px;border-style:dashed;border-color:var(--nf-control-border);background:transparent;color:var(--nf-muted);font-weight:500}
+.nf-space-tile-new:hover{color:var(--nf-accent);border-color:var(--nf-accent);box-shadow:none;background:var(--nf-accent-soft)}
+.nf-space-tile-new .nf-space-tile-meta{margin-top:0;font-weight:400}
+.nf-chip{flex:none;padding:2px 8px;border-radius:999px;background:var(--nf-neutral-soft);color:var(--nf-muted);font-size:12px;font-weight:500}
+.nf-chip-admin{background:var(--nf-accent-soft);color:var(--nf-accent)}
+.nf-chip-archived{background:var(--nf-attention-soft);color:var(--nf-attention)}
+.nf-ov-side{display:flex;flex-direction:column;gap:16px;margin-top:22px}
+.nf-ov-panel{padding:16px;border:1px solid var(--nf-border);border-radius:12px;background:var(--nf-surface)}
+.nf-activity{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
+.nf-activity li{display:flex;gap:10px;font-size:13px;line-height:1.45}
+.nf-activity .nf-byline-avatar{width:26px;height:26px;font-size:10px;margin-top:1px}
+.nf-activity-text{display:flex;flex-direction:column;min-width:0}
+.nf-activity-text a{color:var(--nf-accent);text-decoration:none;font-weight:500}
+.nf-activity-text a:hover{text-decoration:underline}
+.nf-activity-meta{font-size:12px;color:var(--nf-muted)}
+.nf-ov-stat{margin:0 0 12px;font-size:14px;color:var(--nf-muted)}
+.nf-ov-stat strong{color:var(--nf-text)}
+.nf-ov-actions{display:flex;flex-wrap:wrap;gap:8px}
+@media (max-width:1199.98px){.nf-ov-grid{grid-template-columns:minmax(0,1fr)}.nf-ov-side{margin-top:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}}
+/* Einstellungen eines Spaces (Dialog) */
+.nf-st-head{display:flex;align-items:center;gap:12px;min-width:0}
+.nf-st-locked{margin:0 0 12px!important;padding:8px 12px;border-radius:8px;background:var(--nf-neutral-soft);color:var(--nf-muted);font-size:13px}
+.nf-swatches{display:flex;flex-wrap:wrap;gap:8px}
+.nf-swatch{display:grid;place-items:center;width:28px;height:28px;padding:0;border:0;border-radius:50%;color:#fff;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.nf-swatch[aria-checked='true']{box-shadow:0 0 0 2px var(--nf-bg),0 0 0 4px var(--nf-text)}
+.nf-swatch:disabled{cursor:default;opacity:.5}
+.nf-st-key{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:0!important;font-size:13px;color:var(--nf-muted)}
+.nf-zone{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:20px 0 4px;padding:14px 16px;border:1px solid var(--nf-border);border-radius:10px}
+.nf-zone-title{margin:0;font-size:14px;font-weight:600}
+.nf-zone-text{margin:2px 0 0!important;font-size:13px;color:var(--nf-muted)}
+.nf-zone .nf-btn{flex:none}
+/* Favoriten: Stern an Kachel, Zeile und im Umschalter; gesetzt in --nf-fav (Ocker, hell 4,9:1, dunkel 9:1) */
+.nf-space-tile-wrap{position:relative}
+.nf-space-tile-wrap .nf-space-tile-top{padding-right:34px}
+.nf-tile-star{position:absolute;top:13px;right:12px;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:6px;background:none;color:var(--nf-muted);cursor:pointer;opacity:0;transition:opacity 120ms ease}
+.nf-space-tile-wrap:hover .nf-tile-star,.nf-tile-star:focus-visible,.nf-tile-star[aria-pressed='true']{opacity:1}
+@media (hover:none){.nf-tile-star{opacity:1}}
+/* Beim Darüberfahren nur der Stern in Ocker, ohne Hintergrund des Knopfs */
+.nf-tile-star:hover,.nf-tile-star:hover:not(:disabled){background:none;color:var(--nf-fav)}
+.nf-icon-button.nf-star-btn:hover:not(:disabled),.nf-side-space-row:hover .nf-icon-button.nf-star-btn:hover:not(:disabled),.nf-tree-row:hover .nf-icon-button.nf-star-btn:hover:not(:disabled){background:none;color:var(--nf-fav)}
+.nf-tile-star[aria-pressed='true'],.nf-star-btn[aria-pressed='true']{color:var(--nf-fav)}
+.nf-tile-star[aria-pressed='true'] svg,.nf-star-btn[aria-pressed='true'] svg,svg.nf-star-on{fill:currentColor}
+.nf-tile-star[aria-pressed='true']:hover{color:var(--nf-fav)}
+.nf-menu-item .nf-icon.nf-star-on{color:var(--nf-fav)}
+.nf-menu-star{display:grid;place-items:center;width:28px;height:28px;flex:none;padding:0;border:0;border-radius:6px;background:none;color:var(--nf-muted);cursor:pointer;opacity:0}
+.nf-menu-row:hover .nf-menu-star,.nf-menu-star:focus-visible,.nf-menu-star[aria-pressed='true']{opacity:1}
+@media (hover:none){.nf-menu-star{opacity:1}}
+.nf-menu-star:hover,.nf-menu-star[aria-pressed='true']{color:var(--nf-fav)}
+.nf-menu-star[aria-pressed='true'] svg{fill:currentColor}
+/* Seiten-Favoriten über dem Seitenbaum (ein-/ausklappbar wie der Papierkorb) */
+.nf-page-favs{display:flex;flex-direction:column;gap:2px;margin-bottom:-4px}
+svg.nf-icon.nf-fav-section-star{color:var(--nf-fav)!important;fill:currentColor}
+.nf-page-fav-list{list-style:none;margin:0;padding:0 0 4px 12px;display:flex;flex-direction:column;gap:2px}
+.nf-fav-row{padding-left:6px}
+.nf-fav-row .nf-actions{display:none}
+.nf-fav-row:hover .nf-actions,.nf-fav-row:focus-within .nf-actions{display:flex}
+/* Stern in der Leiste über der Seite: beim Darüberfahren nur der Stern ocker, als Favorit gefüllt */
+.nf-btn.nf-page-star:hover{background:none;color:var(--nf-fav)}
+.nf-btn.nf-btn-ghost.nf-page-star[aria-pressed='true']{background:none;color:var(--nf-fav)}
+/* Kein Favorit: grau (fällt sonst zu sehr auf); Favorit und Darüberfahren: ocker */
+.nf-btn.nf-btn-ghost.nf-page-star{color:var(--nf-muted)}
+.nf-btn.nf-btn-ghost.nf-page-star:hover,.nf-btn.nf-btn-ghost.nf-page-star[aria-pressed='true']{color:var(--nf-fav)}
+/* Immer mit Rahmen wie „Teilen“, beim Darüberfahren etwas dunkler */
+.nf-btn.nf-btn-ghost.nf-page-star,.nf-btn.nf-btn-ghost.nf-page-star[aria-pressed='true']{border-color:var(--nf-control-border)}
+.nf-btn.nf-btn-ghost.nf-page-star:hover{border-color:#b9c1cb}
+.nf-page-star[aria-pressed='true'] svg{fill:currentColor}
+/* Sterne in Listen (Spaces, Seiten-Favoriten): auch als Nicht-Favorit gleich ocker, nur als Umriss.
+   Ausnahme: der Stern über der Seite bleibt grau, solange sie kein Favorit ist (fällt sonst zu sehr auf) */
+.nf-tile-star,.nf-menu-star,.nf-icon-button.nf-star-btn{color:var(--nf-fav)}
+/* Alle Sterne beim Darüberfahren in Ocker: kein Favorit → gefüllt (Vorschau auf „hinzufügen“),
+   Favorit → leer mit Rand (Vorschau auf „entfernen“) */
+.nf-star-btn[aria-pressed='false']:hover svg,.nf-tile-star[aria-pressed='false']:hover svg,.nf-menu-star[aria-pressed='false']:hover svg,.nf-page-star[aria-pressed='false']:hover svg{fill:currentColor}
+.nf-star-btn[aria-pressed='true']:hover svg,.nf-tile-star[aria-pressed='true']:hover svg,.nf-menu-star[aria-pressed='true']:hover svg,.nf-page-star[aria-pressed='true']:hover svg{fill:none;stroke-width:1.75}
+.nf-star-btn:hover,.nf-tile-star:hover,.nf-menu-star:hover,.nf-btn.nf-page-star:hover{color:var(--nf-fav)}

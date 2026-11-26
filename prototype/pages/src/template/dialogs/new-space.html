@@ -1,0 +1,37 @@
+  <!-- Neuer Space (statt des Formulars auf der alten Startseite): Name, Schlüssel, Beschreibung, Rechte -->
+  <sc-if value="{{newSpaceOpen}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <form class="nf-dialog" role="dialog" aria-modal="true" aria-labelledby="ns-title" onSubmit="{{ns.submit}}">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="ns-title" class="nf-dialog-title">Neuer Space</h2>
+            <p class="nf-dialog-description">Ein Space bekommt eine Startseite; du wirst sein Admin.</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body">
+          <label class="nf-label" for="ns-name" style="margin-top: 0">Name</label>
+          <input id="ns-name" class="nf-input nf-input-wide" maxlength="200" required placeholder="z. B. Kundenservice" value="{{ns.name}}" onChange="{{ns.onName}}">
+          <label class="nf-label" for="ns-key">Schlüssel</label>
+          <input id="ns-key" class="nf-input nf-input-wide nf-key-input" maxlength="32" required value="{{ns.key}}" onChange="{{ns.onKey}}" aria-describedby="ns-key-hint">
+          <p id="ns-key-hint" class="{{ns.keyHintCls}}">{{ns.keyHint}}</p>
+          <label class="nf-label" for="ns-desc">Beschreibung <span class="nf-muted" style="font-weight: 400">(optional)</span></label>
+          <textarea id="ns-desc" class="nf-input nf-input-wide" rows="2" maxlength="2000" value="{{ns.description}}" onChange="{{ns.onDescription}}"></textarea>
+          <label class="nf-label" for="ns-access">Alle im Workspace „{{ws.name}}“ (ohne Gäste) dürfen</label>
+          <select id="ns-access" class="nf-input nf-input-wide" value="{{ns.access}}" onChange="{{ns.onAccess}}">
+            <option value="viewer">Lesen</option>
+            <option value="commenter">Kommentieren</option>
+            <option value="editor">Bearbeiten</option>
+            <option value="none">Nichts (nur ich als Admin)</option>
+          </select>
+        </div>
+        <div class="nf-dialog-foot">
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Abbrechen</button>
+          <button type="submit" class="nf-btn nf-btn-primary">Space anlegen</button>
+        </div>
+      </form>
+    </div>
+  </sc-if>
+

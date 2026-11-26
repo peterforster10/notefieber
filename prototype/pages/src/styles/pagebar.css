@@ -1,0 +1,53 @@
+/* Kopfbereich */
+.nf-topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:flex-start;gap:8px 12px;min-height:63px;padding:12px 32px;border-bottom:1px solid var(--nf-border);background:var(--nf-bg)}
+/* Zeile unter der Leiste: scrollt mit dem Inhalt */
+.nf-pagebar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;min-height:62px;padding:12px 32px}
+.nf-topbar-start{display:flex;align-items:center;gap:8px;min-width:0;flex:1 1 160px}
+.nf-topbar-end{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.nf-page-actions{position:relative}
+/* Aktionsleiste: Icon-Knöpfe ohne Rahmen, Hintergrund nur beim Darüberfahren bzw. gedrückt */
+.nf-btn-ghost{border-color:transparent;background:transparent;color:var(--nf-muted)}
+.nf-btn-ghost:hover,.nf-btn-ghost[aria-expanded='true']{background:var(--nf-subtle);color:var(--nf-text)}
+.nf-btn.nf-btn-ghost[aria-pressed='true']{border-color:transparent;background:var(--nf-sidebar-selected);color:var(--nf-sidebar-selected-text)}
+.nf-btn-icon.nf-has-count{width:auto;padding:0 8px;gap:5px}
+.nf-count{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--nf-attention);color:var(--nf-on-accent);font-size:11px;font-weight:600;line-height:1}
+/* Rechte-Knopf: mit eigenen Rechten orange mit Schloss („Eingeschränkt“) */
+.nf-share-restricted{border-color:transparent;background:var(--nf-restricted-bg);color:var(--nf-restricted-fg);font-weight:500}
+.nf-share-restricted:hover{background:color-mix(in srgb,var(--nf-restricted-bg) 85%,var(--nf-restricted-fg))}
+/* Speicherstatus */
+.nf-save-status{display:inline-flex;align-items:center;gap:5px;margin-right:4px;font-size:13px;color:var(--nf-muted);white-space:nowrap}
+.nf-save-status[data-state='offline']{color:var(--nf-attention);font-weight:500}
+.nf-spin{animation:nf-spin 900ms linear infinite}
+@keyframes nf-spin{to{transform:rotate(360deg)}}
+.nf-presence>span.nf-presence-more{background:var(--nf-muted);color:var(--nf-bg)}
+/* Seiteninfo */
+.nf-info{display:grid;grid-template-columns:max-content 1fr;gap:8px 20px;margin:0;font-size:14px}
+.nf-info dt{color:var(--nf-muted)}
+.nf-info dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.nf-info-links{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+/* Workspace und Einladungen */
+.nf-menu-meta{font-family:var(--nf-font-sans);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-dialog-wide{width:min(680px,100%)}
+.nf-inline-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.nf-inline-row .nf-input{flex:1 1 220px;min-width:0;margin:0}
+.nf-inline-row .nf-input-narrow{flex:0 0 auto}
+.nf-section-title{margin:22px 0 6px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--nf-muted)}
+.nf-people{list-style:none;margin:0;padding:0;max-height:320px;overflow-y:auto}
+.nf-person{display:flex;align-items:center;gap:12px;min-height:52px;border-bottom:1px solid var(--nf-border)}
+.nf-person:last-child{border-bottom:0}
+.nf-person .nf-byline-avatar{width:30px;height:30px;font-size:11px}
+.nf-person-names{flex:1;min-width:0;display:flex;flex-direction:column}
+.nf-person-names>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-person-names>span+span{font-size:12px;color:var(--nf-muted)}
+.nf-person-role{height:34px;padding:0 8px;border:1px solid var(--nf-input-border);border-radius:8px;background:var(--nf-bg);font-size:14px}
+.nf-person-role-text{font-size:14px;color:var(--nf-muted)}
+.nf-link-danger{padding:4px 2px;border:0;background:none;color:var(--nf-danger);font-size:13px;cursor:pointer}
+.nf-link-danger:hover{text-decoration:underline}
+.nf-status{padding:2px 8px;border-radius:999px;font-size:12px;font-weight:500;background:var(--nf-neutral-soft);color:var(--nf-muted)}
+.nf-status[data-status='open']{background:var(--nf-accent-soft);color:var(--nf-accent)}
+.nf-status[data-status='accepted']{background:var(--nf-done-bg);color:var(--nf-done-fg)}
+.nf-invite-link{margin:14px 0 0;padding:12px 14px;border-radius:8px;background:var(--nf-done-bg);color:var(--nf-done-fg);font-size:14px}
+.nf-invite-link p{margin:0 0 8px}
+.nf-invite-link-row{display:flex;align-items:center;gap:8px}
+.nf-invite-link-row code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:var(--nf-bg)!important;color:var(--nf-text)}
+.nf-dialog-foot-split{justify-content:space-between}

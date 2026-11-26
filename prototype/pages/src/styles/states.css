@@ -1,0 +1,36 @@
+/* ---------- Laden und leere Zustände (Ausblick) ---------- */
+:root{--nf-skel:#eceff3;--nf-skel-hi:#f7f8fa}
+:root[data-theme='dark']{--nf-skel:#222933;--nf-skel-hi:#2c3440}
+.nf-skel{display:block;height:12px;border-radius:6px;background:linear-gradient(90deg,var(--nf-skel) 25%,var(--nf-skel-hi) 50%,var(--nf-skel) 75%);background-size:300% 100%;animation:nf-shimmer 1.4s ease-in-out infinite}
+@keyframes nf-shimmer{from{background-position:100% 0}to{background-position:0 0}}
+@media (prefers-reduced-motion:reduce){.nf-skel{animation:none;background:var(--nf-skel)}}
+.nf-skel-page{padding-top:8px}
+.nf-skel-title{width:52%;height:36px;margin:8px 0 18px;border-radius:8px}
+.nf-skel-meta{display:flex;align-items:center;gap:10px;margin-bottom:34px}
+.nf-skel-avatar{width:20px;height:20px;border-radius:50%}
+.nf-skel-h{width:28%;height:20px;margin:30px 0 14px}
+.nf-skel-line{height:14px;margin:0 0 12px}
+.nf-skel-block{height:64px;margin:18px 0 22px;border-radius:8px}
+.nf-skel-tree{display:flex;flex-direction:column;gap:14px;padding:10px 8px 4px}
+.nf-skel-tree .nf-skel{height:11px}
+.nf-tree-empty{margin:6px 8px 0;padding:14px 12px;border:1px dashed var(--nf-sidebar-border);border-radius:8px;font-size:13px;color:var(--nf-sidebar-muted)}
+.nf-tree-empty p{margin:0 0 8px}
+.nf-tree-empty button{display:inline-flex;align-items:center;gap:6px;padding:5px 8px;margin-left:-8px;border:0;border-radius:6px;background:none;color:var(--nf-accent);font:inherit;font-weight:500;cursor:pointer}
+.nf-tree-empty button:hover{background:var(--nf-sidebar-hover)}
+.nf-welcome{margin:8px 0 28px;padding:28px;border:1px solid var(--nf-border);border-radius:14px;background:var(--nf-surface);text-align:center}
+.nf-welcome-icon{display:inline-grid;place-items:center;width:48px;height:48px;margin-bottom:12px;border-radius:12px;background:var(--nf-accent-soft);color:var(--nf-accent)}
+.nf-welcome-title{margin:0 0 6px;font-size:19px;font-weight:600}
+.nf-welcome-text{max-width:460px;margin:0 auto;font-size:14.5px;line-height:1.55;color:var(--nf-muted)}
+.nf-welcome-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:20px;text-align:left}
+.nf-welcome-card{display:flex;flex-direction:column;gap:4px;padding:14px;border:1px solid var(--nf-border);border-radius:10px;background:var(--nf-bg);color:var(--nf-text);font:inherit;font-size:13px;text-align:left;text-decoration:none;cursor:pointer}
+.nf-welcome-card:hover{border-color:var(--nf-input-border);color:var(--nf-text)}
+.nf-welcome-card .nf-icon{margin-bottom:4px;color:var(--nf-accent)}
+.nf-welcome-card strong{font-size:14px;font-weight:600}
+.nf-welcome-card span{color:var(--nf-muted);line-height:1.45}
+.nf-welcome-hint{margin:16px 0 0;font-size:13px;color:var(--nf-muted)}
+.nf-cm-empty{display:flex;flex-direction:column;align-items:center;gap:6px;margin:8px 0;padding:22px 16px;border:1px dashed var(--nf-border);border-radius:10px;text-align:center;font-size:13px;line-height:1.5;color:var(--nf-muted)}
+.nf-cm-empty p{margin:0}
+.nf-empty-icon{display:grid;place-items:center;width:40px;height:40px;margin-bottom:4px;border-radius:50%;background:var(--nf-subtle);color:var(--nf-muted)}
+.nf-empty-title{font-size:14px;font-weight:600;color:var(--nf-text)}
+.nf-cmd-empty .nf-empty-icon{margin:0 auto 10px}
+.nf-cmd-empty-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:12px}
