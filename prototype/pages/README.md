@@ -15,6 +15,7 @@ values (colors, font sizes, spacing, radii, shadows, layout).
   test data in the script (Alpenwerk from `database/scripts/seed/seed.sql`, signed in as Peter Forster).
 - `support.js`, `vendor/react*.js` — the runtime that renders the component; not part of the design.
 - `../fonts/` — Inter (variabel) und IBM Plex Mono als woff2 aus `@fontsource` (OFL-1.1, Lizenzen daneben).
+- `../brand/` — Logo-Entwürfe (`Logo.html` zum Vergleichen); das graue „NF“ ist in Seitenleiste, Import und als Browser-Icon eingesetzt.
 
 ## Was wie im Frontend ist
 
@@ -23,14 +24,16 @@ values (colors, font sizes, spacing, radii, shadows, layout).
   Einrücken, Ausrücken, In den Papierkorb), Papierkorb mit Wiederherstellen, „Daten gehostet in der
   EU“. Unter 1024 px eine Schublade. **Abweichend vom Frontend:** Abmelden und Sprache stehen nicht
   mehr in der Seitenleiste, sondern im Konto-Menü (siehe unten).
-- Brotkrume, Anwesenheit, „Versionen“, „Exportieren“, „Teilen und Rechte“. Versionen und Export
-  öffnen wie im Frontend Dialoge mit Ausblick. **Abweichend vom Frontend (25. November 2026):**
+- Brotkrume, Anwesenheit, „Versionen“, „Exportieren“, „Teilen und Rechte“. Export öffnet wie im
+  Frontend einen Dialog mit Ausblick, Versionen eine eigene Ansicht (siehe „Ausblick“). **Abweichend vom Frontend (25. November 2026):**
   - Sie stehen in einer eigenen Zeile unter der Leiste oben (`.nf-pagebar`, scrollt mit dem Inhalt);
     die Leiste oben (`.nf-topbar`, bleibt stehen) enthält links die Suche (unter 1024 px mit dem
-    Menü-Knopf davor) und rechts den Avatar der angemeldeten Person. Er öffnet das Konto-Menü: Name,
-    E-Mail und Rolle, „Benutzerprofil“, „Einstellungen“, „Tastenkürzel“ (vorerst Dialoge mit
-    Ausblick), für Owner und Admins des Workspaces „Workspace“ und „Einladungen“, Sprache
-    (Deutsch/English als Auswahl mit Haken), Darstellung (Hell, Dunkel, System) und „Abmelden“.
+    Menü-Knopf davor) und rechts zwei Knöpfe mit eigenem Menü:
+    - **Zahnrad „Einstellungen“:** Darstellung (Hell, Dunkel, System),
+      „Persönliche Einstellungen“ und „Tastenkürzel“ (vorerst Dialoge mit Ausblick), für Owner und
+      Admins des Workspaces „Workspace“ und „Einladungen“.
+    - **Avatar „Konto“:** Name, E-Mail und Rolle, „Benutzerprofil“, Sprache (Deutsch/English, die
+      Sprache gehört zur Person, `users.locale`) und „Abmelden“.
   - **Workspace** (Dialog): Name ändern, Mitglieder mit Rolle (Admin, Mitglied, Gast; Owner fest),
     Entfernen mit Rückfrage, Knopf „Personen einladen“. Im Frontend gibt es dafür noch keine
     Oberfläche; die Datenbank kann es schon (`app.set_workspace_member_role`,
@@ -136,6 +139,57 @@ BlockNote; dieser Entwurf legt fest, wie dessen Menüs aussehen und sich verhalt
 
 ## Ausblick (noch nicht im Frontend)
 
+- **Versionen** (E08, M3), statt des Dialogs mit Ausblick: geöffnet über „Versionen“ im „⋯“-Menü,
+  über „Zuletzt bearbeitet von …“ in der Byline oder „Versionen anzeigen“ in der Suche. Die Ansicht
+  ersetzt die Seite; die Brotkrume endet mit „Versionen“, rechts oben „Zurück zur Seite“ (ebenso Esc).
+  - **Rechts die Liste**, neueste zuerst und nach Tagen gruppiert (Heute, Gestern, Wochentag): je
+    Version Nummer, Uhrzeit, „Aktuell“ an der neuesten, Avatare und Namen aller, die seit der vorigen
+    Version bearbeitet haben (`author_ids`), dazu wie viele Wörter hinzugekommen (grün) und
+    weggefallen (rot) sind. Gesicherte Versionen tragen ihren Namen und „Gesichert von …“,
+    wiederhergestellte „Wiederhergestellt aus Version 4 von …“. Unter 1100 px steht die Liste über
+    dem Inhalt.
+  - **Links der Inhalt der gewählten Version** mit Titel, darüber eine Karte mit Nummer, Zeitpunkt,
+    Beteiligten und „Wiederherstellen“. „Änderungen hervorheben“ (Standard an) vergleicht mit der
+    vorigen oder einer frei gewählten älteren Version: Hinzugefügtes grün hinterlegt, Entferntes rot
+    und durchgestrichen (als `<ins>`/`<del>`, also auch für Screenreader), neue bzw. entfernte Blöcke
+    mit grünem bzw. rotem Strich am Rand, geänderte mit grauem; abgehakte Aufgaben und eine andere
+    Callout-Art als kleiner Hinweis. Daneben die Summe der Wörter. Farben als Tokens `--nf-ins-…`
+    und `--nf-del-…`, hell und dunkel (Text auf Hintergrund mindestens 7:1).
+  - **Wiederherstellen** (nur mit Bearbeitungsrecht, nicht an der aktuellen Version) fragt nach und
+    legt eine neue Version an („Daraus entsteht Version 13; alle bisherigen bleiben erhalten“), wie
+    im Collab-Server geplant: Die Historie bleibt linear. Danach zeigt die Ansicht die neue Version
+    im Vergleich zur vorigen, die Seite den alten Stand. Ohne Bearbeitungsrecht steht dort
+    „Wiederherstellen dürfen nur Bearbeitende“.
+  - **Version sichern** (nur Bearbeitende, `app.save_version`) mit optionalem Namen, z. B. „Vor dem
+    Review“. **Der Name ist ein Vorschlag:** `page_versions` hat dafür noch keine Spalte, das wäre
+    eine Schemaänderung (zuerst Test und Migration, Peter liest den Diff).
+  - Daten im Prototyp: „Datenmodell“ hat 12 Versionen vom 3. bis 25. November (zwei gesichert, eine
+    umbenannt, Zeilen der Tabelle kommen und gehen), die übrigen Seiten je drei. Die Blöcke sind
+    vereinfacht; neue und wiederhergestellte Versionen gelten bis zum Neuladen. Den Vergleich
+    rechnet der Prototyp selbst (längste gemeinsame Teilfolge über Blöcke und Wörter); im Frontend
+    kommt er aus dem BlockNote-JSON der Versionen und gehört in eine Bibliothek (z. B. das npm-Paket
+    `diff`), nicht in eigenen Code.
+- **Fuß jeder Seite** (unter dem Inhalt, nach einer Trennlinie), die zwei häufigsten Wege durch ein
+  Wiki:
+  - **Unterseiten (n)** als Karten (Titel, Schloss bei eigenen Rechten, Anfang des Inhalts in zwei
+    Zeilen, wer zuletzt bearbeitet hat und wann, Zahl eigener Unterseiten) oder als Liste (eine Zeile
+    je Seite; unter 640 px ohne Text). Umschalter rechts, pro Person gemerkt (im Prototyp
+    `localStorage`, `nf-proto-subview`). Mit Bearbeitungsrecht daneben „+ Unterseite“; hat die Seite
+    keine Unterseiten, steht dort nur ein dezentes „+ Unterseite anlegen“.
+  - **Verlinkt von (n):** Seiten, die per Seitenlink hierher zeigen, mit Pfad und dem Satz um den
+    Link (Linktext hervorgehoben). Im Prototyp aus den festen Links der Vorlage und aus Seitenlinks,
+    die man in dieser Sitzung im Editor einfügt; im Frontend aus `page_links` (pflegt der Worker
+    schon), über die API nur Quellen mit Leserecht (`app.page_rank`, M3).
+  - Nur Seiten mit Leserecht und nicht im Papierkorb; was fehlt, fehlt ohne Hinweis (wie bei
+    `POST /pages/lookup`), damit der Fuß nicht verrät, dass es eingeschränkte Seiten gibt. Ohne
+    Unterseiten, Rückverweise und Bearbeitungsrecht entfällt der Fuß ganz.
+- **Papierkorb als Dialog** (statt der kleinen Liste unten in der Seitenleiste; „Papierkorb (n)“
+  öffnet ihn): Suche über Titel, auch der Unterseiten; je Eintrag gelöscht von wem und wann, aus
+  welcher Elternseite, Restzeit bis zum endgültigen Löschen („noch 17 Tage“, ab 7 Tagen orange),
+  die mit gelöschten Unterseiten zum Aufklappen und „Wiederherstellen“ (nur mit Bearbeitungsrecht
+  an der Elternseite). Sofort endgültig löschen gibt es bewusst nicht; das macht der Worker nach
+  30 Tagen. Die Datenbank kennt beides schon (`pages.deleted_at`, `pages.deleted_by`); die API
+  (`GET /spaces/:key/trash`) müsste es mitliefern, dazu die Zahl der Unterseiten.
 - **Suche als Befehlspalette** (M3): Das Feld oben öffnet sie, ebenso Strg K (noch einmal: zu).
   - Volltext über Titel und Inhalt, nur Seiten mit Leserecht und ohne Papierkorb (im Frontend
     `page_search` und `app.page_rank`); Groß- und Kleinschreibung und Akzente egal („uberblick“ findet
@@ -167,7 +221,23 @@ BlockNote; dieser Entwurf legt fest, wie dessen Menüs aussehen und sich verhalt
   - Ab 1280 px steht die Spalte rechts neben dem Text und läuft beim Scrollen mit, darunter ist sie
     eine Schublade von rechts (Esc oder Klick daneben schließt). Auf dem Handy keine Sprechblasen am
     Rand; die Stelle selbst ist antippbar.
-- Rechte-Dialog mit „Eigene Rechte für diese Seite“, Rollen pro Person/Gruppe, Hinzufügen (M3)
+- **Rechte-Dialog** (M3), über „Teilen“ bzw. „Eingeschränkt“ in der Leiste über der Seite:
+  - Oben die **Zusammenfassung** „Zugriff“: wie viele Personen im Workspace welche wirksame Rolle
+    haben (Admin, Bearbeiten, Kommentieren, Lesen, ohne Zugriff; Namen beim Darüberfahren),
+    berechnet wie `app.page_rank` aus Personen, Gruppen und „Alle im Workspace“ (ohne Gäste), mit
+    den Änderungen im Entwurf. Rechts daneben „Ansehen als …“.
+  - Schalter „Eigene Rechte für diese Seite“ (Vererbung kappen übernimmt die bisherigen Rechte und
+    macht dich zum Admin), darunter Personen, Gruppen und „Alle im Workspace“ mit Rolle und „×“
+    zum Entfernen („Alle im Workspace“ höchstens Bearbeiten).
+  - **Hinzufügen** mit Vorschlagsliste beim Tippen (Personen mit E-Mail, Gäste markiert, Gruppen
+    mit Mitgliederzahl, „Alle im Workspace“), daneben die Rolle für neue Einträge; ↑↓ und Enter.
+  - **Absicherungen:** Nimmst du dir selbst Admin, erscheint eine Warnung und der Knopf heißt
+    „Trotzdem speichern“ (orange). Bliebe gar kein wirksamer Admin, sperrt der Dialog das Speichern
+    (die Datenbank prüft dasselbe mit `app.has_admin`).
+  - Ohne Admin-Recht nur lesbar mit Hinweis auf die eigene Rolle.
+- **„Ansehen als …“** (`app.view_as`, E09): Person wählen, darunter der ganze Seitenbaum des Spaces
+  mit ihrer Rolle pro Seite (ohne Zugriff gedämpft, eigene Rechte mit Schloss) und „sieht 8 von 9
+  Seiten“. Nur Struktur, keine Inhalte, Hinweis aufs Audit-Log; zeigt den gespeicherten Stand.
 - „Confluence-Import“ unten in der Seitenleiste, führt zu `../import/Import.dc.html` (M4)
 - Drag & Drop im Baum fehlt im Prototyp (im Frontend gebaut); das Zeilenmenü ersetzt es hier.
 

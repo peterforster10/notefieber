@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="NoteFieber">
+  <!-- Variante B „N mit Puls“: Buchstabe N, die Diagonale als Pulslinie in Orange -->
+  <rect width="32" height="32" rx="8" fill="#1F5FD6"/>
+  <path d="M10 23V9M22 23V9" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M10 9l3.4 4.1 1.6-3.1 2.6 9.6 1.4-2.7L22 23" fill="none" stroke="#FDBA74" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

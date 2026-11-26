@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="NoteFieber">
+  <!-- Variante C „Seiten mit Funke“: zwei Seiten übereinander (Wiki), ein warmer Punkt (Fieber) -->
+  <rect width="32" height="32" rx="8" fill="#1F5FD6"/>
+  <rect x="7.5" y="10" width="12" height="15" rx="2" fill="#9DB9EE"/>
+  <rect x="11.5" y="7" width="12.5" height="16.5" rx="2" fill="#FFFFFF"/>
+  <path d="M14.5 12h6.5M14.5 15.5h6.5M14.5 19h4" fill="none" stroke="#1F5FD6" stroke-width="1.6" stroke-linecap="round"/>
+  <circle cx="23.75" cy="7.75" r="3.25" fill="#F97316" stroke="#1F5FD6" stroke-width="1.5"/>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="NoteFieber">
+  <!-- Variante A „Seite mit Puls“: Seite mit Eselsohr, darauf eine Pulslinie (lebendiges Wissen) -->
+  <rect width="32" height="32" rx="8" fill="#1F5FD6"/>
+  <path d="M9.5 6.5h9.25L23.5 11.25V25.5h-14z" fill="#FFFFFF"/>
+  <path d="M18.75 6.5v4.75h4.75z" fill="#BFD2F5"/>
+  <path d="M11.75 18.25h2.6l1.55-3.6 2.4 6.9 1.5-3.3h2.1" fill="none" stroke="#C2410C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

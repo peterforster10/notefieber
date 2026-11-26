@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>NoteFieber – Seite</title>
+<link rel="icon" href="../brand/logo-mark-nf.svg" type="image/svg+xml">
 <script src="./vendor/react.js"></script>
 <script src="./vendor/react-dom.js"></script>
 <script src="./support.js"></script>
@@ -86,7 +87,10 @@ svg.nf-icon{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;
 .nf-with-comments>article{flex:1 1 520px;max-width:760px;min-width:0}
 
 .nf-sidebar-top{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding:2px 4px 2px 10px}
-.nf-brand{display:flex;flex-direction:column;min-width:0;color:var(--nf-sidebar-text);text-decoration:none}
+.nf-brand{display:flex;align-items:center;gap:10px;min-width:0;color:var(--nf-sidebar-text);text-decoration:none}
+/* Logo: NF in Inter, transparent, dünner Rahmen und Schrift in der Farbe des Schriftzugs (prototype/brand/) */
+.nf-brand-mark{flex:none;display:grid;place-items:center;width:30px;height:30px;border:1px solid currentColor;border-radius:8px;background:transparent;color:inherit;font-size:12px;font-weight:600;letter-spacing:-.03em;line-height:1}
+.nf-brand-text{display:flex;flex-direction:column;min-width:0}
 .nf-brand:hover{color:var(--nf-sidebar-text)}
 .nf-logo{font-size:17px;font-weight:700;letter-spacing:-.015em;line-height:1.25}
 .nf-tenant{font-size:12px;line-height:1.3;color:var(--nf-sidebar-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -158,6 +162,11 @@ button.nf-drawer-close,button.nf-drawer-open{display:none}
 .nf-trash-empty{color:var(--nf-sidebar-muted)}
 
 /* Konto rechts in der Leiste oben: Avatar als Knopf, Menü rechtsbündig darunter */
+.nf-topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;flex:none}
+.nf-topbar-right .nf-user{margin-left:0}
+.nf-gear-btn{display:grid;place-items:center;width:36px;height:36px;padding:0;border:0;border-radius:50%;background:none;color:var(--nf-muted);cursor:pointer}
+.nf-gear-btn:hover,.nf-gear-btn[aria-expanded='true']{background:var(--nf-subtle);color:var(--nf-text)}
+.nf-account-menu{min-width:260px}
 .nf-user{position:relative;margin-left:auto;flex:none}
 /* Ohne Rahmen und Ring; beim Darüberfahren und bei offenem Menü etwas dunkler. Den Fokusring gibt es
    nur bei Tastaturbedienung (:focus-visible, WCAG 2.4.7) */
@@ -380,6 +389,65 @@ svg.nf-icon.nf-fav-section-star{color:var(--nf-fav)!important;fill:currentColor}
 .nf-star-btn[aria-pressed='false']:hover svg,.nf-tile-star[aria-pressed='false']:hover svg,.nf-menu-star[aria-pressed='false']:hover svg,.nf-page-star[aria-pressed='false']:hover svg{fill:currentColor}
 .nf-star-btn[aria-pressed='true']:hover svg,.nf-tile-star[aria-pressed='true']:hover svg,.nf-menu-star[aria-pressed='true']:hover svg,.nf-page-star[aria-pressed='true']:hover svg{fill:none;stroke-width:1.75}
 .nf-star-btn:hover,.nf-tile-star:hover,.nf-menu-star:hover,.nf-btn.nf-page-star:hover{color:var(--nf-fav)}
+/* Rechte-Dialog: Zusammenfassung, Entfernen, Hinzufügen mit Vorschlägen, Warnungen; „Ansehen als …“ */
+.nf-rights-summary{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:0 24px 14px}
+.nf-rights-summary-label{margin-right:2px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--nf-muted)}
+.nf-access-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;background:var(--nf-neutral-soft);color:var(--nf-text);font-size:12px;white-space:nowrap;cursor:default}
+.nf-access-chip[data-role='admin']{background:var(--nf-accent-soft);color:var(--nf-accent)}
+.nf-access-chip[data-role='editor']{background:var(--nf-done-bg);color:var(--nf-done-fg)}
+.nf-access-chip[data-role='none']{background:none;border:1px dashed var(--nf-control-border);color:var(--nf-muted)}
+.nf-view-as-link{display:inline-flex;align-items:center;gap:6px;margin-left:auto;padding:4px 6px;border:0;border-radius:6px;background:none;color:var(--nf-accent);font-size:13px;cursor:pointer}
+.nf-view-as-link:hover{background:var(--nf-accent-soft)}
+.nf-grant-remove{display:grid;place-items:center;width:28px;height:28px;flex:none;padding:0;border:0;border-radius:6px;background:none;color:var(--nf-muted);cursor:pointer}
+.nf-grant-remove:hover{background:var(--nf-subtle);color:var(--nf-danger)}
+.nf-grant-add{display:flex;align-items:flex-start;gap:8px;padding:14px 0 6px}
+.nf-grant-search{position:relative;flex:1;min-width:0;display:flex;align-items:center}
+.nf-grant-search>.nf-icon{position:absolute;left:10px;color:var(--nf-muted);pointer-events:none}
+.nf-grant-search .nf-input{width:100%;margin:0;padding-left:32px}
+.nf-grant-add select.nf-grant-addrole{flex:none;width:auto;min-width:140px;margin:0}
+.nf-grant-add .nf-grant-search .nf-input{flex:1}
+.nf-grant-suggest{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:5;max-height:260px;overflow-y:auto;margin:0;padding:4px;list-style:none;border:1px solid var(--nf-border);border-radius:8px;background:var(--nf-bg);box-shadow:var(--nf-shadow-pop)}
+.nf-grant-suggest li{display:flex;align-items:center;gap:10px;min-height:44px;padding:4px 8px;border-radius:6px;cursor:pointer}
+.nf-grant-suggest li[aria-selected='true']{background:var(--nf-sidebar-selected)}
+.nf-grant-suggest .nf-byline-avatar{width:28px;height:28px;font-size:10px}
+.nf-grant-suggest .nf-grant-names{display:flex;flex-direction:column}
+.nf-grant-suggest .nf-grant-names span+span{font-size:12px;color:var(--nf-muted)}
+.nf-grant-suggest-role{font-size:12px;color:var(--nf-muted);white-space:nowrap}
+li.nf-grant-suggest-empty{color:var(--nf-muted);font-size:13px;cursor:default}
+.nf-rights-warn{margin:10px 0 4px!important;padding:8px 12px;border-radius:8px;background:var(--nf-attention-soft);color:var(--nf-attention);font-size:13px}
+.nf-rights-error{margin:10px 0 4px!important;padding:8px 12px;border-radius:8px;background:var(--nf-danger-soft);color:var(--nf-danger);font-size:13px}
+.nf-btn:disabled{opacity:.5;cursor:default}
+.nf-va-summary{margin:12px 0 8px!important;font-size:13px;color:var(--nf-muted)}
+.nf-va-list{list-style:none;margin:0 0 4px;padding:0;max-height:340px;overflow-y:auto;border:1px solid var(--nf-border);border-radius:8px}
+.nf-va-row{display:flex;align-items:center;gap:8px;min-height:36px;padding-right:10px;border-bottom:1px solid var(--nf-border);font-size:14px}
+.nf-va-row:last-child{border-bottom:0}
+.nf-va-row .nf-icon{color:var(--nf-muted)}
+.nf-va-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-va-row[data-none='true'] .nf-va-title{color:var(--nf-muted)}
+.nf-va-lock{color:var(--nf-restricted-fg)!important}
+/* Papierkorb als Dialog */
+.nf-trash-search{position:relative;display:flex;align-items:center;margin-bottom:12px}
+.nf-trash-search .nf-icon{position:absolute;left:10px;color:var(--nf-muted);pointer-events:none}
+.nf-trash-search .nf-input{width:100%;margin:0;padding-left:32px}
+.nf-trash-list{list-style:none;margin:0;padding:0;max-height:420px;overflow-y:auto}
+.nf-trash-item{border-bottom:1px solid var(--nf-border)}
+.nf-trash-item:last-child{border-bottom:0}
+.nf-trash-row{display:flex;align-items:flex-start;gap:12px;padding:12px 2px}
+.nf-trash-page{margin-top:3px;color:var(--nf-muted)}
+.nf-trash-main{flex:1;min-width:0}
+.nf-trash-title{display:flex;align-items:center;gap:6px;font-weight:500}
+.nf-trash-title span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-trash-meta{margin-top:2px;font-size:12px;color:var(--nf-muted)}
+.nf-trash-kids-toggle{display:inline-flex;align-items:center;gap:4px;margin-top:4px;padding:2px 4px 2px 0;border:0;background:none;color:var(--nf-accent);font-size:12px;cursor:pointer}
+.nf-trash-kids-toggle:hover{text-decoration:underline}
+.nf-trash-kids{list-style:none;margin:0 0 10px 30px;padding:6px 0;border-left:2px solid var(--nf-border)}
+.nf-trash-kids li{display:flex;align-items:center;gap:6px;min-height:26px;font-size:13px;color:var(--nf-muted)}
+.nf-days{flex:none;margin-top:2px;padding:2px 8px;border-radius:999px;background:var(--nf-neutral-soft);color:var(--nf-muted);font-size:12px;white-space:nowrap}
+.nf-days[data-soon='true']{background:var(--nf-attention-soft);color:var(--nf-attention);font-weight:500}
+.nf-trash-row .nf-btn-sm{flex:none}
+.nf-trash-empty-state{display:flex;flex-direction:column;align-items:center;gap:6px;padding:28px 0 12px;color:var(--nf-muted);font-size:14px}
+.nf-trash-empty-state p{margin:0!important}
+@media (max-width:599.98px){.nf-trash-row{flex-wrap:wrap}.nf-trash-row .nf-btn-sm{margin-left:28px}}
 /* Neuer Space */
 .nf-field-hint{margin:4px 0 0;font-size:12px;color:var(--nf-muted)}
 .nf-field-error{margin:4px 0 0;font-size:12px;color:var(--nf-danger)}
@@ -624,6 +692,115 @@ svg.nf-icon.nf-fav-section-star{color:var(--nf-fav)!important;fill:currentColor}
 .nf-dialog-soon{display:flex;gap:12px;padding:12px 14px;border-radius:8px;background:var(--nf-accent-soft);font-size:14px}
 .nf-dialog-soon p{margin:0!important}
 .nf-dialog-soon .nf-icon{color:var(--nf-accent);margin-top:2px}
+/* ---------- Versionen (Ausblick, E08): Verlauf rechts, Vergleich mit Hervorhebung, Wiederherstellen ---------- */
+:root{--nf-ins-bg:#dcf2e3;--nf-ins-text:#14532d;--nf-ins-bar:#2f8f57;--nf-ins-strong:#1e7a45;--nf-del-bg:#fbe3e3;--nf-del-text:#8a1c1c;--nf-del-bar:#c93a3a;--nf-del-strong:#b42318}
+:root[data-theme='dark']{--nf-ins-bg:#143523;--nf-ins-text:#a7e3bc;--nf-ins-bar:#4cb57a;--nf-ins-strong:#6fcf97;--nf-del-bg:#3f1a1c;--nf-del-text:#f3b4b4;--nf-del-bar:#e06c6c;--nf-del-strong:#f28b82}
+.nf-byline-link{padding:0;border:0;background:none;color:inherit;font:inherit;cursor:pointer;text-align:left}
+.nf-byline-link:hover{color:var(--nf-text);text-decoration:underline;text-underline-offset:2px}
+.nf-main-inner.nf-with-versions{max-width:1160px;display:flex;flex-wrap:nowrap;justify-content:center;gap:56px}
+.nf-with-versions>.nf-vdoc{flex:1 1 auto;min-width:0;max-width:760px}
+.nf-vhead{display:flex;flex-direction:column;gap:12px;margin:4px 0 28px;padding:14px 16px;border:1px solid var(--nf-border);border-radius:12px;background:var(--nf-surface)}
+.nf-vhead-row{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:10px 16px}
+.nf-vhead-title{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0;font-size:16px;font-weight:600}
+.nf-vhead-meta{margin:3px 0 0;font-size:13.5px;color:var(--nf-muted)}
+.nf-vhead-note{margin:2px 0 0;font-size:13.5px;color:var(--nf-muted)}
+.nf-vhead-actions{display:flex;align-items:center;gap:8px}
+.nf-vcompare{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding-top:12px;border-top:1px solid var(--nf-border);font-size:13.5px}
+.nf-vtoggle{display:inline-flex;align-items:center;gap:8px;font-weight:500;cursor:pointer}
+.nf-vtoggle input{width:16px;height:16px;margin:0;accent-color:var(--nf-accent);cursor:pointer}
+.nf-vcmp-label{display:inline-flex;align-items:center;gap:8px;color:var(--nf-muted)}
+.nf-vcmp-label select{height:32px;padding:0 8px;border:1px solid var(--nf-control-border);border-radius:6px;background:var(--nf-bg);color:var(--nf-text);font:inherit}
+.nf-vcmp-label select:disabled{opacity:.6}
+.nf-vstats{margin-left:auto;color:var(--nf-muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.nf-vstat-ins{color:var(--nf-ins-strong);font-weight:600}
+.nf-vstat-ins+.nf-vstat-del{margin-left:6px}
+.nf-vstat-del{color:var(--nf-del-strong);font-weight:600}
+.nf-vhint{font-size:13px;color:var(--nf-muted)}
+.nf-vtag{display:inline-block;padding:1px 8px;border-radius:999px;background:var(--nf-done-bg);color:var(--nf-done-fg);font-size:11.5px;font-weight:600;line-height:1.6}
+.nf-vdoc ins{padding:0 1px;border-radius:3px;background:var(--nf-ins-bg);color:var(--nf-ins-text);text-decoration:none;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.nf-vdoc del{padding:0 1px;border-radius:3px;background:var(--nf-del-bg);color:var(--nf-del-text);text-decoration:line-through;text-decoration-thickness:1px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.nf-vb{position:relative}
+.nf-vdoc del+ins,.nf-vdoc ins+del{margin-left:2px}
+.nf-vb.nf-v-added::before,.nf-vb.nf-v-removed::before,.nf-vb.nf-v-changed::before{content:'';position:absolute;left:-16px;top:3px;bottom:3px;width:3px;border-radius:2px;background:var(--nf-ins-bar)}
+.nf-vb.nf-v-removed::before{background:var(--nf-del-bar)}
+.nf-vb.nf-v-changed::before{background:var(--nf-control-border)}
+.nf-vnote{margin-left:8px;padding:0 6px;border-radius:4px;background:var(--nf-neutral-soft);color:var(--nf-muted);font-size:12.5px;text-decoration:none!important;white-space:nowrap}
+.nf-vcheck input{cursor:default}
+.nf-vrow{display:grid;grid-template-columns:minmax(120px,30%) 1fr;border:1px solid var(--nf-border);border-top:0;font-size:14px;line-height:1.5}
+.nf-vrow>span{padding:8px 12px;min-width:0;overflow-wrap:anywhere}
+.nf-vrow>span+span{border-left:1px solid var(--nf-border)}
+.nf-vrow-first{margin-top:12px;border-top:1px solid var(--nf-border);border-radius:8px 8px 0 0}
+.nf-vrow-last{margin-bottom:16px;border-radius:0 0 8px 8px}
+.nf-vrow-first.nf-vrow-last{border-radius:8px}
+.nf-vrow-head{background:var(--nf-subtle);font-weight:600}
+.nf-vrow.nf-v-added::before,.nf-vrow.nf-v-removed::before,.nf-vrow.nf-v-changed::before{top:0;bottom:0}
+.nf-versions{flex:0 0 300px;align-self:flex-start;position:sticky;top:76px;max-height:calc(100vh - 92px);overflow-y:auto;padding:2px 2px 16px}
+.nf-versions-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
+.nf-vcount{margin-left:6px;color:var(--nf-muted);font-weight:500}
+.nf-vgroup{margin:16px 0 6px;padding:0 10px;font-size:12px;font-weight:600;color:var(--nf-muted)}
+.nf-vlist{display:flex;flex-direction:column;gap:2px;margin:0;padding:0;list-style:none}
+.nf-vitem{display:flex;flex-direction:column;gap:3px;width:100%;padding:9px 10px;border:0;border-radius:8px;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.nf-vitem:hover{background:var(--nf-subtle)}
+.nf-vitem[aria-current='true']{background:var(--nf-accent-soft);box-shadow:inset 3px 0 0 var(--nf-accent)}
+.nf-vitem-top{display:flex;align-items:center;gap:8px;font-size:14px}
+.nf-vitem-time{margin-left:auto;font-size:13px;color:var(--nf-muted);font-variant-numeric:tabular-nums}
+.nf-vitem-name{font-size:13.5px;font-weight:500}
+.nf-vitem-kind{font-size:12.5px;color:var(--nf-muted)}
+.nf-vitem-foot{display:flex;align-items:center;gap:8px;min-width:0;font-size:12.5px;color:var(--nf-muted)}
+.nf-vavs{display:flex;flex:none}
+.nf-vavs>span{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;box-shadow:0 0 0 2px var(--nf-bg);color:#fff;font-size:8.5px;font-weight:600}
+.nf-vavs>span+span{margin-left:-4px}
+.nf-vitem[aria-current='true'] .nf-vavs>span{box-shadow:0 0 0 2px var(--nf-accent-soft)}
+.nf-vitem-names{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-vitem-delta{margin-left:auto;flex:none;font-variant-numeric:tabular-nums}
+/* ---------- Fuß der Seite (Ausblick): Unterseiten als Karten oder Liste, „Verlinkt von“ ---------- */
+.nf-page-foot{display:flex;flex-direction:column;gap:32px;margin-top:48px;padding-top:24px;border-top:1px solid var(--nf-border)}
+.nf-foot-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;margin-bottom:12px}
+.nf-foot-title{margin:0;font-size:15px;font-weight:600}
+.nf-foot-count{margin-left:6px;color:var(--nf-muted);font-weight:500}
+.nf-foot-tools{display:flex;align-items:center;gap:8px}
+.nf-seg{display:inline-flex;padding:2px;border:1px solid var(--nf-control-border);border-radius:8px}
+.nf-seg-btn{display:grid;place-items:center;width:30px;height:28px;border:0;border-radius:6px;background:none;color:var(--nf-muted);cursor:pointer}
+.nf-seg-btn:hover{color:var(--nf-text)}
+.nf-seg-btn[aria-pressed='true']{background:var(--nf-subtle);color:var(--nf-text);box-shadow:inset 0 0 0 1px var(--nf-border)}
+.nf-foot-add{height:34px}
+.nf-foot-lock{flex:none;color:var(--nf-muted)}
+.nf-subcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin:0;padding:0;list-style:none}
+.nf-subcard{display:flex;flex-direction:column;gap:6px;height:100%;padding:14px;border:1px solid var(--nf-border);border-radius:10px;background:var(--nf-bg);color:inherit;text-decoration:none;transition:border-color 120ms ease,background-color 120ms ease}
+.nf-subcard:hover{border-color:var(--nf-input-border);color:inherit}
+.nf-subcard-title{display:flex;align-items:center;gap:8px;min-width:0;font-size:15px;font-weight:600;line-height:1.35}
+.nf-subcard-title>.nf-icon:first-child{flex:none;color:var(--nf-muted)}
+.nf-subcard-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-subcard-text{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13.5px;line-height:1.5;color:var(--nf-muted)}
+.nf-subcard-meta{display:flex;align-items:center;gap:6px;margin-top:auto;padding-top:4px;font-size:12.5px;color:var(--nf-muted)}
+.nf-subcard-meta .nf-byline-avatar{width:18px;height:18px;font-size:8.5px}
+.nf-subcard-kids{margin-left:auto;white-space:nowrap}
+.nf-sublist,.nf-backlinks{margin:0;padding:0;list-style:none;border:1px solid var(--nf-border);border-radius:10px;overflow:hidden}
+.nf-sublist>li+li,.nf-backlinks>li+li{border-top:1px solid var(--nf-border)}
+.nf-subrow{display:flex;align-items:center;gap:10px;min-height:44px;padding:8px 14px;color:inherit;font-size:14px;text-decoration:none}
+.nf-subrow>.nf-icon:first-child{flex:none;color:var(--nf-muted)}
+.nf-subrow-title{flex:none;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.nf-subrow-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px;color:var(--nf-muted)}
+.nf-subrow-meta{flex:none;margin-left:auto;font-size:12.5px;color:var(--nf-muted);white-space:nowrap}
+.nf-subrow:hover,.nf-backlink:hover{background:var(--nf-subtle);color:inherit}
+.nf-backlink{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;color:inherit;text-decoration:none}
+.nf-backlink>.nf-icon:first-child{flex:none;margin-top:3px;color:var(--nf-muted)}
+.nf-backlink-body{display:flex;flex-direction:column;gap:2px;min-width:0}
+.nf-backlink-top{display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;font-size:14px}
+.nf-backlink-title{font-weight:600}
+.nf-backlink-path{font-size:12.5px;color:var(--nf-muted)}
+.nf-backlink-snippet{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px;color:var(--nf-muted)}
+.nf-backlink-hit{padding:0;background:none;color:var(--nf-text);font-weight:600}
+.nf-foot-new{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;margin-left:-10px;padding:6px 10px;border:0;border-radius:6px;background:none;color:var(--nf-muted);font:inherit;font-size:14px;cursor:pointer}
+.nf-foot-new:hover{background:var(--nf-subtle);color:var(--nf-text)}
+@media (max-width:640px){
+  .nf-subrow-text{display:none}
+  .nf-subrow-title{max-width:none;flex:1}
+}
+@media (max-width:1100px){
+  .nf-main-inner.nf-with-versions{flex-direction:column-reverse;gap:20px;max-width:760px}
+  .nf-versions{position:static;flex:none;width:100%;max-height:300px;padding:10px;border:1px solid var(--nf-border);border-radius:12px}
+}
 .nf-dialog-foot{display:flex;justify-content:flex-end;gap:8px;padding:16px 24px 20px}
 .nf-switch{position:relative;width:46px;height:28px;flex:none;border:0;border-radius:14px;background:#7d8796;cursor:pointer}
 .nf-switch[aria-pressed='true']{background:var(--nf-accent)}
@@ -691,8 +868,11 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
   <nav class="nf-sidebar" aria-label="Navigation">
     <div class="nf-sidebar-top">
       <a href="#" class="nf-brand" onClick="{{goOverview}}">
-        <span class="nf-logo">NoteFieber</span>
-        <span class="nf-tenant">Alpenwerk</span>
+        <span class="nf-brand-mark" aria-hidden="true">NF</span>
+        <span class="nf-brand-text">
+          <span class="nf-logo">NoteFieber</span>
+          <span class="nf-tenant">Alpenwerk</span>
+        </span>
       </a>
       <button type="button" class="nf-icon-button nf-drawer-close" aria-label="Navigation schließen" onClick="{{closeDrawer}}">
         <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
@@ -735,7 +915,7 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
               <sc-if value="{{sc.menuOpen}}" hint-placeholder-val="{{ false }}">
                 <ul class="nf-menu nf-row-menu" role="menu" aria-label="{{sc.actionsLabel}}">
                   <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{sc.settings}}">
-                    <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2"></circle><path d="M8 1.75v1.7M8 12.55v1.7M1.75 8h1.7M12.55 8h1.7M3.58 3.58l1.2 1.2M11.22 11.22l1.2 1.2M3.58 12.42l1.2-1.2M11.22 4.78l1.2-1.2"></path><circle cx="8" cy="8" r="4.25"></circle></svg>
+                    <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.69 3.28L6.89 1.7H9.11L9.31 3.28L10.41 3.74L11.67 2.76L13.24 4.33L12.26 5.59L12.72 6.69L14.3 6.89V9.11L12.72 9.31L12.26 10.41L13.24 11.67L11.67 13.24L10.41 12.26L9.31 12.72L9.11 14.3H6.89L6.69 12.72L5.59 12.26L4.33 13.24L2.76 11.67L3.74 10.41L3.28 9.31L1.7 9.11V6.89L3.28 6.69L3.74 5.59L2.76 4.33L4.33 2.76L5.59 3.74Z"></path><circle cx="8" cy="8" r="2.1"></circle></svg>
                     <span class="nf-menu-label">Einstellungen</span></button></li>
                   <li role="none"><button type="button" role="menuitem" class="nf-menu-item" onClick="{{sc.copyLink}}">
                     <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.75 9.25a3 3 0 004.24 0l2-2a3 3 0 00-4.24-4.24l-.75.75"></path><path d="M9.25 6.75a3 3 0 00-4.24 0l-2 2a3 3 0 004.24 4.24l.75-.75"></path></svg>
@@ -785,7 +965,7 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
                 <ul class="nf-menu nf-submenu" role="menu" aria-label="{{si.actionsLabel}}">
                   <li role="none">
                     <a href="#" role="menuitem" class="nf-menu-item" onClick="{{si.settings}}">
-                      <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2"></circle><path d="M8 1.75v1.7M8 12.55v1.7M1.75 8h1.7M12.55 8h1.7M3.58 3.58l1.2 1.2M11.22 11.22l1.2 1.2M3.58 12.42l1.2-1.2M11.22 4.78l1.2-1.2"></path><circle cx="8" cy="8" r="4.25"></circle></svg>
+                      <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.69 3.28L6.89 1.7H9.11L9.31 3.28L10.41 3.74L11.67 2.76L13.24 4.33L12.26 5.59L12.72 6.69L14.3 6.89V9.11L12.72 9.31L12.26 10.41L13.24 11.67L11.67 13.24L10.41 12.26L9.31 12.72L9.11 14.3H6.89L6.69 12.72L5.59 12.26L4.33 13.24L2.76 11.67L3.74 10.41L3.28 9.31L1.7 9.11V6.89L3.28 6.69L3.74 5.59L2.76 4.33L4.33 2.76L5.59 3.74Z"></path><circle cx="8" cy="8" r="2.1"></circle></svg>
                       <span class="nf-menu-label">Einstellungen</span>
                     </a>
                   </li>
@@ -914,29 +1094,11 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
 
     <div class="nf-sidebar-foot">
       <sc-if value="{{inSpace}}" hint-placeholder-val="{{ true }}">
-      <div class="nf-trash">
-        <button type="button" class="nf-nav-item" aria-expanded="{{trashExpanded}}" onClick="{{toggleTrash}}">
-          <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.5 9h6l.5-9"></path></svg>
-          <span>Papierkorb ({{trashCount}})</span>
-        </button>
-        <sc-if value="{{trashOpen}}" hint-placeholder-val="{{ false }}">
-          <ul>
-            <sc-for list="{{trashItems}}" as="ti" hint-placeholder-count="1">
-              <li>
-                <span>{{ti.title}}</span>
-                <sc-if value="{{ti.canRestore}}" hint-placeholder-val="{{ true }}">
-                  <button type="button" class="nf-icon-button" aria-label="{{ti.restoreLabel}}" title="Wiederherstellen" onClick="{{ti.restore}}">
-                    <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 7.5a5 5 0 1 1 1.3 4.1M3 3.5v4h4"></path></svg>
-                  </button>
-                </sc-if>
-              </li>
-            </sc-for>
-            <sc-if value="{{trashEmpty}}" hint-placeholder-val="{{ false }}">
-              <li class="nf-trash-empty">Leer</li>
-            </sc-if>
-          </ul>
-        </sc-if>
-      </div>
+      <!-- Papierkorb: öffnet einen Dialog mit Suche, Herkunft, Restzeit und Wiederherstellen -->
+      <button type="button" class="nf-nav-item" aria-haspopup="dialog" onClick="{{openTrash}}">
+        <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.5 9h6l.5-9"></path></svg>
+        <span>Papierkorb ({{trashCount}})</span>
+      </button>
       </sc-if>
       <!-- Ausblick M4: Confluence-Import -->
       <a href="Import.dc.html" class="nf-nav-item">
@@ -964,55 +1126,14 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
         <span class="nf-search-placeholder">Suchen oder Befehl …</span>
       </button>
 
-      <!-- Rechts: Konto der angemeldeten Person mit Profil, Einstellungen, Sprache, Abmelden -->
+      <!-- Rechts: Einstellungen (Zahnrad) und Konto (Avatar), je mit eigenem Menü -->
+      <div class="nf-topbar-right">
       <div class="nf-user">
-        <button type="button" class="nf-avatar-btn" aria-label="Konto: Peter Forster" title="Peter Forster" aria-haspopup="menu" aria-expanded="{{userMenuExpanded}}" onClick="{{toggleUserMenu}}">
-          <span aria-hidden="true">PF</span>
+        <button type="button" class="nf-gear-btn" aria-label="Einstellungen" title="Einstellungen" aria-haspopup="menu" aria-expanded="{{settingsMenuExpanded}}" onClick="{{toggleSettingsMenu}}">
+          <svg class="nf-icon" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.69 3.28L6.89 1.7H9.11L9.31 3.28L10.41 3.74L11.67 2.76L13.24 4.33L12.26 5.59L12.72 6.69L14.3 6.89V9.11L12.72 9.31L12.26 10.41L13.24 11.67L11.67 13.24L10.41 12.26L9.31 12.72L9.11 14.3H6.89L6.69 12.72L5.59 12.26L4.33 13.24L2.76 11.67L3.74 10.41L3.28 9.31L1.7 9.11V6.89L3.28 6.69L3.74 5.59L2.76 4.33L4.33 2.76L5.59 3.74Z"></path><circle cx="8" cy="8" r="2.1"></circle></svg>
         </button>
-        <sc-if value="{{userMenuOpen}}" hint-placeholder-val="{{ false }}">
-          <ul class="nf-menu nf-user-menu" role="menu" aria-label="Konto">
-            <li role="none" class="nf-menu-header">
-              <span class="nf-byline-avatar" style="background: #1F5FD6" aria-hidden="true">PF</span>
-              <span class="nf-menu-header-names">
-                <strong>Peter Forster</strong>
-                <span>peter.forster@alpenwerk.example</span>
-                <span>Alpenwerk · Organisations-Admin</span>
-              </span>
-            </li>
-            <li role="separator" class="nf-menu-separator"></li>
-            <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openProfile}}">
-              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5.5" r="2.75"></circle><path d="M2.75 13.75c.6-2.7 2.7-4.25 5.25-4.25s4.65 1.55 5.25 4.25"></path></svg>
-              <span class="nf-menu-label">Benutzerprofil</span></button></li>
-            <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openUserSettings}}">
-              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="2"></circle><path d="M8 1.75v1.7M8 12.55v1.7M1.75 8h1.7M12.55 8h1.7M3.58 3.58l1.2 1.2M11.22 11.22l1.2 1.2M3.58 12.42l1.2-1.2M11.22 4.78l1.2-1.2"></path><circle cx="8" cy="8" r="4.25"></circle></svg>
-              <span class="nf-menu-label">Einstellungen</span></button></li>
-            <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openShortcuts}}">
-              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.75" y="4" width="12.5" height="8" rx="1.5"></rect><path d="M4.5 6.5h.01M7 6.5h.01M9.5 6.5h.01M12 6.5h.01M5 9.5h6"></path></svg>
-              <span class="nf-menu-label">Tastenkürzel</span></button></li>
-            <!-- Nur für Owner und Admins des Workspaces (wie die Einladungen im Frontend) -->
-            <li role="separator" class="nf-menu-separator"></li>
-            <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openWorkspace}}">
-              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"></rect><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"></rect><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"></rect><rect x="9" y="9" width="4.5" height="4.5" rx="1"></rect></svg>
-              <span class="nf-menu-label">Workspace</span><span class="nf-menu-shortcut nf-menu-meta">{{ws.name}}</span></button></li>
-            <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openInvites}}">
-              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="5.5" r="2.5"></circle><path d="M2 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4"></path><path d="M12.5 5v4M10.5 7h4"></path></svg>
-              <span class="nf-menu-label">Einladungen</span>
-              <sc-if value="{{ws.hasOpenInvites}}" hint-placeholder-val="{{ true }}"><span class="nf-count" aria-label="{{ws.openInvitesLabel}}">{{ws.openInvites}}</span></sc-if>
-            </button></li>
-            <li role="separator" class="nf-menu-separator"></li>
-            <li role="none" class="nf-menu-group-label" id="nf-lang-label">Sprache</li>
-            <li role="none">
-              <ul role="group" aria-labelledby="nf-lang-label" class="nf-menu-group">
-                <sc-for list="{{locales}}" as="lo" hint-placeholder-count="2">
-                  <li role="none"><button type="button" role="menuitemradio" class="nf-menu-item" aria-checked="{{lo.checked}}" lang="{{lo.lang}}" onClick="{{lo.choose}}">
-                    <span class="nf-menu-radio" aria-hidden="true">
-                      <sc-if value="{{lo.on}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if>
-                    </span>
-                    <span class="nf-menu-label">{{lo.label}}</span></button></li>
-                </sc-for>
-              </ul>
-            </li>
-            <li role="separator" class="nf-menu-separator"></li>
+        <sc-if value="{{settingsMenuOpen}}" hint-placeholder-val="{{ false }}">
+          <ul class="nf-menu nf-user-menu" role="menu" aria-label="Einstellungen">
             <li role="none" class="nf-menu-group-label" id="nf-theme-label">Darstellung</li>
             <li role="none">
               <ul role="group" aria-labelledby="nf-theme-label" class="nf-theme-switch">
@@ -1027,11 +1148,63 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
               </ul>
             </li>
             <li role="separator" class="nf-menu-separator"></li>
+            <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openUserSettings}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.69 3.28L6.89 1.7H9.11L9.31 3.28L10.41 3.74L11.67 2.76L13.24 4.33L12.26 5.59L12.72 6.69L14.3 6.89V9.11L12.72 9.31L12.26 10.41L13.24 11.67L11.67 13.24L10.41 12.26L9.31 12.72L9.11 14.3H6.89L6.69 12.72L5.59 12.26L4.33 13.24L2.76 11.67L3.74 10.41L3.28 9.31L1.7 9.11V6.89L3.28 6.69L3.74 5.59L2.76 4.33L4.33 2.76L5.59 3.74Z"></path><circle cx="8" cy="8" r="2.1"></circle></svg>
+              <span class="nf-menu-label">Persönliche Einstellungen</span></button></li>
+            <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openShortcuts}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.75" y="4" width="12.5" height="8" rx="1.5"></rect><path d="M4.5 6.5h.01M7 6.5h.01M9.5 6.5h.01M12 6.5h.01M5 9.5h6"></path></svg>
+              <span class="nf-menu-label">Tastenkürzel</span></button></li>
+            <!-- Nur für Owner und Admins des Workspaces (wie die Einladungen im Frontend) -->
+            <li role="separator" class="nf-menu-separator"></li>
+            <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openWorkspace}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"></rect><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"></rect><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"></rect><rect x="9" y="9" width="4.5" height="4.5" rx="1"></rect></svg>
+              <span class="nf-menu-label">Workspace</span><span class="nf-menu-shortcut nf-menu-meta">{{ws.name}}</span></button></li>
+            <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openInvites}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="5.5" r="2.5"></circle><path d="M2 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4"></path><path d="M12.5 5v4M10.5 7h4"></path></svg>
+              <span class="nf-menu-label">Einladungen</span>
+              <sc-if value="{{ws.hasOpenInvites}}" hint-placeholder-val="{{ true }}"><span class="nf-count" aria-label="{{ws.openInvitesLabel}}">{{ws.openInvites}}</span></sc-if>
+            </button></li>
+          </ul>
+        </sc-if>
+      </div>
+      <div class="nf-user">
+        <button type="button" class="nf-avatar-btn" aria-label="Konto: Peter Forster" title="Peter Forster" aria-haspopup="menu" aria-expanded="{{userMenuExpanded}}" onClick="{{toggleUserMenu}}">
+          <span aria-hidden="true">PF</span>
+        </button>
+        <sc-if value="{{userMenuOpen}}" hint-placeholder-val="{{ false }}">
+          <ul class="nf-menu nf-user-menu nf-account-menu" role="menu" aria-label="Konto">
+            <li role="none" class="nf-menu-header">
+              <span class="nf-byline-avatar" style="background: #1F5FD6" aria-hidden="true">PF</span>
+              <span class="nf-menu-header-names">
+                <strong>Peter Forster</strong>
+                <span>peter.forster@alpenwerk.example</span>
+                <span>Alpenwerk · Organisations-Admin</span>
+              </span>
+            </li>
+            <li role="separator" class="nf-menu-separator"></li>
+            <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openProfile}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5.5" r="2.75"></circle><path d="M2.75 13.75c.6-2.7 2.7-4.25 5.25-4.25s4.65 1.55 5.25 4.25"></path></svg>
+              <span class="nf-menu-label">Benutzerprofil</span></button></li>
+            <li role="separator" class="nf-menu-separator"></li>
+            <li role="none" class="nf-menu-group-label" id="nf-lang-label">Sprache</li>
+            <li role="none">
+              <ul role="group" aria-labelledby="nf-lang-label" class="nf-menu-group">
+                <sc-for list="{{locales}}" as="lo" hint-placeholder-count="2">
+                  <li role="none"><button type="button" role="menuitemradio" class="nf-menu-item" aria-checked="{{lo.checked}}" lang="{{lo.lang}}" onClick="{{lo.choose}}">
+                    <span class="nf-menu-radio" aria-hidden="true">
+                      <sc-if value="{{lo.on}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7"></path></svg></sc-if>
+                    </span>
+                    <span class="nf-menu-label">{{lo.label}}</span></button></li>
+                </sc-for>
+              </ul>
+            </li>
+            <li role="separator" class="nf-menu-separator"></li>
             <li role="none"><button type="button" role="menuitem" class="nf-menu-item" onClick="{{closeUserMenu}}">
               <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 3H3.5v10h6M7 8h6.5M11 5.5L13.5 8 11 10.5"></path></svg>
               <span class="nf-menu-label">Abmelden</span></button></li>
           </ul>
         </sc-if>
+      </div>
       </div>
     </header>
 
@@ -1051,7 +1224,7 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
           </ol>
         </nav>
       </div>
-      <sc-if value="{{isPage}}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{showPage}}" hint-placeholder-val="{{ true }}">
         <div class="nf-topbar-end">
           <!-- Speicherstatus: Gespeichert / Speichert … / Offline / Nur lesen (ersetzt den Offline-Hinweis über dem Inhalt) -->
           <span class="nf-save-status" data-state="{{save.state}}" title="{{save.hint}}" role="status" aria-live="polite">
@@ -1118,12 +1291,102 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
           </div>
         </div>
       </sc-if>
+      <sc-if value="{{vmode}}" hint-placeholder-val="{{ false }}">
+        <div class="nf-topbar-end">
+          <button type="button" class="nf-btn" onClick="{{vv.close}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8H3.5M7.5 4L3.5 8l4 4"></path></svg>
+            <span>Zurück zur Seite</span>
+          </button>
+        </div>
+      </sc-if>
     </div>
     </sc-if>
 
     <main id="content" tabindex="-1" class="nf-main">
+      <!-- ---------- Versionen (Ausblick, E08): Inhalt der gewählten Version, Änderungen gegenüber einer älteren hervorgehoben ---------- -->
+      <sc-if value="{{vmode}}" hint-placeholder-val="{{ false }}">
+        <div class="nf-main-inner nf-with-versions">
+          <article class="nf-vdoc" aria-labelledby="v-heading">
+            <header class="nf-vhead">
+              <div class="nf-vhead-row">
+                <div>
+                  <h2 id="v-heading" class="nf-vhead-title"><span>{{vv.sel.label}}</span><sc-if value="{{vv.sel.isCurrent}}" hint-placeholder-val="{{ false }}"><span class="nf-vtag">Aktuell</span></sc-if></h2>
+                  <p class="nf-vhead-meta">{{vv.sel.dateLong}} · {{vv.sel.people}}</p>
+                  <sc-if value="{{vv.sel.hasNote}}" hint-placeholder-val="{{ false }}"><p class="nf-vhead-note">{{vv.sel.note}}</p></sc-if>
+                </div>
+                <div class="nf-vhead-actions">
+                  <sc-if value="{{vv.canRestore}}" hint-placeholder-val="{{ true }}">
+                    <button type="button" class="nf-btn nf-btn-primary" aria-haspopup="dialog" onClick="{{vv.restore}}">
+                      <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3.5v3.5h3.5"></path><path d="M3.4 7A5 5 0 118 13"></path></svg>
+                      <span>Wiederherstellen</span>
+                    </button>
+                  </sc-if>
+                  <sc-if value="{{vv.restoreHint}}" hint-placeholder-val="{{ false }}"><span class="nf-vhint">{{vv.restoreHintText}}</span></sc-if>
+                </div>
+              </div>
+              <div class="nf-vcompare">
+                <label class="nf-vtoggle"><input type="checkbox" checked="{{vv.changes}}" disabled="{{vv.noCompare}}" onChange="{{vv.toggleChanges}}"><span>Änderungen hervorheben</span></label>
+                <sc-if value="{{vv.hasCompare}}" hint-placeholder-val="{{ true }}">
+                  <label class="nf-vcmp-label"><span>gegenüber</span>
+                    <select value="{{vv.cmp}}" disabled="{{vv.cmpDisabled}}" onChange="{{vv.onCmp}}">
+                      <sc-for list="{{vv.cmpOptions}}" as="o" hint-placeholder-count="2"><option value="{{o.value}}">{{o.label}}</option></sc-for>
+                    </select>
+                  </label>
+                </sc-if>
+                <sc-if value="{{vv.showStats}}" hint-placeholder-val="{{ true }}"><span class="nf-vstats" title="{{vv.statsLabel}}"><sc-if value="{{vv.hasPlus}}" hint-placeholder-val="{{ true }}"><span class="nf-vstat-ins">+{{vv.plus}}</span></sc-if><sc-if value="{{vv.hasMinus}}" hint-placeholder-val="{{ true }}"><span class="nf-vstat-del">−{{vv.minus}}</span></sc-if><span> Wörter</span></span></sc-if>
+                <sc-if value="{{vv.noCompare}}" hint-placeholder-val="{{ false }}"><span class="nf-vhint">Erste Version, es gibt nichts zum Vergleichen.</span></sc-if>
+                <sc-if value="{{vv.noChange}}" hint-placeholder-val="{{ false }}"><span class="nf-vhint">Keine Änderung am Inhalt.</span></sc-if>
+              </div>
+            </header>
+            <h1 class="nf-title nf-vb"><sc-for list="{{vv.titleSegs}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for></h1>
+            <div class="nf-editor nf-vbody" aria-label="Inhalt der Version">
+              <sc-for list="{{vv.blocks}}" as="b" hint-placeholder-count="3">
+                <sc-if value="{{b.isH2}}" hint-placeholder-val="{{ true }}"><h2 class="nf-vb {{b.cls}}"><sc-for list="{{b.segs}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for></h2></sc-if>
+                <sc-if value="{{b.isP}}" hint-placeholder-val="{{ false }}"><p class="nf-vb {{b.cls}}"><sc-for list="{{b.segs}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for></p></sc-if>
+                <sc-if value="{{b.isCallout}}" hint-placeholder-val="{{ false }}"><div class="nf-callout nf-vb {{b.cls}}" data-variant="{{b.variant}}"><span class="nf-callout-icon"><span role="img" aria-label="{{b.variantLabel}}" title="{{b.variantLabel}}">{{b.icon}}</span></span><div class="nf-callout-content"><p><sc-for list="{{b.segs}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for><sc-if value="{{b.hasNote}}" hint-placeholder-val="{{ false }}"><span class="nf-vnote">{{b.note}}</span></sc-if></p></div></div></sc-if>
+                <sc-if value="{{b.isCode}}" hint-placeholder-val="{{ false }}"><div class="nf-code nf-vb {{b.cls}}"><pre><code><sc-for list="{{b.segs}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for></code></pre></div></sc-if>
+                <sc-if value="{{b.isTask}}" hint-placeholder-val="{{ false }}"><div class="nf-check nf-vcheck nf-vb {{b.cls}}" data-checked="{{b.doneAttr}}"><input type="checkbox" checked="{{b.done}}" disabled="{{b.locked}}" tabindex="-1" aria-label="{{b.doneLabel}}"><span><sc-for list="{{b.segs}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for><sc-if value="{{b.hasNote}}" hint-placeholder-val="{{ false }}"><span class="nf-vnote">{{b.note}}</span></sc-if></span></div></sc-if>
+                <sc-if value="{{b.isRow}}" hint-placeholder-val="{{ false }}"><div class="nf-vrow nf-vb {{b.cls}} {{b.rowCls}}"><span><sc-for list="{{b.c1}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for></span><span><sc-for list="{{b.c2}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for></span></div></sc-if>
+              </sc-for>
+              <sc-if value="{{vv.empty}}" hint-placeholder-val="{{ false }}"><p class="nf-muted">Diese Version ist leer.</p></sc-if>
+            </div>
+          </article>
+
+          <aside class="nf-versions" aria-labelledby="vl-title">
+            <div class="nf-versions-head">
+              <h2 id="vl-title" class="nf-comments-title">Versionen<span class="nf-vcount">{{vv.count}}</span></h2>
+              <sc-if value="{{vv.canSave}}" hint-placeholder-val="{{ true }}">
+                <button type="button" class="nf-btn nf-btn-ghost" aria-haspopup="dialog" onClick="{{vv.openSave}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+                  <span>Version sichern</span>
+                </button>
+              </sc-if>
+            </div>
+            <nav aria-label="Versionen dieser Seite">
+              <sc-for list="{{vv.groups}}" as="gr" hint-placeholder-count="2">
+                <h3 class="nf-vgroup">{{gr.label}}</h3>
+                <ul class="nf-vlist">
+                  <sc-for list="{{gr.items}}" as="it" hint-placeholder-count="2">
+                    <li><button type="button" class="nf-vitem" aria-current="{{it.current}}" aria-label="{{it.aria}}" onClick="{{it.select}}">
+                      <span class="nf-vitem-top"><strong>{{it.label}}</strong><sc-if value="{{it.isCurrent}}" hint-placeholder-val="{{ false }}"><span class="nf-vtag">Aktuell</span></sc-if><span class="nf-vitem-time">{{it.time}}</span></span>
+                      <sc-if value="{{it.hasName}}" hint-placeholder-val="{{ false }}"><span class="nf-vitem-name">„{{it.name}}“</span></sc-if>
+                      <sc-if value="{{it.hasKind}}" hint-placeholder-val="{{ false }}"><span class="nf-vitem-kind">{{it.kind}}</span></sc-if>
+                      <span class="nf-vitem-foot">
+                        <span class="nf-vavs" aria-hidden="true"><sc-for list="{{it.avatars}}" as="a" hint-placeholder-count="2"><span style="background: {{a.color}}">{{a.initials}}</span></sc-for></span>
+                        <span class="nf-vitem-names">{{it.names}}</span>
+                        <sc-if value="{{it.hasDelta}}" hint-placeholder-val="{{ true }}"><span class="nf-vitem-delta"><sc-if value="{{it.hasPlus}}" hint-placeholder-val="{{ true }}"><span class="nf-vstat-ins">+{{it.plus}}</span></sc-if><sc-if value="{{it.hasMinus}}" hint-placeholder-val="{{ true }}"><span class="nf-vstat-del">−{{it.minus}}</span></sc-if></span></sc-if>
+                      </span>
+                    </button></li>
+                  </sc-for>
+                </ul>
+              </sc-for>
+            </nav>
+          </aside>
+        </div>
+      </sc-if>
+
       <!-- ---------- Seite ---------- -->
-      <sc-if value="{{isPage}}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{showPage}}" hint-placeholder-val="{{ true }}">
         <div class="nf-main-inner {{innerCls}}">
           <article>
             <!-- „Eingeschränkt“ steht jetzt im Knopf „Teilen und Rechte“, nicht mehr über dem Titel -->
@@ -1138,7 +1401,7 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
                 <span class="nf-byline-avatar" style="background: {{page.authorColor}}" aria-hidden="true">{{page.authorInitials}}</span>
                 <span>Von {{page.authorName}}</span>
               </span>
-              <time title="{{page.editedAt}}">Zuletzt bearbeitet von {{page.editorName}} {{page.when}}</time>
+              <button type="button" class="nf-byline-link" title="Versionen ansehen" onClick="{{openVersions}}"><time title="{{page.editedAt}}">Zuletzt bearbeitet von {{page.editorName}} {{page.when}}</time></button>
               <span>Deine Rolle: {{page.roleLabel}}</span>
             </p>
 
@@ -1234,6 +1497,17 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
                 <p>Wie Rechte vererbt werden, steht unter <a href="#" class="{{rechteLink.cls}}" onClick="{{rechteLink.go}}">{{rechteLink.title}}</a>. Fragen an <span class="nf-mention">@Sophie Bauer</span>.</p>
               </sc-if>
 
+              <!-- Nach „Wiederherstellen“ (Prototyp): Inhalt der wiederhergestellten Version statt der festen Vorlage -->
+              <sc-if value="{{body.restored}}" hint-placeholder-val="{{ false }}">
+                <sc-for list="{{restoredBlocks}}" as="b" hint-placeholder-count="3">
+                  <sc-if value="{{b.isH2}}" hint-placeholder-val="{{ true }}"><h2 class="nf-vb {{b.cls}}"><sc-for list="{{b.segs}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for></h2></sc-if>
+                  <sc-if value="{{b.isP}}" hint-placeholder-val="{{ false }}"><p class="nf-vb {{b.cls}}"><sc-for list="{{b.segs}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for></p></sc-if>
+                  <sc-if value="{{b.isCallout}}" hint-placeholder-val="{{ false }}"><div class="nf-callout nf-vb {{b.cls}}" data-variant="{{b.variant}}"><span class="nf-callout-icon"><span role="img" aria-label="{{b.variantLabel}}" title="{{b.variantLabel}}">{{b.icon}}</span></span><div class="nf-callout-content"><p><sc-for list="{{b.segs}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for><sc-if value="{{b.hasNote}}" hint-placeholder-val="{{ false }}"><span class="nf-vnote">{{b.note}}</span></sc-if></p></div></div></sc-if>
+                  <sc-if value="{{b.isCode}}" hint-placeholder-val="{{ false }}"><div class="nf-code nf-vb {{b.cls}}"><pre><code><sc-for list="{{b.segs}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for></code></pre></div></sc-if>
+                  <sc-if value="{{b.isTask}}" hint-placeholder-val="{{ false }}"><div class="nf-check nf-vcheck nf-vb {{b.cls}}" data-checked="{{b.doneAttr}}"><input type="checkbox" checked="{{b.done}}" disabled="{{b.locked}}" tabindex="-1" aria-label="{{b.doneLabel}}"><span><sc-for list="{{b.segs}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for><sc-if value="{{b.hasNote}}" hint-placeholder-val="{{ false }}"><span class="nf-vnote">{{b.note}}</span></sc-if></span></div></sc-if>
+                  <sc-if value="{{b.isRow}}" hint-placeholder-val="{{ false }}"><div class="nf-vrow nf-vb {{b.cls}} {{b.rowCls}}"><span><sc-for list="{{b.c1}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for></span><span><sc-for list="{{b.c2}}" as="g" hint-placeholder-count="1"><sc-if value="{{g.ins}}" hint-placeholder-val="{{ false }}"><ins>{{g.text}}</ins></sc-if><sc-if value="{{g.del}}" hint-placeholder-val="{{ false }}"><del>{{g.text}}</del></sc-if><sc-if value="{{g.eq}}" hint-placeholder-val="{{ true }}">{{g.text}}</sc-if></sc-for></span></div></sc-if>
+                </sc-for>
+              </sc-if>
               <!-- Alle anderen Seiten: Absätze; leere Seiten zeigen den Platzhalter von BlockNote -->
               <sc-if value="{{body.plain}}" hint-placeholder-val="{{ false }}">
                 <sc-for list="{{page.paragraphs}}" as="para" hint-placeholder-count="2">
@@ -1273,6 +1547,80 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
                 <p class="nf-muted">Diese Seite ist noch leer.</p>
               </sc-if>
             </div>
+            <!-- Fuß der Seite (Ausblick): Unterseiten und Rückverweise, die zwei häufigsten Wege durch ein Wiki.
+                 Nur Seiten mit Leserecht und nicht im Papierkorb; was fehlt, fehlt ohne Hinweis. -->
+            <sc-if value="{{foot.show}}" hint-placeholder-val="{{ true }}">
+              <footer class="nf-page-foot">
+                <sc-if value="{{foot.hasKids}}" hint-placeholder-val="{{ true }}">
+                  <section aria-labelledby="foot-kids">
+                    <div class="nf-foot-head">
+                      <h2 id="foot-kids" class="nf-foot-title">Unterseiten<span class="nf-foot-count">{{foot.kidCount}}</span></h2>
+                      <div class="nf-foot-tools">
+                        <div class="nf-seg" role="group" aria-label="Darstellung der Unterseiten">
+                          <button type="button" class="nf-seg-btn" aria-pressed="{{foot.cardsPressed}}" aria-label="Als Karten" title="Als Karten" onClick="{{foot.showCards}}">
+                            <svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"></rect><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"></rect><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"></rect><rect x="9" y="9" width="4.5" height="4.5" rx="1"></rect></svg>
+                          </button>
+                          <button type="button" class="nf-seg-btn" aria-pressed="{{foot.listPressed}}" aria-label="Als Liste" title="Als Liste" onClick="{{foot.showList}}">
+                            <svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8"></path><path d="M2.5 4h.01M2.5 8h.01M2.5 12h.01" stroke-width="2"></path></svg>
+                          </button>
+                        </div>
+                        <sc-if value="{{foot.canCreate}}" hint-placeholder-val="{{ true }}">
+                          <button type="button" class="nf-btn nf-btn-ghost nf-foot-add" onClick="{{foot.create}}">
+                            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+                            <span>Unterseite</span>
+                          </button>
+                        </sc-if>
+                      </div>
+                    </div>
+                    <sc-if value="{{foot.cards}}" hint-placeholder-val="{{ true }}">
+                      <ul class="nf-subcards">
+                        <sc-for list="{{foot.kids}}" as="k" hint-placeholder-count="2">
+                          <li><a href="#" class="nf-subcard" onClick="{{k.go}}">
+                            <span class="nf-subcard-title"><svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg><span class="nf-subcard-name {{k.titleCls}}">{{k.title}}</span><sc-if value="{{k.restricted}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon nf-foot-lock" width="13" height="13" viewBox="0 0 16 16" role="img" aria-label="Eigene Rechte"><title>Eigene Rechte</title><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></sc-if></span>
+                            <sc-if value="{{k.hasExcerpt}}" hint-placeholder-val="{{ true }}"><span class="nf-subcard-text">{{k.excerpt}}</span></sc-if>
+                            <span class="nf-subcard-meta">
+                              <span class="nf-byline-avatar" style="background: {{k.color}}" aria-hidden="true">{{k.initials}}</span>
+                              <span>{{k.meta}}</span>
+                              <sc-if value="{{k.hasKids}}" hint-placeholder-val="{{ false }}"><span class="nf-subcard-kids">{{k.kidsLabel}}</span></sc-if>
+                            </span>
+                          </a></li>
+                        </sc-for>
+                      </ul>
+                    </sc-if>
+                    <sc-if value="{{foot.list}}" hint-placeholder-val="{{ false }}">
+                      <ul class="nf-sublist">
+                        <sc-for list="{{foot.kids}}" as="k" hint-placeholder-count="2">
+                          <li><a href="#" class="nf-subrow" onClick="{{k.go}}"><svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg><span class="nf-subrow-title {{k.titleCls}}">{{k.title}}</span><sc-if value="{{k.restricted}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon nf-foot-lock" width="13" height="13" viewBox="0 0 16 16" role="img" aria-label="Eigene Rechte"><title>Eigene Rechte</title><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></sc-if><span class="nf-subrow-text">{{k.excerpt}}</span><span class="nf-subrow-meta">{{k.meta}}</span></a></li>
+                        </sc-for>
+                      </ul>
+                    </sc-if>
+                  </section>
+                </sc-if>
+                <sc-if value="{{foot.onlyCreate}}" hint-placeholder-val="{{ false }}">
+                  <button type="button" class="nf-foot-new" onClick="{{foot.create}}">
+                    <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+                    <span>Unterseite anlegen</span>
+                  </button>
+                </sc-if>
+                <sc-if value="{{foot.hasLinks}}" hint-placeholder-val="{{ true }}">
+                  <section aria-labelledby="foot-links">
+                    <div class="nf-foot-head">
+                      <h2 id="foot-links" class="nf-foot-title">Verlinkt von<span class="nf-foot-count">{{foot.linkCount}}</span></h2>
+                    </div>
+                    <ul class="nf-backlinks">
+                      <sc-for list="{{foot.links}}" as="l" hint-placeholder-count="1">
+                        <li><a href="#" class="nf-backlink" onClick="{{l.go}}"><svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.75 9.25a3 3 0 004.24 0l2-2a3 3 0 00-4.24-4.24l-.75.75"></path><path d="M9.25 6.75a3 3 0 00-4.24 0l-2 2a3 3 0 004.24 4.24l.75-.75"></path></svg>
+                          <span class="nf-backlink-body">
+                            <span class="nf-backlink-top"><span class="nf-backlink-title">{{l.title}}</span><sc-if value="{{l.restricted}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon nf-foot-lock" width="13" height="13" viewBox="0 0 16 16" role="img" aria-label="Eigene Rechte"><title>Eigene Rechte</title><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></sc-if><span class="nf-backlink-path">{{l.path}}</span></span>
+                            <sc-if value="{{l.hasSnippet}}" hint-placeholder-val="{{ true }}"><span class="nf-backlink-snippet">„{{l.pre}}<mark class="nf-backlink-hit">{{l.hit}}</mark>{{l.post}}“</span></sc-if>
+                          </span>
+                        </a></li>
+                      </sc-for>
+                    </ul>
+                  </section>
+                </sc-if>
+              </footer>
+            </sc-if>
             <!-- Sprechblasen am rechten Rand neben jeder Textstelle mit offenem Kommentar (Position aus dem DOM) -->
             <sc-for list="{{cm.pins}}" as="pn" hint-placeholder-count="1">
               <button type="button" class="nf-comment-pin" data-active="{{pn.active}}" style="top: {{pn.top}}px" aria-label="{{pn.label}}" title="{{pn.label}}" onClick="{{pn.open}}">
@@ -1474,6 +1822,17 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
             <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
           </button>
         </div>
+        <!-- Zusammenfassung: wie viele Personen im Workspace welche Rolle haben (mit den Änderungen im Entwurf) -->
+        <div class="nf-rights-summary">
+          <span class="nf-rights-summary-label">Zugriff</span>
+          <sc-for list="{{rights.summary}}" as="sm" hint-placeholder-count="3">
+            <span class="nf-access-chip" data-role="{{sm.role}}" title="{{sm.names}}"><strong>{{sm.count}}</strong> {{sm.label}}</span>
+          </sc-for>
+          <button type="button" class="nf-view-as-link" onClick="{{rights.viewAs}}">
+            <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 8s2.4-4.5 6.5-4.5S14.5 8 14.5 8s-2.4 4.5-6.5 4.5S1.5 8 1.5 8z"></path><circle cx="8" cy="8" r="2"></circle></svg>
+            Ansehen als …
+          </button>
+        </div>
         <div class="nf-dialog-band">
           <div>
             <strong>Eigene Rechte für diese Seite</strong>
@@ -1506,16 +1865,47 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
               <sc-if value="{{g.readonly}}" hint-placeholder-val="{{ true }}">
                 <span class="nf-grant-role">{{g.roleLabel}}</span>
               </sc-if>
+              <sc-if value="{{g.removable}}" hint-placeholder-val="{{ false }}">
+                <button type="button" class="nf-grant-remove" aria-label="{{g.removeLabel}}" title="Entfernen" onClick="{{g.remove}}">
+                  <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+                </button>
+              </sc-if>
             </div>
           </sc-for>
+          <!-- Hinzufügen: Vorschläge beim Tippen (Personen, Gruppen, „Alle im Workspace“), Rolle vorab wählen -->
           <sc-if value="{{rights.canAdd}}" hint-placeholder-val="{{ false }}">
-            <form class="nf-grant-add" onSubmit="{{rights.add}}">
-              <label style="flex: 1; min-width: 0; display: flex">
-                <span class="nf-visually-hidden">Person oder Gruppe hinzufügen</span>
-                <input type="text" class="nf-input" placeholder="Person oder Gruppe hinzufügen" value="{{rights.query}}" onChange="{{rights.onQuery}}">
-              </label>
-              <button type="submit" class="nf-btn">Hinzufügen</button>
-            </form>
+            <div class="nf-grant-add">
+              <div class="nf-grant-search">
+                <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+                <input id="nf-grant-q" type="text" class="nf-input" role="combobox" aria-expanded="{{rights.suggestExpanded}}" aria-controls="nf-grant-list" aria-activedescendant="{{rights.activeId}}" aria-autocomplete="list" autocomplete="off" placeholder="Person oder Gruppe hinzufügen …" value="{{rights.query}}" onChange="{{rights.onQuery}}" onFocus="{{rights.onFocus}}" onBlur="{{rights.onBlur}}" onKeyDown="{{rights.onKey}}">
+                <sc-if value="{{rights.suggestOpen}}" hint-placeholder-val="{{ false }}">
+                  <ul id="nf-grant-list" class="nf-grant-suggest" role="listbox" aria-label="Vorschläge">
+                    <sc-for list="{{rights.suggestions}}" as="sg" hint-placeholder-count="3">
+                      <li id="{{sg.domId}}" role="option" aria-selected="{{sg.selected}}" onMouseDown="{{rights.keep}}" onClick="{{sg.add}}">
+                        <span class="nf-byline-avatar" style="background: {{sg.bg}}" aria-hidden="true">{{sg.initials}}</span>
+                        <span class="nf-grant-names"><span>{{sg.name}}</span><span>{{sg.sub}}</span></span>
+                        <span class="nf-grant-suggest-role">als {{sg.roleLabel}}</span>
+                      </li>
+                    </sc-for>
+                    <sc-if value="{{rights.noSuggest}}" hint-placeholder-val="{{ false }}">
+                      <li class="nf-grant-suggest-empty" role="option" aria-disabled="true">{{rights.noSuggestText}}</li>
+                    </sc-if>
+                  </ul>
+                </sc-if>
+              </div>
+              <select class="nf-input nf-grant-addrole" aria-label="Rolle für neue Einträge" value="{{rights.addRole}}" onChange="{{rights.onAddRole}}">
+                <option value="viewer">Lesen</option>
+                <option value="commenter">Kommentieren</option>
+                <option value="editor">Bearbeiten</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          </sc-if>
+          <sc-if value="{{rights.selfWarn}}" hint-placeholder-val="{{ false }}">
+            <p class="nf-rights-warn" role="status">Du nimmst dir selbst die Admin-Rechte. Danach kannst du die Rechte dieser Seite nicht mehr ändern; zurückgeben kann sie dir nur ein anderer Admin.</p>
+          </sc-if>
+          <sc-if value="{{rights.noAdmin}}" hint-placeholder-val="{{ false }}">
+            <p class="nf-rights-error" role="alert">Mindestens eine Person oder Gruppe muss Admin bleiben, sonst lassen sich die Rechte nicht mehr ändern.</p>
           </sc-if>
           <sc-if value="{{rights.hint}}" hint-placeholder-val="{{ true }}">
             <p class="nf-hint">{{rights.hintText}}</p>
@@ -1524,14 +1914,133 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
         <div class="nf-dialog-foot">
           <button type="button" class="nf-btn" onClick="{{closeDialog}}">Abbrechen</button>
           <sc-if value="{{rights.canSave}}" hint-placeholder-val="{{ true }}">
-            <button type="button" class="nf-btn nf-btn-primary" onClick="{{rights.save}}">Speichern</button>
+            <button type="button" class="nf-btn {{rights.saveCls}}" disabled="{{rights.saveDisabled}}" onClick="{{rights.save}}">{{rights.saveLabel}}</button>
           </sc-if>
         </div>
       </div>
     </div>
   </sc-if>
 
-  <!-- Versionen und Export: im Frontend vorerst Dialoge mit Ausblick (E08, E14) -->
+  <!-- „Ansehen als …“ (app.view_as): Seitenbaum des Spaces mit der Rolle einer Person; nur Struktur, im Audit-Log -->
+  <sc-if value="{{viewAs.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <div class="nf-dialog" role="dialog" aria-modal="true" aria-labelledby="va-title">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="va-title" class="nf-dialog-title">Ansehen als …</h2>
+            <p class="nf-dialog-description">Welche Seiten in „{{viewAs.spaceName}}“ eine Person sieht und mit welcher Rolle. Nur Struktur, keine Inhalte; jeder Aufruf steht im Audit-Log.</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body">
+          <label class="nf-label" for="va-who" style="margin-top: 0">Person</label>
+          <select id="va-who" class="nf-input nf-input-wide" value="{{viewAs.who}}" onChange="{{viewAs.onWho}}">
+            <sc-for list="{{viewAs.people}}" as="pp" hint-placeholder-count="4">
+              <option value="{{pp.key}}">{{pp.label}}</option>
+            </sc-for>
+          </select>
+          <p class="nf-va-summary">{{viewAs.summary}}</p>
+          <ul class="nf-va-list" aria-label="Seiten mit Rolle">
+            <sc-for list="{{viewAs.rows}}" as="vr" hint-placeholder-count="6">
+              <li class="nf-va-row" data-none="{{vr.none}}" style="padding-left: {{vr.pad}}px">
+                <svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg>
+                <span class="nf-va-title">{{vr.title}}</span>
+                <sc-if value="{{vr.restricted}}" hint-placeholder-val="{{ false }}">
+                  <svg class="nf-icon nf-va-lock" width="13" height="13" viewBox="0 0 16 16" role="img" aria-label="eigene Rechte"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg>
+                </sc-if>
+                <span class="nf-access-chip" data-role="{{vr.role}}">{{vr.roleLabel}}</span>
+              </li>
+            </sc-for>
+          </ul>
+        </div>
+        <div class="nf-dialog-foot">
+          <sc-if value="{{viewAs.back}}" hint-placeholder-val="{{ true }}">
+            <button type="button" class="nf-btn" onClick="{{viewAs.goBack}}">Zurück zu den Rechten</button>
+          </sc-if>
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Schließen</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- Papierkorb des Spaces: Suche, gelöscht von/wann, Herkunft, Restzeit, Unterseiten, Wiederherstellen.
+       Endgültig löscht nur der Worker nach 30 Tagen (es gibt bewusst kein sofortiges Löschen). -->
+  <sc-if value="{{trashDlg.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <div class="nf-dialog nf-dialog-wide" role="dialog" aria-modal="true" aria-labelledby="tr-title">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="tr-title" class="nf-dialog-title">Papierkorb von „{{trashDlg.spaceName}}“</h2>
+            <p class="nf-dialog-description">Gelöschte Seiten bleiben 30 Tage hier und werden danach endgültig gelöscht. Wiederherstellen holt eine Seite mit allen Unterseiten zurück, die mit ihr gelöscht wurden.</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body">
+          <sc-if value="{{trashDlg.hasItems}}" hint-placeholder-val="{{ true }}">
+            <label class="nf-trash-search">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+              <span class="nf-visually-hidden">Im Papierkorb suchen</span>
+              <input id="nf-trash-q" type="search" class="nf-input" placeholder="Im Papierkorb suchen" value="{{trashDlg.q}}" onChange="{{trashDlg.onQ}}">
+            </label>
+          </sc-if>
+          <ul class="nf-trash-list" aria-label="Gelöschte Seiten">
+            <sc-for list="{{trashDlg.items}}" as="ti" hint-placeholder-count="2">
+              <li class="nf-trash-item">
+                <div class="nf-trash-row">
+                  <svg class="nf-icon nf-trash-page" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg>
+                  <div class="nf-trash-main">
+                    <div class="nf-trash-title">
+                      <span>{{ti.title}}</span>
+                      <sc-if value="{{ti.restricted}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon nf-va-lock" width="13" height="13" viewBox="0 0 16 16" role="img" aria-label="eigene Rechte"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></sc-if>
+                    </div>
+                    <div class="nf-trash-meta">Gelöscht von {{ti.by}} {{ti.when}} · aus {{ti.from}}</div>
+                    <sc-if value="{{ti.hasKids}}" hint-placeholder-val="{{ false }}">
+                      <button type="button" class="nf-trash-kids-toggle" aria-expanded="{{ti.kidsExpanded}}" onClick="{{ti.toggleKids}}">
+                        <svg class="nf-icon" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true" style="transform: rotate({{ti.kidsRot}}deg)"><path d="M6 4l4 4-4 4"></path></svg>
+                        {{ti.kidsLabel}}
+                      </button>
+                    </sc-if>
+                  </div>
+                  <span class="nf-days" data-soon="{{ti.soon}}" title="{{ti.daysTitle}}">{{ti.daysLabel}}</span>
+                  <sc-if value="{{ti.canRestore}}" hint-placeholder-val="{{ true }}">
+                    <button type="button" class="nf-btn nf-btn-sm" onClick="{{ti.restore}}">
+                      <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 7.5a5 5 0 1 1 1.3 4.1M3 3.5v4h4"></path></svg>
+                      Wiederherstellen
+                    </button>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ti.kidsOpen}}" hint-placeholder-val="{{ false }}">
+                  <ul class="nf-trash-kids">
+                    <sc-for list="{{ti.kids}}" as="kd" hint-placeholder-count="2">
+                      <li style="padding-left: {{kd.pad}}px">
+                        <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg>
+                        {{kd.title}}
+                      </li>
+                    </sc-for>
+                  </ul>
+                </sc-if>
+              </li>
+            </sc-for>
+          </ul>
+          <sc-if value="{{trashDlg.empty}}" hint-placeholder-val="{{ false }}">
+            <div class="nf-trash-empty-state">
+              <svg class="nf-icon" width="28" height="28" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.5 9h6l.5-9"></path></svg>
+              <p>{{trashDlg.emptyText}}</p>
+            </div>
+          </sc-if>
+        </div>
+        <div class="nf-dialog-foot">
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Schließen</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- Export: im Frontend vorerst ein Dialog mit Ausblick (E14); Versionen haben eine eigene Ansicht -->
   <sc-if value="{{soonOpen}}" hint-placeholder-val="{{ false }}">
     <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
       <div class="nf-dialog" role="dialog" aria-modal="true" aria-labelledby="soon-title">
@@ -1548,6 +2057,31 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
           </div>
         </div>
       </div>
+    </div>
+  </sc-if>
+
+  <!-- Version sichern (app.save_version, editor): optionaler Name (Vorschlag, braucht eine Spalte im Schema) -->
+  <sc-if value="{{vSave.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <form class="nf-dialog" role="dialog" aria-modal="true" aria-labelledby="sv-title" onSubmit="{{vSave.submit}}">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="sv-title" class="nf-dialog-title">Version sichern</h2>
+            <p class="nf-dialog-description">Sichert den jetzigen Stand von „{{page.shownTitle}}“ als eigene Version. Ohne das entsteht automatisch eine Version nach 10 Minuten Ruhe.</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body">
+          <label class="nf-label" for="nf-vname" style="margin-top: 0">Name (optional)</label>
+          <input id="nf-vname" class="nf-input nf-input-wide" maxlength="80" placeholder="z. B. Vor dem Review" value="{{vSave.name}}" onInput="{{vSave.onName}}">
+        </div>
+        <div class="nf-dialog-foot">
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Abbrechen</button>
+          <button type="submit" class="nf-btn nf-btn-primary">Version sichern</button>
+        </div>
+      </form>
     </div>
   </sc-if>
 
@@ -2006,6 +2540,13 @@ const RANK = { viewer: 1, commenter: 2, editor: 3, admin: 4 };
 const PRESENCE = { dm: ['peter', 'sophie', 'lukas'], home: ['peter', 'sophie', 'lukas', 'markus', 'max', 'elena'] };
 // Seitenlinks im Inhalt (für die Rückverweise in der Seiteninfo)
 const LINKS = { home: ['arch', 'release', 'betrieb'], dm: ['rechte'] };
+// Satz um jeden Seitenlink (für „Verlinkt von“ im Fuß der Seite); Schlüssel Quelle>Ziel
+const LINK_CTX = {
+  'home>arch': 'Architektur – Frontend, API, Datenmodell und Rechte',
+  'home>release': 'Release-Prozess – vom Merge bis zum Pilot',
+  'home>betrieb': 'Betrieb – Cluster, Backups und Bereitschaft',
+  'dm>rechte': 'Wie Rechte vererbt werden, steht unter Rechte-Konzept.'
+};
 // Workspace „Alpenwerk“ (seed.sql): Peter ist Owner, Elena Gast von außen
 const MEMBERS = [
   { key: 'peter', email: 'peter.forster@alpenwerk.example', role: 'owner' },
@@ -2054,11 +2595,12 @@ const SPACE_COLORS = [
   { color: '#BE185D', label: 'Beere' }, { color: '#B45309', label: 'Ocker' }, { color: '#1E5135', label: 'Grün' },
   { color: '#4D7C0F', label: 'Oliv' }, { color: '#5B6573', label: 'Grau' }
 ];
-const WS_ROLE ={ owner: 'Owner', admin: 'Admin', member: 'Mitglied', guest: 'Gast' };
+// Gruppen im Wiki mit ihren Mitgliedern (seed.sql: Gruppe Entwicklung)
+const GROUPS = { grp: ['lukas', 'sophie', 'markus'] };
+const WS_ROLE = { owner: 'Owner', admin: 'Admin', member: 'Mitglied', guest: 'Gast' };
 const INVITE_STATUS = { open: 'offen', accepted: 'angenommen', revoked: 'zurückgenommen', expired: 'abgelaufen' };
 // Dialoge mit Ausblick (wie im Frontend: was dort entsteht)
 const SOON = {
-  versions: (t) => ({ title: 'Versionen von „' + t + '“', text: 'Bald stehen hier alle Versionen dieser Seite mit allen, die daran geschrieben haben. Zwei Versionen lassen sich vergleichen, eine alte wiederherstellen.' }),
   export: (t) => ({ title: '„' + t + '“ exportieren', text: 'Bald lässt sich die Seite hier als Markdown, als BlockNote-JSON oder als ZIP mit allen Bildern herunterladen.' }),
   profile: () => ({ title: 'Benutzerprofil', text: 'Bald lassen sich hier Name, Profilbild und Zeitzone ändern. E-Mail und Passwort verwaltet der Login-Dienst.' }),
   userSettings: () => ({ title: 'Einstellungen', text: 'Bald stehen hier persönliche Einstellungen, z. B. Benachrichtigungen bei Erwähnungen und Kommentaren.' }),
@@ -2068,6 +2610,203 @@ const CALLOUT = {
   info: { icon: 'ℹ', label: 'Info' }, note: { icon: '✎', label: 'Hinweis' }, success: { icon: '✓', label: 'Erfolg' },
   warning: { icon: '⚠', label: 'Warnung' }, error: { icon: '✕', label: 'Fehler' }
 };
+// ---------- Versionen (Prototyp) ----------
+// Der Prototyp spielt am 25. November 2026. Blöcke stark vereinfacht (Überschrift, Absatz, Callout, Tabellenzeile,
+// Code, Aufgabe); im Produkt kommt der Vergleich aus dem BlockNote-JSON der Versionen (page_versions.content_json).
+const V_TODAY = '2026-11-25';
+const vB = {
+  h: (text) => ({ t: 'h2', text }),
+  p: (text) => ({ t: 'p', text }),
+  co: (variant, text) => ({ t: 'callout', variant, text }),
+  row: (c1, c2, head) => ({ t: 'row', c1, c2, head: !!head }),
+  code: (text) => ({ t: 'code', text }),
+  task: (text, done) => ({ t: 'task', text, done: !!done })
+};
+const vClone = (x) => JSON.parse(JSON.stringify(x));
+// Datenmodell: 12 Versionen, jede aus der vorigen abgeleitet (die letzte entspricht der Seite)
+const DM_VERSIONS = (() => {
+  const L = [];
+  const step = (meta, fn) => {
+    const prev = L[L.length - 1];
+    const blocks = prev ? vClone(prev.blocks) : [];
+    fn(blocks);
+    L.push({ n: L.length + 1, kind: 'auto', ...meta, title: meta.title || prev.title, blocks });
+  };
+  const row = (bl, c1) => bl.find((b) => b.t === 'row' && b.c1 === c1);
+  const after = (bl, c1, block) => bl.splice(bl.indexOf(row(bl, c1)) + 1, 0, block);
+  step({ at: '2026-11-03T10:14', authors: ['sophie'], title: 'Datenmodell (Entwurf)' }, (bl) => bl.push(
+    vB.h('Überblick'), vB.p('Jede Tabelle hat eine tenant_id. Row Level Security trennt die Mandanten.'),
+    vB.h('Kerntabellen'), vB.row('Tabelle', 'Zweck', true), vB.row('spaces', 'Bereich wie in Confluence'), vB.row('pages', 'Seitenbaum mit Pfad')));
+  step({ at: '2026-11-03T16:40', authors: ['sophie', 'lukas'] }, (bl) => {
+    bl.splice(2, 0, vB.co('info', 'Maßgeblich ist schema.sql.'));
+    bl.push(vB.row('page_contents', 'Yjs-Zustand und Klartext'));
+  });
+  step({ at: '2026-11-05T11:02', authors: ['lukas'] }, (bl) => bl.push(vB.h('Mandant setzen'), vB.code("SELECT set_config('app.tenant_id', $1, true);")));
+  step({ at: '2026-11-08T09:30', kind: 'manual', by: 'peter', name: 'Vor dem Review', authors: ['peter', 'sophie'], title: 'Datenmodell' }, (bl) => {
+    bl[1].text = 'Jede Tabelle trägt tenant_id. Row Level Security trennt die Mandanten in der Datenbank selbst.';
+  });
+  step({ at: '2026-11-12T14:20', authors: ['markus'] }, (bl) => {
+    after(bl, 'page_contents', vB.row('grants', 'Rechte auf Spaces'));
+    bl.push(vB.h('Offene Punkte'), vB.task('RLS-Tests für alle Lesepfade'));
+  });
+  step({ at: '2026-11-14T10:05', authors: ['sophie'] }, (bl) => {
+    after(bl, 'grants', vB.row('page_links', 'Verlinkungen für Rückverweise'));
+    bl[2].text = 'Maßgeblich ist schema.sql. Jede Änderung am Schema braucht einen Test.';
+  });
+  step({ at: '2026-11-19T15:48', authors: ['lukas', 'sophie'] }, (bl) => {
+    bl.find((b) => b.t === 'code').text = "SELECT set_config('app.tenant_id', $1, true);\nSELECT set_config('app.user_id',   $2, true);";
+    row(bl, 'page_contents').c2 = 'Yjs-Zustand, BlockNote-JSON und Klartext für die Suche';
+    bl.find((b) => b.t === 'task').done = true;
+  });
+  step({ at: '2026-11-21T09:12', authors: ['markus'] }, (bl) => {
+    bl.splice(bl.indexOf(row(bl, 'page_links')), 1);
+    row(bl, 'grants').c2 = 'Rechte auf einen Space oder eine Seite';
+  });
+  step({ at: '2026-11-23T17:30', authors: ['sophie'] }, (bl) => {
+    bl[2].text = 'Maßgeblich ist schema.sql. Jede Änderung am Schema braucht einen Test in schema_test.sql.';
+    row(bl, 'spaces').c2 = 'Bereich wie in Confluence, Einheit für Rechte und Import';
+    row(bl, 'pages').c2 = 'Seitenbaum mit Pfad und Position, Papierkorb';
+  });
+  step({ at: '2026-11-24T11:45', authors: ['lukas'] }, (bl) => {
+    bl[1].text = 'Jede Tabelle trägt tenant_id. Row Level Security trennt die Mandanten in der Datenbank selbst; die API setzt den Mandanten zu Beginn jeder Transaktion.';
+    bl.push(vB.task('Tabelle mit effektiven Rechten für große Seitenbäume'));
+  });
+  step({ at: '2026-11-24T16:20', kind: 'manual', by: 'peter', name: 'Stand für M2', authors: ['peter', 'lukas'] }, (bl) => bl.push(vB.p('Wie Rechte vererbt werden, steht unter Rechte-Konzept.')));
+  step({ at: '2026-11-25T15:38', authors: ['sophie', 'lukas'] }, (bl) => { bl[bl.length - 1].text = 'Wie Rechte vererbt werden, steht unter Rechte-Konzept. Fragen an @Sophie Bauer.'; });
+  return L;
+})();
+const HOME_BLOCKS = [
+  vB.p('Hier dokumentiert das Entwicklungsteam von Alpenwerk Architektur, Abläufe und Betrieb.'),
+  vB.h('Bereiche'),
+  vB.p('Architektur – Frontend, API, Datenmodell und Rechte'),
+  vB.p('Release-Prozess – vom Merge bis zum Pilot'),
+  vB.p('Betrieb – Cluster, Backups und Bereitschaft'),
+  vB.h('Mitmachen'),
+  vB.co('note', 'Neue Seiten bitte unter dem passenden Bereich anlegen. Seiten mit eigenen Rechten sind mit einem Schloss markiert.'),
+  vB.p('Fragen zum Wiki an @Lukas Gruber.')
+];
+const V_MONTHS = { Januar: 1, Februar: 2, März: 3, April: 4, Mai: 5, Juni: 6, Juli: 7, August: 8, September: 9, Oktober: 10, November: 11, Dezember: 12 };
+const vShift = (day, d) => { const x = new Date(day + 'T12:00:00'); x.setDate(x.getDate() - d); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); };
+const vDayOf = (when) => {
+  const m = /am (\d+)\. (\S+)(?: (\d{4}))?/.exec(when || '');
+  return m ? (m[3] || '2026') + '-' + String(V_MONTHS[m[2]] || 11).padStart(2, '0') + '-' + m[1].padStart(2, '0') : V_TODAY;
+};
+// Übrige Seiten: drei Versionen, die den Text nach und nach aufbauen
+const vGeneric = (p) => {
+  const full = p.body === 'home' ? HOME_BLOCKS : p.text.map((t) => vB.p(t));
+  const cut = (frac) => {
+    if (full.length >= 3) return full.slice(0, Math.max(1, Math.round(full.length * frac)));
+    if (!full.length) return [];
+    const w = full[0].text.split(' ');
+    return [vB.p(w.slice(0, Math.max(2, Math.round(w.length * frac))).join(' '))].concat(full.slice(1));
+  };
+  const day = vDayOf(p.when);
+  return [
+    { n: 1, kind: 'auto', at: vShift(day, 5) + 'T09:10', authors: [p.author], title: p.title, blocks: vClone(cut(0.45)) },
+    { n: 2, kind: 'auto', at: vShift(day, 2) + 'T14:05', authors: [...new Set([p.author, p.editor])], title: p.title, blocks: vClone(cut(0.75)) },
+    { n: 3, kind: 'auto', at: day + (day === V_TODAY ? 'T15:38' : 'T10:20'), authors: [p.editor], title: p.title, blocks: vClone(full) }
+  ];
+};
+const vDay = (at) => at.slice(0, 10);
+const vTime = (at) => at.slice(11, 16);
+const vDayLabel = (day) => day === V_TODAY ? 'Heute' : day === vShift(V_TODAY, 1) ? 'Gestern'
+  : new Date(day + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+const vLong = (at) => {
+  const d = vDay(at);
+  const l = d === V_TODAY ? 'Heute' : d === vShift(V_TODAY, 1) ? 'Gestern' : new Date(d + 'T12:00:00').toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
+  return l + ', ' + vTime(at) + ' Uhr';
+};
+const vShort = (at) => new Date(vDay(at) + 'T12:00:00').toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
+
+// Vergleich (nur Prototyp): längste gemeinsame Teilfolge über Blöcke, in geänderten Blöcken über Wörter.
+// Im Frontend dafür eine Bibliothek nehmen (CLAUDE.md, „Fremder Code“), z. B. das npm-Paket diff.
+const vLcs = (a, b, eq) => {
+  const n = a.length, m = b.length;
+  const dp = [];
+  for (let i = 0; i <= n; i++) dp.push(new Array(m + 1).fill(0));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) dp[i][j] = eq(a[i], b[j]) ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+  const ops = [];
+  let i = 0, j = 0;
+  while (i < n && j < m) {
+    if (eq(a[i], b[j])) { ops.push({ op: '=', a: a[i], b: b[j] }); i++; j++; }
+    else if (dp[i + 1][j] >= dp[i][j + 1]) { ops.push({ op: '-', a: a[i] }); i++; }
+    else { ops.push({ op: '+', b: b[j] }); j++; }
+  }
+  while (i < n) ops.push({ op: '-', a: a[i++] });
+  while (j < m) ops.push({ op: '+', b: b[j++] });
+  return ops;
+};
+const vTokens = (s) => String(s || '').split(/(\s+)/).filter((x) => x !== '');
+const vWordDiff = (a, b) => {
+  const raw = vLcs(vTokens(a), vTokens(b), (x, y) => x === y).map((o) => ({ k: o.op, text: o.op === '+' ? o.b : o.a }));
+  // Leerraum zwischen zwei Änderungen gehört zur Änderung: liest sich als „alt → neu“ statt Wort für Wort
+  raw.forEach((r, i) => { if (r.k === '=' && !r.text.trim() && raw[i - 1] && raw[i + 1] && raw[i - 1].k !== '=' && raw[i + 1].k !== '=') r.k = 'both'; });
+  const out = [];
+  for (let i = 0; i < raw.length;) {
+    if (raw[i].k === '=') { out.push({ k: '=', text: raw[i].text }); i++; continue; }
+    let del = '', ins = '';
+    while (i < raw.length && raw[i].k !== '=') { const r = raw[i]; if (r.k !== '+') del += r.text; if (r.k !== '-') ins += r.text; i++; }
+    if (del) out.push({ k: del.trim() ? '-' : '=', text: del });
+    if (ins && (ins.trim() || !del)) out.push({ k: ins.trim() ? '+' : '=', text: ins });
+  }
+  return out.reduce((acc, x) => { const l = acc[acc.length - 1]; if (l && l.k === x.k) l.text += x.text; else acc.push({ ...x }); return acc; }, []);
+};
+const vRender = (block, mode, old) => {
+  const kind = { add: '+', del: '-', eq: '=' }[mode];
+  const segsOf = (f) => mode === 'chg' ? vWordDiff(old[f], block[f]) : [{ k: kind, text: block[f] }];
+  const r = { t: block.t, cls: { add: 'nf-v-added', del: 'nf-v-removed', chg: 'nf-v-changed', eq: '' }[mode] };
+  if (block.t === 'row') { r.c1 = segsOf('c1'); r.c2 = segsOf('c2'); r.head = block.head; } else r.segs = segsOf('text');
+  if (block.t === 'callout') { r.variant = block.variant; if (mode === 'chg' && old.variant !== block.variant) r.note = 'Art: ' + CALLOUT[old.variant].label + ' → ' + CALLOUT[block.variant].label; }
+  if (block.t === 'task') { r.done = block.done; if (mode === 'chg' && old.done !== block.done) r.note = block.done ? 'abgehakt' : 'wieder offen'; }
+  return r;
+};
+const vMarkRows = (out) => out.map((r, i) => {
+  if (r.t !== 'row') return r;
+  const first = !(out[i - 1] && out[i - 1].t === 'row');
+  const last = !(out[i + 1] && out[i + 1].t === 'row');
+  return { ...r, rowCls: [first && 'nf-vrow-first', last && 'nf-vrow-last', r.head && 'nf-vrow-head'].filter(Boolean).join(' ') };
+});
+const vPlain = (blocks) => vMarkRows(blocks.map((b) => vRender(b, 'eq')));
+const vBlockDiff = (a, b) => {
+  const key = (x) => JSON.stringify(x);
+  const ops = vLcs(a, b, (x, y) => key(x) === key(y));
+  const out = [];
+  for (let i = 0; i < ops.length;) {
+    if (ops[i].op === '=') { out.push(vRender(ops[i].b, 'eq')); i++; continue; }
+    const dels = [], adds = [];
+    while (i < ops.length && ops[i].op !== '=') { if (ops[i].op === '-') dels.push(ops[i].a); else adds.push(ops[i].b); i++; }
+    // Gleiche Blockart (Tabellenzeile: gleiche Spalte) gilt als geändert, Rest als entfernt bzw. neu
+    const used = new Set();
+    const pair = adds.map((x) => {
+      const j = dels.findIndex((d, k) => !used.has(k) && d.t === x.t && (x.t !== 'row' || d.c1 === x.c1 || d.c2 === x.c2));
+      if (j >= 0) used.add(j);
+      return j;
+    });
+    // Reihenfolge erhalten: entfernte Blöcke vor dem geänderten Block, der hinter ihnen stand
+    let next = 0;
+    const flushDels = (upTo) => { for (; next < upTo; next++) if (!used.has(next)) out.push(vRender(dels[next], 'del')); };
+    adds.forEach((x, k) => {
+      if (pair[k] >= 0) { flushDels(pair[k]); next = Math.max(next, pair[k] + 1); out.push(vRender(x, 'chg', dels[pair[k]])); }
+      else out.push(vRender(x, 'add'));
+    });
+    flushDels(dels.length);
+  }
+  return vMarkRows(out);
+};
+const vWords = (segs, k) => (segs || []).filter((x) => x.k === k).reduce((n, x) => n + vTokens(x.text).filter((t) => t.trim()).length, 0);
+const vStats = (blocks, titleSegs) => {
+  const all = [titleSegs, ...blocks.flatMap((b) => b.t === 'row' ? [b.c1, b.c2] : [b.segs])];
+  return { plus: all.reduce((n, l) => n + vWords(l, '+'), 0), minus: all.reduce((n, l) => n + vWords(l, '-'), 0) };
+};
+const vTplSegs = (l) => (l || []).map((x) => ({ text: x.text, ins: x.k === '+', del: x.k === '-', eq: x.k === '=' }));
+const vTpl = (r) => ({
+  isH2: r.t === 'h2', isP: r.t === 'p', isCallout: r.t === 'callout', isCode: r.t === 'code', isTask: r.t === 'task', isRow: r.t === 'row',
+  cls: r.cls, rowCls: r.rowCls || '',
+  segs: vTplSegs(r.segs), c1: vTplSegs(r.c1), c2: vTplSegs(r.c2),
+  variant: r.variant || 'info', icon: r.variant ? CALLOUT[r.variant].icon : '', variantLabel: r.variant ? CALLOUT[r.variant].label : '',
+  done: !!r.done, doneAttr: r.done ? 'true' : 'false', doneLabel: r.done ? 'Erledigt' : 'Offen', locked: true,
+  hasNote: !!r.note, note: r.note || ''
+});
 const initials = (name) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join('');
 const pg = (space, title, parent, kids, editor, when, text, extra) =>
   ({ space, title, parent, kids, author: 'peter', editor, when, text: text || [], ...(extra || {}) });
@@ -2090,6 +2829,9 @@ const PAGES = {
   urlaub: pg('ENTW', 'Urlaubsplanung Vertrieb', 'personal', [], 'peter', 'am 1. November',
     ['Urlaube im Vertrieb für 2027. Max Mustermann darf mitlesen.']),
   notizen: pg('ENTW', 'Alte Notizen', 'home', [], 'peter', 'am 12. Oktober', ['Sammlung aus der Anfangszeit.']),
+  skizzen: pg('ENTW', 'Architektur-Skizzen 2025', 'arch', ['skizze1', 'skizze2'], 'sophie', 'am 2. Oktober', ['Erste Überlegungen zum Aufbau.']),
+  skizze1: pg('ENTW', 'Skizze Monolith', 'skizzen', [], 'sophie', 'am 2. Oktober', ['Ein Prozess für alles.']),
+  skizze2: pg('ENTW', 'Skizze Microservices', 'skizzen', [], 'sophie', 'am 2. Oktober', ['Viele kleine Dienste.']),
   vert_home: pg('VERT', 'Vertrieb', null, ['angebote', 'kampagne'], 'max', 'am 25. Oktober',
     ['Angebote, Kampagnen und Material für den Vertrieb.'], { author: 'max' }),
   angebote: pg('VERT', 'Angebote 2027', 'vert_home', [], 'max', 'am 30. Oktober', ['Vorlagen und Preise für Angebote im nächsten Jahr.'], { author: 'max' }),
@@ -2128,7 +2870,13 @@ class Component extends DCLogic {
       pages: JSON.parse(JSON.stringify(PAGES)),
       spaces: JSON.parse(JSON.stringify(SPACES)),
       grants: JSON.parse(JSON.stringify(GRANTS)),
-      trash: [{ id: 'notizen', index: 3 }],
+      // Papierkorb: wer wann gelöscht hat und wie viele Tage bis zum endgültigen Löschen bleiben
+      trash: [
+        { id: 'notizen', index: 3, by: 'lukas', when: 'am 12. November', daysLeft: 17 },
+        { id: 'skizzen', index: 2, by: 'sophie', when: 'am 30. Oktober', daysLeft: 4 }
+      ],
+      trashQ: '',
+      trashKids: {},
       trashOpen: false,
       menu: null,
       spaceMenu: false,
@@ -2140,6 +2888,13 @@ class Component extends DCLogic {
       rightsDraft: null,
       // Kommentare: Spalte standardmäßig zu; Threads pro Seite (quote = markierte Stelle, ohne = zur Seite)
       commentsOpen: false,
+      // Versionen: offene Ansicht (pid, gewählte Version, Vergleich), neue Versionen und wiederhergestellter Inhalt (nur diese Sitzung)
+      versions: null,
+      vextra: {},
+      restoredBody: {},
+      vName: '',
+      // Unterseiten im Fuß als Karten oder Liste (pro Person; im Prototyp im Browser gemerkt)
+      subView: (() => { try { return localStorage.getItem('nf-proto-subview') === 'list' ? 'list' : 'cards'; } catch (err) { return 'cards'; } })(),
       threads: {
         dm: [
           { id: 't1', quote: 'Jede Tabelle trägt tenant_id', resolved: false, comments: [
@@ -2236,12 +2991,223 @@ class Component extends DCLogic {
     return best;
   }
   canEdit(id) { const r = this.role(id); return r === 'editor' || r === 'admin'; }
+  /** Wirksame Rolle einer Person aus einer Liste von Grants (wie app.page_rank: Person, Gruppen,
+      „Alle im Workspace“ ohne Gäste; nur Mitglieder des Workspaces; archiviert höchstens Lesen) */
+  effRole(list, who, archived) {
+    const m = this.state.members.find((x) => x.key === who);
+    if (!m) return null;
+    let best = null;
+    for (const g of list || []) {
+      if (g.role === 'none') continue;
+      const hit = g.key === who || (g.key === 'ws' && m.role !== 'guest') || (GROUPS[g.key] || []).includes(who);
+      if (hit && (!best || RANK[g.role] > RANK[best])) best = g.role;
+    }
+    if (best && archived) best = 'viewer';
+    return best;
+  }
+  /** Wirksame Rolle einer beliebigen Person auf einer Seite (für „Ansehen als …“) */
+  roleFor(id, who) {
+    const s = this.state;
+    return this.effRole(s.grants[this.source(id)], who, s.spaces[s.pages[id].space].archived);
+  }
   set(patch) { this.setState(patch); }
   stop(e) { if (e && e.stopPropagation) e.stopPropagation(); }
   prevent(e) { if (e && e.preventDefault) e.preventDefault(); }
   focusLater(sel) { setTimeout(() => { const el = document.querySelector(sel); if (el) el.focus(); }, 30); }
 
-  go(id) { this.setState((st) => ({ current: id, space: st.pages[id].space, view: 'page', menu: null, spaceMenu: false, drawer: false })); }
+  go(id) { this.setState((st) => ({ current: id, space: st.pages[id].space, view: 'page', menu: null, spaceMenu: false, drawer: false, versions: null })); }
+
+  // ---------- Versionen (Prototyp) ----------
+  versionList(pid) {
+    const base = pid === 'dm' ? DM_VERSIONS : vGeneric(this.state.pages[pid]);
+    return base.concat(this.state.vextra[pid] || []);
+  }
+  vNow() { this._vClock = (this._vClock || 41) + 1; return V_TODAY + 'T15:' + String(this._vClock).padStart(2, '0'); }
+  openVersions(pid) {
+    this.edSave();
+    const l = this.versionList(pid);
+    this.setState({ versions: { pid, sel: l[l.length - 1].n, cmp: 'prev', changes: true }, dialog: null, pageMenu: false, commentsOpen: false, activeThread: null, palette: false });
+    setTimeout(() => { try { window.scrollTo(0, 0); } catch (err) { /* egal */ } }, 0);
+  }
+  currentBlocks(pid) {
+    const l = this.versionList(pid);
+    return vClone(this.state.restoredBody[pid] || l[l.length - 1].blocks);
+  }
+  saveVersion(pid, name) {
+    const l = this.versionList(pid);
+    const nv = { n: l[l.length - 1].n + 1, kind: 'manual', by: 'peter', name: name.trim() || null, authors: ['peter'], at: this.vNow(), title: this.state.pages[pid].title, blocks: this.currentBlocks(pid) };
+    this.setState((st) => ({
+      vextra: { ...st.vextra, [pid]: [...(st.vextra[pid] || []), nv] },
+      versions: st.versions ? { ...st.versions, sel: nv.n, cmp: 'prev', changes: true } : st.versions,
+      dialog: null, vName: ''
+    }));
+    this.showToast('Als Version ' + nv.n + ' gesichert');
+  }
+  restoreVersion(pid, n) {
+    const l = this.versionList(pid);
+    const src = l.find((v) => v.n === n);
+    const nv = { n: l[l.length - 1].n + 1, kind: 'restore', from: n, by: 'peter', authors: ['peter'], at: this.vNow(), title: src.title, blocks: vClone(src.blocks) };
+    this.setState((st) => ({
+      vextra: { ...st.vextra, [pid]: [...(st.vextra[pid] || []), nv] },
+      restoredBody: { ...st.restoredBody, [pid]: vClone(src.blocks) },
+      pages: { ...st.pages, [pid]: { ...st.pages[pid], title: src.title, editor: 'peter', when: 'gerade eben' } },
+      versions: st.versions ? { ...st.versions, sel: nv.n, cmp: 'prev', changes: true } : st.versions,
+      dialog: null, confirm: null
+    }));
+    this.markSaving();
+    this.showToast('Version ' + n + ' wiederhergestellt, neu als Version ' + nv.n);
+  }
+  // ---------- Fuß der Seite (Prototyp) ----------
+  // Anfang des Inhalts einer Seite (Karten und Liste der Unterseiten)
+  excerptOf(id) {
+    const s = this.state, p = s.pages[id];
+    const first = (blocks) => { const b = blocks.find((x) => x.t === 'p' && x.text); return b ? b.text : ''; };
+    let text = s.restoredBody[id] ? first(s.restoredBody[id])
+      : p.body === 'dm' ? first(DM_VERSIONS[DM_VERSIONS.length - 1].blocks)
+      : p.body === 'home' ? first(HOME_BLOCKS)
+      : p.text[0] || '';
+    if (!text && this._drafts[id]) { const d = document.createElement('div'); d.innerHTML = this._drafts[id]; text = d.textContent.trim(); }
+    return text.length > 160 ? text.slice(0, 157).trimEnd() + ' …' : text;
+  }
+  footVals(pid, editable, sp, homeId) {
+    const s = this.state, P = s.pages;
+    const shown = (t) => t || 'Ohne Titel';
+    const trashed = new Set(s.trash.map((t) => t.id));
+    const visible = (id) => P[id] && this.role(id) && !this.chain(id).some((x) => trashed.has(x));
+    const kids = P[pid].kids.filter(visible).map((id) => {
+      const k = P[id];
+      const ed = PEOPLE[k.editor];
+      const n = k.kids.filter(visible).length;
+      const excerpt = this.excerptOf(id);
+      return {
+        title: shown(k.title), titleCls: k.title ? '' : 'nf-untitled',
+        restricted: !!s.grants[id],
+        excerpt, hasExcerpt: !!excerpt,
+        color: ed.color, initials: initials(ed.name),
+        meta: ed.name + ' · ' + k.when,
+        hasKids: n > 0, kidsLabel: n + (n === 1 ? ' Unterseite' : ' Unterseiten'),
+        go: (e) => { this.prevent(e); this.go(id); }
+      };
+    });
+    // Rückverweise: feste Seitenlinks aus LINKS und Seitenlinks, die in dieser Sitzung im Editor eingefügt wurden
+    const sources = new Map();
+    Object.keys(LINKS).forEach((src) => { if (LINKS[src].includes(pid)) sources.set(src, LINK_CTX[src + '>' + pid] || ''); });
+    Object.entries(this._drafts || {}).forEach(([src, html]) => {
+      if (src === pid || !html || html.indexOf('data-page-id="' + pid + '"') < 0) return;
+      const d = document.createElement('div');
+      d.innerHTML = html;
+      const a = d.querySelector('[data-page-id="' + pid + '"]');
+      const block = a && (a.closest('p,li,h1,h2,h3,blockquote,div') || a);
+      if (!sources.has(src)) sources.set(src, block ? block.textContent.replace(/\s+/g, ' ').trim() : '');
+    });
+    const target = shown(P[pid].title);
+    const links = [...sources.entries()].filter(([src]) => visible(src)).map(([src, ctx]) => {
+      const i = ctx.indexOf(target);
+      const ch = this.chain(src);
+      return {
+        title: src === s.spaces[P[src].space].home ? 'Startseite' : shown(P[src].title),
+        restricted: ch.some((x) => s.grants[x]),
+        path: src === s.spaces[P[src].space].home ? s.spaces[P[src].space].name : ch.slice(0, -1).map((x) => shown(P[x].title)).join(' / '),
+        hasSnippet: !!ctx,
+        pre: i >= 0 ? ctx.slice(0, i) : ctx, hit: i >= 0 ? target : '', post: i >= 0 ? ctx.slice(i + target.length) : '',
+        go: (e) => { this.prevent(e); this.go(src); }
+      };
+    });
+    const setView = (v) => {
+      try { localStorage.setItem('nf-proto-subview', v); } catch (err) { /* nur diese Sitzung */ }
+      this.setState({ subView: v });
+    };
+    const canCreate = editable && !sp.archived;
+    return {
+      show: kids.length > 0 || links.length > 0 || canCreate,
+      hasKids: kids.length > 0,
+      kidCount: kids.length,
+      kids,
+      cards: s.subView !== 'list', list: s.subView === 'list',
+      cardsPressed: s.subView !== 'list' ? 'true' : 'false', listPressed: s.subView === 'list' ? 'true' : 'false',
+      showCards: () => setView('cards'), showList: () => setView('list'),
+      canCreate,
+      onlyCreate: canCreate && kids.length === 0,
+      create: () => this.createPage(pid),
+      hasLinks: links.length > 0,
+      linkCount: links.length,
+      links
+    };
+  }
+  versionVals(pid, editable, archived) {
+    const s = this.state, V = s.versions;
+    const list = this.versionList(pid);
+    const byN = {};
+    list.forEach((v) => { byN[v.n] = v; });
+    const last = list[list.length - 1];
+    const sel = byN[V.sel] || last;
+    const cmpN = typeof V.cmp === 'number' && V.cmp < sel.n ? V.cmp : sel.n - 1;
+    const base = byN[cmpN];
+    const diffOn = V.changes && !!base;
+    const blocks = diffOn ? vBlockDiff(base.blocks, sel.blocks) : vPlain(sel.blocks);
+    const titleSegs = diffOn ? vWordDiff(base.title || 'Ohne Titel', sel.title || 'Ohne Titel') : [{ k: '=', text: sel.title || 'Ohne Titel' }];
+    const st = vStats(blocks, titleSegs);
+    const who = (k) => (k === 'peter' ? 'dir' : PEOPLE[k].name);
+    const kindText = (v) => v.kind === 'manual' ? 'Gesichert von ' + who(v.by)
+      : v.kind === 'restore' ? 'Wiederhergestellt aus Version ' + v.from + ' von ' + who(v.by)
+      : v.kind === 'import' ? 'Aus Confluence importiert' : '';
+    const people = (v) => v.authors.map((k) => PEOPLE[k].name).join(', ');
+    const groups = [];
+    list.slice().reverse().forEach((v) => {
+      const label = vDayLabel(vDay(v.at));
+      let g = groups[groups.length - 1];
+      if (!g || g.label !== label) { g = { label, items: [] }; groups.push(g); }
+      const prev = byN[v.n - 1];
+      const ds = prev ? vStats(vBlockDiff(prev.blocks, v.blocks), vWordDiff(prev.title, v.title)) : null;
+      g.items.push({
+        label: 'Version ' + v.n,
+        isCurrent: v === last,
+        current: v === sel ? 'true' : 'false',
+        aria: 'Version ' + v.n + (v.name ? ' „' + v.name + '“' : '') + ', ' + vLong(v.at) + ', ' + people(v) + (ds ? ', ' + ds.plus + ' Wörter hinzugefügt, ' + ds.minus + ' entfernt' : ''),
+        time: vTime(v.at),
+        hasName: !!v.name, name: v.name || '',
+        hasKind: !!kindText(v), kind: kindText(v),
+        avatars: v.authors.slice(0, 3).map((k) => ({ color: PEOPLE[k].color, initials: initials(PEOPLE[k].name) })),
+        names: people(v),
+        hasDelta: !!ds && ds.plus + ds.minus > 0,
+        plus: ds ? ds.plus : 0, minus: ds ? ds.minus : 0,
+        hasPlus: !!ds && ds.plus > 0, hasMinus: !!ds && ds.minus > 0,
+        select: () => this.setState((x) => ({ versions: { ...x.versions, sel: v.n, cmp: 'prev' } }))
+      });
+    });
+    const isLast = sel === last;
+    const canRestore = editable && !isLast;
+    return {
+      count: list.length,
+      groups,
+      sel: { label: 'Version ' + sel.n + (sel.name ? ' · „' + sel.name + '“' : ''), isCurrent: isLast, dateLong: vLong(sel.at), people: people(sel), hasNote: !!kindText(sel), note: kindText(sel) },
+      titleSegs: vTplSegs(titleSegs),
+      blocks: blocks.map(vTpl),
+      empty: blocks.length === 0,
+      changes: diffOn,
+      noCompare: !base,
+      hasCompare: !!base,
+      cmp: cmpN === sel.n - 1 ? 'prev' : String(cmpN),
+      cmpDisabled: !V.changes,
+      cmpOptions: list.filter((v) => v.n < sel.n).reverse().map((v) => ({
+        value: v.n === sel.n - 1 ? 'prev' : String(v.n),
+        label: (v.n === sel.n - 1 ? 'vorheriger Version ' : 'Version ') + v.n + ' · ' + vShort(v.at) + (v.name ? ' · ' + v.name : '')
+      })),
+      onCmp: (e) => { const val = e.target.value; this.setState((x) => ({ versions: { ...x.versions, cmp: val === 'prev' ? 'prev' : Number(val) } })); },
+      toggleChanges: () => this.setState((x) => ({ versions: { ...x.versions, changes: !x.versions.changes } })),
+      showStats: diffOn && st.plus + st.minus > 0,
+      noChange: diffOn && st.plus + st.minus === 0 && blocks.every((b) => !b.cls),
+      plus: st.plus, minus: st.minus, hasPlus: st.plus > 0, hasMinus: st.minus > 0,
+      statsLabel: st.plus + ' Wörter hinzugefügt, ' + st.minus + ' entfernt',
+      canRestore,
+      restoreHint: !editable && !isLast,
+      restoreHintText: archived ? 'Archiviert: nur lesbar' : 'Wiederherstellen dürfen nur Bearbeitende',
+      restore: () => { this.setState({ dialog: 'confirm', confirm: { kind: 'restoreVersion', pid, n: sel.n } }); this.focusLater('#nf-confirm-cancel'); },
+      canSave: editable,
+      openSave: () => { this.setState({ dialog: 'saveVersion', vName: '' }); this.focusLater('#nf-vname'); },
+      close: () => this.setState({ versions: null })
+    };
+  }
 
   movePage(id, parent, index) {
     this.setState((st) => {
@@ -2279,7 +3245,7 @@ class Component extends DCLogic {
       pages[parent] = { ...pages[parent], kids: pages[parent].kids.filter((k) => k !== id) };
       const sub = (x) => [x, ...st.pages[x].kids.flatMap(sub)];
       const inside = sub(id).includes(st.current);
-      return { pages, trash: [...st.trash, { id, index }], dialog: null, confirm: null, current: inside ? parent : st.current };
+      return { pages, trash: [...st.trash, { id, index, by: 'peter', when: 'gerade eben', daysLeft: 30 }], dialog: null, confirm: null, current: inside ? parent : st.current };
     });
   }
 
@@ -2316,7 +3282,10 @@ class Component extends DCLogic {
     const s = this.state; const cur = s.current;
     const own = !!s.grants[cur];
     const list = s.grants[cur] || s.grants[this.source(cur, false)] || [];
-    this.setState({ dialog: 'rights', rightsDraft: { own, grants: list.map((g) => ({ ...g })), query: '' } });
+    this.setState({ dialog: 'rights', rightsDraft: { own, grants: list.map((g) => ({ ...g })), query: '', addRole: 'viewer', addOpen: false, addActive: 0 } });
+  }
+  openViewAs(fromRights) {
+    this.setState((st) => ({ dialog: 'viewAs', viewAsBack: !!fromRights, viewAsWho: st.viewAsWho || 'max' }));
   }
 
   openSpaceSettings(key) {
@@ -3068,7 +4037,7 @@ class Component extends DCLogic {
 
   // ---------- Befehlspalette (Suche, Strg K) ----------
   openPalette() {
-    this.setState({ palette: { q: '', scope: 'all', active: 0, limit: false }, menu: null, spaceMenu: false, spaceSub: null, pageMenu: false, userMenu: false, sideMenu: null, drawer: false });
+    this.setState({ palette: { q: '', scope: 'all', active: 0, limit: false }, menu: null, spaceMenu: false, spaceSub: null, pageMenu: false, userMenu: false, settingsMenu: false, sideMenu: null, drawer: false });
     this.focusLater('#nf-cmd-q');
   }
   closePalette(restoreFocus = true) {
@@ -3173,6 +4142,7 @@ class Component extends DCLogic {
       { label: 'Neuer Space', kw: 'space anlegen erstellen neu', run: () => { this.setState({ dialog: 'newSpace', ns: null }); this.focusLater('#ns-name'); } },
       { label: 'Zur Übersicht', kw: 'startseite home übersicht spaces', run: () => this.setState({ view: 'overview' }) },
       isPage && { label: 'Link zur Seite kopieren', kw: 'link kopieren teilen url adresse', run: () => this.showToast('Link kopiert') },
+      isPage && { label: 'Versionen anzeigen', kw: 'versionen verlauf historie wiederherstellen vergleichen änderungen', run: () => this.openVersions(this.state.current) },
       isPage && { label: 'Seite exportieren', kw: 'export exportieren markdown download', run: () => this.setState({ dialog: 'export' }) },
       { label: dark ? 'Helle Darstellung' : 'Dunkle Darstellung', kw: 'darstellung theme dunkel hell modus farbe', run: () => {
         const next = dark ? 'light' : 'dark';
@@ -3351,7 +4321,7 @@ class Component extends DCLogic {
         menuOpen: s.sideMenu === x.key,
         menuExpanded: s.sideMenu === x.key ? 'true' : 'false',
         moreCls: s.sideMenu === x.key ? 'nf-open' : '',
-        toggleMenu: (e) => { this.stop(e); this.setState((st) => ({ sideMenu: st.sideMenu === x.key ? null : x.key, userMenu: false })); },
+        toggleMenu: (e) => { this.stop(e); this.setState((st) => ({ sideMenu: st.sideMenu === x.key ? null : x.key, userMenu: false, settingsMenu: false })); },
         settings: () => this.openSpaceSettings(x.key),
         copyLink: () => {
           try { navigator.clipboard.writeText(location.origin + '/s/' + x.key.toLowerCase()).catch(() => {}); } catch (err) { /* nur Rückmeldung */ }
@@ -3468,6 +4438,8 @@ class Component extends DCLogic {
     const homeId = sp.home;
     const isPage = s.view === 'page';
     const cur = isPage ? s.current : null;
+    // Versionsansicht der aktuellen Seite (ersetzt Seite und Knöpfe im Kopfbereich)
+    const vmode = isPage && !!s.versions && s.versions.pid === cur;
     const spaceEditable = !sp.archived && this.canEdit(homeId);
     const shown = (t) => t || 'Ohne Titel';
 
@@ -3505,7 +4477,7 @@ class Component extends DCLogic {
         toggle: (e) => { this.stop(e); this.setState((st) => ({ expanded: { ...st.expanded, [id]: !st.expanded[id] } })); },
         go: (e) => { this.prevent(e); this.go(id); },
         create: (e) => { this.stop(e); this.createPage(id); },
-        toggleMenu: (e) => { this.stop(e); this.setState((st) => ({ menu: st.menu === id ? null : id, spaceMenu: false, pageMenu: false, userMenu: false })); },
+        toggleMenu: (e) => { this.stop(e); this.setState((st) => ({ menu: st.menu === id ? null : id, spaceMenu: false, pageMenu: false, userMenu: false, settingsMenu: false })); },
         rename: () => this.setState({ renaming: id, draft: p.title, menu: null }),
         up: () => prev && this.movePage(id, p.parent, index - 1),
         down: () => next && this.movePage(id, p.parent, index + 1),
@@ -3561,8 +4533,8 @@ class Component extends DCLogic {
     let crumbCurrent = '';
     if (isPage) {
       const ch = this.chain(cur);
-      crumbs = ch.slice(0, -1).map((id) => ({ title: shown(P[id].title), go: (e) => { this.prevent(e); this.go(id); } }));
-      crumbCurrent = shown(P[cur].title);
+      crumbs = (vmode ? ch : ch.slice(0, -1)).map((id) => ({ title: shown(P[id].title), go: (e) => { this.prevent(e); this.go(id); } }));
+      crumbCurrent = vmode ? 'Versionen' : shown(P[cur].title);
     } else {
       crumbs = [{ title: sp.name, go: (e) => { this.prevent(e); this.go(homeId); } }];
       crumbCurrent = 'Einstellungen';
@@ -3576,15 +4548,17 @@ class Component extends DCLogic {
     const restricted = this.chain(pid).some((x) => s.grants[x]);
     const author = PEOPLE[p.author];
     const editor = PEOPLE[p.editor];
+    const restoredBody = s.restoredBody[pid];
     const body = {
-      home: p.body === 'home',
-      dm: p.body === 'dm',
-      plain: !p.body && p.text.length > 0,
-      empty: !p.body && p.text.length === 0,
-      emptyReadonly: !editable && !p.body && p.text.length === 0
+      restored: !!restoredBody,
+      home: !restoredBody && p.body === 'home',
+      dm: !restoredBody && p.body === 'dm',
+      plain: !restoredBody && !p.body && p.text.length > 0,
+      empty: !restoredBody && !p.body && p.text.length === 0,
+      emptyReadonly: !editable && (restoredBody ? restoredBody.length === 0 : !p.body && p.text.length === 0)
     };
     // Bearbeitbaren Bereich mit dem Entwurf dieser Seite füllen (nach dem Rendern)
-    if (isPage && editable) this.edSync(pid);
+    if (isPage && editable && !vmode) this.edSync(pid);
     const link = (id, text) => ({
       title: shown(P[id].title),
       text,
@@ -3626,39 +4600,109 @@ class Component extends DCLogic {
       const srcId = this.source(pid, false);
       const from = srcId.startsWith('space:') ? 'vom Space „' + sp.name + '“' : 'von „' + shown(P[srcId].title) + '“';
       const editableGrants = d.own && !locked;
+      const setDraft = (patch) => this.setState((st) => ({ rightsDraft: { ...st.rightsDraft, ...patch } }));
+      const initialsOf = (key) => (key === 'grp' ? 'GE' : key === 'ws' ? 'AW' : initials(SUBJECTS[key].name));
+      const subOf = (key) => {
+        if (key === 'grp') return 'Gruppe · ' + GROUPS.grp.length + ' Mitglieder';
+        if (key === 'ws') return 'Alle Mitglieder von ' + s.wsName + ', ohne Gäste';
+        const m = s.members.find((x) => x.key === key);
+        return key === 'peter' ? 'Du' : m ? m.email + (m.role === 'guest' ? ' · Gast' : '') : 'Person';
+      };
+
+      // Zusammenfassung: wirksame Rolle jeder Person im Workspace mit dem Entwurf
+      const byRole = { admin: [], editor: [], commenter: [], viewer: [], none: [] };
+      s.members.forEach((m) => { byRole[this.effRole(d.grants, m.key, sp.archived) || 'none'].push(PEOPLE[m.key].name); });
+      const summary = ['admin', 'editor', 'commenter', 'viewer', 'none']
+        .filter((r) => byRole[r].length > 0)
+        .map((r) => ({ role: r, count: byRole[r].length, label: r === 'none' ? 'ohne Zugriff' : ROLE_LABEL[r], names: byRole[r].join(', ') }));
+
+      // Absicherungen: eigene Admin-Rechte und mindestens ein wirksamer Admin
+      const meNow = this.effRole(d.grants, 'peter', false);
+      const selfWarn = editableGrants && meNow !== 'admin';
+      const noAdmin = editableGrants && byRole.admin.length === 0;
+
+      // Vorschläge zum Hinzufügen
+      const taken = new Set(d.grants.map((g) => g.key));
+      const words = fold(d.query.trim()).split(/\s+/).filter(Boolean);
+      const candidates = [
+        ...s.members.map((m) => ({ key: m.key, name: PEOPLE[m.key].name, sub: subOf(m.key), hay: PEOPLE[m.key].name + ' ' + m.email, bg: PEOPLE[m.key].color })),
+        { key: 'grp', name: SUBJECTS.grp.name, sub: subOf('grp'), hay: SUBJECTS.grp.name + ' gruppe', bg: SUBJECTS.grp.bg },
+        { key: 'ws', name: SUBJECTS.ws.name, sub: subOf('ws'), hay: SUBJECTS.ws.name + ' workspace alle', bg: SUBJECTS.ws.bg }
+      ].filter((c) => !taken.has(c.key) && words.every((w) => fold(c.hay).includes(w))).slice(0, 8);
+      const roleFor = (key) => (key === 'ws' && d.addRole === 'admin' ? 'editor' : d.addRole);
+      const active = Math.min(d.addActive || 0, Math.max(0, candidates.length - 1));
+      const addKey = (key) => {
+        setDraft({ grants: [...this.state.rightsDraft.grants, { key, role: roleFor(key) }], query: '', addActive: 0, addOpen: false });
+        this.showToast(SUBJECTS[key].name + ' hinzugefügt als ' + ROLE_LABEL[roleFor(key)]);
+      };
+      const suggestOpen = !!d.addOpen && (words.length > 0 || candidates.length > 0);
+
       rights = {
         locked,
         ownPressed: d.own ? 'true' : 'false',
         inheritText: d.own ? 'Gilt für diese Seite und ihre Unterseiten.' : 'Erbt die Rechte ' + from + '.',
+        summary,
+        viewAs: () => this.openViewAs(true),
         grants: d.grants.map((g, i) => {
           const subj = SUBJECTS[g.key];
           return {
-            name: subj.name, sub: subj.sub, bg: subj.bg, initials: g.key === 'grp' ? 'GE' : g.key === 'ws' ? 'AW' : initials(subj.name),
+            name: subj.name, sub: subOf(g.key), bg: subj.bg, initials: initialsOf(g.key),
             role: g.role, roleLabel: ROLE_LABEL[g.role],
             selectLabel: 'Rolle für ' + subj.name,
             selectAdmin: editableGrants && g.key !== 'ws',
             selectNoAdmin: editableGrants && g.key === 'ws',
             readonly: !editableGrants,
+            removable: editableGrants,
+            removeLabel: subj.name + ' entfernen',
+            remove: () => setDraft({ grants: this.state.rightsDraft.grants.filter((x, j) => j !== i) }),
             change: (e) => {
               const v = e.target.value;
-              this.setState((st) => ({ rightsDraft: { ...st.rightsDraft, grants: st.rightsDraft.grants.map((x, j) => (j === i ? { ...x, role: v } : x)) } }));
+              setDraft({ grants: this.state.rightsDraft.grants.map((x, j) => (j === i ? { ...x, role: v } : x)) });
             }
           };
         }),
         canAdd: editableGrants,
         query: d.query,
-        onQuery: (e) => { const v = e.target.value; this.setState((st) => ({ rightsDraft: { ...st.rightsDraft, query: v } })); },
-        add: (e) => {
-          this.prevent(e);
-          const q = d.query.trim().toLowerCase();
-          const hit = Object.keys(SUBJECTS).find((k) => !d.grants.some((g) => g.key === k) && SUBJECTS[k].name.toLowerCase().includes(q));
-          if (q && hit) this.setState((st) => ({ rightsDraft: { ...st.rightsDraft, query: '', grants: [...st.rightsDraft.grants, { key: hit, role: 'viewer' }] } }));
+        addRole: d.addRole,
+        onAddRole: (e) => setDraft({ addRole: e.target.value }),
+        onQuery: (e) => setDraft({ query: e.target.value, addOpen: true, addActive: 0 }),
+        onFocus: () => setDraft({ addOpen: true }),
+        onBlur: () => setTimeout(() => { if (this.state.rightsDraft) setDraft({ addOpen: false }); }, 120),
+        keep: (e) => this.prevent(e),
+        onKey: (e) => {
+          if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            this.prevent(e);
+            if (!candidates.length) return;
+            setDraft({ addOpen: true, addActive: (active + (e.key === 'ArrowDown' ? 1 : -1) + candidates.length) % candidates.length });
+          } else if (e.key === 'Enter') {
+            this.prevent(e);
+            if (candidates.length) addKey(candidates[active].key);
+          } else if (e.key === 'Escape' && suggestOpen) {
+            this.prevent(e);
+            this.stop(e);
+            setDraft({ addOpen: false });
+          }
         },
+        suggestOpen,
+        suggestExpanded: suggestOpen ? 'true' : 'false',
+        activeId: suggestOpen && candidates.length ? 'nf-grant-opt-' + active : '',
+        suggestions: candidates.map((c, i) => ({
+          ...c, initials: initialsOf(c.key), roleLabel: ROLE_LABEL[roleFor(c.key)],
+          domId: 'nf-grant-opt-' + i, selected: i === active ? 'true' : 'false',
+          add: () => addKey(c.key)
+        })),
+        noSuggest: suggestOpen && candidates.length === 0,
+        noSuggestText: 'Niemand mit „' + d.query.trim() + '“ im Workspace, oder schon in der Liste',
+        selfWarn: selfWarn && !noAdmin,
+        noAdmin,
         hint: !editableGrants,
         hintText: locked
           ? 'Rechte ändern nur Admins dieser Seite bzw. dieses Spaces. Deine Rolle: ' + (myRole ? ROLE_LABEL[myRole] : '–') + '.'
           : 'Um nur einzelnen Personen Zugriff zu geben, schalte „Eigene Rechte“ ein. Die bisherigen Rechte werden übernommen und lassen sich dann einschränken.',
         canSave: !locked,
+        saveDisabled: noAdmin,
+        saveCls: selfWarn && !noAdmin ? 'nf-btn-attention' : 'nf-btn-primary',
+        saveLabel: selfWarn && !noAdmin ? 'Trotzdem speichern' : 'Speichern',
         toggleOwn: () => {
           if (locked) return;
           this.setState((st) => {
@@ -3670,12 +4714,49 @@ class Component extends DCLogic {
             return { rightsDraft: { ...st.rightsDraft, own, grants: inherited } };
           });
         },
-        save: () => this.setState((st) => {
-          const grants = { ...st.grants };
-          if (st.rightsDraft.own) grants[pid] = st.rightsDraft.grants.filter((g) => g.role !== 'none');
-          else delete grants[pid];
-          return { grants, dialog: null, rightsDraft: null };
-        })
+        save: () => {
+          if (noAdmin) return;
+          this.setState((st) => {
+            const grants = { ...st.grants };
+            if (st.rightsDraft.own) grants[pid] = st.rightsDraft.grants.filter((g) => g.role !== 'none');
+            else delete grants[pid];
+            return { grants, dialog: null, rightsDraft: null };
+          });
+          this.showToast('Rechte gespeichert');
+        }
+      };
+    }
+
+    // „Ansehen als …“: Rolle einer Person auf jeder Seite des Spaces (gespeicherter Stand)
+    let viewAs = { open: false };
+    if (s.dialog === 'viewAs') {
+      const who = s.viewAsWho || 'max';
+      const trashed = new Set(s.trash.map((t) => t.id));
+      const rows = [];
+      const walkVa = (id, depth) => {
+        if (trashed.has(id)) return;
+        const r = this.roleFor(id, who);
+        rows.push({
+          title: id === homeId ? shown(P[id].title) + ' (Startseite)' : shown(P[id].title),
+          pad: 10 + depth * 18,
+          restricted: !!s.grants[id],
+          role: r || 'none', roleLabel: r ? ROLE_LABEL[r] : 'Kein Zugriff', none: r ? 'false' : 'true'
+        });
+        P[id].kids.forEach((k) => walkVa(k, depth + 1));
+      };
+      walkVa(homeId, 0);
+      const seen = rows.filter((r) => r.none === 'false').length;
+      const m = s.members.find((x) => x.key === who);
+      viewAs = {
+        open: true,
+        spaceName: sp.name,
+        who,
+        people: s.members.filter((x) => x.key !== 'peter').map((x) => ({ key: x.key, label: PEOPLE[x.key].name + (x.role === 'guest' ? ' (Gast)' : '') })),
+        onWho: (e) => this.setState({ viewAsWho: e.target.value }),
+        summary: PEOPLE[who].name + (m && m.role === 'guest' ? ' (Gast)' : '') + ' sieht ' + seen + ' von ' + rows.length + ' Seiten.',
+        rows,
+        back: !!s.viewAsBack,
+        goBack: () => this.openRights()
       };
     }
 
@@ -3689,6 +4770,15 @@ class Component extends DCLogic {
           text: 'Aus dem Papierkorb unten in der Seitenleiste lässt sie sich wiederherstellen.',
           label: 'In den Papierkorb', cls: 'nf-btn-danger',
           ok: () => this.trashPage(s.confirm.id)
+        };
+      } else if (s.confirm.kind === 'restoreVersion') {
+        const v = this.versionList(s.confirm.pid).find((x) => x.n === s.confirm.n);
+        const next = this.versionList(s.confirm.pid).length + 1;
+        confirm = {
+          title: 'Version ' + v.n + ' wiederherstellen?',
+          text: 'Titel und Inhalt vom ' + vLong(v.at).replace(/^Heute, /, 'heute, ').replace(/^Gestern, /, 'gestern, ') + ' werden zum aktuellen Stand. Daraus entsteht Version ' + next + '; alle bisherigen Versionen bleiben erhalten. Wer die Seite offen hat, sieht die Änderung sofort.',
+          label: 'Wiederherstellen', cls: 'nf-btn-primary',
+          ok: () => this.restoreVersion(s.confirm.pid, s.confirm.n)
         };
       } else if (s.confirm.kind === 'removeMember') {
         const m = s.members.find((x) => x.key === s.confirm.key);
@@ -3756,7 +4846,7 @@ class Component extends DCLogic {
       unarchive: () => { this.setState((st) => ({ spaces: { ...st.spaces, [stKey]: { ...st.spaces[stKey], archived: false } }, settingsDraft: null })); this.showToast('„' + stSpace.name + '“ zurückgeholt'); }
     };
 
-    const anyMenu = s.menu || s.spaceMenu || s.pageMenu || s.userMenu || s.sideMenu;
+    const anyMenu = s.menu || s.spaceMenu || s.pageMenu || s.userMenu || s.settingsMenu || s.sideMenu;
     const trashItems = s.trash.filter((t) => P[t.id].space === s.space).map((t) => ({
       title: shown(P[t.id].title),
       canRestore: !sp.archived && this.canEdit(P[t.id].parent),
@@ -3769,7 +4859,7 @@ class Component extends DCLogic {
       drawerExpanded: s.drawer ? 'true' : 'false',
       openDrawer: (e) => { this.stop(e); this.setState({ drawer: true }); },
       closeDrawer: () => this.setState({ drawer: false }),
-      closeMenus: () => { if (anyMenu) this.setState({ menu: null, spaceMenu: false, spaceSub: null, pageMenu: false, userMenu: false, sideMenu: null }); },
+      closeMenus: () => { if (anyMenu) this.setState({ menu: null, spaceMenu: false, spaceSub: null, pageMenu: false, userMenu: false, settingsMenu: false, sideMenu: null }); },
       onKey: (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
           this.prevent(e);
@@ -3778,16 +4868,17 @@ class Component extends DCLogic {
         }
         if (e.key !== 'Escape') return;
         if (s.dialog) this.setState({ dialog: null, confirm: null, rightsDraft: null });
-        else if (anyMenu) this.setState({ menu: null, spaceMenu: false, spaceSub: null, pageMenu: false, userMenu: false, sideMenu: null });
+        else if (anyMenu) this.setState({ menu: null, spaceMenu: false, spaceSub: null, pageMenu: false, userMenu: false, settingsMenu: false, sideMenu: null });
         else if (s.renaming) this.setState({ renaming: null });
         else if (s.drawer) this.setState({ drawer: false });
+        else if (vmode) this.setState({ versions: null });
       },
       goOverview: (e) => { this.prevent(e); this.setState({ view: 'overview', spaceMenu: false, spaceSub: null, drawer: false, menu: null }); },
 
       space: { ...sp, badge: sp.key.slice(0, 2), color: sp.color || '#1F5FD6', active: !sp.archived },
       spaceMenuOpen: s.spaceMenu,
       spaceMenuExpanded: s.spaceMenu ? 'true' : 'false',
-      toggleSpaceMenu: (e) => { this.stop(e); this.setState((st) => ({ spaceMenu: !st.spaceMenu, spaceSub: null, menu: null, pageMenu: false, userMenu: false })); },
+      toggleSpaceMenu: (e) => { this.stop(e); this.setState((st) => ({ spaceMenu: !st.spaceMenu, spaceSub: null, menu: null, pageMenu: false, userMenu: false, settingsMenu: false })); },
       spaceItems,
       spaceEditable,
       createTop: (e) => { this.stop(e); this.createPage(homeId); },
@@ -3797,9 +4888,51 @@ class Component extends DCLogic {
       goHome: (e) => { this.prevent(e); this.go(homeId); },
       rows,
 
-      trashOpen: s.trashOpen,
-      trashExpanded: s.trashOpen ? 'true' : 'false',
-      toggleTrash: () => this.setState((st) => ({ trashOpen: !st.trashOpen })),
+      openTrash: () => { this.setState({ dialog: 'trash', trashQ: '', drawer: false }); this.focusLater('#nf-trash-q'); },
+      trashDlg: (() => {
+        if (s.dialog !== 'trash') return { open: false };
+        const words = fold(s.trashQ.trim()).split(/\s+/).filter(Boolean);
+        const sub = (x) => [x, ...P[x].kids.flatMap(sub)];
+        const mine = s.trash.filter((t) => P[t.id].space === s.space && this.role(t.id));
+        const items = mine
+          .filter((t) => words.every((w) => fold(sub(t.id).map((x) => shown(P[x].title)).join(' ')).includes(w)))
+          .map((t) => {
+            const kids = [];
+            const walkK = (x, depth) => P[x].kids.forEach((k) => { kids.push({ title: shown(P[k].title), pad: 8 + depth * 16 }); walkK(k, depth + 1); });
+            walkK(t.id, 0);
+            const open = !!s.trashKids[t.id];
+            const parent = P[t.id].parent;
+            return {
+              title: shown(P[t.id].title),
+              restricted: this.chain(t.id).some((x) => s.grants[x]),
+              by: t.by === 'peter' ? 'dir' : PEOPLE[t.by].name,
+              when: t.when,
+              from: parent === homeId ? 'Startseite' : shown(P[parent].title),
+              hasKids: kids.length > 0,
+              kids,
+              kidsOpen: open,
+              kidsExpanded: open ? 'true' : 'false',
+              kidsRot: open ? 90 : 0,
+              kidsLabel: kids.length + (kids.length === 1 ? ' Unterseite' : ' Unterseiten') + ' mit gelöscht',
+              toggleKids: () => this.setState((st) => ({ trashKids: { ...st.trashKids, [t.id]: !st.trashKids[t.id] } })),
+              daysLabel: 'noch ' + t.daysLeft + (t.daysLeft === 1 ? ' Tag' : ' Tage'),
+              daysTitle: 'Wird in ' + t.daysLeft + (t.daysLeft === 1 ? ' Tag' : ' Tagen') + ' endgültig gelöscht',
+              soon: t.daysLeft <= 7 ? 'true' : 'false',
+              canRestore: !sp.archived && this.canEdit(parent),
+              restore: () => { this.restorePage(t.id); this.showToast('„' + shown(P[t.id].title) + '“ wiederhergestellt'); }
+            };
+          });
+        return {
+          open: true,
+          spaceName: sp.name,
+          q: s.trashQ,
+          onQ: (e) => this.setState({ trashQ: e.target.value }),
+          hasItems: mine.length > 0,
+          items,
+          empty: items.length === 0,
+          emptyText: mine.length === 0 ? 'Der Papierkorb ist leer.' : 'Nichts im Papierkorb passt zu „' + s.trashQ.trim() + '“.'
+        };
+      })(),
       trashCount: trashItems.length,
       trashItems,
       trashEmpty: trashItems.length === 0,
@@ -3819,11 +4952,22 @@ class Component extends DCLogic {
       presenceMore: others.length > shownOthers.length,
       presenceMoreLabel: '+' + (others.length - shownOthers.length),
       presenceLabel: 'Gerade auch auf dieser Seite: ' + others.map((k) => PEOPLE[k].name).join(', '),
-      openVersions: () => this.setState({ dialog: 'versions', pageMenu: false }),
+      openVersions: () => this.openVersions(pid),
+      vmode,
+      showPage: isPage && !vmode,
+      foot: isPage && !vmode ? this.footVals(pid, editable, sp, homeId) : { show: false },
+      vv: vmode ? this.versionVals(pid, editable, sp.archived) : {},
+      restoredBlocks: restoredBody ? vPlain(restoredBody).map(vTpl) : [],
+      vSave: {
+        open: s.dialog === 'saveVersion',
+        name: s.vName,
+        onName: (e) => this.setState({ vName: e.target.value }),
+        submit: (e) => { this.prevent(e); this.saveVersion(pid, s.vName); }
+      },
       openExport: () => this.setState({ dialog: 'export', pageMenu: false }),
       pageMenuOpen: !!s.pageMenu,
       pageMenuExpanded: s.pageMenu ? 'true' : 'false',
-      togglePageMenu: (e) => { this.stop(e); this.setState((st) => ({ pageMenu: !st.pageMenu, menu: null, spaceMenu: false, spaceSub: null, userMenu: false })); },
+      togglePageMenu: (e) => { this.stop(e); this.setState((st) => ({ pageMenu: !st.pageMenu, menu: null, spaceMenu: false, spaceSub: null, userMenu: false, settingsMenu: false })); },
       openRights: () => this.openRights(),
       commentsPressed: s.commentsOpen ? 'true' : 'false',
       toggleComments: () => this.setState((st) => ({ commentsOpen: !st.commentsOpen, activeThread: st.commentsOpen ? null : st.activeThread, replying: null })),
@@ -3930,7 +5074,7 @@ class Component extends DCLogic {
           .map((src) => ({ title: shown(P[src].title), go: (e) => { this.prevent(e); this.setState({ dialog: null }); this.go(src); } }));
         return {
           rights: s.grants[pid] ? 'Eigene Rechte (Vererbung gekappt)' : restricted ? 'Erbt eigene Rechte einer übergeordneten Seite' : 'Erbt die Rechte vom Space',
-          versions: pid === 'dm' ? '12 Versionen, zuletzt vor 2 Minuten' : '3 Versionen',
+          versions: (() => { const l = this.versionList(pid); return l.length + ' Versionen, die letzte ' + vLong(l[l.length - 1].at).replace(/^Heute, /, 'heute um ').replace(/^Gestern, /, 'gestern um '); })(),
           backlinks,
           hasBacklinks: backlinks.length > 0,
           noBacklinks: backlinks.length === 0
@@ -3976,26 +5120,30 @@ class Component extends DCLogic {
       markCls: t1Open ? 'nf-on' + (s.commentsOpen && s.activeThread === 't1' ? ' nf-active' : '') : '',
       tasks,
 
-      commentsOpen: s.commentsOpen && isPage,
+      commentsOpen: s.commentsOpen && isPage && !vmode,
 
       settings,
       spaceSettingsOpen: s.dialog === 'spaceSettings',
 
       rightsOpen: s.dialog === 'rights',
       rights,
+      viewAs,
       soonOpen: !!SOON[s.dialog],
       soon: SOON[s.dialog] ? SOON[s.dialog](shown(p.title)) : {},
 
       userMenuOpen: !!s.userMenu,
       userMenuExpanded: s.userMenu ? 'true' : 'false',
-      toggleUserMenu: (e) => { this.stop(e); this.setState((st) => ({ userMenu: !st.userMenu, menu: null, spaceMenu: false, spaceSub: null, pageMenu: false })); },
-      closeUserMenu: () => this.setState({ userMenu: false }),
-      openProfile: () => this.setState({ dialog: 'profile', userMenu: false }),
-      openUserSettings: () => this.setState({ dialog: 'userSettings', userMenu: false }),
-      openShortcuts: () => this.setState({ dialog: 'shortcuts', userMenu: false }),
+      toggleUserMenu: (e) => { this.stop(e); this.setState((st) => ({ userMenu: !st.userMenu, settingsMenu: false, menu: null, spaceMenu: false, spaceSub: null, pageMenu: false })); },
+      settingsMenuOpen: !!s.settingsMenu,
+      settingsMenuExpanded: s.settingsMenu ? 'true' : 'false',
+      toggleSettingsMenu: (e) => { this.stop(e); this.setState((st) => ({ settingsMenu: !st.settingsMenu, userMenu: false, menu: null, spaceMenu: false, spaceSub: null, pageMenu: false })); },
+      closeUserMenu: () => this.setState({ userMenu: false, settingsMenu: false }),
+      openProfile: () => this.setState({ dialog: 'profile', userMenu: false, settingsMenu: false }),
+      openUserSettings: () => this.setState({ dialog: 'userSettings', userMenu: false, settingsMenu: false }),
+      openShortcuts: () => this.setState({ dialog: 'shortcuts', userMenu: false, settingsMenu: false }),
       // Workspace und Einladungen (nur Owner und Admins; Peter ist Owner)
-      openWorkspace: () => this.setState({ dialog: 'workspace', userMenu: false, wsDraft: null }),
-      openInvites: () => this.setState({ dialog: 'invites', userMenu: false, inviteLink: null }),
+      openWorkspace: () => this.setState({ dialog: 'workspace', userMenu: false, settingsMenu: false, wsDraft: null }),
+      openInvites: () => this.setState({ dialog: 'invites', userMenu: false, settingsMenu: false, inviteLink: null }),
       workspaceOpen: s.dialog === 'workspace',
       invitesOpen: s.dialog === 'invites',
       ws: (() => {
@@ -4084,7 +5232,7 @@ class Component extends DCLogic {
         lang: l.key,
         on: (s.locale || 'de') === l.key,
         checked: (s.locale || 'de') === l.key ? 'true' : 'false',
-        choose: () => this.setState({ locale: l.key, userMenu: false })
+        choose: () => this.setState({ locale: l.key, userMenu: false, settingsMenu: false })
       })),
       // Menü bleibt offen, damit man den Wechsel gleich sieht
       themes: [{ key: 'light', label: 'Hell' }, { key: 'dark', label: 'Dunkel' }, { key: 'system', label: 'System' }].map((t) => ({

@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NoteFieber – Logo-Entwürfe</title>
+<link rel="icon" href="logo-mark-nf.svg" type="image/svg+xml">
+<style>
+/* Logo-Entwürfe für NoteFieber (25. November 2026). Farben und Schrift wie im Prototyp (pages/Main.dc.html). */
+@font-face{font-family:'Inter Variable';font-style:normal;font-display:swap;font-weight:100 900;src:url(../fonts/inter-latin-wght-normal.woff2) format('woff2-variations')}
+:root{--bg:#ffffff;--text:#1a2230;--muted:#5b6573;--border:#e2e5ea;--sidebar:#f3f5f8;--accent:#1f5fd6;--dark:#14181f;--dark-text:#e6e9ef;--dark-muted:#9aa4b2}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Inter Variable',system-ui,sans-serif;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+main{max-width:1080px;margin:0 auto;padding:40px 24px 64px}
+h1{margin:0 0 6px;font-size:28px;letter-spacing:-.01em}
+.lead{margin:0 0 32px;color:var(--muted);max-width:680px;line-height:1.5}
+.variant{display:grid;grid-template-columns:200px 1fr;gap:28px;align-items:start;padding:28px 0;border-top:1px solid var(--border)}
+.variant h2{margin:0 0 6px;font-size:17px}
+.variant p{margin:0;color:var(--muted);font-size:14px;line-height:1.5}
+.tag{display:inline-block;margin-top:10px;padding:2px 9px;border-radius:999px;background:#eef3fc;color:var(--accent);font-size:12px;font-weight:600}
+.big{display:block;width:96px;height:96px;margin-bottom:14px}
+.row{display:flex;flex-wrap:wrap;gap:14px}
+.tile{flex:1 1 240px;min-width:0;padding:18px;border:1px solid var(--border);border-radius:12px}
+.tile-label{margin-bottom:12px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.lockup{display:flex;align-items:center;gap:10px}
+.lockup img{width:28px;height:28px}
+.word{font-size:19px;font-weight:700;letter-spacing:-.02em}
+.word .two{color:var(--accent)}
+.tenant{display:block;font-size:12px;font-weight:400;letter-spacing:0;color:var(--muted)}
+.on-sidebar{background:var(--sidebar)}
+.on-dark{background:var(--dark);border-color:#2a313c}
+.on-dark .tile-label,.on-dark .tenant{color:var(--dark-muted)}
+.on-dark .word{color:var(--dark-text)}
+.on-dark .word .two{color:#8db3f8}
+.sizes{display:flex;align-items:flex-end;gap:18px}
+.sizes figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+.tab{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border:1px solid var(--border);border-bottom:0;border-radius:8px 8px 0 0;background:#fff;font-size:13px}
+.tab img{width:16px;height:16px}
+.note{margin-top:36px;padding:16px 18px;border-radius:10px;background:#f8f9fb;color:var(--muted);font-size:14px;line-height:1.55}
+.note strong{color:var(--text)}
+.mk{--s:28px;flex:none;display:inline-grid;place-items:center;width:var(--s);height:var(--s);border:max(1px,calc(var(--s)/30)) solid currentColor;border-radius:calc(var(--s)*.27);background:transparent;color:#1a2230;font-size:calc(var(--s)*.4);font-weight:600;letter-spacing:-.03em;line-height:1}
+.on-dark .mk{color:#e6e9ef}
+.mk.big{display:grid;--s:96px;margin-bottom:14px}
+@media (max-width:720px){.variant{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+  <h1>NoteFieber – Logo-Entwürfe</h1>
+  <p class="lead">Gewählt ist das zurückhaltende „NF“: ohne Fläche, nur ein dünner Rahmen und die Buchstaben in Inter 600, beide im Grau des Schriftzugs. Es steht im Prototyp in der Seitenleiste, im Kopf des Import-Assistenten und im Browser-Tab. Darunter die früheren Entwürfe im Akzentblau.</p>
+
+  <section class="variant" aria-labelledby="vnf">
+    <div>
+      <span class="mk big" aria-hidden="true">NF</span>
+      <h2 id="vnf">NF · zurückhaltend</h2>
+      <p>Die Initialen in Inter ohne Fläche, Rahmen und Schrift im Grau des Schriftzugs. Unaufdringlich, wirkt wie ein Teil der Oberfläche und überlässt die Farbe den Spaces.</p>
+      <span class="tag">Im Prototyp</span>
+    </div>
+    <div>
+      <div class="row">
+        <div class="tile"><div class="tile-label">Hell</div><div class="lockup"><span class="mk" aria-hidden="true">NF</span><span class="word">NoteFieber</span></div></div>
+        <div class="tile on-sidebar"><div class="tile-label">Seitenleiste</div><div class="lockup"><span class="mk" aria-hidden="true">NF</span><span class="word">NoteFieber<span class="tenant">Alpenwerk</span></span></div></div>
+        <div class="tile on-dark"><div class="tile-label">Dunkel</div><div class="lockup"><span class="mk" aria-hidden="true">NF</span><span class="word">NoteFieber</span></div></div>
+      </div>
+      <div class="row" style="margin-top: 14px">
+        <div class="tile"><div class="tile-label">Klein</div><div class="sizes">
+          <figure><span class="mk" style="--s:16px" aria-hidden="true">NF</span>16</figure>
+          <figure><span class="mk" style="--s:24px" aria-hidden="true">NF</span>24</figure>
+          <figure><span class="mk" style="--s:32px" aria-hidden="true">NF</span>32</figure>
+          <figure><span class="mk" style="--s:48px" aria-hidden="true">NF</span>48</figure>
+        </div></div>
+        <div class="tile"><div class="tile-label">Browser-Tab</div><span class="tab"><img src="logo-mark-nf.svg" alt="">Datenmodell · NoteFieber</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="variant" aria-labelledby="va">
+    <div>
+      <img class="big" src="logo-mark-a.svg" alt="">
+      <h2 id="va">A · Seite mit Puls</h2>
+      <p>Eine Seite mit Eselsohr wie das Seiten-Icon im Baum, darauf eine kurze Pulslinie: Wissen, das lebt und sich bewegt. Am nächsten an dem, was das Produkt ist.</p>
+    </div>
+    <div>
+      <div class="row">
+        <div class="tile"><div class="tile-label">Hell</div><div class="lockup"><img src="logo-mark-a.svg" alt=""><span class="word">NoteFieber</span></div></div>
+        <div class="tile on-sidebar"><div class="tile-label">Seitenleiste</div><div class="lockup"><img src="logo-mark-a.svg" alt=""><span class="word">NoteFieber<span class="tenant">Alpenwerk</span></span></div></div>
+        <div class="tile on-dark"><div class="tile-label">Dunkel</div><div class="lockup"><img src="logo-mark-a.svg" alt=""><span class="word">Note<span class="two">Fieber</span></span></div></div>
+      </div>
+      <div class="row" style="margin-top: 14px">
+        <div class="tile"><div class="tile-label">Klein</div><div class="sizes">
+          <figure><img src="logo-mark-a.svg" width="16" height="16" alt="">16</figure>
+          <figure><img src="logo-mark-a.svg" width="24" height="24" alt="">24</figure>
+          <figure><img src="logo-mark-a.svg" width="32" height="32" alt="">32</figure>
+          <figure><img src="logo-mark-a.svg" width="48" height="48" alt="">48</figure>
+        </div></div>
+        <div class="tile"><div class="tile-label">Browser-Tab</div><span class="tab"><img src="logo-mark-a.svg" alt="">Datenmodell · NoteFieber</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="variant" aria-labelledby="vb">
+    <div>
+      <img class="big" src="logo-mark-b.svg" alt="">
+      <h2 id="vb">B · N mit Puls</h2>
+      <p>Der Anfangsbuchstabe, dessen Diagonale als Pulslinie in warmem Orange ausschlägt. Klar und markenhaft; einfarbig wird es ein schlichtes N.</p>
+    </div>
+    <div>
+      <div class="row">
+        <div class="tile"><div class="tile-label">Hell</div><div class="lockup"><img src="logo-mark-b.svg" alt=""><span class="word">NoteFieber</span></div></div>
+        <div class="tile on-sidebar"><div class="tile-label">Seitenleiste</div><div class="lockup"><img src="logo-mark-b.svg" alt=""><span class="word">NoteFieber<span class="tenant">Alpenwerk</span></span></div></div>
+        <div class="tile on-dark"><div class="tile-label">Dunkel</div><div class="lockup"><img src="logo-mark-b.svg" alt=""><span class="word">Note<span class="two">Fieber</span></span></div></div>
+      </div>
+      <div class="row" style="margin-top: 14px">
+        <div class="tile"><div class="tile-label">Klein</div><div class="sizes">
+          <figure><img src="logo-mark-b.svg" width="16" height="16" alt="">16</figure>
+          <figure><img src="logo-mark-b.svg" width="24" height="24" alt="">24</figure>
+          <figure><img src="logo-mark-b.svg" width="32" height="32" alt="">32</figure>
+          <figure><img src="logo-mark-b.svg" width="48" height="48" alt="">48</figure>
+        </div></div>
+        <div class="tile"><div class="tile-label">Browser-Tab</div><span class="tab"><img src="logo-mark-b.svg" alt="">Datenmodell · NoteFieber</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="variant" aria-labelledby="vc">
+    <div>
+      <img class="big" src="logo-mark-c.svg" alt="">
+      <h2 id="vc">C · Seiten mit Funke</h2>
+      <p>Zwei Seiten übereinander für das Wiki, ein orangefarbener Punkt als Funke. Freundlich und gut lesbar, aber näher an üblichen Notiz-Apps.</p>
+    </div>
+    <div>
+      <div class="row">
+        <div class="tile"><div class="tile-label">Hell</div><div class="lockup"><img src="logo-mark-c.svg" alt=""><span class="word">NoteFieber</span></div></div>
+        <div class="tile on-sidebar"><div class="tile-label">Seitenleiste</div><div class="lockup"><img src="logo-mark-c.svg" alt=""><span class="word">NoteFieber<span class="tenant">Alpenwerk</span></span></div></div>
+        <div class="tile on-dark"><div class="tile-label">Dunkel</div><div class="lockup"><img src="logo-mark-c.svg" alt=""><span class="word">Note<span class="two">Fieber</span></span></div></div>
+      </div>
+      <div class="row" style="margin-top: 14px">
+        <div class="tile"><div class="tile-label">Klein</div><div class="sizes">
+          <figure><img src="logo-mark-c.svg" width="16" height="16" alt="">16</figure>
+          <figure><img src="logo-mark-c.svg" width="24" height="24" alt="">24</figure>
+          <figure><img src="logo-mark-c.svg" width="32" height="32" alt="">32</figure>
+          <figure><img src="logo-mark-c.svg" width="48" height="48" alt="">48</figure>
+        </div></div>
+        <div class="tile"><div class="tile-label">Browser-Tab</div><span class="tab"><img src="logo-mark-c.svg" alt="">Datenmodell · NoteFieber</span></div>
+      </div>
+    </div>
+  </section>
+
+  <p class="note"><strong>Hinweis:</strong> Der Produktname ist noch ein Arbeitstitel (CLAUDE.md, Abschnitt 4). Die Zeichen kommen ohne Schriftzug aus und tragen einen späteren Namenswechsel mit; vor einer festen Marke sind Markenrecherche (EUIPO/TMview) und eine gemeinsame Linie mit TalkFieber nötig. Schriftzug „NoteFieber“ einfarbig in der Oberfläche, zweifarbig („Note“ + „Fieber“ im Akzent) nur für Marketing.</p>
+</main>
+</body>
+</html>
