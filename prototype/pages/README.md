@@ -67,6 +67,8 @@ values (colors, font sizes, spacing, radii, shadows, layout).
   Archivieren geht es zurück in den Dialog.
 - **Archivieren direkt im Menü:** „⋯“ an einem Space (Umschalter und Übersicht) hat „Archivieren“
   (mit Rückfrage) bzw. bei archivierten Spaces „Zurückholen“ (sofort).
+- Knöpfe in einer Zeile der Seitenleiste („+“, „⋯“) werden beim Darüberfahren leicht dunkler
+  (`--nf-sidebar-press`, halbtransparent, auch auf der ausgewählten Zeile) statt weiß.
 - Rollen: In „Vertrieb“ nur Kommentieren (kein „+“, Titel nicht änderbar), „Altes Intranet“ archiviert.
 
 ## Übersicht (Startseite nach dem Login), neuer Entwurf
@@ -81,6 +83,12 @@ Erreichbar über das Logo, „Alle Spaces“ im Space-Umschalter oder direkt mit
 - Kopf: Begrüßung nach Tageszeit, Workspace und Zahl der Spaces, „Neuer Space“.
 - **Zuletzt angesehen** (Ausblick, die API merkt sich das noch nicht): Karten mit Space, Titel,
   Schloss bei eigenen Rechten, Anfang des Inhalts, wer zuletzt bearbeitet hat.
+- **Favoriten** (Ausblick, unter „Zuletzt angesehen“): die Seiten-Favoriten aller Spaces, je Space eine Karte mit
+  Kürzel, Name und Zahl (Klick öffnet den Space), darin die Seiten mit Emoji bzw. Icon, Schloss bei
+  eigenen Rechten und Elternpfad; Favoriten-Spaces zuerst, höchstens fünf Seiten je Space, dann
+  „+ n weitere in der Seitenleiste“. Der Stern beim Darüberfahren entfernt den Favoriten. Nur
+  lesbare Seiten, nicht im Papierkorb. Ohne Favoriten ein kurzer Hinweis, wie man welche setzt.
+  Standard im Prototyp: Datenmodell und Backups in Entwicklung, Kampagne Frühjahr in Vertrieb.
 - **Spaces** als Kacheln: Kürzel in eigener Farbe (`color` pro Space, Vorschlag; auch im
   Umschalter), Name, Schlüssel, Beschreibung, eigene Rolle als Chip, Zahl der Seiten, letzte
   Änderung. Archivierte nur mit „Archivierte zeigen“. Letzte Kachel „Neuer Space“.
@@ -169,6 +177,60 @@ BlockNote; dieser Entwurf legt fest, wie dessen Menüs aussehen und sich verhalt
     rechnet der Prototyp selbst (längste gemeinsame Teilfolge über Blöcke und Wörter); im Frontend
     kommt er aus dem BlockNote-JSON der Versionen und gehört in eine Bibliothek (z. B. das npm-Paket
     `diff`), nicht in eigenen Code.
+- **Laden statt „Einen Moment …“:** Beim ersten Öffnen einer Seite steht kurz ein Platzhalter-Skelett
+  (Titel, Byline, Zeilen, ein Block) mit sanftem Schimmer, beim ersten Öffnen eines Spaces eines im
+  Seitenbaum. Danach kommt die Seite sofort aus dem Zwischenspeicher (wie mit TanStack Query im
+  Frontend). Für Screenreader `aria-busy` und „Seite wird geladen …“ als Status; mit „Bewegung
+  reduzieren“ ohne Schimmer. Neu angelegte Seiten sind sofort da. Zum Ansehen die Seite neu laden.
+- **Leere Zustände:**
+  - **Leerer Space** (z. B. über „Neuer Space“ anlegen): im Seitenbaum „Noch keine Seiten unter der
+    Startseite“ mit „Erste Seite anlegen“; auf der Startseite eine Karte „Willkommen in …“ mit
+    Erste Seite anlegen, Aus Confluence importieren und Personen einladen. Wer nur lesen darf, sieht
+    nur den Hinweis.
+  - **Suche ohne Treffer:** Icon, Hinweis auf Leserecht und Verzögerung, „In allen Spaces suchen“
+    und mit Bearbeitungsrecht „Seite „…“ anlegen“ (der Suchbegriff wird zum Titel).
+  - **Keine Kommentare:** „Noch keine Kommentare“ bzw. „Keine offenen Kommentare“ mit Anleitung;
+    im Reiter „Erledigt“ „Nichts erledigt“; ohne Kommentarrecht ein Hinweis auf die Rolle.
+- **Benachrichtigungen** (E16): Glocke oben rechts links vom Zahnrad, mit Zahl der ungelesenen.
+  Das Fenster zeigt Erwähnungen (in Seiten und Kommentaren), Antworten in Threads, denen man folgt,
+  geteilte Seiten (mit Rolle) und Kommentare an eigenen Seiten, je mit Avatar, Art als kleines
+  Abzeichen, Ausschnitt, Space und Zeit; Ungelesene blau hinterlegt mit Punkt. Reiter „Alle“ und
+  „Ungelesen“, „Alle als gelesen markieren“, unten „Einstellungen für Benachrichtigungen“. Ein Klick
+  markiert als gelesen, öffnet die Seite und bei Kommentaren den Thread. Nur Seiten mit Leserecht
+  und nicht im Papierkorb; im Produkt prüft das die Zustellung (`app.page_rank`), die Quelle sind
+  die Ereignisse der Outbox. Esc oder Klick daneben schließt, Fokus zurück auf die Glocke.
+- **Emoji und Titelbild einer Seite:** Beim Darüberfahren über den Titel erscheinen darüber
+  „Emoji hinzufügen“ und „Titelbild hinzufügen“ (nur mit Bearbeitungsrecht, per Tastatur
+  erreichbar, auf Touch-Geräten immer sichtbar).
+  - **Emoji** steht groß links neben dem Titel und statt des Seiten-Icons im Seitenbaum, bei den
+    Favoriten und bei den Unterseiten im Fuß. Klick darauf öffnet die Auswahl: Suche über deutsche
+    Begriffe („sicher“ findet 🛡️), Raster mit 48 Emojis (Pfeiltasten, ↓ aus dem Suchfeld ins Raster),
+    „Entfernen“. Startwerte im Prototyp: Datenmodell 🗂️, Release-Prozess 🚀, Backups 💾,
+    Personalplanung 👥.
+  - **Titelbild** über die volle Breite des Hauptbereichs (200 px, auf dem Handy 140 px): acht
+    Farbverläufe aus der Palette oder ein eigenes Bild (PNG, JPEG, GIF, WebP wie Bilder im Text; im
+    Prototyp nur im Browser, im Frontend über `POST /pages/:id/files`, damit es unter der Leseregel
+    der Seite liegt und die CSP passt). Beim Darüberfahren „Titelbild ändern“ und „Entfernen“. Die
+    Startseite von Entwicklung hat im Prototyp ein blaues Titelbild.
+  - Esc oder Klick daneben schließt die Auswahl. **Vorschlag:** Beides braucht Spalten an der Seite
+    (z. B. `pages.icon` als Text, `pages.cover` als Verweis auf `files` oder Name eines Verlaufs) und
+    eine Funktion zum Setzen (editor); das ist eine Schemaänderung, zuerst Test und Migration, Peter
+    liest den Diff. Wie der Titel ginge es auch über Yjs; als Spalte bleibt es aber für Baum und
+    Suche ohne Yjs lesbar.
+- **Reaktionen auf die Seite:** in der Zeile unter dem Titel rechts Emoji-Chips mit Zahl (eigene
+  blau), Namen beim Darüberfahren („Sophie Bauer, Lukas Gruber und du haben mit 👍 reagiert“);
+  „+“ mit Smiley öffnet eine Auswahl aus acht Emojis, ein Klick setzt bzw. nimmt zurück. Ab
+  Kommentieren, nicht in archivierten Spaces; wer nur lesen darf, sieht die Zahlen. **Vorschlag:**
+  Dafür gibt es noch keine Tabelle; das wäre eine Schemaänderung (`page_reactions` mit Seite,
+  Person, Emoji, Leseregel wie die Seite), zuerst Test und Migration, Peter liest den Diff. Die
+  Emojis sind Inhalt, keine Icons der Oberfläche (dort bleibt es bei eigenen SVGs).
+- **Dialoge wie natives `<dialog>`** (wie im Frontend): Beim Öffnen springt der Fokus hinein (erstes
+  Eingabefeld, sonst der erste Knopf außer „Schließen“; Rückfragen auf „Abbrechen“), Tab und
+  Umschalt+Tab bleiben im Dialog, der Rest der Seite ist `inert` (weder klick- noch fokussierbar,
+  für Screenreader ausgeblendet). Beim Schließen geht der Fokus zurück zum Auslöser; kam der Dialog
+  aus einem Menü, zum Menüknopf, bei nur beim Darüberfahren sichtbaren Knöpfen zum Link der Zeile.
+  Gilt auch für die Befehlspalette. Die Kommentarspalte als Schublade unter 1280 px fängt den Fokus
+  noch nicht.
 - **Fuß jeder Seite** (unter dem Inhalt, nach einer Trennlinie), die zwei häufigsten Wege durch ein
   Wiki:
   - **Unterseiten (n)** als Karten (Titel, Schloss bei eigenen Rechten, Anfang des Inhalts in zwei
