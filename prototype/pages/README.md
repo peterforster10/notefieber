@@ -368,7 +368,7 @@ BlockNote; dieser Entwurf legt fest, wie dessen Menüs aussehen und sich verhalt
   mit ihrer Rolle pro Seite (ohne Zugriff gedämpft, eigene Rechte mit Schloss) und „sieht 8 von 9
   Seiten“. Nur Struktur, keine Inhalte, Hinweis aufs Audit-Log; zeigt den gespeicherten Stand.
 - **Confluence-Import** (M4; seit 26. November 2026 eine Ansicht im gemeinsamen Rahmen statt der
-  eigenen Seite `../import/Import.dc.html`, die nur noch weiterleitet): „Confluence-Import“ unten in
+  eigenen Seite im Ordner `prototype/import/`, der entfernt ist): „Confluence-Import“ unten in
   der Seitenleiste, in der Suche oder direkt `Main.dc.html#import`; Brotkrume „<Space> /
   Confluence-Import“, Farben und Dunkelmodus wie überall. Drei Schritte:
   - **Export hochladen:** Ziel-Space (nur Spaces, die man verwaltet; Link „Neuen Space anlegen“),

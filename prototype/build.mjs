@@ -10,18 +10,25 @@
 //   /* @include styles/tokens.css */            in CSS
 //   // @include logic/component/editor.js      in JavaScript
 // Main.dc.html bleibt eine einzelne Datei im x-dc-Format, damit das Design-Werkzeug sie öffnen kann.
-// Geändert wird nur in pages/src/, danach neu bauen.
+// Geändert wird nur in pages/src/, danach neu bauen. Neue Teildateien mit committen: --check warnt,
+// wenn eine eingebundene Datei noch nicht in Git ist (in der CI fehlt sie sonst).
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 
 const root = dirname(fileURLToPath(import.meta.url));
 const PAGES = [{ src: 'pages/src/Main.html', out: 'pages/Main.dc.html' }];
 const INCLUDE = /^\s*(?:<!--|\/\*|\/\/)\s*@include\s+(\S+?)\s*(?:-->|\*\/)?\s*$/;
+const used = new Set();
 
 function expand(file, stack = []) {
   if (stack.includes(file)) throw new Error('Einbindung im Kreis: ' + [...stack, file].map((f) => relative(root, f)).join(' → '));
-  if (!existsSync(file)) throw new Error('Fehlt: ' + relative(root, file) + (stack.length ? ' (eingebunden in ' + relative(root, stack[stack.length - 1]) + ')' : ''));
+  if (!existsSync(file)) {
+    throw new Error('Fehlt: ' + relative(root, file) + (stack.length ? ' (eingebunden in ' + relative(root, stack[stack.length - 1]) + ')' : '')
+      + '. Liegt die Datei nur lokal und ist nicht committet? Dann mit „git add“ aufnehmen.');
+  }
+  used.add(file);
   const text = readFileSync(file, 'utf8');
   const lines = text.split('\n');
   // Teildateien enden mit einem Zeilenumbruch; der gehört zur letzten Zeile, nicht zu einer leeren Zeile danach
@@ -30,6 +37,17 @@ function expand(file, stack = []) {
     const m = INCLUDE.exec(line);
     return m ? expand(join(dirname(file), m[1]), [...stack, file]) : [line];
   });
+}
+
+/** Eingebundene Dateien, die Git nicht kennt (weder committet noch vorgemerkt); leer ohne Git */
+function untracked(files) {
+  try {
+    const out = execFileSync('git', ['ls-files', '--', ...files], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    const known = new Set(out.split('\n').filter(Boolean).map((f) => join(root, f)));
+    return files.filter((f) => !known.has(f));
+  } catch {
+    return [];
+  }
 }
 
 const check = process.argv.includes('--check');
@@ -47,5 +65,10 @@ for (const { src, out } of PAGES) {
     writeFileSync(target, built);
     console.log(out + ' gebaut (' + built.split('\n').length + ' Zeilen)');
   }
+}
+const missing = untracked([...used]);
+if (missing.length) {
+  console.warn('Achtung, noch nicht in Git (vor dem Commit „git add“, sonst schlägt die CI fehl):\n'
+    + missing.map((f) => '  ' + relative(process.cwd(), f)).join('\n'));
 }
 process.exit(stale ? 1 : 0);
