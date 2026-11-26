@@ -124,12 +124,16 @@ Erreichbar über das Logo, „Alle Spaces“ im Space-Umschalter oder direkt mit
 - Kopf: Begrüßung nach Tageszeit, Workspace und Zahl der Spaces, „Neuer Space“.
 - **Zuletzt angesehen** (Ausblick, die API merkt sich das noch nicht): Karten mit Space, Titel,
   Schloss bei eigenen Rechten, Anfang des Inhalts, wer zuletzt bearbeitet hat.
-- **Favoriten** (Ausblick, unter „Zuletzt angesehen“): die Seiten-Favoriten aller Spaces, je Space eine Karte mit
-  Kürzel, Name und Zahl (Klick öffnet den Space), darin die Seiten mit Emoji bzw. Icon, Schloss bei
-  eigenen Rechten und Elternpfad; Favoriten-Spaces zuerst, höchstens fünf Seiten je Space, dann
-  „+ n weitere in der Seitenleiste“. Der Stern beim Darüberfahren entfernt den Favoriten. Nur
-  lesbare Seiten, nicht im Papierkorb. Ohne Favoriten ein kurzer Hinweis, wie man welche setzt.
-  Standard im Prototyp: Datenmodell und Backups in Entwicklung, Kampagne Frühjahr in Vertrieb.
+- **Favoriten** (Ausblick; seit 26. November 2026 ein eigener Menüpunkt unter „Übersicht“ und
+  „Vorlagen“ mit der Zahl der favorisierten Seiten, nicht mehr ein Abschnitt der Übersicht; auch
+  „Favoriten“ in der Suche und `Main.dc.html#favoriten`):
+  - **Seiten** als Karten (Space und Pfad, Emoji bzw. Icon, Titel, Schloss bei eigenen Rechten,
+    Anfang des Inhalts, wer zuletzt bearbeitet hat und wann) oder als Liste; Umschalter rechts,
+    im Browser gemerkt (`nf-proto-favview`). Standard: alle A–Z; mit „Nach Space gruppieren“
+    nach Space (Favoriten-Spaces zuerst, Überschrift öffnet den Space). Suche über Titel, Inhalt und Space.
+  - **Spaces** mit Stern als Karten (Kürzel, Name, Beschreibung, Zahl der Seiten, eigene Rolle).
+  - Der Stern auf jeder Karte bzw. Zeile entfernt den Favoriten. Nur lesbare Seiten, nicht im
+    Papierkorb. Leere Zustände für „keine Favoriten“ und „keine Treffer“.
 - **Spaces** als Kacheln: Kürzel in eigener Farbe (`color` pro Space, Vorschlag; auch im
   Umschalter), Name, Schlüssel, Beschreibung, eigene Rolle als Chip, Zahl der Seiten, letzte
   Änderung. Archivierte nur mit „Archivierte zeigen“. Letzte Kachel „Neuer Space“.
@@ -145,7 +149,8 @@ Erreichbar über das Logo, „Alle Spaces“ im Space-Umschalter oder direkt mit
   oben rechts an jeder Kachel (bei Favoriten immer sichtbar und gefüllt, sonst beim Darüberfahren),
   in der linken Liste beim Darüberfahren neben „⋯“; beim Darüberfahren wird nur der Stern ocker, ohne
   Hintergrund. Favoriten stehen überall zuerst: als eigene
-  Gruppe „Favoriten“ in der linken Liste (die übrigen unter „Weitere Spaces“), in der Kachelansicht,
+  Gruppe „Favorisierte Spaces“ in der linken Liste (heißt so, damit sie nicht mit dem Menüpunkt
+  „Favoriten“ für Seiten verwechselt wird) (die übrigen unter „Weitere Spaces“), in der Kachelansicht,
   im Space-Umschalter (Stern direkt in jeder Zeile: gefüllt bei Favoriten, sonst beim
   Darüberfahren; Klick schaltet um, ohne den Space zu wechseln) und bei den Spaces in der Suche. Farbe `--nf-fav` (Ocker #B45309, dunkel
   #F5B93F).

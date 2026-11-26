@@ -120,7 +120,7 @@
       spaceCards: cards,
       // Linke Liste: „Favoriten“ (nur wenn es welche gibt) und „Spaces“ (die übrigen)
       sideGroups: [
-        ...(cards.some((c) => c.fav) ? [{ label: 'Favoriten', showNew: false, items: cards.filter((c) => c.fav) }] : []),
+        ...(cards.some((c) => c.fav) ? [{ label: 'Favorisierte Spaces', showNew: false, items: cards.filter((c) => c.fav) }] : []),
         { label: cards.some((c) => c.fav) ? 'Weitere Spaces' : 'Spaces', showNew: true, items: cards.filter((c) => !c.fav) }
       ],
       spaceCardsShown: cards.filter((c) => s.showArchived || !c.archived),
@@ -128,6 +128,9 @@
       toggleArchived: () => this.setState((st) => ({ showArchived: !st.showArchived })),
       recent,
       favGroups,
+      favPageCount: favGroups.reduce((n, g) => n + g.count, 0),
+      hasFavPages: favGroups.length > 0,
+      favLead: favGroups.length ? 'Seiten, die du mit dem Stern markiert hast, nach Space. Markieren und entfernen über den Stern über einer Seite.' : 'Noch keine favorisierten Seiten.',
       hasFavGroups: favGroups.length > 0,
       noFavGroups: favGroups.length === 0,
       activity,

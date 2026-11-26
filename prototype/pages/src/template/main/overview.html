@@ -32,41 +32,6 @@
                 </ul>
               </section>
 
-              <!-- Seiten-Favoriten nach Space (Ausblick): dieselben wie oben in der Seitenleiste jedes Spaces -->
-              <section aria-labelledby="ov-favs">
-                <h2 id="ov-favs" class="nf-section-title">Favoriten</h2>
-                <sc-if value="{{hasFavGroups}}" hint-placeholder-val="{{ true }}">
-                  <ul class="nf-favgroups">
-                    <sc-for list="{{favGroups}}" as="fg" hint-placeholder-count="2">
-                      <li class="nf-favgroup">
-                        <a href="#" class="nf-favgroup-head" aria-label="{{fg.goLabel}}" onClick="{{fg.go}}">
-                          <span class="nf-space-badge nf-space-badge-xs" style="background: {{fg.color}}" aria-hidden="true">{{fg.badge}}</span>
-                          <span>{{fg.name}}</span>
-                          <span class="nf-favgroup-count">{{fg.count}}</span>
-                        </a>
-                        <ul class="nf-favgroup-list">
-                          <sc-for list="{{fg.items}}" as="fp" hint-placeholder-count="2">
-                            <li class="nf-favpage-row">
-                              <a href="#" class="nf-favpage" onClick="{{fp.go}}">
-                                <sc-if value="{{fp.hasIcon}}" hint-placeholder-val="{{ false }}"><span class="nf-tree-emoji" aria-hidden="true">{{fp.icon}}</span></sc-if><sc-if value="{{fp.noIcon}}" hint-placeholder-val="{{ true }}"><svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg></sc-if>
-                                <span class="nf-favpage-title {{fp.titleCls}}">{{fp.title}}</span>
-                                <sc-if value="{{fp.restricted}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon nf-favpage-lock" width="13" height="13" viewBox="0 0 16 16" role="img" aria-label="Eigene Rechte"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></sc-if>
-                                <sc-if value="{{fp.hasPath}}" hint-placeholder-val="{{ true }}"><span class="nf-favpage-path">{{fp.path}}</span></sc-if>
-                              </a>
-                              <button type="button" class="nf-icon-button nf-star-btn" aria-pressed="true" aria-label="{{fp.unfavLabel}}" title="Aus Favoriten entfernen" onClick="{{fp.unfav}}"><svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg></button>
-                            </li>
-                          </sc-for>
-                        </ul>
-                        <sc-if value="{{fg.hasMore}}" hint-placeholder-val="{{ false }}"><a href="#" class="nf-favgroup-more" onClick="{{fg.go}}">{{fg.moreLabel}}</a></sc-if>
-                      </li>
-                    </sc-for>
-                  </ul>
-                </sc-if>
-                <sc-if value="{{noFavGroups}}" hint-placeholder-val="{{ false }}">
-                  <p class="nf-fav-hint"><svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg><span>Markiere Seiten mit dem Stern über der Seite. Sie stehen dann hier, nach Space sortiert, und oben in der Seitenleiste ihres Spaces.</span></p>
-                </sc-if>
-              </section>
-
               <!-- Spaces als Kacheln -->
               <section aria-labelledby="ov-spaces">
                 <div class="nf-ov-section-head">

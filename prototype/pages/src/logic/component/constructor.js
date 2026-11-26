@@ -3,7 +3,7 @@
     this.state = {
       space: 'ENTW',
       // Mit #uebersicht in der Adresse startet der Prototyp in der Übersicht
-      view: typeof location === 'undefined' ? 'page' : location.hash === '#uebersicht' ? 'overview' : location.hash === '#import' ? 'import' : 'page',
+      view: typeof location === 'undefined' ? 'page' : location.hash === '#uebersicht' ? 'overview' : location.hash === '#import' ? 'import' : location.hash === '#favoriten' ? 'favorites' : 'page',
       current: 'dm',
       expanded: { arch: true, betrieb: true },
       pages: JSON.parse(JSON.stringify(PAGES)),
@@ -42,6 +42,10 @@
       tplTarget: null,
       tplUse: null,
       tplSaveDraft: null,
+      // Favoriten-Ansicht: Suche, nach Space gruppieren, Karten oder Liste (gemerkt im Browser)
+      favQ: '',
+      favGroup: false,
+      favView: (() => { try { return localStorage.getItem('nf-proto-favview') === 'list' ? 'list' : 'cards'; } catch (err) { return 'cards'; } })(),
       // Confluence-Import: Schritt (1 Hochladen, 2 Probelauf, 3 läuft, 4 fertig), Ziel, Zuordnungen, angelegte Seiten
       imp: { step: 1, space: 'ENTW', file: false, groups: { users: 'ws', team: 'grp', admins: '', extern: 'skip' }, invite: true, progress: 0, phase: 0, created: null },
       // Reaktionen pro Seite: Emoji → Personen (Reihenfolge wie REACTIONS)

@@ -38,16 +38,74 @@ h1{margin:0 0 6px;font-size:28px;letter-spacing:-.01em}
 .tab img{width:16px;height:16px}
 .note{margin-top:36px;padding:16px 18px;border-radius:10px;background:#f8f9fb;color:var(--muted);font-size:14px;line-height:1.55}
 .note strong{color:var(--text)}
-.mk{--s:28px;flex:none;display:inline-grid;place-items:center;width:var(--s);height:var(--s);border:max(1px,calc(var(--s)/30)) solid currentColor;border-radius:calc(var(--s)*.27);background:transparent;color:#1a2230;font-size:calc(var(--s)*.4);font-weight:600;letter-spacing:-.03em;line-height:1}
+.mk{--s:28px;flex:none;display:inline-grid;place-items:center;width:var(--s);height:var(--s);border:max(1px,calc(var(--s)/30)) solid currentColor;border-radius:calc(var(--s)*.27);background:transparent;color:#1a2230;font-size:calc(var(--s)*.4);font-weight:400;letter-spacing:-.03em;line-height:1}
 .on-dark .mk{color:#e6e9ef}
 .mk.big{display:grid;--s:96px;margin-bottom:14px}
+/* Feinschliff Wortmarke (26. November 2026): einfarbig, Inter, dünner Rahmen, ohne Fläche, Schriftzug nicht fett */
+.refine{padding:28px 0 8px;border-top:1px solid var(--border)}
+.refine h2{margin:0 0 6px;font-size:19px}
+.refine-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:18px}
+.rv{display:flex;flex-direction:column;gap:10px}
+.rv h3{margin:0;font-size:14px}
+.rv p{margin:0;color:var(--muted);font-size:13px;line-height:1.5}
+.rv .tag{margin-top:0;align-self:flex-start}
+.rtile{display:flex;align-items:center;padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--sidebar);color:var(--text)}
+.rtile.dark{background:#10141a;border-color:#252c36;color:#e6e9ef}
+.rtile.dark .ten{color:#9aa4b2}
+.lk{display:flex;align-items:center;gap:10px}
+.mk2{flex:none;display:flex;align-items:center;justify-content:center;width:30px;height:30px;border:1px solid currentColor;border-radius:8px;line-height:1}
+.ten{display:block;font-size:12px;line-height:1.3;color:var(--muted);font-weight:400;letter-spacing:0}
+/* Heute */
+.v0 .mk2{font-size:12px;font-weight:600;letter-spacing:-.03em}
+.v0 .wm{font-size:17px;font-weight:700;letter-spacing:-.015em;line-height:1.25}
+/* A: mittel (500) */
+.v1 .mk2{border-radius:9px;font-size:12px;font-weight:500;letter-spacing:-.01em}
+.v1 .wm{font-size:17px;font-weight:500;letter-spacing:-.012em;line-height:1.25}
+/* B: normal (400), etwas größer */
+.v2 .mk2{border-radius:9px;font-size:12.5px;font-weight:400;letter-spacing:0}
+.v2 .wm{font-size:17px;font-weight:400;letter-spacing:-.01em;line-height:1.25}
+/* C: Kleinbuchstaben, mittel */
+.v3 .mk2{border-radius:9px;font-size:14px;font-weight:500;letter-spacing:-.03em;padding-bottom:2px}
+.v3 .wm{font-size:18px;font-weight:500;letter-spacing:-.025em;line-height:1.2}
 @media (max-width:720px){.variant{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <main>
   <h1>NoteFieber – Logo-Entwürfe</h1>
-  <p class="lead">Gewählt ist das zurückhaltende „NF“: ohne Fläche, nur ein dünner Rahmen und die Buchstaben in Inter 600, beide im Grau des Schriftzugs. Es steht im Prototyp in der Seitenleiste, im Kopf des Import-Assistenten und im Browser-Tab. Darunter die früheren Entwürfe im Akzentblau.</p>
+  <p class="lead">Gewählt ist das zurückhaltende „NF“, seit dem Feinschliff in Inter 400 (Variante B unten): ohne Fläche, nur ein dünner Rahmen und die Buchstaben in Inter 400, beide im Grau des Schriftzugs. Es steht im Prototyp in der Seitenleiste und im Browser-Tab. Darunter die früheren Entwürfe im Akzentblau.</p>
+
+  <section class="refine" aria-labelledby="refine-title">
+    <h2 id="refine-title">Feinschliff Zeichen und Schriftzug (26. November 2026)</h2>
+    <p class="lead" style="margin-bottom: 0">Gleiche Richtung wie bisher: einfarbig, Inter, dünner Rahmen, ohne Fläche, aber der Schriftzug nicht mehr fett. Im Prototyp eingesetzt ist B (Inter 400).</p>
+    <div class="refine-grid">
+      <div class="rv">
+        <h3>Bisher</h3>
+        <p>Schriftzug fett (700), NF halbfett (600).</p>
+        <div class="rtile v0"><span class="lk"><span class="mk2" aria-hidden="true">NF</span><span><span class="wm">NoteFieber</span><span class="ten">Alpenwerk</span></span></span></div>
+        <div class="rtile dark v0"><span class="lk"><span class="mk2" aria-hidden="true">NF</span><span><span class="wm">NoteFieber</span><span class="ten">Alpenwerk</span></span></span></div>
+      </div>
+      <div class="rv">
+        <h3>A · Mittel</h3>
+        <p>Schriftzug und NF in Inter 500. Ruhiger als fett, steht aber noch klar als Name über dem Mandanten. Rahmen etwas runder.</p>
+        <div class="rtile v1"><span class="lk"><span class="mk2" aria-hidden="true">NF</span><span><span class="wm">NoteFieber</span><span class="ten">Alpenwerk</span></span></span></div>
+        <div class="rtile dark v1"><span class="lk"><span class="mk2" aria-hidden="true">NF</span><span><span class="wm">NoteFieber</span><span class="ten">Alpenwerk</span></span></span></div>
+      </div>
+      <div class="rv">
+        <h3>B · Normal</h3>
+        <p>Inter 400 in 17 px. Am leichtesten und elegantesten.</p>
+        <span class="tag">Gewählt · im Prototyp</span>
+        <div class="rtile v2"><span class="lk"><span class="mk2" aria-hidden="true">NF</span><span><span class="wm">NoteFieber</span><span class="ten">Alpenwerk</span></span></span></div>
+        <div class="rtile dark v2"><span class="lk"><span class="mk2" aria-hidden="true">NF</span><span><span class="wm">NoteFieber</span><span class="ten">Alpenwerk</span></span></span></div>
+      </div>
+      <div class="rv">
+        <h3>C · Kleinbuchstaben</h3>
+        <p>„nf“ und „notefieber“ in Inter 500, enger gesetzt. Modern, wirkt aber eher wie ein Werkzeug als wie ein Firmenprodukt.</p>
+        <div class="rtile v3"><span class="lk"><span class="mk2" aria-hidden="true">nf</span><span><span class="wm">notefieber</span><span class="ten">Alpenwerk</span></span></span></div>
+        <div class="rtile dark v3"><span class="lk"><span class="mk2" aria-hidden="true">nf</span><span><span class="wm">notefieber</span><span class="ten">Alpenwerk</span></span></span></div>
+      </div>
+    </div>
+  </section>
 
   <section class="variant" aria-labelledby="vnf">
     <div>

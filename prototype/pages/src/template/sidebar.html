@@ -25,6 +25,12 @@
           <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"></rect><path d="M2.5 6h11M6 6v7.5"></path></svg>
           <span>Vorlagen</span>
         </a>
+        <!-- Favoriten (Ausblick): favorisierte Seiten aller Spaces -->
+        <a href="#" class="nf-nav-item {{favNavCls}}" aria-current="{{favNavCurrent}}" onClick="{{goFavorites}}">
+          <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg>
+          <span>Favoriten</span>
+          <sc-if value="{{hasFavPages}}" hint-placeholder-val="{{ true }}"><span class="nf-nav-count">{{favPageCount}}</span></sc-if>
+        </a>
         <!-- Gruppen „Favoriten“ (mit Stern markierte Spaces) und „Spaces“ (alle übrigen) -->
         <sc-for list="{{sideGroups}}" as="sg" hint-placeholder-count="2">
         <div class="nf-tree-head" style="margin-top: 10px">

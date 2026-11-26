@@ -16,7 +16,7 @@
     const vmode = isPage && !!s.versions && s.versions.pid === cur;
     // Erstes Öffnen eines Spaces: Platzhalter im Seitenbaum
     // Übersicht und Vorlagen: Navigation ohne Space (Liste aller Spaces statt Seitenbaum)
-    const ovNav = s.view === 'overview' || s.view === 'templates';
+    const ovNav = s.view === 'overview' || s.view === 'templates' || s.view === 'favorites';
     const treeLoading = !ovNav && !this._loadedSpaces.has(s.space);
     if (treeLoading) { const key = s.space; this.scheduleLoad('s:' + key, 450, () => this._loadedSpaces.add(key)); }
     const spaceEditable = !sp.archived && this.canEdit(homeId);
@@ -533,6 +533,11 @@
       isSettings: s.view === 'settings',
       isOverview: s.view === 'overview',
       isTemplates: s.view === 'templates',
+      isFavorites: s.view === 'favorites',
+      fav: s.view === 'favorites' ? this.favoritesVals() : {},
+      favNavCls: s.view === 'favorites' ? 'nf-nav-current' : '',
+      favNavCurrent: s.view === 'favorites' ? 'page' : 'false',
+      goFavorites: (e) => { this.prevent(e); this.edSave(); this.setState({ view: 'favorites', drawer: false, menu: null }); },
       isImport: s.view === 'import',
       impNavCls: s.view === 'import' ? 'nf-nav-current' : '',
       impNavCurrent: s.view === 'import' ? 'page' : 'false',

@@ -18,7 +18,7 @@
     const P = s.pages;
     const shown = (t) => t || 'Ohne Titel';
     const sp = s.spaces[s.space];
-    const inSpace = s.view !== 'overview' && s.view !== 'templates';
+    const inSpace = !['overview', 'templates', 'favorites'].includes(s.view);
     const trashed = new Set(s.trash.map((t) => t.id));
     const inTrash = (id) => this.chain(id).some((x) => trashed.has(x));
     const raw = pal.q;
@@ -104,6 +104,7 @@
       inSpace && !sp.archived && this.canEdit(sp.home) && { label: 'Neue Seite in „' + sp.name + '“', kw: 'neue seite anlegen erstellen', run: () => this.createPage(sp.home) },
       { label: 'Neuer Space', kw: 'space anlegen erstellen neu', run: () => { this.setState({ dialog: 'newSpace', ns: null }); this.focusLater('#ns-name'); } },
       { label: 'Zur Übersicht', kw: 'startseite home übersicht spaces', run: () => this.setState({ view: 'overview' }) },
+      { label: 'Favoriten', kw: 'favoriten stern markiert gemerkt', run: () => this.setState({ view: 'favorites' }) },
       { label: 'Vorlagen', kw: 'vorlage vorlagen muster template neue seite', run: () => this.openTemplates(null) },
       { label: 'Confluence-Import', kw: 'import importieren confluence umzug export hochladen', run: () => this.openImport() },
       isPage && { label: 'Link zur Seite kopieren', kw: 'link kopieren teilen url adresse', run: () => this.showToast('Link kopiert') },

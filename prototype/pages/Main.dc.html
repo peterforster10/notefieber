@@ -91,10 +91,11 @@ svg.nf-icon{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;
 .nf-sidebar-top{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding:2px 4px 2px 10px}
 .nf-brand{display:flex;align-items:center;gap:10px;min-width:0;color:var(--nf-sidebar-text);text-decoration:none}
 /* Logo: NF in Inter, transparent, dünner Rahmen und Schrift in der Farbe des Schriftzugs (prototype/brand/) */
-.nf-brand-mark{flex:none;display:grid;place-items:center;width:30px;height:30px;border:1px solid currentColor;border-radius:8px;background:transparent;color:inherit;font-size:12px;font-weight:600;letter-spacing:-.03em;line-height:1}
+.nf-brand-mark{flex:none;display:grid;place-items:center;width:30px;height:30px;border:1px solid currentColor;border-radius:9px;background:transparent;color:inherit;font-size:12.5px;font-weight:400;letter-spacing:0;line-height:1}
 .nf-brand-text{display:flex;flex-direction:column;min-width:0}
 .nf-brand:hover{color:var(--nf-sidebar-text)}
-.nf-logo{font-size:17px;font-weight:700;letter-spacing:-.015em;line-height:1.25}
+/* Schriftzug in Inter 400 (prototype/brand/Logo.html, Variante B) */
+.nf-logo{font-size:17px;font-weight:400;letter-spacing:-.01em;line-height:1.25}
 .nf-tenant{font-size:12px;line-height:1.3;color:var(--nf-sidebar-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 button.nf-drawer-close,button.nf-drawer-open{display:none}
 .nf-backdrop{display:none}
@@ -881,7 +882,10 @@ span.nf-page-emoji{cursor:default}
 @media (hover:none){.nf-title-tools,.nf-cover-tools{opacity:1}}
 @media (max-width:1023.98px){.nf-cover{margin:-16px -48px 10px}}
 @media (max-width:599.98px){.nf-cover{height:140px;margin:-12px -16px 8px}.nf-page-emoji{width:44px;height:44px;font-size:32px}}
-/* ---------- Übersicht: Seiten-Favoriten nach Space (Ausblick) ---------- */
+/* ---------- Favoriten (Ausblick): Seiten-Favoriten nach Space, eigene Ansicht in der Navigation ---------- */
+.nf-favorites{max-width:960px}
+.nf-favorites .nf-favgroups{margin-top:16px}
+.nf-nav-count{margin-left:auto;font-size:12px;color:var(--nf-sidebar-muted);font-variant-numeric:tabular-nums}
 .nf-favgroups{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin:0;padding:0;list-style:none}
 .nf-favgroup{container-type:inline-size;display:flex;flex-direction:column;padding:6px;border:1px solid var(--nf-border);border-radius:10px;background:var(--nf-bg)}
 .nf-favgroup-head{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;color:var(--nf-text);font-size:13px;font-weight:600;text-decoration:none}
@@ -904,6 +908,37 @@ span.nf-page-emoji{cursor:default}
 .nf-fav-hint .nf-icon{flex:none;color:var(--nf-fav)}
 @media (hover:none){.nf-favpage-row .nf-star-btn{opacity:1}}
 @container (max-width:360px){.nf-favpage-path{display:none}}
+/* Favoriten-Ansicht: Werkzeuge, Gruppen, Karten, Spaces */
+.nf-fav-tools{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;margin:16px 0 4px}
+.nf-fav-tools .nf-seg{margin-left:auto}
+.nf-fav-count{margin-left:4px;font-weight:500;color:var(--nf-muted);letter-spacing:0;text-transform:none}
+.nf-fav-group+.nf-fav-group{margin-top:18px}
+.nf-fav-group-head{display:flex;align-items:center;gap:6px;margin:0 0 10px;font-size:14px;font-weight:600}
+.nf-fav-group-head a{display:inline-flex;align-items:center;gap:8px;color:var(--nf-text);text-decoration:none}
+.nf-fav-group-head a:hover{text-decoration:underline;text-underline-offset:2px}
+.nf-fav-cards,.nf-fav-spaces{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin:0;padding:0;list-style:none}
+.nf-fav-card-wrap{position:relative}
+.nf-fav-card{display:flex;flex-direction:column;gap:6px;height:100%;padding:14px 44px 14px 14px;border:1px solid var(--nf-border);border-radius:12px;background:var(--nf-bg);color:var(--nf-text);text-decoration:none;transition:border-color 120ms ease,box-shadow 120ms ease}
+.nf-fav-card:hover{border-color:var(--nf-control-border);box-shadow:var(--nf-shadow-pop);color:var(--nf-text)}
+.nf-fav-card-top{display:flex;align-items:center;gap:6px;min-width:0;font-size:12px;color:var(--nf-muted)}
+.nf-fav-card-where{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-fav-card-title{display:flex;align-items:center;gap:8px;min-width:0;font-size:15.5px;font-weight:600;line-height:1.35}
+.nf-fav-card-title>.nf-icon:first-child{flex:none;color:var(--nf-muted)}
+.nf-fav-card-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-fav-card-text{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;line-height:1.5;color:var(--nf-muted)}
+.nf-fav-card-meta{display:flex;align-items:center;gap:6px;margin-top:auto;padding-top:4px;font-size:12px;color:var(--nf-muted)}
+.nf-fav-card-meta .nf-byline-avatar{width:18px;height:18px;font-size:8.5px}
+.nf-fav-card-star{position:absolute;top:10px;right:10px}
+.nf-fav-list .nf-favpage-row .nf-star-btn{opacity:1}
+.nf-fav-list .nf-subrow{flex:1;min-width:0}
+.nf-fav-space{display:flex;align-items:flex-start;gap:12px;height:100%;padding:14px 44px 14px 14px;border:1px solid var(--nf-border);border-radius:12px;background:var(--nf-bg);color:var(--nf-text);text-decoration:none;transition:border-color 120ms ease,box-shadow 120ms ease}
+.nf-fav-space:hover{border-color:var(--nf-control-border);box-shadow:var(--nf-shadow-pop);color:var(--nf-text)}
+.nf-fav-space-main{display:flex;flex-direction:column;gap:2px;min-width:0}
+.nf-fav-space-main strong{font-size:15px}
+.nf-fav-space-desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;color:var(--nf-muted)}
+.nf-fav-space-meta{margin-top:2px;font-size:12px;color:var(--nf-muted)}
+.nf-fav-hint{margin:0;font-size:13px;color:var(--nf-muted)}
+@media (max-width:640px){.nf-fav-tools .nf-seg{margin-left:0}}
 /* ---------- Fuß der Seite (Ausblick): Unterseiten als Karten oder Liste, „Verlinkt von“ ---------- */
 .nf-page-foot{display:flex;flex-direction:column;gap:32px;margin-top:28px;padding-top:24px;border-top:1px solid var(--nf-border)}
 .nf-foot-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;margin-bottom:12px}
@@ -1152,6 +1187,12 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
         <a href="#" class="nf-nav-item {{tplNavCls}}" aria-current="{{tplNavCurrent}}" onClick="{{goTemplates}}">
           <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"></rect><path d="M2.5 6h11M6 6v7.5"></path></svg>
           <span>Vorlagen</span>
+        </a>
+        <!-- Favoriten (Ausblick): favorisierte Seiten aller Spaces -->
+        <a href="#" class="nf-nav-item {{favNavCls}}" aria-current="{{favNavCurrent}}" onClick="{{goFavorites}}">
+          <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg>
+          <span>Favoriten</span>
+          <sc-if value="{{hasFavPages}}" hint-placeholder-val="{{ true }}"><span class="nf-nav-count">{{favPageCount}}</span></sc-if>
         </a>
         <!-- Gruppen „Favoriten“ (mit Stern markierte Spaces) und „Spaces“ (alle übrigen) -->
         <sc-for list="{{sideGroups}}" as="sg" hint-placeholder-count="2">
@@ -2198,41 +2239,6 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
                 </ul>
               </section>
 
-              <!-- Seiten-Favoriten nach Space (Ausblick): dieselben wie oben in der Seitenleiste jedes Spaces -->
-              <section aria-labelledby="ov-favs">
-                <h2 id="ov-favs" class="nf-section-title">Favoriten</h2>
-                <sc-if value="{{hasFavGroups}}" hint-placeholder-val="{{ true }}">
-                  <ul class="nf-favgroups">
-                    <sc-for list="{{favGroups}}" as="fg" hint-placeholder-count="2">
-                      <li class="nf-favgroup">
-                        <a href="#" class="nf-favgroup-head" aria-label="{{fg.goLabel}}" onClick="{{fg.go}}">
-                          <span class="nf-space-badge nf-space-badge-xs" style="background: {{fg.color}}" aria-hidden="true">{{fg.badge}}</span>
-                          <span>{{fg.name}}</span>
-                          <span class="nf-favgroup-count">{{fg.count}}</span>
-                        </a>
-                        <ul class="nf-favgroup-list">
-                          <sc-for list="{{fg.items}}" as="fp" hint-placeholder-count="2">
-                            <li class="nf-favpage-row">
-                              <a href="#" class="nf-favpage" onClick="{{fp.go}}">
-                                <sc-if value="{{fp.hasIcon}}" hint-placeholder-val="{{ false }}"><span class="nf-tree-emoji" aria-hidden="true">{{fp.icon}}</span></sc-if><sc-if value="{{fp.noIcon}}" hint-placeholder-val="{{ true }}"><svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg></sc-if>
-                                <span class="nf-favpage-title {{fp.titleCls}}">{{fp.title}}</span>
-                                <sc-if value="{{fp.restricted}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon nf-favpage-lock" width="13" height="13" viewBox="0 0 16 16" role="img" aria-label="Eigene Rechte"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></sc-if>
-                                <sc-if value="{{fp.hasPath}}" hint-placeholder-val="{{ true }}"><span class="nf-favpage-path">{{fp.path}}</span></sc-if>
-                              </a>
-                              <button type="button" class="nf-icon-button nf-star-btn" aria-pressed="true" aria-label="{{fp.unfavLabel}}" title="Aus Favoriten entfernen" onClick="{{fp.unfav}}"><svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg></button>
-                            </li>
-                          </sc-for>
-                        </ul>
-                        <sc-if value="{{fg.hasMore}}" hint-placeholder-val="{{ false }}"><a href="#" class="nf-favgroup-more" onClick="{{fg.go}}">{{fg.moreLabel}}</a></sc-if>
-                      </li>
-                    </sc-for>
-                  </ul>
-                </sc-if>
-                <sc-if value="{{noFavGroups}}" hint-placeholder-val="{{ false }}">
-                  <p class="nf-fav-hint"><svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg><span>Markiere Seiten mit dem Stern über der Seite. Sie stehen dann hier, nach Space sortiert, und oben in der Seitenleiste ihres Spaces.</span></p>
-                </sc-if>
-              </section>
-
               <!-- Spaces als Kacheln -->
               <section aria-labelledby="ov-spaces">
                 <div class="nf-ov-section-head">
@@ -2351,6 +2357,144 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
             <div class="nf-cm-empty"><span class="nf-empty-icon"><svg class="nf-icon" width="20" height="20" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"></rect><path d="M2.5 6h11M6 6v7.5"></path></svg></span><p class="nf-empty-title">Keine Vorlagen</p><p>{{tpl.emptyText}}</p></div>
           </sc-if>
           <p class="nf-tpl-hint">Eigene Vorlagen entstehen aus einer Seite: „⋯“ über der Seite, dann „Als Vorlage speichern“.</p>
+        </div>
+      </sc-if>
+
+      <!-- ---------- Favoriten (Ausblick): favorisierte Seiten als Karten oder Liste, nach Space oder A–Z, dazu favorisierte Spaces ---------- -->
+      <sc-if value="{{isFavorites}}" hint-placeholder-val="{{ false }}">
+        <div class="nf-overview nf-favorites">
+          <header class="nf-ov-head">
+            <div>
+              <h1 class="nf-ov-greeting">Favoriten</h1>
+              <p class="nf-muted">{{fav.lead}}</p>
+            </div>
+          </header>
+
+          <div class="nf-fav-tools">
+            <label class="nf-tpl-search">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+              <span class="nf-visually-hidden">Favoriten durchsuchen</span>
+              <input type="search" placeholder="Favoriten durchsuchen …" autocomplete="off" value="{{fav.q}}" onInput="{{fav.onQ}}">
+            </label>
+            <label class="nf-vtoggle"><input type="checkbox" checked="{{fav.grouped}}" onChange="{{fav.toggleGroup}}"><span>Nach Space gruppieren</span></label>
+            <div class="nf-seg" role="group" aria-label="Darstellung der Favoriten">
+              <button type="button" class="nf-seg-btn" aria-pressed="{{fav.cardsPressed}}" aria-label="Als Karten" title="Als Karten" onClick="{{fav.showCards}}">
+                <svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"></rect><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"></rect><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"></rect><rect x="9" y="9" width="4.5" height="4.5" rx="1"></rect></svg>
+              </button>
+              <button type="button" class="nf-seg-btn" aria-pressed="{{fav.listPressed}}" aria-label="Als Liste" title="Als Liste" onClick="{{fav.showList}}">
+                <svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8"></path><path d="M2.5 4h.01M2.5 8h.01M2.5 12h.01" stroke-width="2"></path></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Seiten -->
+          <section aria-labelledby="fav-pages">
+            <h2 id="fav-pages" class="nf-section-title">Seiten <span class="nf-fav-count">{{fav.pageCount}}</span></h2>
+            <sc-if value="{{fav.hasPages}}" hint-placeholder-val="{{ true }}">
+              <sc-for list="{{fav.groups}}" as="fg" hint-placeholder-count="2">
+                <div class="nf-fav-group">
+                  <sc-if value="{{fg.hasHead}}" hint-placeholder-val="{{ true }}">
+                    <h3 class="nf-fav-group-head">
+                      <a href="#" aria-label="{{fg.goLabel}}" onClick="{{fg.go}}"><span class="nf-space-badge nf-space-badge-xs" style="background: {{fg.color}}" aria-hidden="true">{{fg.badge}}</span><span>{{fg.name}}</span></a>
+                      <span class="nf-fav-count">{{fg.count}}</span>
+                    </h3>
+                  </sc-if>
+                  <sc-if value="{{fav.cards}}" hint-placeholder-val="{{ true }}">
+                    <ul class="nf-fav-cards">
+                      <sc-for list="{{fg.items}}" as="p" hint-placeholder-count="3">
+                        <li class="nf-fav-card-wrap">
+                          <a href="#" class="nf-fav-card" onClick="{{p.go}}">
+                            <span class="nf-fav-card-top">
+                              <span class="nf-space-badge nf-space-badge-xs" style="background: {{p.spaceColor}}" aria-hidden="true">{{p.spaceBadge}}</span>
+                              <span class="nf-fav-card-where">{{p.spaceName}}<sc-if value="{{p.hasPath}}" hint-placeholder-val="{{ true }}"> / {{p.path}}</sc-if></span>
+                            </span>
+                            <span class="nf-fav-card-title">
+                              <sc-if value="{{p.hasIcon}}" hint-placeholder-val="{{ false }}"><span class="nf-card-emoji" aria-hidden="true">{{p.icon}}</span></sc-if>
+                              <sc-if value="{{p.noIcon}}" hint-placeholder-val="{{ true }}"><svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg></sc-if>
+                              <span class="nf-fav-card-name {{p.titleCls}}">{{p.title}}</span>
+                              <sc-if value="{{p.restricted}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon nf-favpage-lock" width="13" height="13" viewBox="0 0 16 16" role="img" aria-label="Eigene Rechte"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></sc-if>
+                            </span>
+                            <sc-if value="{{p.hasExcerpt}}" hint-placeholder-val="{{ true }}"><span class="nf-fav-card-text">{{p.excerpt}}</span></sc-if>
+                            <span class="nf-fav-card-meta"><span class="nf-byline-avatar" style="background: {{p.editorColor}}" aria-hidden="true">{{p.editorInitials}}</span><span>{{p.meta}}</span></span>
+                          </a>
+                          <button type="button" class="nf-icon-button nf-star-btn nf-fav-card-star" aria-pressed="true" aria-label="{{p.unfavLabel}}" title="Aus Favoriten entfernen" onClick="{{p.unfav}}">
+                            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg>
+                          </button>
+                        </li>
+                      </sc-for>
+                    </ul>
+                  </sc-if>
+                  <sc-if value="{{fav.list}}" hint-placeholder-val="{{ false }}">
+                    <ul class="nf-sublist nf-fav-list">
+                      <sc-for list="{{fg.items}}" as="p" hint-placeholder-count="3">
+                        <li class="nf-favpage-row">
+                          <a href="#" class="nf-subrow" onClick="{{p.go}}">
+                            <sc-if value="{{p.hasIcon}}" hint-placeholder-val="{{ false }}"><span class="nf-card-emoji" aria-hidden="true">{{p.icon}}</span></sc-if>
+                            <sc-if value="{{p.noIcon}}" hint-placeholder-val="{{ true }}"><svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg></sc-if>
+                            <span class="nf-subrow-title {{p.titleCls}}">{{p.title}}</span>
+                            <sc-if value="{{p.restricted}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon nf-favpage-lock" width="13" height="13" viewBox="0 0 16 16" role="img" aria-label="Eigene Rechte"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></sc-if>
+                            <span class="nf-subrow-text">{{p.spaceName}}<sc-if value="{{p.hasPath}}" hint-placeholder-val="{{ true }}"> / {{p.path}}</sc-if></span>
+                            <span class="nf-subrow-meta">{{p.meta}}</span>
+                          </a>
+                          <button type="button" class="nf-icon-button nf-star-btn" aria-pressed="true" aria-label="{{p.unfavLabel}}" title="Aus Favoriten entfernen" onClick="{{p.unfav}}">
+                            <svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg>
+                          </button>
+                        </li>
+                      </sc-for>
+                    </ul>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </sc-if>
+            <sc-if value="{{fav.noPages}}" hint-placeholder-val="{{ false }}">
+              <div class="nf-cm-empty"><span class="nf-empty-icon"><svg class="nf-icon" width="20" height="20" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg></span><p class="nf-empty-title">{{fav.emptyTitle}}</p><p>{{fav.emptyText}}</p></div>
+            </sc-if>
+          </section>
+
+          <!-- Favorisierte Spaces -->
+          <section aria-labelledby="fav-spaces">
+            <h2 id="fav-spaces" class="nf-section-title">Spaces <span class="nf-fav-count">{{fav.spaceCount}}</span></h2>
+            <!-- Liste: eine Zeile je Space, wie bei den Seiten -->
+            <sc-if value="{{fav.spacesList}}" hint-placeholder-val="{{ false }}">
+              <ul class="nf-sublist nf-fav-list">
+                <sc-for list="{{fav.spaces}}" as="sp" hint-placeholder-count="1">
+                  <li class="nf-favpage-row">
+                    <a href="#" class="nf-subrow" onClick="{{sp.go}}">
+                      <span class="nf-space-badge nf-space-badge-xs" style="background: {{sp.color}}" aria-hidden="true">{{sp.badge}}</span>
+                      <span class="nf-subrow-title">{{sp.name}}</span>
+                      <span class="nf-subrow-text">{{sp.description}}</span>
+                      <span class="nf-subrow-meta">{{sp.meta}}</span>
+                    </a>
+                    <button type="button" class="nf-icon-button nf-star-btn" aria-pressed="true" aria-label="{{sp.unfavLabel}}" title="Aus Favoriten entfernen" onClick="{{sp.unfav}}">
+                      <svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg>
+                    </button>
+                  </li>
+                </sc-for>
+              </ul>
+            </sc-if>
+            <sc-if value="{{fav.spacesCards}}" hint-placeholder-val="{{ true }}">
+              <ul class="nf-fav-spaces">
+                <sc-for list="{{fav.spaces}}" as="sp" hint-placeholder-count="1">
+                  <li class="nf-fav-card-wrap">
+                    <a href="#" class="nf-fav-space" onClick="{{sp.go}}">
+                      <span class="nf-space-badge" style="background: {{sp.color}}" aria-hidden="true">{{sp.badge}}</span>
+                      <span class="nf-fav-space-main">
+                        <strong>{{sp.name}}</strong>
+                        <span class="nf-fav-space-desc">{{sp.description}}</span>
+                        <span class="nf-fav-space-meta">{{sp.meta}}</span>
+                      </span>
+                    </a>
+                    <button type="button" class="nf-icon-button nf-star-btn nf-fav-card-star" aria-pressed="true" aria-label="{{sp.unfavLabel}}" title="Aus Favoriten entfernen" onClick="{{sp.unfav}}">
+                      <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2l1.75 3.6 3.95.55-2.86 2.8.68 3.95L8 11.2l-3.52 1.9.68-3.95L2.3 6.35l3.95-.55z"></path></svg>
+                    </button>
+                  </li>
+                </sc-for>
+              </ul>
+            </sc-if>
+            <sc-if value="{{fav.noSpaces}}" hint-placeholder-val="{{ false }}">
+              <p class="nf-fav-hint">Spaces markierst du mit dem Stern in der Übersicht oder im Space-Umschalter.</p>
+            </sc-if>
+          </section>
         </div>
       </sc-if>
 
@@ -3775,7 +3919,7 @@ class Component extends DCLogic {
     this.state = {
       space: 'ENTW',
       // Mit #uebersicht in der Adresse startet der Prototyp in der Übersicht
-      view: typeof location === 'undefined' ? 'page' : location.hash === '#uebersicht' ? 'overview' : location.hash === '#import' ? 'import' : 'page',
+      view: typeof location === 'undefined' ? 'page' : location.hash === '#uebersicht' ? 'overview' : location.hash === '#import' ? 'import' : location.hash === '#favoriten' ? 'favorites' : 'page',
       current: 'dm',
       expanded: { arch: true, betrieb: true },
       pages: JSON.parse(JSON.stringify(PAGES)),
@@ -3814,6 +3958,10 @@ class Component extends DCLogic {
       tplTarget: null,
       tplUse: null,
       tplSaveDraft: null,
+      // Favoriten-Ansicht: Suche, nach Space gruppieren, Karten oder Liste (gemerkt im Browser)
+      favQ: '',
+      favGroup: false,
+      favView: (() => { try { return localStorage.getItem('nf-proto-favview') === 'list' ? 'list' : 'cards'; } catch (err) { return 'cards'; } })(),
       // Confluence-Import: Schritt (1 Hochladen, 2 Probelauf, 3 läuft, 4 fertig), Ziel, Zuordnungen, angelegte Seiten
       imp: { step: 1, space: 'ENTW', file: false, groups: { users: 'ws', team: 'grp', admins: '', extern: 'skip' }, invite: true, progress: 0, phase: 0, created: null },
       // Reaktionen pro Seite: Emoji → Personen (Reihenfolge wie REACTIONS)
@@ -5249,7 +5397,7 @@ class Component extends DCLogic {
     const P = s.pages;
     const shown = (t) => t || 'Ohne Titel';
     const sp = s.spaces[s.space];
-    const inSpace = s.view !== 'overview' && s.view !== 'templates';
+    const inSpace = !['overview', 'templates', 'favorites'].includes(s.view);
     const trashed = new Set(s.trash.map((t) => t.id));
     const inTrash = (id) => this.chain(id).some((x) => trashed.has(x));
     const raw = pal.q;
@@ -5335,6 +5483,7 @@ class Component extends DCLogic {
       inSpace && !sp.archived && this.canEdit(sp.home) && { label: 'Neue Seite in „' + sp.name + '“', kw: 'neue seite anlegen erstellen', run: () => this.createPage(sp.home) },
       { label: 'Neuer Space', kw: 'space anlegen erstellen neu', run: () => { this.setState({ dialog: 'newSpace', ns: null }); this.focusLater('#ns-name'); } },
       { label: 'Zur Übersicht', kw: 'startseite home übersicht spaces', run: () => this.setState({ view: 'overview' }) },
+      { label: 'Favoriten', kw: 'favoriten stern markiert gemerkt', run: () => this.setState({ view: 'favorites' }) },
       { label: 'Vorlagen', kw: 'vorlage vorlagen muster template neue seite', run: () => this.openTemplates(null) },
       { label: 'Confluence-Import', kw: 'import importieren confluence umzug export hochladen', run: () => this.openImport() },
       isPage && { label: 'Link zur Seite kopieren', kw: 'link kopieren teilen url adresse', run: () => this.showToast('Link kopiert') },
@@ -5608,7 +5757,7 @@ class Component extends DCLogic {
       spaceCards: cards,
       // Linke Liste: „Favoriten“ (nur wenn es welche gibt) und „Spaces“ (die übrigen)
       sideGroups: [
-        ...(cards.some((c) => c.fav) ? [{ label: 'Favoriten', showNew: false, items: cards.filter((c) => c.fav) }] : []),
+        ...(cards.some((c) => c.fav) ? [{ label: 'Favorisierte Spaces', showNew: false, items: cards.filter((c) => c.fav) }] : []),
         { label: cards.some((c) => c.fav) ? 'Weitere Spaces' : 'Spaces', showNew: true, items: cards.filter((c) => !c.fav) }
       ],
       spaceCardsShown: cards.filter((c) => s.showArchived || !c.archived),
@@ -5616,6 +5765,9 @@ class Component extends DCLogic {
       toggleArchived: () => this.setState((st) => ({ showArchived: !st.showArchived })),
       recent,
       favGroups,
+      favPageCount: favGroups.reduce((n, g) => n + g.count, 0),
+      hasFavPages: favGroups.length > 0,
+      favLead: favGroups.length ? 'Seiten, die du mit dem Stern markiert hast, nach Space. Markieren und entfernen über den Stern über einer Seite.' : 'Noch keine favorisierten Seiten.',
       hasFavGroups: favGroups.length > 0,
       noFavGroups: favGroups.length === 0,
       activity,
@@ -5837,6 +5989,91 @@ class Component extends DCLogic {
       submit: (e) => { this.prevent(e); if (d && d.name.trim()) this.saveAsTemplate(); }
     };
   }
+  // ---------- Favoriten (Ausblick): eigene Ansicht mit Seiten als Karten oder Liste und favorisierten Spaces ----------
+  favoritesVals() {
+    const s = this.state, P = s.pages;
+    const shown = (t) => t || 'Ohne Titel';
+    const trashed = new Set(s.trash.map((t) => t.id));
+    const visible = (id) => P[id] && this.role(id) && !this.chain(id).some((x) => trashed.has(x));
+    const spaces = this.favFirst(Object.values(s.spaces), (x) => x.key);
+    const all = [];
+    spaces.forEach((sp) => (s.pageFavs[sp.key] || []).forEach((id) => { if (visible(id) && P[id].space === sp.key) all.push(id); }));
+    const q = (s.favQ || '').trim();
+    const words = fold(q).split(/\s+/).filter(Boolean);
+    const ids = all.filter((id) => words.every((w) => fold(shown(P[id].title) + ' ' + this.excerptOf(id) + ' ' + s.spaces[P[id].space].name).includes(w)));
+    const item = (id) => {
+      const p = P[id], sp = s.spaces[p.space], ed = PEOPLE[p.editor];
+      const ch = this.chain(id).slice(1, -1);
+      const excerpt = this.excerptOf(id);
+      return {
+        title: shown(p.title), titleCls: p.title ? '' : 'nf-untitled',
+        icon: s.pageIcons[id] || '', hasIcon: !!s.pageIcons[id], noIcon: !s.pageIcons[id],
+        restricted: this.chain(id).some((x) => s.grants[x]),
+        excerpt, hasExcerpt: !!excerpt,
+        spaceName: sp.name, spaceBadge: sp.key.slice(0, 2), spaceColor: sp.color || '#1F5FD6',
+        path: ch.map((y) => shown(P[y].title)).join(' / '), hasPath: ch.length > 0,
+        editorColor: ed.color, editorInitials: initials(ed.name),
+        meta: ed.name + ' · ' + p.when,
+        go: (e) => { this.prevent(e); this.go(id); },
+        unfavLabel: '„' + shown(p.title) + '“ aus den Favoriten entfernen',
+        unfav: (e) => { this.stop(e); this.toggleFavPage(id); }
+      };
+    };
+    const grouped = !!s.favGroup;
+    const groups = grouped
+      ? spaces.map((sp) => {
+        const list = ids.filter((id) => P[id].space === sp.key);
+        return {
+          hasHead: true, name: sp.name, badge: sp.key.slice(0, 2), color: sp.color || '#1F5FD6', count: list.length,
+          goLabel: sp.name + ' öffnen',
+          go: (e) => { this.prevent(e); this.go(sp.home); },
+          items: list.map(item)
+        };
+      }).filter((g) => g.items.length)
+      : [{ hasHead: false, items: ids.slice().sort((a, b) => shown(P[a].title).localeCompare(shown(P[b].title), 'de')).map(item) }].filter((g) => g.items.length);
+    const sub = (x) => [x, ...P[x].kids.flatMap(sub)];
+    const favSpaces = spaces.filter((x) => s.favs.includes(x.key)).map((x) => {
+      const n = sub(x.home).filter((id) => !trashed.has(id)).length;
+      const role = this.role(x.home);
+      return {
+        name: x.name, badge: x.key.slice(0, 2), color: x.color || '#1F5FD6',
+        description: x.description || 'Ohne Beschreibung',
+        meta: n + (n === 1 ? ' Seite' : ' Seiten') + (x.archived ? ' · archiviert' : role ? ' · ' + ROLE_LABEL[role] : ''),
+        go: (e) => { this.prevent(e); this.go(x.home); },
+        unfavLabel: '„' + x.name + '“ aus den Favoriten entfernen',
+        unfav: (e) => { this.stop(e); this.prevent(e); this.toggleFav(x.key); }
+      };
+    });
+    const setView = (v) => {
+      try { localStorage.setItem('nf-proto-favview', v); } catch (err) { /* nur diese Sitzung */ }
+      this.setState({ favView: v });
+    };
+    const cards = s.favView !== 'list';
+    return {
+      lead: all.length || favSpaces.length
+        ? 'Was du mit dem Stern markiert hast: ' + all.length + (all.length === 1 ? ' Seite' : ' Seiten') + ' und ' + favSpaces.length + (favSpaces.length === 1 ? ' Space.' : ' Spaces.')
+        : 'Markiere Seiten und Spaces mit dem Stern, dann stehen sie hier.',
+      q: s.favQ || '',
+      onQ: (e) => this.setState({ favQ: e.target.value }),
+      grouped,
+      toggleGroup: () => this.setState({ favGroup: !grouped }),
+      cards, list: !cards,
+      cardsPressed: cards ? 'true' : 'false', listPressed: cards ? 'false' : 'true',
+      showCards: () => setView('cards'), showList: () => setView('list'),
+      pageCount: ids.length,
+      groups,
+      hasPages: ids.length > 0,
+      noPages: ids.length === 0,
+      emptyTitle: q ? 'Keine Treffer' : 'Noch keine Seiten',
+      emptyText: q ? 'Keine favorisierte Seite passt zu „' + q + '“.' : 'Markiere eine Seite mit dem Stern oben rechts über der Seite, dann steht sie hier und in der Seitenleiste ihres Spaces.',
+      spaces: favSpaces,
+      spaceCount: favSpaces.length,
+      hasSpaces: favSpaces.length > 0,
+      spacesCards: favSpaces.length > 0 && cards,
+      spacesList: favSpaces.length > 0 && !cards,
+      noSpaces: favSpaces.length === 0
+    };
+  }
   // ---------- Confluence-Import (Ausblick M4) ----------
   // Drei Schritte: Export hochladen, Probelauf prüfen (Gruppen, Personen, Rechte vorab, Makros), importieren.
   // Der Probelauf ändert nichts. Die Rechte rechnet der Importer vorher aus; „weiter als vorher“ sperrt den Import.
@@ -6016,7 +6253,7 @@ class Component extends DCLogic {
     const vmode = isPage && !!s.versions && s.versions.pid === cur;
     // Erstes Öffnen eines Spaces: Platzhalter im Seitenbaum
     // Übersicht und Vorlagen: Navigation ohne Space (Liste aller Spaces statt Seitenbaum)
-    const ovNav = s.view === 'overview' || s.view === 'templates';
+    const ovNav = s.view === 'overview' || s.view === 'templates' || s.view === 'favorites';
     const treeLoading = !ovNav && !this._loadedSpaces.has(s.space);
     if (treeLoading) { const key = s.space; this.scheduleLoad('s:' + key, 450, () => this._loadedSpaces.add(key)); }
     const spaceEditable = !sp.archived && this.canEdit(homeId);
@@ -6533,6 +6770,11 @@ class Component extends DCLogic {
       isSettings: s.view === 'settings',
       isOverview: s.view === 'overview',
       isTemplates: s.view === 'templates',
+      isFavorites: s.view === 'favorites',
+      fav: s.view === 'favorites' ? this.favoritesVals() : {},
+      favNavCls: s.view === 'favorites' ? 'nf-nav-current' : '',
+      favNavCurrent: s.view === 'favorites' ? 'page' : 'false',
+      goFavorites: (e) => { this.prevent(e); this.edSave(); this.setState({ view: 'favorites', drawer: false, menu: null }); },
       isImport: s.view === 'import',
       impNavCls: s.view === 'import' ? 'nf-nav-current' : '',
       impNavCurrent: s.view === 'import' ? 'page' : 'false',
