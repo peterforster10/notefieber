@@ -82,26 +82,39 @@ Epics: E05, E06, E07, E08, E15, dazu der Mail-Versand aus E01 und E02 und das Pr
 - [x] Oberfläche auf Deutsch und Englisch (E15, Definition of Done in [EPICS](EPICS.md)): Übersetzung einbauen, solange es wenig Text gibt, alle bisherigen Texte übersetzen (auch BlockNote, Callout-Arten, Fehlermeldungen der API, die die Oberfläche zeigt); ab hier jede Story in beiden Sprachen (24. November 2026: next-intl ohne Sprache in der Adresse, Texte in `apps/web/messages/de.json` und `en.json`, ein Test prüft gleiche Schlüssel und Platzhalter; Sprache aus Cookie `nf_locale`, Browsersprache oder Profil, Umschalter unten in der Seitenleiste speichert `users.locale` über `PATCH /api/v1/me`; BlockNote-Wörterbuch je Sprache; Fehler der API mit stabilem `code`, auch für Regeln der Datenbank (`DB_RULES`); Anmeldeseite von Zitadel über `ui_locales`; im Browser geprüft, [USE_CASES](USE_CASES.md) UC-38)
 - [x] Web-Client nach UI-Entwurf (E15, `prototype/`, 24. November 2026): Designsystem mit Inter (Code: IBM Plex Mono) und heller Seitenleiste statt `#0F2537` (Entscheidung in `CLAUDE.md` Abschnitt 9), Kopfbereich mit Brotkrume, Avataren, Schloss und den Knöpfen „Teilen und Rechte“, „Versionen“, „Exportieren“ (vorerst Dialoge mit Ausblick); Tastaturbedienung (Seitenbaum nach dem ARIA-Muster „Tree View“, Menüs, Dialoge, Zum Inhalt springen), WCAG 2.2 AA (Kontraste aller Farbpaare in `contrast.test.mjs`, axe ohne Befunde in `apps/web/e2e/a11y.spec.ts`), bis Tablet nutzbar (Schublade unter 1024 px); eine Seite mit 225 Blöcken in 1,48 s bearbeitbar (Median, Maximum 1,55 s, Produktions-Build, `apps/web/e2e/editor-200-blocks.spec.ts`, [LOCAL_SETUP](LOCAL_SETUP.md) Abschnitt 7; UC-39 bis UC-41)
 - [x] Erste grüne Pipeline mit `secrets` über den ganzen Verlauf, bevor das Repository öffentlich wird (siehe [TODOS](TODOS.md))
+- [ ] Oberfläche nach Prototyp nachziehen (E15, `prototype/pages/README.md`, Stand 26. November 2026), nur Oberfläche auf der vorhandenen API:
+  - Leiste oben mit Suchfeld (bis M3 nur Titelsuche), Zahnrad „Einstellungen“ und Avatar „Konto“ mit Sprache und Abmelden. Damit ändert sich `CLAUDE.md` §9, dort stehen beide noch unten in der Seitenleiste
+  - Leiste über der Seite: Speicherstatus statt des Offline-Hinweises, Anwesenheit nur der anderen, „Teilen“ orange mit Schloss bei eigenen Rechten statt „Eingeschränkt“ über dem Titel, „⋯“ mit Link kopieren, Verschieben … (Dialog mit Zielseite) und In den Papierkorb
+  - Space-Umschalter als Karte, Space-Einstellungen als Dialog statt der Seite `/s/<schlüssel>/settings` (alte Adresse umleiten, `CLAUDE.md` §7), Archivieren direkt im Menü
+  - **Laden:** Platzhalter-Skelett beim ersten Öffnen einer Seite (Titel, Byline, Zeilen) und eines Spaces (im Seitenbaum) statt „Einen Moment …“, danach sofort aus dem Zwischenspeicher; `aria-busy` und Status „Seite wird geladen …“, mit „Bewegung reduzieren“ ohne Schimmer
+  - **Leere Zustände:** leerer Space im Seitenbaum („Noch keine Seiten unter der Startseite“ mit „Erste Seite anlegen“) und auf der Startseite (Karte „Willkommen in …“, siehe M5); leere Zustände für Suche und Kommentare kommen mit diesen in M3
+  - „⋯“ der Seite zusätzlich mit „Seiteninfo“ (Angaben, Rechte, Rückverweise; Rückverweise erst ab M3), Dialog „Tastenkürzel“, Logo „NF“ in der Seitenleiste und als Browser-Icon (`prototype/brand/`)
+  - Menüs des Editors wie im Entwurf („Editor-Bedienung“)
+  - wie bisher geprüft mit axe und `contrast.test.mjs`, in beiden Sprachen
+- [ ] Übersicht nach dem Login neu (E05, ersetzt `apps/web/src/app/home.tsx`): Spaces als Kacheln mit eigener Rolle, Zahl der Seiten und letzter Änderung, „Neuer Space“ als Dialog mit vorgeschlagenem Schlüssel, Karte zum Workspace für Owner und Admins. Eine Farbe pro Space wäre eine Schemaänderung (`spaces.color`, Test und Migration), sonst ohne Farbe
+- [ ] Fuß der Seite (E06): Unterseiten als Karten oder Liste mit „+ Unterseite“, nur lesbare Seiten (über `app.tree_level`); „Verlinkt von“ kommt mit den Rückverweisen in M3
+- [ ] Dunkles Farbschema (E15): Tokens aus `prototype/pages/src/styles/tokens.css`, alle dunklen Farbpaare in `contrast.test.mjs`, Auswahl Hell, Dunkel oder System; vorher entscheiden, ob die Wahl im Browser bleibt oder in `users` gespeichert wird (Schemaänderung)
 - [ ] Worker-Aufträge mit pg-boss (Grundlage für die Versionen und das endgültige Löschen; dazu die Punkte „Mit M2“ in [TODOS](TODOS.md))
-- [ ] Versionen (E08): automatische Version nach 10 Minuten Ruhe (Worker), manuelle Version (`app.save_version`), Versionen mit Autoren anzeigen, zwei Versionen vergleichen, wiederherstellen als neue Version über den internen Aufruf an den Collab-Server (`restored_from`); prüfen, dass alle Blöcke aus E07 Speichern, Version und Wiederherstellen ohne Verlust überstehen
-- [ ] Papierkorb (E08): endgültiges Löschen nach 30 Tagen durch den Worker, mit den Objekten der Bilder in Garage
-- [ ] Zuletzt besuchte Seiten (E06)
-- [ ] Profil (E02): Name, Profilbild, Sprache, Zeitzone; die Sprache steuert die Oberfläche
+- [ ] Versionen (E08): automatische Version nach 10 Minuten Ruhe (Worker), manuelle Version (`app.save_version`), Versionen mit Autoren anzeigen, zwei Versionen vergleichen, wiederherstellen als neue Version über den internen Aufruf an den Collab-Server (`restored_from`); prüfen, dass alle Blöcke aus E07 Speichern, Version und Wiederherstellen ohne Verlust überstehen. Oberfläche nach dem Prototyp: eigene Ansicht mit der Liste nach Tagen, Vergleich mit `<ins>`/`<del>` aus dem BlockNote-JSON zweier Versionen über eine Bibliothek (z. B. `diff`, kein eigener Algorithmus). Ein Name für gesicherte Versionen („Vor dem Review“) braucht eine Spalte in `page_versions`; vorher entscheiden (Schemaänderung)
+- [ ] Papierkorb (E08): endgültiges Löschen nach 30 Tagen durch den Worker, mit den Objekten der Bilder in Garage. Oberfläche als Dialog nach dem Prototyp mit Suche, gelöscht von wem und wann, Restzeit bis zum endgültigen Löschen und aufklappbaren Unterseiten; dafür liefert `GET /spaces/:key/trash` zusätzlich `deleted_by` und die Zahl der Unterseiten
+- [ ] Zuletzt besuchte Seiten (E06): in der Übersicht als Karten und in der Suche ohne Eingabe (Prototyp). Braucht eine Tabelle pro Person und Seite (Schemaänderung) und zeigt nur lesbare Seiten außerhalb des Papierkorbs
+- [ ] Profil (E02): Name, Profilbild, Sprache, Zeitzone; die Sprache steuert die Oberfläche. Erreichbar über „Benutzerprofil“ im Konto-Menü
 - [ ] E-Mail-Versand lokal: Mailpit in `compose.yaml` (fängt alle Mails ab, Ansicht unter `http://localhost:8025`), SMTP über eine generische Einstellung (Nodemailer); Einladungsmail direkt aus der API beim Anlegen (das Token liegt nur im Speicher, der Link bleibt als Rückfall); Zitadel nutzt denselben SMTP-Server (Passwort vergessen, E-Mail bestätigen)
 - [ ] **Ab hier selbst nutzen**, z. B. für die eigene Projektdokumentation
 
 ### M3 – Rechte, Suche, Kommentare (MVP ohne Import)
 Epics: E09, E10, E11, E12, E14, dazu aus E02 die Gruppenpflege (aus M0 verschoben) und die Mitgliederverwaltung, aus E06 die Rückverweise, aus E19 ein Webhook
-- [ ] Rollen und Vererbung, Vererbung kappen, Gruppen, „Alle im Workspace“; Rechte-Dialog mit „Erbt Rechte von …“ (E09)
+- [ ] Rollen und Vererbung, Vererbung kappen, Gruppen, „Alle im Workspace“; Rechte-Dialog mit „Erbt Rechte von …“ (E09). Nach dem Prototyp: oben die Zusammenfassung, wie viele Personen welche wirksame Rolle haben, Hinzufügen mit Vorschlägen beim Tippen, Warnung, wenn man sich selbst Admin nimmt, Speichern gesperrt, wenn kein wirksamer Admin bliebe
 - [ ] Rechte wiederherstellen durch Organisations-Admins, wenn kein Admin mehr erreichbar ist, mit Eintrag im Audit-Log (E09)
-- [ ] Mitglieder eines Workspaces verwalten: Rolle ändern, entfernen, Person deaktivieren (E02; die Datenbank kann es schon)
+- [ ] Mitglieder eines Workspaces verwalten: Rolle ändern, entfernen, Person deaktivieren (E02; die Datenbank kann es schon). Oberfläche nach dem Prototyp als Dialoge „Workspace“ und „Einladungen“ im Zahnrad-Menü (Einladungen mit Status offen, angenommen, zurückgenommen, abgelaufen)
 - [ ] Gruppen im Wiki pflegen: API und Oberfläche für Organisations-Admins (anlegen, umbenennen, Mitglieder). Aus M0 hierher verschoben; die Datenbank kann es schon, Rechte über Gruppen wirken bereits (Testdaten)
-- [ ] „Ansehen als …“ für Space-Admins (Prüfwerkzeug für den Import)
-- [ ] Kommentare an Textstellen und Seiten
+- [ ] „Ansehen als …“ für Space-Admins (Prüfwerkzeug für den Import): Person wählen, Seitenbaum mit ihrer Rolle pro Seite und „sieht 8 von 9 Seiten“, nur Struktur (Prototyp)
+- [ ] Kommentare an Textstellen und Seiten. Nach dem Prototyp: Spalte standardmäßig zu, Sprechblasen mit Zahl am Rand neben der Stelle, Reiter „Offen“ und „Erledigt“, Kommentar zur ganzen Seite, neuer Kommentar aus der Leiste beim Markieren; unter 1280 px eine Schublade, die den Fokus fängt wie ein Dialog (im Prototyp noch nicht). Leere Zustände „Noch keine Kommentare“, „Nichts erledigt“ und ohne Kommentarrecht ein Hinweis auf die Rolle
 - [ ] Dateien mit Virenscan und Vorschau; dann `FILES_REQUIRE_SCAN` überall an (lokal bis dahin `false`), Anhänge als Datei-Block, „wird geprüft“ und „blockiert“ am Bild anzeigen
 - [ ] Sichtbarkeit für Listen mengenbasiert (Seitenbaum, Suche, Titelsuche für Seitenlinks `GET /pages/search`, „Ansehen als …“, Rückverweise): Ränge pro Space und Person einmal berechnen statt `page_rank` pro Zeile, durch einen Test gegen `page_rank` abgesichert (A-01)
-- [ ] Volltextsuche, Rechte in jedem Lesepfad; Deutsch und Englisch (zwei Sprachkonfigurationen oder `simple` mit Trigrammen, A-10); Filter nach Space, Autor und Zeitraum; Schnellsuche nach Titeln beim Tippen (E12, baut auf `GET /pages/search` auf); Seiten im Papierkorb verschwinden aus `page_search` und kommen beim Wiederherstellen zurück (noch nicht gebaut, [TODOS](TODOS.md))
-- [ ] Rückverweise „Wer verlinkt hierher?“ an der Seite, aus `page_links` (E06)
+- [ ] Volltextsuche, Rechte in jedem Lesepfad; Deutsch und Englisch (zwei Sprachkonfigurationen oder `simple` mit Trigrammen, A-10); Filter nach Space, Autor und Zeitraum; Schnellsuche nach Titeln beim Tippen (E12, baut auf `GET /pages/search` auf); Seiten im Papierkorb verschwinden aus `page_search` und kommen beim Wiederherstellen zurück (noch nicht gebaut, [TODOS](TODOS.md)). Oberfläche als Befehlspalette nach dem Prototyp (Strg K): Bereiche Seiten, Spaces, Personen, Befehle mit „>“, Ausschnitt mit Markierung, „Nur in <Space>“, ohne Eingabe zuletzt angesehen; ohne Treffer ein Hinweis auf Leserecht und Verzögerung, „In allen Spaces suchen“ und mit Bearbeitungsrecht „Seite „…“ anlegen“ (Suchbegriff als Titel)
+- [ ] „Letzte Änderungen“ in der Übersicht (E05): Änderungen in sichtbaren Spaces, ein neuer Lesepfad, deshalb mengenbasiert wie die Suche und im End-to-End-Test für das Gate
+- [ ] Rückverweise „Wer verlinkt hierher?“ an der Seite, aus `page_links` (E06): im Fuß der Seite als „Verlinkt von (n)“ mit dem Satz um den Link; was fehlt, fehlt ohne Hinweis
 - [ ] Export einer Seite, eines Teilbaums oder eines Spaces als Markdown + BlockNote-JSON + Anhänge (ZIP), nur was die Person lesen darf (E14). BlockNote-JSON ist das verlustfreie Format für Re-Import und Editorwechsel
 - [ ] Ein Webhook (E19, Teil des MVP laut `CLAUDE.md` Abschnitt 5): ausgewählte Ereignisse aus der Outbox an eine Adresse pro Mandant, mit Signatur
 - [ ] Audit-Log
@@ -116,7 +129,7 @@ Epic: E13
 - [ ] Space-Export (HTML bzw. XML) einlesen: Hierarchie, Inhalte, Anhänge, Versionen
 - [ ] Rechte übersetzen, Gruppen zuordnen
 - [ ] Die häufigsten Makros abbilden (aus den echten Exporten gezählt), Rest als sichtbarer Platzhalter mit Originalinhalt
-- [ ] Probelauf mit Bericht, echter Import, Import rückgängig machen
+- [ ] Probelauf mit Bericht, echter Import, Import rückgängig machen. Import-Assistent nach dem Prototyp (`Main.dc.html#import`): Ziel-Space, Probelauf mit Gruppen zuordnen, Personen, **Rechte vorab** („Wie vorher“, „Enger als vorher“, „Weiter als vorher“) und Makros; „Import starten“ bleibt gesperrt, solange eine Gruppe nicht zugeordnet ist oder eine Seite danach für mehr Personen sichtbar wäre als in Confluence; danach „Rechte prüfen“ über „Ansehen als …“
 - [ ] Interne Links umschreiben
 - [ ] Personen aus dem Export ohne Login anlegen, mit Mitgliedschaften und Rechten, danach Sammeleinladung ([OPEN_QUESTIONS](OPEN_QUESTIONS.md), Frage 9; A-02)
 - [ ] Importierte Versionen nur als BlockNote-JSON speichern (`page_versions.ydoc` für `import` leer, Wiederherstellen über `content_json`; A-03)
@@ -139,7 +152,8 @@ Epics: E01 (VPS), E22 (einfach), dazu aus E02 das Anlegen von Mandanten und aus 
 - [ ] Ausrollen aus der CI auf GitLab nach `staging` bei jedem Merge, Freigabe für `pilot`; Secrets mit SOPS oder Sealed Secrets (E01)
 - [ ] Mandanten für Pilotkunden anlegen: Admin-Skript über `app.create_tenant` mit Organisation in Zitadel; Selbstregistrierung erst in Stufe 3 (E02)
 - [ ] Zwei-Faktor und Passkeys in Zitadel einschalten, „Alle Sitzungen beenden“ im Profil (E03)
-- [ ] Einfacher Einstieg für Pilotnutzer (E22): erster Space, Einladungen, kurze Einführung „Was heißt hier wie?“ für Confluence-Umsteiger
+- [ ] Einfacher Einstieg für Pilotnutzer (E22): erster Space, Einladungen, kurze Einführung „Was heißt hier wie?“ für Confluence-Umsteiger; Karte „Willkommen in …“ auf der Startseite eines leeren Spaces (Prototyp)
+- [ ] Komfort aus dem Prototyp, nach den Rückmeldungen der Pilotkunden priorisiert (E06, E07), jeweils eine Schemaänderung mit Test und Migration: Favoriten für Seiten und Spaces, Emoji und Titelbild einer Seite, Reaktionen auf Seiten
 - [ ] VPS mieten, K3s mit denselben Manifesten wie lokal, Namespaces `staging` und `pilot`
 - [ ] Firewall: nur 80, 443 und SSH mit Schlüssel. Kubernetes-API nicht öffentlich.
 - [ ] CloudNativePG mit laufenden Backups zu einem S3-Speicher bei einem anderen Anbieter, Garage-Buckets ebenfalls. **Wiederherstellung getestet.**
@@ -172,10 +186,10 @@ Infrastruktur: Umzug zu einem zertifizierten EU-Anbieter, gemeinsam mit TalkFieb
 | Administration, Aufbewahrung, Audit-Ansicht, SCIM, DSGVO | E17 |
 | Organisation selbst registrieren (mit Plan und Abrechnung) | E02, E20 |
 | SSO voll (OIDC, SAML, Entra ID) | E03 |
-| Benachrichtigungen, Beobachten, Erwähnungen | E16 |
+| Benachrichtigungen, Beobachten, Erwähnungen (Glocke im Prototyp entworfen) | E16 |
 | Gäste und Freigaben nach außen | E18 |
 | Weitere Webhooks, REST-API mit Tokens, Einbettungen | E19 |
-| Vorlagen und Seiteneigenschaften | E25 |
+| Vorlagen und Seiteneigenschaften (Galerie, Verwenden und „Als Vorlage speichern“ im Prototyp entworfen) | E25 |
 | Pläne und Abrechnung über einen EU-Zahlungsanbieter | E20 |
 | Sicherheit: Penetrationstest, Vorbereitung ISO 27001 | E21 |
 | Onboarding und Hilfe | E22 |

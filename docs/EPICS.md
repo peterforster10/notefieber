@@ -81,7 +81,8 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Mandant mit erstem Workspace und Organisations-Admin in einer Transaktion (`app.create_tenant`), optional mit der ID aus TalkFieber. Für den Pilot über ein Admin-Skript (M5), Selbstregistrierung erst in Stufe 3 mit E20
 - Einladung per Link, Rollen owner, admin, member, guest pro Workspace (fertig, M0)
 - Einladung per E-Mail: Die API schickt die Mail beim Anlegen selbst, weil das Token nur in diesem Moment im Klartext vorliegt (in der Datenbank nur sein Hash); schlägt der Versand fehl, bleibt der Link zum Weitergeben. Texte auf Deutsch und Englisch
-- Profil mit Name, Bild, Sprache, Zeitzone (M2; die Sprache steuert die Oberfläche)
+- Profil mit Name, Bild, Sprache, Zeitzone (M2; die Sprache steuert die Oberfläche), erreichbar über „Benutzerprofil“ im Konto-Menü oben rechts (Prototyp)
+- Workspace verwalten als Dialoge im Zahnrad-Menü (Prototyp, M3): „Workspace“ mit Name und Mitgliedern (Rolle ändern, entfernen mit Rückfrage, Owner fest) und „Einladungen“ (anlegen, Link kopieren, Liste mit Status offen, angenommen, zurückgenommen, abgelaufen; offene zurücknehmen), nur für Owner und Admins
 - Gruppen im Wiki anlegen und pflegen, nur Organisations-Admins (`app.create_group`, `app.add_group_member` …). Datenbank fertig; API und Oberfläche kommen mit E09 in M3, zusammen mit dem Rechte-Dialog. Zitadel hat keine Gruppen; SCIM (E17) und ein Gruppen-Claim im Token (E03) kommen später als Quellen dazu
 - Personen deaktivieren, aus Workspaces entfernen (persönliche Rechte fallen weg); Datenbank fertig, Oberfläche in M3
 
@@ -201,8 +202,11 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Space mit Key, Name, Beschreibung und Startseite anlegen (`app.create_space`)
 - Zugriff für alle im Workspace wählbar (keiner, lesen, kommentieren, bearbeiten)
 - Space-Übersicht, archivieren (danach nur lesbar)
+- **Übersicht nach dem Login** nach dem Prototyp (M2, `Main.dc.html#uebersicht`): Spaces als Kacheln mit eigener Rolle, Zahl der Seiten und letzter Änderung, archivierte nur auf Wunsch; „Neuer Space“ als Dialog mit Schlüssel, der aus dem Namen vorgeschlagen wird und belegten ausweicht (z. B. `ENTW2`); rechts „Letzte Änderungen“ in sichtbaren Spaces (ein neuer Lesepfad: nur Seiten mit Leserecht, mengenbasiert wie die Suche in M3) und für Owner und Admins eine Karte zum Workspace
+- **Space-Einstellungen als Dialog** statt eigener Seite (Name, Beschreibung, Schlüssel fest, Archivieren bzw. Zurückholen), Archivieren auch direkt im Menü „⋯“ am Space
+- Vorschlag aus dem Prototyp: eine **Farbe pro Space** für Kürzel und Kacheln (acht Farben mit weißer Schrift ab 4,5:1); braucht `spaces.color` (Schemaänderung)
 
-**Nicht enthalten:** Space-Vorlagen (E25).
+**Nicht enthalten:** Space-Vorlagen (E25), Favoriten-Spaces (E06, nach dem Pilot).
 
 **Abnahmekriterien:**
 - Space-Keys sind pro Mandant eindeutig und importierte Keys bleiben erhalten.
@@ -210,7 +214,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 
 **Abhängigkeiten:** E02.
 
-**Story-Kandidaten:** Space anlegen · Space finden · Space archivieren
+**Story-Kandidaten:** Space anlegen · Space finden · Space archivieren · Übersicht nach dem Login
 
 ---
 
@@ -222,8 +226,11 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Seiten anlegen, Unterseiten, Reihenfolge per Fractional Index
 - Verschieben und Umsortieren per Drag & Drop mit ganzem Teilbaum (`app.move_page`)
 - Wer eine Seite aus einem Bereich mit eigenen Rechten herausschiebt, muss dort Admin sein
-- Brotkrume, zuletzt besuchte Seiten (M2)
+- Brotkrume, zuletzt besuchte Seiten (M2; in der Übersicht als Karten und in der Suche ohne Eingabe, braucht eine Tabelle pro Person und Seite)
 - Rückverweise („Wer verlinkt hierher?“) über `page_links` (der Worker füllt sie seit M2, Anzeige in M3)
+- **Fuß jeder Seite** nach dem Prototyp: „Unterseiten (n)“ als Karten oder Liste mit „+ Unterseite“ (M2) und „Verlinkt von (n)“ mit dem Satz um den Link (M3). Nur lesbare Seiten außerhalb des Papierkorbs; was fehlt, fehlt ohne Hinweis
+- „Verschieben …“ als Dialog mit Zielseite im Menü „⋯“ der Seite, als Alternative zu Drag & Drop
+- **Favoriten** pro Person (nach dem Pilot, nach Rückmeldung der Pilotkunden): Seiten und Spaces mit Stern markieren, eigener Menüpunkt „Favoriten“ mit Karten oder Liste, im Space ein Bereich „Favoriten (n)“ über dem Seitenbaum, Favoriten-Spaces zuerst in Übersicht und Umschalter. Braucht eine Tabelle (Schemaänderung); nur lesbare Seiten außerhalb des Papierkorbs
 
 **Nicht enthalten:** Verschieben zwischen Spaces (später, wegen Rechten).
 
@@ -233,7 +240,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 
 **Abhängigkeiten:** E05.
 
-**Story-Kandidaten:** Unterseite anlegen · Seite verschieben · Reihenfolge ändern · Rückverweise sehen
+**Story-Kandidaten:** Unterseite anlegen · Seite verschieben · Reihenfolge ändern · Rückverweise sehen · Unterseiten im Fuß sehen · Zuletzt besuchte Seiten · Seite als Favorit markieren
 
 ---
 
@@ -247,6 +254,8 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Links auf andere Seiten mit Suche beim Tippen
 - Erwähnungen von Personen (Benachrichtigung erst mit E16; die Personen-IDs liefert `mentionIds` aus `packages/editor-schema`)
 - Inhaltsverzeichnis, Tastenkürzel, Markdown-Kürzel
+- Bedienung der Menüs nach dem Prototyp („Editor-Bedienung“ in `prototype/pages/README.md`): „/“-Menü in Gruppen mit Icon, Beschreibung und Markdown-Kürzel, Leiste beim Markieren mit „Kommentieren“, „+“ und Ziehpunkt links am Block mit Blockmenü
+- Nach dem Pilot, nach Rückmeldung der Pilotkunden, je eine Schemaänderung: **Emoji und Titelbild** einer Seite (Emoji auch im Seitenbaum, Titelbild als Farbverlauf oder hochgeladenes Bild über `POST /pages/:id/files`; Vorschlag `pages.icon`, `pages.cover`) und **Reaktionen** auf eine Seite (ab Kommentieren, Vorschlag `page_reactions`)
 
 **Nicht enthalten:** mehrspaltige Layouts (mit dem XL-Paket unter GPL-3.0 im AGPL-Kern möglich, später), Datenbanken (E29).
 
@@ -269,8 +278,11 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Versionen mit Autoren anzeigen und vergleichen
 - Wiederherstellen als neue Version (im Collab-Server über Yjs)
 - Papierkorb für ganze Teilbäume, Wiederherstellen, endgültiges Löschen nach 30 Tagen durch den Worker
+- **Versionen als eigene Ansicht** nach dem Prototyp: rechts die Liste nach Tagen (Nummer, Uhrzeit, Beteiligte aus `author_ids`, Wörter hinzu und weg), links der Inhalt der gewählten Version mit „Änderungen hervorheben“ gegenüber der vorigen oder einer gewählten älteren (`<ins>`/`<del>`, auch für Screenreader; Vergleich über eine Bibliothek wie `diff`, aus dem BlockNote-JSON), „Wiederherstellen“ mit Rückfrage („Daraus entsteht Version 13“), „Version sichern“
+- Offen: ein **Name für gesicherte Versionen** („Vor dem Review“) braucht eine Spalte in `page_versions` (Schemaänderung); vor dem Bau entscheiden
+- **Papierkorb als Dialog** nach dem Prototyp: Suche auch über Unterseiten, gelöscht von wem und wann, Restzeit bis zum endgültigen Löschen (ab 7 Tagen orange), Wiederherstellen nur mit Bearbeitungsrecht an der Elternseite
 
-**Nicht enthalten:** Aufbewahrungsrichtlinien (E17).
+**Nicht enthalten:** Aufbewahrungsrichtlinien (E17), sofortiges endgültiges Löschen (bewusst nicht).
 
 **Abnahmekriterien:**
 - Wiederherstellen ändert keine alte Version, die Historie bleibt linear.
@@ -295,6 +307,8 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - **„Ansehen als …“:** Space-Admins sehen eine Seite, den Baum oder die Suche so, wie eine bestimmte Person sie sieht. In der Datenbank fertig: `app.view_as(space, person, actor)` liefert Struktur und Rolle der Person (keine Inhalte), nur für Admins des Spaces und Organisations-Admins, ohne Seiten mit eigenen Rechten, die die handelnde Person nicht verwaltet, jeder Aufruf im Audit-Log. Offen sind API und Oberfläche; die Suche „als …“ filtert die API auf die Seiten mit Rolle
 - „Alle im Workspace“ höchstens Bearbeiten, Admins immer namentlich oder als Gruppe
 - Eine zentrale Rechte-Funktion (`app.page_rank`) für alle Lesepfade
+- **Rechte-Dialog** nach dem Prototyp, über „Teilen“ in der Leiste über der Seite (orange mit Schloss, wenn die Seite eigene Rechte hat): oben die Zusammenfassung, wie viele Personen welche wirksame Rolle haben (Namen beim Darüberfahren, mit den Änderungen im Entwurf), Schalter „Eigene Rechte für diese Seite“, Hinzufügen mit Vorschlägen beim Tippen (Personen, Gäste markiert, Gruppen mit Mitgliederzahl, „Alle im Workspace“). Nimmt man sich selbst Admin, warnt der Dialog („Trotzdem speichern“); bliebe kein wirksamer Admin, sperrt er das Speichern. Ohne Admin-Recht nur lesbar
+- **„Ansehen als …“** in der Oberfläche: Person wählen, darunter der Seitenbaum mit ihrer Rolle pro Seite (ohne Zugriff gedämpft) und „sieht 8 von 9 Seiten“, Hinweis aufs Audit-Log
 
 **Nicht enthalten:** Freigaben nach außen (E18).
 
@@ -319,6 +333,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Eigene Kommentare bearbeiten (`app.edit_comment`)
 - Löschen überschreibt den Inhalt, fremde Kommentare nur durch Admins der Seite (bei eingeschränkten Seiten deren Admins, sonst Space-Admins)
 - Keine neuen Kommentare auf Seiten im Papierkorb
+- Oberfläche nach dem Prototyp: Spalte standardmäßig zu, offene Kommentare als Sprechblase mit Zahl am Rand neben der Stelle (Stelle dezent hinterlegt), Knopf in der Leiste mit der Zahl offener Threads; Spalte mit Reitern „Offen“ und „Erledigt“, Feld „Kommentar zur ganzen Seite …“, neuer Kommentar über „Kommentieren“ in der Leiste beim Markieren (Strg Enter sendet). Ab 1280 px neben dem Text, darunter eine Schublade von rechts; auf dem Handy die Stelle antippen
 
 **Nicht enthalten:** Benachrichtigungen (E16).
 
@@ -364,6 +379,8 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Filter nach Space, Autor, Zeitraum
 - Schnellsuche nach Titeln beim Tippen
 - Index vom Worker gepflegt, damit OpenSearch später ohne Umbau dazukommen kann
+- **Befehlspalette** nach dem Prototyp: Suchfeld in der Leiste oben und Strg K, Bereiche Alles, Seiten, Spaces, Personen mit Zahl der Treffer, „Nur in <Space>“, Treffer mit Markierung, Ausschnitt und Pfad; ohne Eingabe zuletzt angesehen und Befehle, mit „>“ nur Befehle (neue Seite, neuer Space, Darstellung, Personen einladen …). Als Combobox für Screenreader
+- Offen aus dem Prototyp: Akzente egal („uberblick“ findet „Überblick“) braucht `unaccent` im Index; zusammen mit der Sprachkonfiguration (A-10) entscheiden
 
 **Nicht enthalten:** Suche in Dateiinhalten, gemeinsame Suche mit TalkFieber (E26).
 
@@ -389,6 +406,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Die häufigsten Makros (aus echten Exporten gezählt) in BlockNote-Blöcke übersetzen, Rest als sichtbarer Platzhalter-Block mit Originalinhalt
 - Interne Links umschreiben über `import_items`
 - Import wiederholbar und vollständig rückgängig machbar
+- **Import-Assistent** nach dem Prototyp (`Main.dc.html#import`), drei Schritte: Export hochladen (nur in Spaces, die man verwaltet), Probelauf mit Zahlen, Gruppen zuordnen, Personen (zugeordnet, einzuladen, deaktiviert), **Rechte vorab** je eingeschränkter Confluence-Seite („Wie vorher“, „Enger als vorher“, „Weiter als vorher“) und Makros, dann Importieren mit Fortschritt. „Import starten“ bleibt gesperrt, solange eine Gruppe nicht zugeordnet ist oder eine Seite für mehr Personen sichtbar würde als in Confluence, und sagt warum. Danach „Rechte prüfen“ über „Ansehen als …“ (E09)
 
 **Nicht enthalten:** laufender Abgleich mit Confluence, Import aus Confluence Cloud über die API (später), Import aus Notion.
 
@@ -435,6 +453,8 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Seitenleiste mit Space-Umschalter und Seitenbaum, Kopfbereich mit Brotkrume und Anwesenheit, Kommentarspalte
 - Designsystem gemeinsam mit TalkFieber (Farben aus `CLAUDE.md` Abschnitt 9; seit 24. November 2026 helle Seitenleiste und Schrift Inter statt IBM Plex Sans, Code weiter IBM Plex Mono; TalkFieber zieht nach)
 - Tastaturbedienung, WCAG 2.2 AA, Deutsch und Englisch (umschaltbar seit M2, 24. November 2026), responsiv bis Tablet
+- **Nach dem Prototyp nachziehen** (M2, Stand 26. November 2026, `prototype/pages/README.md`): Leiste oben mit Suche, Zahnrad „Einstellungen“ (Darstellung, persönliche Einstellungen, Tastenkürzel, für Owner und Admins Workspace und Einladungen) und Avatar „Konto“ (Profil, Sprache, Abmelden; beides nicht mehr unten in der Seitenleiste); Leiste über der Seite mit Speicherstatus („Gespeichert“, „Speichert …“, „Offline“, „Nur lesen“), Anwesenheit nur der anderen, Kommentaren, „Teilen“ und „⋯“; Space-Umschalter als Karte; Ladeskelett statt Text, mit „Bewegung reduzieren“ ohne Schimmer; leere Zustände für leeren Space, Suche ohne Treffer und keine Kommentare; „Seiteninfo“ und „Tastenkürzel“ als Dialoge; Logo „NF“ auch als Browser-Icon. Alle Dialoge, die Befehlspalette und die Kommentar-Schublade verhalten sich wie natives `<dialog>` (Fokus hinein, Rest `inert`, beim Schließen zurück zum Auslöser)
+- **Dunkles Farbschema** (Hell, Dunkel, System) aus den Tokens des Prototyps, jedes Paar in `contrast.test.mjs`
 
 **Nicht enthalten:** Mobile-Apps (E30).
 
@@ -444,7 +464,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 
 **Abhängigkeiten:** E04–E12.
 
-**Story-Kandidaten:** Seitenbaum · Seitenansicht · Rechte-Dialog · Import-Assistent · Sprache wechseln
+**Story-Kandidaten:** Seitenbaum · Seitenansicht · Rechte-Dialog · Import-Assistent · Sprache wechseln · Oberfläche nach Prototyp nachziehen · Dunkles Farbschema
 
 ---
 
@@ -454,7 +474,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 
 **Ziel:** Wer betroffen ist, erfährt es, ohne überflutet zu werden.
 
-**Umfang:** Seiten und Spaces beobachten, Benachrichtigung bei Erwähnung, Kommentar, Antwort und Änderung, E-Mail-Zusammenfassung, Einstellungen pro Person. Später auch als Nachricht in TalkFieber (E26).
+**Umfang:** Seiten und Spaces beobachten, Benachrichtigung bei Erwähnung, Kommentar, Antwort und Änderung, E-Mail-Zusammenfassung, Einstellungen pro Person. Später auch als Nachricht in TalkFieber (E26). Oberfläche im Prototyp entworfen: Glocke oben rechts mit Zahl der ungelesenen, Fenster mit Reitern „Alle“ und „Ungelesen“, je Eintrag Art, Ausschnitt, Space und Zeit, „Alle als gelesen markieren“; ein Klick öffnet die Seite bzw. den Thread.
 
 **Abnahmekriterien:** Niemand wird über Seiten benachrichtigt, die er nicht lesen darf.
 
@@ -528,7 +548,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 
 **Ziel:** Neue Teams und Confluence-Umsteiger sind in Minuten arbeitsfähig.
 
-**Umfang:** geführter Start (erster Space, Einladungen, Import anbieten), Einführung für Confluence-Umsteiger („Was heißt hier wie?“), Hilfe-Center, Support-Kontakt.
+**Umfang:** geführter Start (erster Space, Einladungen, Import anbieten), Einführung für Confluence-Umsteiger („Was heißt hier wie?“), Hilfe-Center, Support-Kontakt. Im Prototyp: Karte „Willkommen in …“ auf der Startseite eines leeren Spaces mit „Erste Seite anlegen“, „Aus Confluence importieren“ und „Personen einladen“.
 
 **Abnahmekriterien:** Ein neues Team legt ohne Hilfe einen Space an, schreibt eine Seite und schränkt eine Unterseite ein (Nutzertest mit 5 Personen).
 
@@ -565,6 +585,8 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 **Ziel:** Ersatz für die Confluence-Funktionen, die Teams am meisten vermissen.
 
 **Umfang:** Seiten- und Space-Vorlagen (Besprechungsnotiz, Entscheidung, Anleitung) · Seiteneigenschaften als Block und Übersicht über alle Seiten mit diesen Eigenschaften · Labels · Unterseiten-Liste als Block.
+
+**Im Prototyp entworfen:** Galerie mit Vorschau, Geltungsbereich (alle Spaces oder ein Space) und Filter; „Verwenden“ mit Titel-Muster, Space und Elternseite; auf leeren Seiten „Mit einer Vorlage beginnen“; „Als Vorlage speichern“ im Menü der Seite (für einen Space durch dessen Admins, für alle Spaces durch Organisations-Admins). Vorschlag: Tabelle `templates` (Mandant, optional Space, Name, Beschreibung, Inhalt als BlockNote-JSON) mit Leseregel wie der Space; Schemaänderung. Bearbeiten und Löschen von Vorlagen sind noch nicht entworfen.
 
 **Abnahmekriterien:** Die beim Import gezählten häufigsten Makros zu Seiteneigenschaften und Unterseiten-Listen werden ohne Platzhalter übernommen.
 
