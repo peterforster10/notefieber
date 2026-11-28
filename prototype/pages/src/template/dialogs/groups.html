@@ -1,0 +1,174 @@
+  <!-- Gruppen pflegen (M3, nur Organisations-Admins): Liste, dann eine Gruppe mit Name, Mitgliedern, Rechten, Löschen -->
+  <sc-if value="{{groupsOpen}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <div class="nf-dialog nf-dialog-wide nf-gm" role="dialog" aria-modal="true" aria-labelledby="gm-title">
+
+        <sc-if value="{{gm.isList}}" hint-placeholder-val="{{ true }}">
+          <div class="nf-dialog-head">
+            <div>
+              <h2 id="gm-title" class="nf-dialog-title">Gruppen</h2>
+              <p class="nf-dialog-description">Gruppen gelten für die ganze Organisation. Rechte bekommen sie in Spaces und auf Seiten, wie einzelne Personen.</p>
+            </div>
+            <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+            </button>
+          </div>
+          <div class="nf-dialog-body">
+            <div class="nf-gm-toolbar">
+              <div class="nf-grant-search">
+                <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+                <input id="gm-q" type="search" class="nf-input" placeholder="Gruppe oder Person suchen …" aria-label="Gruppen durchsuchen" autocomplete="off" value="{{gm.list.q}}" onChange="{{gm.list.onQ}}">
+              </div>
+              <sc-if value="{{gm.list.newClosed}}" hint-placeholder-val="{{ true }}">
+                <button id="gm-new-btn" type="button" class="nf-btn nf-btn-primary" onClick="{{gm.list.startNew}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+                  Neue Gruppe
+                </button>
+              </sc-if>
+            </div>
+            <sc-if value="{{gm.list.newOpen}}" hint-placeholder-val="{{ false }}">
+              <form class="nf-gm-new" onSubmit="{{gm.list.createNew}}">
+                <label class="nf-label" for="gm-new" style="margin: 0">Name der neuen Gruppe</label>
+                <div class="nf-gm-new-row">
+                  <input id="gm-new" class="nf-input" maxlength="200" placeholder="z. B. Bereitschaft" value="{{gm.list.newName}}" onChange="{{gm.list.onNewName}}">
+                  <button type="submit" class="nf-btn nf-btn-primary">Anlegen</button>
+                  <button type="button" class="nf-btn" onClick="{{gm.list.cancelNew}}">Abbrechen</button>
+                </div>
+              </form>
+            </sc-if>
+            <sc-if value="{{gm.hasError}}" hint-placeholder-val="{{ false }}">
+              <p class="nf-rights-error" role="alert">{{gm.errorText}}</p>
+            </sc-if>
+            <sc-if value="{{gm.list.hasItems}}" hint-placeholder-val="{{ true }}">
+              <ul class="nf-gm-list" aria-label="Gruppen">
+                <sc-for list="{{gm.list.items}}" as="gi" hint-placeholder-count="4">
+                  <li>
+                    <button type="button" class="nf-gm-row" onClick="{{gi.open}}">
+                      <span class="nf-gm-avatar" style="background: {{gi.bg}}" aria-hidden="true">{{gi.initials}}</span>
+                      <span class="nf-person-names"><span>{{gi.name}}</span><span>{{gi.sub}}</span></span>
+                      <span class="nf-gm-source" data-source="{{gi.source}}">{{gi.sourceLabel}}</span>
+                      <svg class="nf-icon nf-gm-chevron" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5"></path></svg>
+                    </button>
+                  </li>
+                </sc-for>
+              </ul>
+            </sc-if>
+            <sc-if value="{{gm.list.noItems}}" hint-placeholder-val="{{ false }}">
+              <p class="nf-hint">{{gm.list.noItemsText}}</p>
+            </sc-if>
+          </div>
+          <div class="nf-dialog-foot">
+            <button type="button" class="nf-btn" onClick="{{closeDialog}}">Schließen</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{gm.isOne}}" hint-placeholder-val="{{ false }}">
+          <div class="nf-dialog-head">
+            <div class="nf-gm-head">
+              <button id="gm-back" type="button" class="nf-gm-back" onClick="{{gm.one.back}}">
+                <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5L5.5 8 10 12.5"></path></svg>
+                Alle Gruppen
+              </button>
+              <div class="nf-gm-title-row">
+                <span class="nf-gm-avatar nf-gm-avatar-lg" style="background: {{gm.one.bg}}" aria-hidden="true">{{gm.one.initials}}</span>
+                <div>
+                  <h2 id="gm-title" class="nf-dialog-title">Gruppe „{{gm.one.name}}“</h2>
+                  <p class="nf-dialog-description"><span class="nf-gm-source" data-source="{{gm.one.source}}">{{gm.one.sourceLabel}}</span> {{gm.one.sourceText}}</p>
+                </div>
+              </div>
+            </div>
+            <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+            </button>
+          </div>
+          <div class="nf-dialog-body">
+            <sc-if value="{{gm.one.editable}}" hint-placeholder-val="{{ true }}">
+              <form class="nf-inline-row" onSubmit="{{gm.one.saveName}}">
+                <label class="nf-label" for="gm-name" style="margin: 0">Name</label>
+                <input id="gm-name" class="nf-input" maxlength="200" value="{{gm.one.draftName}}" onChange="{{gm.one.onName}}">
+                <button type="submit" class="nf-btn" disabled="{{gm.one.nameUnchanged}}">Umbenennen</button>
+              </form>
+            </sc-if>
+            <sc-if value="{{gm.hasError}}" hint-placeholder-val="{{ false }}">
+              <div class="nf-rights-error nf-gm-error" role="alert">
+                <span>{{gm.errorText}}</span>
+                <sc-if value="{{gm.hasErrorLink}}" hint-placeholder-val="{{ false }}">
+                  <button type="button" class="nf-gm-error-link" onClick="{{gm.errorLink}}">Rechte dort öffnen</button>
+                </sc-if>
+              </div>
+            </sc-if>
+
+            <h3 class="nf-section-title">{{gm.one.membersTitle}}</h3>
+            <sc-if value="{{gm.one.editable}}" hint-placeholder-val="{{ true }}">
+              <div class="nf-grant-search nf-gm-add">
+                <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+                <input id="gm-add" type="text" class="nf-input" role="combobox" aria-expanded="{{gm.one.suggestExpanded}}" aria-controls="gm-add-list" aria-activedescendant="{{gm.one.activeId}}" aria-autocomplete="list" autocomplete="off" placeholder="Person hinzufügen …" value="{{gm.one.addQ}}" onChange="{{gm.one.onAddQ}}" onFocus="{{gm.one.onAddFocus}}" onBlur="{{gm.one.onAddBlur}}" onKeyDown="{{gm.one.onAddKey}}">
+                <sc-if value="{{gm.one.suggestOpen}}" hint-placeholder-val="{{ false }}">
+                  <ul id="gm-add-list" class="nf-grant-suggest" role="listbox" aria-label="Vorschläge">
+                    <sc-for list="{{gm.one.suggestions}}" as="gs" hint-placeholder-count="3">
+                      <li id="{{gs.domId}}" role="option" aria-selected="{{gs.selected}}" onMouseDown="{{gm.one.keep}}" onClick="{{gs.add}}">
+                        <span class="nf-byline-avatar" style="background: {{gs.bg}}" aria-hidden="true">{{gs.initials}}</span>
+                        <span class="nf-grant-names"><span>{{gs.name}}</span><span>{{gs.sub}}</span></span>
+                      </li>
+                    </sc-for>
+                    <sc-if value="{{gm.one.noSuggest}}" hint-placeholder-val="{{ false }}">
+                      <li class="nf-grant-suggest-empty" role="option" aria-disabled="true">{{gm.one.noSuggestText}}</li>
+                    </sc-if>
+                  </ul>
+                </sc-if>
+              </div>
+            </sc-if>
+            <sc-if value="{{gm.one.hasMembers}}" hint-placeholder-val="{{ true }}">
+              <ul class="nf-people" aria-label="Mitglieder">
+                <sc-for list="{{gm.one.members}}" as="gp" hint-placeholder-count="3">
+                  <li class="nf-person">
+                    <span class="nf-byline-avatar" style="background: {{gp.color}}" aria-hidden="true">{{gp.initials}}</span>
+                    <span class="nf-person-names"><span>{{gp.name}}</span><span>{{gp.email}}</span></span>
+                    <sc-if value="{{gm.one.editable}}" hint-placeholder-val="{{ true }}">
+                      <button type="button" class="nf-link-danger" aria-label="{{gp.removeLabel}}" onClick="{{gp.remove}}">Entfernen</button>
+                    </sc-if>
+                  </li>
+                </sc-for>
+              </ul>
+            </sc-if>
+            <sc-if value="{{gm.one.noMembers}}" hint-placeholder-val="{{ false }}">
+              <p class="nf-hint">Noch niemand in der Gruppe. Rechte der Gruppe wirken erst mit Mitgliedern.</p>
+            </sc-if>
+
+            <h3 class="nf-section-title">Rechte der Gruppe</h3>
+            <sc-if value="{{gm.one.hasUses}}" hint-placeholder-val="{{ true }}">
+              <ul class="nf-gm-uses" aria-label="Rechte der Gruppe">
+                <sc-for list="{{gm.one.uses}}" as="gu" hint-placeholder-count="2">
+                  <li>
+                    <button type="button" class="nf-gm-use" onClick="{{gu.open}}">
+                      <span class="nf-person-names"><span>{{gu.label}}</span><span>{{gu.meta}}</span></span>
+                      <span class="nf-access-chip" data-role="{{gu.role}}">{{gu.roleLabel}}</span>
+                    </button>
+                  </li>
+                </sc-for>
+              </ul>
+            </sc-if>
+            <sc-if value="{{gm.one.hasHidden}}" hint-placeholder-val="{{ false }}">
+              <p class="nf-hint">{{gm.one.hiddenText}}</p>
+            </sc-if>
+            <sc-if value="{{gm.one.noUses}}" hint-placeholder-val="{{ false }}">
+              <p class="nf-hint">Die Gruppe hat noch keine Rechte. Vergeben werden sie über „Rechte“ an einem Space oder einer Seite.</p>
+            </sc-if>
+
+            <sc-if value="{{gm.one.editable}}" hint-placeholder-val="{{ true }}">
+              <section class="nf-zone" aria-labelledby="gm-zone">
+                <div>
+                  <h3 id="gm-zone" class="nf-zone-title">Gruppe löschen</h3>
+                  <p class="nf-zone-text">Ihre Rechte entfallen, die Personen bleiben. Geht nicht, solange die Gruppe irgendwo der einzige Admin ist.</p>
+                </div>
+                <button type="button" class="nf-btn nf-btn-danger" onClick="{{gm.one.askDelete}}">Löschen …</button>
+              </section>
+            </sc-if>
+          </div>
+          <div class="nf-dialog-foot">
+            <button type="button" class="nf-btn" onClick="{{closeDialog}}">Schließen</button>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>

@@ -1172,6 +1172,41 @@ span.nf-page-emoji{cursor:default}
 .nf-uset-notif input{width:17px;height:17px;accent-color:var(--nf-accent);cursor:pointer}
 .nf-uset-saved{display:inline-flex;align-items:center;gap:6px;margin-right:auto;font-size:13px;color:var(--nf-done-fg)}
 @media (max-width:599.98px){.nf-prof-row{grid-template-columns:1fr}.nf-uset-row{flex-wrap:wrap}.nf-uset-row>select{width:100%}}
+/* Dialog „Gruppen“: Liste mit Suche und „Neue Gruppe“, dann eine Gruppe (Name, Mitglieder, Rechte, Löschen) */
+.nf-gm-toolbar{display:flex;align-items:center;gap:8px}
+.nf-gm-toolbar .nf-grant-search{flex:1}
+.nf-gm-toolbar .nf-btn{flex:none}
+.nf-gm-new{margin:12px 0 0;padding:12px;border:1px solid var(--nf-border);border-radius:8px;background:var(--nf-surface)}
+.nf-gm-new-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.nf-gm-new-row .nf-input{flex:1 1 200px;min-width:0;margin:0}
+.nf-gm-list{list-style:none;margin:12px 0 4px;padding:0;max-height:380px;overflow-y:auto;border:1px solid var(--nf-border);border-radius:8px}
+.nf-gm-list li+li{border-top:1px solid var(--nf-border)}
+.nf-gm-row{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:8px 12px;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.nf-gm-row:hover{background:var(--nf-subtle)}
+.nf-gm-row .nf-person-names>span:first-child{font-weight:500}
+.nf-gm-chevron{flex:none;color:var(--nf-muted)}
+/* Gruppen als abgerundetes Quadrat, Personen rund */
+.nf-gm-avatar{display:inline-grid;place-items:center;flex:none;width:32px;height:32px;border-radius:8px;color:#fff;font-size:11px;font-weight:600}
+.nf-gm-avatar-lg{width:40px;height:40px;font-size:13px}
+.nf-gm-source{display:inline-block;flex:none;padding:1px 8px;border-radius:999px;background:var(--nf-neutral-soft);color:var(--nf-muted);font-size:12px;font-weight:500;white-space:nowrap}
+.nf-gm-source[data-source='import']{background:var(--nf-accent-soft);color:var(--nf-accent)}
+.nf-gm-source[data-source='idp'],.nf-gm-source[data-source='scim']{background:var(--nf-done-bg);color:var(--nf-done-fg)}
+.nf-dialog-description .nf-gm-source{margin-right:4px}
+.nf-gm-head{min-width:0}
+.nf-gm-back{display:inline-flex;align-items:center;gap:4px;margin:-4px 0 8px -6px;padding:3px 6px;border:0;border-radius:6px;background:none;color:var(--nf-accent);font:inherit;font-size:13px;cursor:pointer}
+.nf-gm-back:hover{background:var(--nf-accent-soft)}
+.nf-gm-title-row{display:flex;align-items:flex-start;gap:12px}
+.nf-gm-add{margin:0 0 6px}
+.nf-gm-error{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}
+.nf-gm-error-link{padding:0;border:0;background:none;color:inherit;font:inherit;font-weight:600;text-decoration:underline;cursor:pointer}
+.nf-gm-uses{list-style:none;margin:0;padding:0}
+.nf-gm-use{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:6px 8px;border:0;border-radius:6px;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.nf-gm-use:hover{background:var(--nf-subtle)}
+@media (max-width:520px){
+  .nf-gm-row .nf-gm-source{display:none}
+  .nf-gm-toolbar{flex-wrap:wrap}
+  .nf-gm-toolbar .nf-grant-search{flex-basis:100%}
+}
 /* Formulare */
 .nf-label{display:block;margin:12px 0 6px;font-weight:500}
 .nf-input{height:38px;padding:0 10px;margin-right:8px;border:1px solid var(--nf-input-border);border-radius:8px;background:var(--nf-bg);font-size:14px}
@@ -1609,6 +1644,10 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
               <span class="nf-menu-label">Einladungen</span>
               <sc-if value="{{ws.hasOpenInvites}}" hint-placeholder-val="{{ true }}"><span class="nf-count" aria-label="{{ws.openInvitesLabel}}">{{ws.openInvites}}</span></sc-if>
             </button></li>
+            <!-- Nur für Organisations-Admins: Gruppen gelten für den ganzen Mandanten -->
+            <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openGroups}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="5.5" cy="5.5" r="2"></circle><circle cx="10.5" cy="5.5" r="2"></circle><path d="M1.5 13c.4-2.2 2-3.5 4-3.5s3.6 1.3 4 3.5"></path><path d="M10 9.6c.2 0 .3-.1.5-.1 2 0 3.6 1.3 4 3.5"></path></svg>
+              <span class="nf-menu-label">Gruppen</span><span class="nf-menu-shortcut nf-menu-meta">{{groupCount}}</span></button></li>
           </ul>
         </sc-if>
       </div>
@@ -3242,6 +3281,180 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
     </div>
   </sc-if>
 
+  <!-- Gruppen pflegen (M3, nur Organisations-Admins): Liste, dann eine Gruppe mit Name, Mitgliedern, Rechten, Löschen -->
+  <sc-if value="{{groupsOpen}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <div class="nf-dialog nf-dialog-wide nf-gm" role="dialog" aria-modal="true" aria-labelledby="gm-title">
+
+        <sc-if value="{{gm.isList}}" hint-placeholder-val="{{ true }}">
+          <div class="nf-dialog-head">
+            <div>
+              <h2 id="gm-title" class="nf-dialog-title">Gruppen</h2>
+              <p class="nf-dialog-description">Gruppen gelten für die ganze Organisation. Rechte bekommen sie in Spaces und auf Seiten, wie einzelne Personen.</p>
+            </div>
+            <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+            </button>
+          </div>
+          <div class="nf-dialog-body">
+            <div class="nf-gm-toolbar">
+              <div class="nf-grant-search">
+                <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+                <input id="gm-q" type="search" class="nf-input" placeholder="Gruppe oder Person suchen …" aria-label="Gruppen durchsuchen" autocomplete="off" value="{{gm.list.q}}" onChange="{{gm.list.onQ}}">
+              </div>
+              <sc-if value="{{gm.list.newClosed}}" hint-placeholder-val="{{ true }}">
+                <button id="gm-new-btn" type="button" class="nf-btn nf-btn-primary" onClick="{{gm.list.startNew}}">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+                  Neue Gruppe
+                </button>
+              </sc-if>
+            </div>
+            <sc-if value="{{gm.list.newOpen}}" hint-placeholder-val="{{ false }}">
+              <form class="nf-gm-new" onSubmit="{{gm.list.createNew}}">
+                <label class="nf-label" for="gm-new" style="margin: 0">Name der neuen Gruppe</label>
+                <div class="nf-gm-new-row">
+                  <input id="gm-new" class="nf-input" maxlength="200" placeholder="z. B. Bereitschaft" value="{{gm.list.newName}}" onChange="{{gm.list.onNewName}}">
+                  <button type="submit" class="nf-btn nf-btn-primary">Anlegen</button>
+                  <button type="button" class="nf-btn" onClick="{{gm.list.cancelNew}}">Abbrechen</button>
+                </div>
+              </form>
+            </sc-if>
+            <sc-if value="{{gm.hasError}}" hint-placeholder-val="{{ false }}">
+              <p class="nf-rights-error" role="alert">{{gm.errorText}}</p>
+            </sc-if>
+            <sc-if value="{{gm.list.hasItems}}" hint-placeholder-val="{{ true }}">
+              <ul class="nf-gm-list" aria-label="Gruppen">
+                <sc-for list="{{gm.list.items}}" as="gi" hint-placeholder-count="4">
+                  <li>
+                    <button type="button" class="nf-gm-row" onClick="{{gi.open}}">
+                      <span class="nf-gm-avatar" style="background: {{gi.bg}}" aria-hidden="true">{{gi.initials}}</span>
+                      <span class="nf-person-names"><span>{{gi.name}}</span><span>{{gi.sub}}</span></span>
+                      <span class="nf-gm-source" data-source="{{gi.source}}">{{gi.sourceLabel}}</span>
+                      <svg class="nf-icon nf-gm-chevron" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5"></path></svg>
+                    </button>
+                  </li>
+                </sc-for>
+              </ul>
+            </sc-if>
+            <sc-if value="{{gm.list.noItems}}" hint-placeholder-val="{{ false }}">
+              <p class="nf-hint">{{gm.list.noItemsText}}</p>
+            </sc-if>
+          </div>
+          <div class="nf-dialog-foot">
+            <button type="button" class="nf-btn" onClick="{{closeDialog}}">Schließen</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{gm.isOne}}" hint-placeholder-val="{{ false }}">
+          <div class="nf-dialog-head">
+            <div class="nf-gm-head">
+              <button id="gm-back" type="button" class="nf-gm-back" onClick="{{gm.one.back}}">
+                <svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5L5.5 8 10 12.5"></path></svg>
+                Alle Gruppen
+              </button>
+              <div class="nf-gm-title-row">
+                <span class="nf-gm-avatar nf-gm-avatar-lg" style="background: {{gm.one.bg}}" aria-hidden="true">{{gm.one.initials}}</span>
+                <div>
+                  <h2 id="gm-title" class="nf-dialog-title">Gruppe „{{gm.one.name}}“</h2>
+                  <p class="nf-dialog-description"><span class="nf-gm-source" data-source="{{gm.one.source}}">{{gm.one.sourceLabel}}</span> {{gm.one.sourceText}}</p>
+                </div>
+              </div>
+            </div>
+            <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+            </button>
+          </div>
+          <div class="nf-dialog-body">
+            <sc-if value="{{gm.one.editable}}" hint-placeholder-val="{{ true }}">
+              <form class="nf-inline-row" onSubmit="{{gm.one.saveName}}">
+                <label class="nf-label" for="gm-name" style="margin: 0">Name</label>
+                <input id="gm-name" class="nf-input" maxlength="200" value="{{gm.one.draftName}}" onChange="{{gm.one.onName}}">
+                <button type="submit" class="nf-btn" disabled="{{gm.one.nameUnchanged}}">Umbenennen</button>
+              </form>
+            </sc-if>
+            <sc-if value="{{gm.hasError}}" hint-placeholder-val="{{ false }}">
+              <div class="nf-rights-error nf-gm-error" role="alert">
+                <span>{{gm.errorText}}</span>
+                <sc-if value="{{gm.hasErrorLink}}" hint-placeholder-val="{{ false }}">
+                  <button type="button" class="nf-gm-error-link" onClick="{{gm.errorLink}}">Rechte dort öffnen</button>
+                </sc-if>
+              </div>
+            </sc-if>
+
+            <h3 class="nf-section-title">{{gm.one.membersTitle}}</h3>
+            <sc-if value="{{gm.one.editable}}" hint-placeholder-val="{{ true }}">
+              <div class="nf-grant-search nf-gm-add">
+                <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5L14 14"></path></svg>
+                <input id="gm-add" type="text" class="nf-input" role="combobox" aria-expanded="{{gm.one.suggestExpanded}}" aria-controls="gm-add-list" aria-activedescendant="{{gm.one.activeId}}" aria-autocomplete="list" autocomplete="off" placeholder="Person hinzufügen …" value="{{gm.one.addQ}}" onChange="{{gm.one.onAddQ}}" onFocus="{{gm.one.onAddFocus}}" onBlur="{{gm.one.onAddBlur}}" onKeyDown="{{gm.one.onAddKey}}">
+                <sc-if value="{{gm.one.suggestOpen}}" hint-placeholder-val="{{ false }}">
+                  <ul id="gm-add-list" class="nf-grant-suggest" role="listbox" aria-label="Vorschläge">
+                    <sc-for list="{{gm.one.suggestions}}" as="gs" hint-placeholder-count="3">
+                      <li id="{{gs.domId}}" role="option" aria-selected="{{gs.selected}}" onMouseDown="{{gm.one.keep}}" onClick="{{gs.add}}">
+                        <span class="nf-byline-avatar" style="background: {{gs.bg}}" aria-hidden="true">{{gs.initials}}</span>
+                        <span class="nf-grant-names"><span>{{gs.name}}</span><span>{{gs.sub}}</span></span>
+                      </li>
+                    </sc-for>
+                    <sc-if value="{{gm.one.noSuggest}}" hint-placeholder-val="{{ false }}">
+                      <li class="nf-grant-suggest-empty" role="option" aria-disabled="true">{{gm.one.noSuggestText}}</li>
+                    </sc-if>
+                  </ul>
+                </sc-if>
+              </div>
+            </sc-if>
+            <sc-if value="{{gm.one.hasMembers}}" hint-placeholder-val="{{ true }}">
+              <ul class="nf-people" aria-label="Mitglieder">
+                <sc-for list="{{gm.one.members}}" as="gp" hint-placeholder-count="3">
+                  <li class="nf-person">
+                    <span class="nf-byline-avatar" style="background: {{gp.color}}" aria-hidden="true">{{gp.initials}}</span>
+                    <span class="nf-person-names"><span>{{gp.name}}</span><span>{{gp.email}}</span></span>
+                    <sc-if value="{{gm.one.editable}}" hint-placeholder-val="{{ true }}">
+                      <button type="button" class="nf-link-danger" aria-label="{{gp.removeLabel}}" onClick="{{gp.remove}}">Entfernen</button>
+                    </sc-if>
+                  </li>
+                </sc-for>
+              </ul>
+            </sc-if>
+            <sc-if value="{{gm.one.noMembers}}" hint-placeholder-val="{{ false }}">
+              <p class="nf-hint">Noch niemand in der Gruppe. Rechte der Gruppe wirken erst mit Mitgliedern.</p>
+            </sc-if>
+
+            <h3 class="nf-section-title">Rechte der Gruppe</h3>
+            <sc-if value="{{gm.one.hasUses}}" hint-placeholder-val="{{ true }}">
+              <ul class="nf-gm-uses" aria-label="Rechte der Gruppe">
+                <sc-for list="{{gm.one.uses}}" as="gu" hint-placeholder-count="2">
+                  <li>
+                    <button type="button" class="nf-gm-use" onClick="{{gu.open}}">
+                      <span class="nf-person-names"><span>{{gu.label}}</span><span>{{gu.meta}}</span></span>
+                      <span class="nf-access-chip" data-role="{{gu.role}}">{{gu.roleLabel}}</span>
+                    </button>
+                  </li>
+                </sc-for>
+              </ul>
+            </sc-if>
+            <sc-if value="{{gm.one.hasHidden}}" hint-placeholder-val="{{ false }}">
+              <p class="nf-hint">{{gm.one.hiddenText}}</p>
+            </sc-if>
+            <sc-if value="{{gm.one.noUses}}" hint-placeholder-val="{{ false }}">
+              <p class="nf-hint">Die Gruppe hat noch keine Rechte. Vergeben werden sie über „Rechte“ an einem Space oder einer Seite.</p>
+            </sc-if>
+
+            <sc-if value="{{gm.one.editable}}" hint-placeholder-val="{{ true }}">
+              <section class="nf-zone" aria-labelledby="gm-zone">
+                <div>
+                  <h3 id="gm-zone" class="nf-zone-title">Gruppe löschen</h3>
+                  <p class="nf-zone-text">Ihre Rechte entfallen, die Personen bleiben. Geht nicht, solange die Gruppe irgendwo der einzige Admin ist.</p>
+                </div>
+                <button type="button" class="nf-btn nf-btn-danger" onClick="{{gm.one.askDelete}}">Löschen …</button>
+              </section>
+            </sc-if>
+          </div>
+          <div class="nf-dialog-foot">
+            <button type="button" class="nf-btn" onClick="{{closeDialog}}">Schließen</button>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
   <!-- Neuer Space (statt des Formulars auf der alten Startseite): Name, Schlüssel, Beschreibung, Rechte -->
   <sc-if value="{{newSpaceOpen}}" hint-placeholder-val="{{ false }}">
     <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
@@ -3747,7 +3960,6 @@ const PEOPLE = {
 };
 const SUBJECTS = {
   ...Object.fromEntries(Object.entries(PEOPLE).map(([k, p]) => [k, { name: p.name, sub: k === 'peter' ? 'Du' : 'Person', bg: p.color }])),
-  grp: { name: 'Gruppe Entwicklung', sub: 'Gruppe im Wiki · 3 Mitglieder', bg: '#1E5135' },
   ws: { name: 'Alle im Workspace', sub: 'Alle Mitglieder von Alpenwerk, ohne Gäste', bg: '#5B6573' }
 };
 const ROLE_LABEL = { admin: 'Admin', editor: 'Bearbeiten', commenter: 'Kommentieren', viewer: 'Lesen', none: 'Kein Zugriff' };
@@ -3811,8 +4023,17 @@ const SPACE_COLORS = [
   { color: '#BE185D', label: 'Beere' }, { color: '#B45309', label: 'Ocker' }, { color: '#1E5135', label: 'Grün' },
   { color: '#4D7C0F', label: 'Oliv' }, { color: '#5B6573', label: 'Grau' }
 ];
-// Gruppen im Wiki mit ihren Mitgliedern (seed.sql: Gruppe Entwicklung)
-const GROUPS = { grp: ['lukas', 'sophie', 'markus'] };
+// Gruppen im Wiki (Tabelle groups, für den ganzen Mandanten). Geschäftsleitung, Entwicklung und Vertrieb wie in
+// seed.sql; „qs-team“ (Confluence-Import) und „Alpenwerk-IT“ (Login-Dienst, Ausblick) nur im Prototyp.
+// source wie groups.source: local und import pflegen Organisations-Admins, idp und scim nur ihre Quelle.
+const GROUPS = {
+  grp_gl: { name: 'Geschäftsleitung', source: 'local', color: '#B45309', members: ['peter'], by: 'peter', when: 'am 2. Oktober' },
+  grp: { name: 'Entwicklung', source: 'local', color: '#1E5135', members: ['lukas', 'sophie', 'markus'], by: 'peter', when: 'am 2. Oktober' },
+  grp_vert: { name: 'Vertrieb', source: 'local', color: '#BE185D', members: ['max'], by: 'peter', when: 'am 2. Oktober' },
+  grp_qs: { name: 'qs-team', source: 'import', externalId: 'qs-team', color: '#0E7490', members: ['sophie', 'max', 'elena'], by: 'peter', when: 'am 26. November' },
+  grp_it: { name: 'Alpenwerk-IT', source: 'idp', externalId: 'Alpenwerk-IT', color: '#5B6573', members: ['peter', 'markus'], when: 'beim letzten Login' }
+};
+const GROUP_SOURCE = { local: 'Im Wiki', import: 'Confluence-Import', idp: 'Login-Dienst', scim: 'SCIM' };
 const WS_ROLE = { owner: 'Owner', admin: 'Admin', member: 'Mitglied', guest: 'Gast' };
 const INVITE_STATUS = { open: 'offen', accepted: 'angenommen', revoked: 'zurückgenommen', expired: 'abgelaufen' };
 // Dialoge mit Ausblick (wie im Frontend: was dort entsteht)
@@ -4100,8 +4321,8 @@ const SPACES = {
 // Grants auf Spaces („space:KEY“) und auf Seiten mit eigenen Rechten (Seiten-ID)
 const GRANTS = {
   'space:ENTW': [{ key: 'peter', role: 'admin' }, { key: 'grp', role: 'editor' }, { key: 'ws', role: 'viewer' }],
-  'space:VERT': [{ key: 'max', role: 'admin' }, { key: 'ws', role: 'commenter' }],
-  'space:PERS': [{ key: 'peter', role: 'admin' }],
+  'space:VERT': [{ key: 'grp_vert', role: 'admin' }, { key: 'ws', role: 'commenter' }],
+  'space:PERS': [{ key: 'peter', role: 'admin' }, { key: 'grp_gl', role: 'editor' }],
   'space:ALT': [{ key: 'peter', role: 'admin' }, { key: 'ws', role: 'viewer' }],
   personal: [{ key: 'peter', role: 'admin' }, { key: 'lukas', role: 'editor' }],
   urlaub: [{ key: 'peter', role: 'admin' }, { key: 'lukas', role: 'editor' }, { key: 'max', role: 'viewer' }]
@@ -4180,6 +4401,9 @@ class Component extends DCLogic {
       pages: JSON.parse(JSON.stringify(PAGES)),
       spaces: JSON.parse(JSON.stringify(SPACES)),
       grants: JSON.parse(JSON.stringify(GRANTS)),
+      groups: JSON.parse(JSON.stringify(GROUPS)),
+      // Dialog „Gruppen“: Liste oder eine Gruppe (gmSel), Entwurf für neue Gruppe und Namen, Hinzufügen, Fehler
+      gmSel: null, gmQ: '', gmNew: null, gmName: null, gmAddQ: '', gmAddOpen: false, gmAddActive: 0, gmError: null,
       // Papierkorb: wer wann gelöscht hat und wie viele Tage bis zum endgültigen Löschen bleiben
       trash: [
         { id: 'notizen', index: 3, by: 'lukas', when: 'am 12. November', daysLeft: 17 },
@@ -4376,7 +4600,8 @@ class Component extends DCLogic {
     let best = null;
     for (const g of list || []) {
       if (g.role === 'none') continue;
-      const hit = g.key === who || (g.key === 'ws' && m.role !== 'guest') || (GROUPS[g.key] || []).includes(who);
+      const grp = this.state.groups[g.key];
+      const hit = g.key === who || (g.key === 'ws' && m.role !== 'guest') || (!!grp && grp.members.includes(who));
       if (hit && (!best || RANK[g.role] > RANK[best])) best = g.role;
     }
     if (best && archived) best = 'viewer';
@@ -4386,6 +4611,12 @@ class Component extends DCLogic {
   roleFor(id, who) {
     const s = this.state;
     return this.effRole(s.grants[this.source(id)], who, s.spaces[s.pages[id].space].archived);
+  }
+  /** Name und Farbe eines Subjekts in Grants: Person, Gruppe (aus dem Zustand) oder „Alle im Workspace“ */
+  subject(key) {
+    const g = this.state.groups[key];
+    if (g) return { name: g.name, bg: g.color, group: true };
+    return SUBJECTS[key] || { name: 'Gelöschte Gruppe', bg: '#5B6573', group: true };
   }
   set(patch) { this.setState(patch); }
   stop(e) { if (e && e.stopPropagation) e.stopPropagation(); }
@@ -4910,6 +5141,12 @@ class Component extends DCLogic {
     const own = !!s.grants[cur];
     const list = s.grants[cur] || s.grants[this.source(cur, false)] || [];
     this.setState({ dialog: 'rights', rightsDraft: { ...base, scope: 'page', own, grants: list.map((g) => ({ ...g })) } });
+  }
+  /** Oberster Dialog zu; eine Rückfrage mit back führt in den Dialog zurück, aus dem sie kam */
+  closeTopDialog() {
+    this.setState((st) => (st.dialog === 'confirm' && st.confirm && st.confirm.back
+      ? { dialog: st.confirm.back, confirm: null }
+      : { dialog: null, confirm: null, rightsDraft: null }));
   }
   /** fromRights: 'space' bzw. 'page', wenn „Zurück zu den Rechten“ dorthin führen soll */
   openViewAs(fromRights) {
@@ -6439,7 +6676,7 @@ class Component extends DCLogic {
     // Ziel: Spaces, die man verwaltet (Admin), nicht archiviert
     const targets = Object.values(s.spaces).filter((x) => !x.archived && this.role(x.home) === 'admin');
     const target = s.spaces[imp.space] || targets[0];
-    const T = { ws: 'Alle im Workspace', grp: 'Gruppe Entwicklung', new: 'Neue Gruppe „entw-admins“', skip: 'Nicht übernehmen', '': 'Bitte wählen' };
+    const T = { ws: 'Alle im Workspace', grp: 'Gruppe „Entwicklung“', new: 'Neue Gruppe „entw-admins“', skip: 'Nicht übernehmen', '': 'Bitte wählen' };
     const defs = [
       { key: 'users', name: 'confluence-users', count: 48 },
       { key: 'team', name: 'entw-team', count: 12 },
@@ -6636,6 +6873,279 @@ class Component extends DCLogic {
       digest: p.digest,
       onDigest: (e) => this.setPrefs({ digest: e.target.value }),
       openShortcuts: () => this.setState({ dialog: 'shortcuts' })
+    };
+  }
+  // ---------- Gruppen pflegen (M3: E02, E09; nur Organisations-Admins) ----------
+  // Gruppen gelten für den ganzen Mandanten (groups, group_members). local und import pflegen
+  // Organisations-Admins (app.create_group, rename_group, delete_group, add_group_member,
+  // remove_group_member), idp und scim nur ihre Quelle. Bliebe ein Space oder eine Seite mit eigenen
+  // Rechten ohne wirksamen Admin, lehnt die Datenbank ab (app.has_admin); der Dialog sagt es vorher.
+  openGroups(key) {
+    this.setState({ dialog: 'groups', gmSel: key || null, gmQ: '', gmNew: null, gmName: null, gmAddQ: '', gmAddOpen: false, gmAddActive: 0, gmError: null, userMenu: false, settingsMenu: false });
+    this.focusLater(key ? '#gm-back' : '#gm-q');
+  }
+
+  /** Quellen (Space „space:KEY“ oder Seite mit eigenen Rechten) ohne wirksamen Admin: Grant für eine
+      Person im Workspace oder eine Gruppe mit mindestens einem solchen Mitglied (wie app.has_admin) */
+  sourcesWithoutAdmin(groups, grants) {
+    const inWs = (k) => this.state.members.some((m) => m.key === k);
+    return Object.keys(grants).filter((src) => !(grants[src] || []).some((g) => g.role === 'admin'
+      && (inWs(g.key) || (!!groups[g.key] && groups[g.key].members.some(inWs)))));
+  }
+  /** Quellen, die durch die Änderung ihren letzten Admin verlören (vorher hatten sie einen) */
+  adminLoss(groups, grants) {
+    const before = new Set(this.sourcesWithoutAdmin(this.state.groups, this.state.grants));
+    return this.sourcesWithoutAdmin(groups, grants).filter((src) => !before.has(src));
+  }
+  /** Wo eine Gruppe Rechte hat; Seiten nur mit Titel, wenn du sie sehen kannst */
+  groupUses(key) {
+    const s = this.state;
+    const uses = [];
+    let hidden = 0;
+    Object.entries(s.grants).forEach(([src, list]) => {
+      const g = list.find((x) => x.key === key);
+      if (!g) return;
+      if (src.startsWith('space:')) {
+        const sp = s.spaces[src.slice(6)];
+        uses.push({ src, kind: 'space', label: 'Space „' + sp.name + '“', meta: sp.archived ? 'archiviert' : 'Space · ' + sp.key, role: g.role });
+      } else if (s.pages[src] && this.role(src)) {
+        const p = s.pages[src];
+        uses.push({ src, kind: 'page', label: 'Seite „' + (p.title || 'Ohne Titel') + '“', meta: 'eigene Rechte · ' + s.spaces[p.space].name, role: g.role });
+      } else hidden++;
+    });
+    return { uses, hidden };
+  }
+  /** „1 Space und 2 Seiten“ */
+  usesCount(uses, hidden) {
+    const sp = uses.filter((u) => u.kind === 'space').length;
+    const pg = uses.length - sp + hidden;
+    const parts = [];
+    if (sp) parts.push(sp + (sp === 1 ? ' Space' : ' Spaces'));
+    if (pg) parts.push(pg + (pg === 1 ? ' Seite' : ' Seiten'));
+    return parts.join(' und ');
+  }
+  /** Kürzel einer Gruppe: zwei Wörter → Anfangsbuchstaben, ein Wort → die ersten zwei Buchstaben */
+  groupInitials(name) {
+    const w = name.split(/[\s_-]+/).filter(Boolean);
+    return (w.length > 1 ? w[0][0] + w[1][0] : (w[0] || '?').slice(0, 2)).toUpperCase();
+  }
+  sourceLabel(src) {
+    const s = this.state;
+    if (src.startsWith('space:')) return 'Space „' + s.spaces[src.slice(6)].name + '“';
+    return this.role(src) ? 'Seite „' + (s.pages[src].title || 'Ohne Titel') + '“' : 'eine Seite mit eigenen Rechten, die du nicht siehst';
+  }
+  openRightsOf(src) {
+    if (src.startsWith('space:')) { this.openRights(src.slice(6)); return; }
+    this.go(src);
+    setTimeout(() => this.openRights(), 0);
+  }
+
+  groupDeleteConfirm() {
+    const s = this.state;
+    const key = s.confirm.key;
+    const grp = s.groups[key];
+    const { uses, hidden } = this.groupUses(key);
+    const n = uses.length + hidden;
+    return {
+      title: 'Gruppe „' + grp.name + '“ löschen?',
+      text: (n === 0 ? 'Die Gruppe hat keine Rechte. ' : 'Ihre Rechte in ' + this.usesCount(uses, hidden) + ' entfallen; wer nur über die Gruppe Zugriff hatte, verliert ihn sofort. ')
+        + 'Die ' + grp.members.length + (grp.members.length === 1 ? ' Person bleibt' : ' Personen bleiben') + ' im Workspace. Löschen lässt sich nicht rückgängig machen.',
+      label: 'Gruppe löschen', cls: 'nf-btn-danger',
+      ok: () => {
+        this.setState((st) => {
+          const groups = { ...st.groups };
+          delete groups[key];
+          const grants = {};
+          Object.entries(st.grants).forEach(([src, list]) => { grants[src] = list.filter((g) => g.key !== key); });
+          return { groups, grants, dialog: 'groups', confirm: null, gmSel: null, gmError: null };
+        });
+        this.showToast('Gruppe „' + grp.name + '“ gelöscht');
+        this.focusLater('#gm-q');
+      }
+    };
+  }
+
+  groupsVals() {
+    const s = this.state;
+    if (s.dialog !== 'groups') return { groupsOpen: false, gm: {}, groupCount: Object.keys(s.groups).length };
+    const set = (patch) => this.setState(patch);
+    const fmtCount = (n) => n + (n === 1 ? ' Mitglied' : ' Mitglieder');
+    const sel = s.gmSel && s.groups[s.gmSel] ? s.gmSel : null;
+    const nameTaken = (name, except) => Object.entries(s.groups).some(([k, g]) => k !== except && fold(g.name) === fold(name));
+
+    // Liste
+    const words = fold(s.gmQ.trim()).split(/\s+/).filter(Boolean);
+    const items = Object.entries(s.groups)
+      .sort((a, b) => a[1].name.localeCompare(b[1].name, 'de'))
+      .filter(([, g]) => words.every((w) => fold(g.name + ' ' + GROUP_SOURCE[g.source] + ' ' + g.members.map((m) => PEOPLE[m].name).join(' ')).includes(w)))
+      .map(([key, g]) => {
+        const { uses, hidden } = this.groupUses(key);
+        const n = uses.length + hidden;
+        return {
+          key, name: g.name, bg: g.color, initials: this.groupInitials(g.name),
+          sub: fmtCount(g.members.length) + ' · ' + (n === 0 ? 'keine Rechte' : 'Rechte in ' + this.usesCount(uses, hidden)),
+          source: g.source, sourceLabel: GROUP_SOURCE[g.source],
+          open: () => this.openGroups(key)
+        };
+      });
+    const createNew = (e) => {
+      this.prevent(e);
+      const name = (s.gmNew || '').trim();
+      if (!name) { set({ gmError: 'Bitte einen Namen eingeben.' }); return; }
+      if (nameTaken(name)) { set({ gmError: 'Eine Gruppe „' + name + '“ gibt es schon.' }); return; }
+      const key = 'g' + Date.now();
+      this.setState((st) => ({ groups: { ...st.groups, [key]: { name, source: 'local', color: SPACE_COLORS[Object.keys(st.groups).length % SPACE_COLORS.length].color, members: [], by: 'peter', when: 'gerade eben' } } }));
+      this.openGroups(key);
+      this.focusLater('#gm-add');
+      this.showToast('Gruppe „' + name + '“ angelegt');
+    };
+    const list = {
+      q: s.gmQ,
+      onQ: (e) => set({ gmQ: e.target.value }),
+      items,
+      hasItems: items.length > 0,
+      noItems: items.length === 0,
+      noItemsText: words.length ? 'Keine Gruppe passt zu „' + s.gmQ.trim() + '“.' : 'Noch keine Gruppen.',
+      count: Object.keys(s.groups).length,
+      newOpen: s.gmNew !== null,
+      newClosed: s.gmNew === null,
+      newName: s.gmNew || '',
+      onNewName: (e) => set({ gmNew: e.target.value, gmError: null }),
+      startNew: () => { set({ gmNew: '', gmError: null }); this.focusLater('#gm-new'); },
+      cancelNew: () => { set({ gmNew: null, gmError: null }); this.focusLater('#gm-new-btn'); },
+      createNew
+    };
+
+    // Eine Gruppe
+    let one = {};
+    if (sel) {
+      const g = s.groups[sel];
+      const editable = g.source === 'local' || g.source === 'import';
+      const draftName = s.gmName === null ? g.name : s.gmName;
+      const { uses, hidden } = this.groupUses(sel);
+      // Letzter Admin: was bliebe ohne Admin, wenn sich die Gruppe so ändert
+      const lossText = (lost, what) => {
+        const names = lost.map((src) => this.sourceLabel(src));
+        return what + ' geht nicht: Sonst hätte ' + names.join(', ') + ' keinen Admin mehr. Gib dort zuerst einer anderen Person oder Gruppe Admin.';
+      };
+      const withMembers = (members) => ({ ...s.groups, [sel]: { ...g, members } });
+      const candidates = s.members
+        .filter((m) => !g.members.includes(m.key))
+        .map((m) => ({ key: m.key, name: PEOPLE[m.key].name, sub: m.email + (m.role === 'guest' ? ' · Gast' : ''), bg: PEOPLE[m.key].color, hay: PEOPLE[m.key].name + ' ' + m.email }))
+        .filter((c) => fold(s.gmAddQ.trim()).split(/\s+/).filter(Boolean).every((w) => fold(c.hay).includes(w)));
+      const active = Math.min(s.gmAddActive || 0, Math.max(0, candidates.length - 1));
+      const addMember = (key) => {
+        this.setState((st) => ({ groups: { ...st.groups, [sel]: { ...st.groups[sel], members: [...st.groups[sel].members, key] } }, gmAddQ: '', gmAddActive: 0, gmAddOpen: false, gmError: null }));
+        this.showToast(PEOPLE[key].name + ' zu „' + g.name + '“ hinzugefügt');
+      };
+      const suggestOpen = editable && s.gmAddOpen;
+      const SOURCE_TEXT = {
+        local: 'Im Wiki angelegt von ' + (g.by ? PEOPLE[g.by].name : '–') + ' ' + g.when + '.',
+        import: 'Aus dem Confluence-Import ' + g.when + ' (Confluence-Gruppe „' + g.externalId + '“). Name und Mitglieder lassen sich hier pflegen; ein neuer Import gleicht sie nicht ab.',
+        idp: 'Aus dem Login-Dienst (Gruppe „' + g.externalId + '“ im Token), abgeglichen ' + g.when + '. Name und Mitglieder ändern sich nur dort.',
+        scim: 'Per SCIM aus dem Verzeichnis der Organisation. Name und Mitglieder ändern sich nur dort.'
+      };
+      one = {
+        key: sel,
+        name: g.name,
+        bg: g.color,
+        initials: this.groupInitials(g.name),
+        source: g.source,
+        sourceLabel: GROUP_SOURCE[g.source],
+        sourceText: SOURCE_TEXT[g.source],
+        editable,
+        readonly: !editable,
+        back: () => { set({ gmSel: null, gmName: null, gmError: null, gmAddQ: '', gmAddOpen: false }); this.focusLater('#gm-q'); },
+        draftName,
+        nameUnchanged: draftName.trim() === g.name,
+        onName: (e) => set({ gmName: e.target.value, gmError: null }),
+        saveName: (e) => {
+          this.prevent(e);
+          const v = draftName.trim();
+          if (!v) { set({ gmError: 'Der Name darf nicht leer sein.' }); return; }
+          if (v === g.name) return;
+          if (nameTaken(v, sel)) { set({ gmError: 'Eine Gruppe „' + v + '“ gibt es schon.' }); return; }
+          this.setState((st) => ({ groups: { ...st.groups, [sel]: { ...st.groups[sel], name: v } }, gmName: null, gmError: null }));
+          this.showToast('Umbenannt in „' + v + '“');
+        },
+        memberCount: g.members.length,
+        membersTitle: 'Mitglieder (' + g.members.length + ')',
+        hasMembers: g.members.length > 0,
+        noMembers: g.members.length === 0,
+        members: g.members.map((k) => {
+          const m = s.members.find((x) => x.key === k);
+          return {
+            name: PEOPLE[k].name + (k === 'peter' ? ' (du)' : ''),
+            email: m ? m.email + (m.role === 'guest' ? ' · Gast' : '') : 'nicht im Workspace',
+            color: PEOPLE[k].color, initials: initials(PEOPLE[k].name),
+            removeLabel: PEOPLE[k].name + ' aus „' + g.name + '“ entfernen',
+            remove: () => {
+              const lost = this.adminLoss(withMembers(g.members.filter((x) => x !== k)), s.grants);
+              if (lost.length) { set({ gmError: { text: lossText(lost, PEOPLE[k].name + ' zu entfernen'), src: lost[0] } }); return; }
+              this.setState((st) => ({ groups: { ...st.groups, [sel]: { ...st.groups[sel], members: st.groups[sel].members.filter((x) => x !== k) } }, gmError: null }));
+              this.showToast(PEOPLE[k].name + ' aus „' + g.name + '“ entfernt');
+              this.focusLater('#gm-add');
+            }
+          };
+        }),
+        // Hinzufügen: Personen aus dem Workspace (Gäste markiert), ↑↓ und Enter wie im Rechte-Dialog
+        addQ: s.gmAddQ,
+        onAddQ: (e) => set({ gmAddQ: e.target.value, gmAddOpen: true, gmAddActive: 0 }),
+        onAddFocus: () => set({ gmAddOpen: true }),
+        onAddBlur: () => setTimeout(() => { if (this.state.dialog === 'groups') set({ gmAddOpen: false }); }, 120),
+        keep: (e) => this.prevent(e),
+        onAddKey: (e) => {
+          if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            this.prevent(e);
+            if (candidates.length) set({ gmAddOpen: true, gmAddActive: (active + (e.key === 'ArrowDown' ? 1 : -1) + candidates.length) % candidates.length });
+          } else if (e.key === 'Enter') {
+            this.prevent(e);
+            if (candidates.length) addMember(candidates[active].key);
+          } else if (e.key === 'Escape' && suggestOpen) {
+            this.prevent(e);
+            this.stop(e);
+            set({ gmAddOpen: false });
+          }
+        },
+        suggestOpen,
+        suggestExpanded: suggestOpen ? 'true' : 'false',
+        activeId: suggestOpen && candidates.length ? 'gm-opt-' + active : '',
+        suggestions: candidates.map((c, i) => ({
+          ...c, initials: initials(c.name), domId: 'gm-opt-' + i, selected: i === active ? 'true' : 'false',
+          add: () => addMember(c.key)
+        })),
+        noSuggest: suggestOpen && candidates.length === 0,
+        noSuggestText: s.gmAddQ.trim() ? 'Niemand mit „' + s.gmAddQ.trim() + '“ im Workspace, oder schon in der Gruppe' : 'Alle im Workspace sind schon in der Gruppe',
+        // Wo die Gruppe Rechte hat; Klick öffnet den Rechte-Dialog dort
+        uses: uses.map((u) => ({ ...u, roleLabel: ROLE_LABEL[u.role], open: () => this.openRightsOf(u.src) })),
+        hasUses: uses.length > 0,
+        noUses: uses.length === 0 && hidden === 0,
+        hasHidden: hidden > 0,
+        hiddenText: (hidden === 1 ? 'Dazu eine Seite' : 'Dazu ' + hidden + ' Seiten') + ' mit eigenen Rechten, die du nicht siehst.',
+        askDelete: () => {
+          const grants = {};
+          Object.entries(s.grants).forEach(([src, l]) => { grants[src] = l.filter((x) => x.key !== sel); });
+          const lost = this.adminLoss(s.groups, grants);
+          if (lost.length) { set({ gmError: { text: lossText(lost, 'Löschen'), src: lost[0] } }); return; }
+          this.setState({ dialog: 'confirm', confirm: { kind: 'deleteGroup', key: sel, back: 'groups' }, gmError: null });
+          this.focusLater('#nf-confirm-cancel');
+        }
+      };
+    }
+    const err = s.gmError;
+    return {
+      groupsOpen: true,
+      groupCount: Object.keys(s.groups).length,
+      gm: {
+        isList: !sel,
+        isOne: !!sel,
+        list,
+        one,
+        hasError: !!err,
+        errorText: err ? (typeof err === 'string' ? err : err.text) : '',
+        hasErrorLink: !!err && typeof err === 'object' && !!err.src && (err.src.startsWith('space:') || !!this.role(err.src)),
+        errorLink: () => { if (err && err.src) this.openRightsOf(err.src); }
+      }
     };
   }
   // ---------- Werte für die Vorlage ----------
@@ -6853,9 +7363,10 @@ class Component extends DCLogic {
       };
       if (isSpace) walkOwn(homeId);
       const setDraft = (patch) => this.setState((st) => ({ rightsDraft: { ...st.rightsDraft, ...patch } }));
-      const initialsOf = (key) => (key === 'grp' ? 'GE' : key === 'ws' ? 'AW' : initials(SUBJECTS[key].name));
+      const initialsOf = (key) => (key === 'ws' ? 'AW' : s.groups[key] ? this.groupInitials(s.groups[key].name) : initials(this.subject(key).name));
       const subOf = (key) => {
-        if (key === 'grp') return 'Gruppe · ' + GROUPS.grp.length + ' Mitglieder';
+        const grp = s.groups[key];
+        if (grp) return 'Gruppe · ' + grp.members.length + (grp.members.length === 1 ? ' Mitglied' : ' Mitglieder') + (grp.source === 'local' ? '' : ' · ' + GROUP_SOURCE[grp.source]);
         if (key === 'ws') return 'Alle Mitglieder von ' + s.wsName + ', ohne Gäste';
         const m = s.members.find((x) => x.key === key);
         return key === 'peter' ? 'Du' : m ? m.email + (m.role === 'guest' ? ' · Gast' : '') : 'Person';
@@ -6878,14 +7389,14 @@ class Component extends DCLogic {
       const words = fold(d.query.trim()).split(/\s+/).filter(Boolean);
       const candidates = [
         ...s.members.map((m) => ({ key: m.key, name: PEOPLE[m.key].name, sub: subOf(m.key), hay: PEOPLE[m.key].name + ' ' + m.email, bg: PEOPLE[m.key].color })),
-        { key: 'grp', name: SUBJECTS.grp.name, sub: subOf('grp'), hay: SUBJECTS.grp.name + ' gruppe', bg: SUBJECTS.grp.bg },
+        ...Object.entries(s.groups).map(([key, grp]) => ({ key, name: grp.name, sub: subOf(key), hay: grp.name + ' gruppe', bg: grp.color })),
         { key: 'ws', name: SUBJECTS.ws.name, sub: subOf('ws'), hay: SUBJECTS.ws.name + ' workspace alle', bg: SUBJECTS.ws.bg }
       ].filter((c) => !taken.has(c.key) && words.every((w) => fold(c.hay).includes(w))).slice(0, 8);
       const roleFor = (key) => (key === 'ws' && d.addRole === 'admin' ? 'editor' : d.addRole);
       const active = Math.min(d.addActive || 0, Math.max(0, candidates.length - 1));
       const addKey = (key) => {
         setDraft({ grants: [...this.state.rightsDraft.grants, { key, role: roleFor(key) }], query: '', addActive: 0, addOpen: false });
-        this.showToast(SUBJECTS[key].name + ' hinzugefügt als ' + ROLE_LABEL[roleFor(key)]);
+        this.showToast(this.subject(key).name + ' hinzugefügt als ' + ROLE_LABEL[roleFor(key)]);
       };
       const suggestOpen = !!d.addOpen && (words.length > 0 || candidates.length > 0);
 
@@ -6909,7 +7420,7 @@ class Component extends DCLogic {
         summary,
         viewAs: () => this.openViewAs(isSpace ? 'space' : 'page'),
         grants: d.grants.map((g, i) => {
-          const subj = SUBJECTS[g.key];
+          const subj = this.subject(g.key);
           return {
             name: subj.name, sub: subOf(g.key), bg: subj.bg, initials: initialsOf(g.key),
             role: g.role, roleLabel: ROLE_LABEL[g.role],
@@ -7053,6 +7564,8 @@ class Component extends DCLogic {
           label: 'Wiederherstellen', cls: 'nf-btn-primary',
           ok: () => this.restoreVersion(s.confirm.pid, s.confirm.n)
         };
+      } else if (s.confirm.kind === 'deleteGroup') {
+        confirm = this.groupDeleteConfirm();
       } else if (s.confirm.kind === 'removeMember') {
         const m = s.members.find((x) => x.key === s.confirm.key);
         confirm = {
@@ -7140,7 +7653,7 @@ class Component extends DCLogic {
           return;
         }
         if (e.key !== 'Escape') return;
-        if (s.dialog) this.setState({ dialog: null, confirm: null, rightsDraft: null });
+        if (s.dialog) this.closeTopDialog();
         else if (s.notifOpen) { this.setState({ notifOpen: false }); this.focusLater('.nf-bell-btn'); }
         else if (s.reactPicker) { this.setState({ reactPicker: false }); this.focusLater('.nf-reaction-add'); }
         else if (s.lookPop) { const k = s.lookPop.kind; this.setState({ lookPop: null }); this.focusLater(k === 'emoji' && s.pageIcons[s.lookPop.pid] ? '.nf-page-emoji' : '.nf-title-tool'); }
@@ -7237,6 +7750,7 @@ class Component extends DCLogic {
       goTemplates: (e) => { this.prevent(e); this.openTemplates(null); },
       inSpace: !ovNav,
       ...this.overviewVals(),
+      ...this.groupsVals(),
       cmd: this.paletteVals(),
       ed: this.edVals(),
       openPalette: (e) => { this.stop(e); this.openPalette(); },
@@ -7495,6 +8009,7 @@ class Component extends DCLogic {
       // Workspace und Einladungen (nur Owner und Admins; Peter ist Owner)
       openWorkspace: () => this.setState({ dialog: 'workspace', userMenu: false, settingsMenu: false, wsDraft: null }),
       openInvites: () => this.setState({ dialog: 'invites', userMenu: false, settingsMenu: false, inviteLink: null }),
+      openGroups: () => this.openGroups(),
       workspaceOpen: s.dialog === 'workspace',
       invitesOpen: s.dialog === 'invites',
       ws: (() => {
@@ -7533,7 +8048,7 @@ class Component extends DCLogic {
                 this.setState((st) => ({ members: st.members.map((x) => (x.key === m.key ? { ...x, role: v } : x)) }));
                 this.showToast(name + ': ' + WS_ROLE[v]);
               },
-              remove: () => { this.setState({ dialog: 'confirm', confirm: { kind: 'removeMember', key: m.key } }); this.focusLater('#nf-confirm-cancel'); }
+              remove: () => { this.setState({ dialog: 'confirm', confirm: { kind: 'removeMember', key: m.key, back: 'workspace' } }); this.focusLater('#nf-confirm-cancel'); }
             };
           })
         };
@@ -7600,8 +8115,8 @@ class Component extends DCLogic {
       })),
       confirmOpen: s.dialog === 'confirm',
       confirm,
-      closeDialog: () => this.setState({ dialog: null, confirm: null, rightsDraft: null }),
-      closeDialogOnBackdrop: (e) => { if (e.target === e.currentTarget) this.setState({ dialog: null, confirm: null, rightsDraft: null }); }
+      closeDialog: () => this.closeTopDialog(),
+      closeDialogOnBackdrop: (e) => { if (e.target === e.currentTarget) this.closeTopDialog(); }
     };
   }
 }

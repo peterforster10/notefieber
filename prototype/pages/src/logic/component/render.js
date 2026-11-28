@@ -213,9 +213,10 @@
       };
       if (isSpace) walkOwn(homeId);
       const setDraft = (patch) => this.setState((st) => ({ rightsDraft: { ...st.rightsDraft, ...patch } }));
-      const initialsOf = (key) => (key === 'grp' ? 'GE' : key === 'ws' ? 'AW' : initials(SUBJECTS[key].name));
+      const initialsOf = (key) => (key === 'ws' ? 'AW' : s.groups[key] ? this.groupInitials(s.groups[key].name) : initials(this.subject(key).name));
       const subOf = (key) => {
-        if (key === 'grp') return 'Gruppe · ' + GROUPS.grp.length + ' Mitglieder';
+        const grp = s.groups[key];
+        if (grp) return 'Gruppe · ' + grp.members.length + (grp.members.length === 1 ? ' Mitglied' : ' Mitglieder') + (grp.source === 'local' ? '' : ' · ' + GROUP_SOURCE[grp.source]);
         if (key === 'ws') return 'Alle Mitglieder von ' + s.wsName + ', ohne Gäste';
         const m = s.members.find((x) => x.key === key);
         return key === 'peter' ? 'Du' : m ? m.email + (m.role === 'guest' ? ' · Gast' : '') : 'Person';
@@ -238,14 +239,14 @@
       const words = fold(d.query.trim()).split(/\s+/).filter(Boolean);
       const candidates = [
         ...s.members.map((m) => ({ key: m.key, name: PEOPLE[m.key].name, sub: subOf(m.key), hay: PEOPLE[m.key].name + ' ' + m.email, bg: PEOPLE[m.key].color })),
-        { key: 'grp', name: SUBJECTS.grp.name, sub: subOf('grp'), hay: SUBJECTS.grp.name + ' gruppe', bg: SUBJECTS.grp.bg },
+        ...Object.entries(s.groups).map(([key, grp]) => ({ key, name: grp.name, sub: subOf(key), hay: grp.name + ' gruppe', bg: grp.color })),
         { key: 'ws', name: SUBJECTS.ws.name, sub: subOf('ws'), hay: SUBJECTS.ws.name + ' workspace alle', bg: SUBJECTS.ws.bg }
       ].filter((c) => !taken.has(c.key) && words.every((w) => fold(c.hay).includes(w))).slice(0, 8);
       const roleFor = (key) => (key === 'ws' && d.addRole === 'admin' ? 'editor' : d.addRole);
       const active = Math.min(d.addActive || 0, Math.max(0, candidates.length - 1));
       const addKey = (key) => {
         setDraft({ grants: [...this.state.rightsDraft.grants, { key, role: roleFor(key) }], query: '', addActive: 0, addOpen: false });
-        this.showToast(SUBJECTS[key].name + ' hinzugefügt als ' + ROLE_LABEL[roleFor(key)]);
+        this.showToast(this.subject(key).name + ' hinzugefügt als ' + ROLE_LABEL[roleFor(key)]);
       };
       const suggestOpen = !!d.addOpen && (words.length > 0 || candidates.length > 0);
 
@@ -269,7 +270,7 @@
         summary,
         viewAs: () => this.openViewAs(isSpace ? 'space' : 'page'),
         grants: d.grants.map((g, i) => {
-          const subj = SUBJECTS[g.key];
+          const subj = this.subject(g.key);
           return {
             name: subj.name, sub: subOf(g.key), bg: subj.bg, initials: initialsOf(g.key),
             role: g.role, roleLabel: ROLE_LABEL[g.role],
@@ -413,6 +414,8 @@
           label: 'Wiederherstellen', cls: 'nf-btn-primary',
           ok: () => this.restoreVersion(s.confirm.pid, s.confirm.n)
         };
+      } else if (s.confirm.kind === 'deleteGroup') {
+        confirm = this.groupDeleteConfirm();
       } else if (s.confirm.kind === 'removeMember') {
         const m = s.members.find((x) => x.key === s.confirm.key);
         confirm = {
@@ -500,7 +503,7 @@
           return;
         }
         if (e.key !== 'Escape') return;
-        if (s.dialog) this.setState({ dialog: null, confirm: null, rightsDraft: null });
+        if (s.dialog) this.closeTopDialog();
         else if (s.notifOpen) { this.setState({ notifOpen: false }); this.focusLater('.nf-bell-btn'); }
         else if (s.reactPicker) { this.setState({ reactPicker: false }); this.focusLater('.nf-reaction-add'); }
         else if (s.lookPop) { const k = s.lookPop.kind; this.setState({ lookPop: null }); this.focusLater(k === 'emoji' && s.pageIcons[s.lookPop.pid] ? '.nf-page-emoji' : '.nf-title-tool'); }
@@ -597,6 +600,7 @@
       goTemplates: (e) => { this.prevent(e); this.openTemplates(null); },
       inSpace: !ovNav,
       ...this.overviewVals(),
+      ...this.groupsVals(),
       cmd: this.paletteVals(),
       ed: this.edVals(),
       openPalette: (e) => { this.stop(e); this.openPalette(); },
@@ -855,6 +859,7 @@
       // Workspace und Einladungen (nur Owner und Admins; Peter ist Owner)
       openWorkspace: () => this.setState({ dialog: 'workspace', userMenu: false, settingsMenu: false, wsDraft: null }),
       openInvites: () => this.setState({ dialog: 'invites', userMenu: false, settingsMenu: false, inviteLink: null }),
+      openGroups: () => this.openGroups(),
       workspaceOpen: s.dialog === 'workspace',
       invitesOpen: s.dialog === 'invites',
       ws: (() => {
@@ -893,7 +898,7 @@
                 this.setState((st) => ({ members: st.members.map((x) => (x.key === m.key ? { ...x, role: v } : x)) }));
                 this.showToast(name + ': ' + WS_ROLE[v]);
               },
-              remove: () => { this.setState({ dialog: 'confirm', confirm: { kind: 'removeMember', key: m.key } }); this.focusLater('#nf-confirm-cancel'); }
+              remove: () => { this.setState({ dialog: 'confirm', confirm: { kind: 'removeMember', key: m.key, back: 'workspace' } }); this.focusLater('#nf-confirm-cancel'); }
             };
           })
         };
@@ -960,7 +965,7 @@
       })),
       confirmOpen: s.dialog === 'confirm',
       confirm,
-      closeDialog: () => this.setState({ dialog: null, confirm: null, rightsDraft: null }),
-      closeDialogOnBackdrop: (e) => { if (e.target === e.currentTarget) this.setState({ dialog: null, confirm: null, rightsDraft: null }); }
+      closeDialog: () => this.closeTopDialog(),
+      closeDialogOnBackdrop: (e) => { if (e.target === e.currentTarget) this.closeTopDialog(); }
     };
   }

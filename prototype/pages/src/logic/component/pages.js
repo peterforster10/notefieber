@@ -87,6 +87,12 @@
     const list = s.grants[cur] || s.grants[this.source(cur, false)] || [];
     this.setState({ dialog: 'rights', rightsDraft: { ...base, scope: 'page', own, grants: list.map((g) => ({ ...g })) } });
   }
+  /** Oberster Dialog zu; eine Rückfrage mit back führt in den Dialog zurück, aus dem sie kam */
+  closeTopDialog() {
+    this.setState((st) => (st.dialog === 'confirm' && st.confirm && st.confirm.back
+      ? { dialog: st.confirm.back, confirm: null }
+      : { dialog: null, confirm: null, rightsDraft: null }));
+  }
   /** fromRights: 'space' bzw. 'page', wenn „Zurück zu den Rechten“ dorthin führen soll */
   openViewAs(fromRights) {
     this.setState((st) => ({ dialog: 'viewAs', viewAsBack: fromRights || false, viewAsWho: st.viewAsWho || 'max' }));

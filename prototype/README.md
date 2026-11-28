@@ -417,6 +417,29 @@ BlockNote; dieser Entwurf legt fest, wie dessen Menüs aussehen und sich verhalt
 - **„Ansehen als …“** (`app.view_as`, E09): Person wählen, darunter der ganze Seitenbaum des Spaces
   mit ihrer Rolle pro Seite (ohne Zugriff gedämpft, eigene Rechte mit Schloss) und „sieht 8 von 9
   Seiten“. Nur Struktur, keine Inhalte, Hinweis aufs Audit-Log; zeigt den gespeicherten Stand.
+- **Gruppen pflegen** (M3, E02 und E09; seit 28. November 2026), im Zahnrad-Menü unter „Gruppen“
+  nach „Workspace“ und „Einladungen“, nur für Organisations-Admins (Gruppen gelten für den ganzen
+  Mandanten). Ein Dialog in zwei Stufen:
+  - **Liste:** Suche (auch nach Mitgliedern), „Neue Gruppe“ (Name, eindeutig), je Gruppe Kürzel als
+    abgerundetes Quadrat (Personen sind rund), Name, Mitgliederzahl, „Rechte in 1 Space und 2
+    Seiten“ und die Quelle als Etikett: „Im Wiki“ (`local`), „Confluence-Import“ (`import`),
+    „Login-Dienst“ (`idp`), „SCIM“.
+  - **Eine Gruppe:** „Alle Gruppen“ zurück, Herkunft (wer sie wann angelegt hat bzw. die ID in der
+    Quelle), Umbenennen, Mitglieder mit „Entfernen“ und Hinzufügen per Vorschlagsliste (Personen
+    aus dem Workspace, Gäste markiert; ↑↓ und Enter), **Rechte der Gruppe** (Spaces und Seiten mit
+    Rolle, Klick öffnet dort den Rechte-Dialog; Seiten mit eigenen Rechten, die du nicht siehst, nur
+    als Zahl) und „Gruppe löschen“ mit Rückfrage (Abbrechen führt in die Gruppe zurück).
+  - **Letzter Admin:** Würde ein Space oder eine Seite mit eigenen Rechten durch Entfernen oder
+    Löschen ohne wirksamen Admin bleiben, sagt der Dialog es vorher und nennt die Stelle, mit
+    „Rechte dort öffnen“ (die Datenbank lehnt dasselbe ab, `app.has_admin`). Im Prototyp ist dafür
+    die Gruppe „Vertrieb“ (nur Max) Admin des Spaces Vertrieb.
+  - **Aus dem Login-Dienst bzw. SCIM** (Ausblick, `app.sync_user_groups` ist noch ungenutzt): nur
+    lesbar, Hinweis, dass Name und Mitglieder sich nur dort ändern; Rechte lassen sich trotzdem
+    vergeben.
+  - Testdaten: Geschäftsleitung, Entwicklung und Vertrieb wie `seed.sql`; „qs-team“ (aus dem
+    Import, mit Gast) und „Alpenwerk-IT“ (Login-Dienst) nur im Prototyp. Abweichend von `seed.sql`
+    ist im Prototyp die Gruppe Vertrieb statt Max Admin von VERT und die Geschäftsleitung
+    Bearbeiter von PERS. Der Rechte-Dialog schlägt alle Gruppen vor.
 - **Confluence-Import** (M4; seit 26. November 2026 eine Ansicht im gemeinsamen Rahmen statt der
   eigenen Seite im Ordner `prototype/import/`, der entfernt ist): „Confluence-Import“ unten in
   der Seitenleiste, in der Suche oder direkt `Main.dc.html#import`; Brotkrume „<Space> /

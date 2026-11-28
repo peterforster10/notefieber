@@ -25,7 +25,8 @@
     let best = null;
     for (const g of list || []) {
       if (g.role === 'none') continue;
-      const hit = g.key === who || (g.key === 'ws' && m.role !== 'guest') || (GROUPS[g.key] || []).includes(who);
+      const grp = this.state.groups[g.key];
+      const hit = g.key === who || (g.key === 'ws' && m.role !== 'guest') || (!!grp && grp.members.includes(who));
       if (hit && (!best || RANK[g.role] > RANK[best])) best = g.role;
     }
     if (best && archived) best = 'viewer';
@@ -35,6 +36,12 @@
   roleFor(id, who) {
     const s = this.state;
     return this.effRole(s.grants[this.source(id)], who, s.spaces[s.pages[id].space].archived);
+  }
+  /** Name und Farbe eines Subjekts in Grants: Person, Gruppe (aus dem Zustand) oder „Alle im Workspace“ */
+  subject(key) {
+    const g = this.state.groups[key];
+    if (g) return { name: g.name, bg: g.color, group: true };
+    return SUBJECTS[key] || { name: 'Gelöschte Gruppe', bg: '#5B6573', group: true };
   }
   set(patch) { this.setState(patch); }
   stop(e) { if (e && e.stopPropagation) e.stopPropagation(); }

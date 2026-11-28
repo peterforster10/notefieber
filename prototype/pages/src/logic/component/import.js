@@ -74,7 +74,7 @@
     // Ziel: Spaces, die man verwaltet (Admin), nicht archiviert
     const targets = Object.values(s.spaces).filter((x) => !x.archived && this.role(x.home) === 'admin');
     const target = s.spaces[imp.space] || targets[0];
-    const T = { ws: 'Alle im Workspace', grp: 'Gruppe Entwicklung', new: 'Neue Gruppe „entw-admins“', skip: 'Nicht übernehmen', '': 'Bitte wählen' };
+    const T = { ws: 'Alle im Workspace', grp: 'Gruppe „Entwicklung“', new: 'Neue Gruppe „entw-admins“', skip: 'Nicht übernehmen', '': 'Bitte wählen' };
     const defs = [
       { key: 'users', name: 'confluence-users', count: 48 },
       { key: 'team', name: 'entw-team', count: 12 },

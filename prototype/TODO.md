@@ -14,11 +14,6 @@ Nichts offen; Benutzerprofil und persönliche Einstellungen sind entworfen (27. 
 
 ## Für M3
 
-- **Gruppen pflegen** (E02, E09, nur Organisations-Admins): Liste der Gruppen mit Quelle (`local`,
-  `import`, später `idp`, `scim`), anlegen, umbenennen, löschen, Mitglieder hinzufügen und entfernen.
-  Gruppen aus dem Login-Dienst oder per SCIM nur lesbar. Rückfragen, wenn eine Gruppe irgendwo
-  letzter Admin ist (die Datenbank lehnt dann ab, `app.has_admin`). Wohl im Zahnrad-Menü neben
-  „Workspace“ und „Einladungen“.
 - **Person deaktivieren** (E02): im Dialog „Workspace“ gibt es bisher nur „Entfernen“. Deaktivieren
   gilt für den ganzen Mandanten und beendet alle Sitzungen; nur für Organisations-Admins. Anzeige
   deaktivierter Personen in Listen und Erwähnungen.

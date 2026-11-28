@@ -9,6 +9,9 @@
       pages: JSON.parse(JSON.stringify(PAGES)),
       spaces: JSON.parse(JSON.stringify(SPACES)),
       grants: JSON.parse(JSON.stringify(GRANTS)),
+      groups: JSON.parse(JSON.stringify(GROUPS)),
+      // Dialog „Gruppen“: Liste oder eine Gruppe (gmSel), Entwurf für neue Gruppe und Namen, Hinzufügen, Fehler
+      gmSel: null, gmQ: '', gmNew: null, gmName: null, gmAddQ: '', gmAddOpen: false, gmAddActive: 0, gmError: null,
       // Papierkorb: wer wann gelöscht hat und wie viele Tage bis zum endgültigen Löschen bleiben
       trash: [
         { id: 'notizen', index: 3, by: 'lukas', when: 'am 12. November', daysLeft: 17 },

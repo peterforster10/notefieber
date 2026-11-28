@@ -9,7 +9,6 @@ const PEOPLE = {
 };
 const SUBJECTS = {
   ...Object.fromEntries(Object.entries(PEOPLE).map(([k, p]) => [k, { name: p.name, sub: k === 'peter' ? 'Du' : 'Person', bg: p.color }])),
-  grp: { name: 'Gruppe Entwicklung', sub: 'Gruppe im Wiki · 3 Mitglieder', bg: '#1E5135' },
   ws: { name: 'Alle im Workspace', sub: 'Alle Mitglieder von Alpenwerk, ohne Gäste', bg: '#5B6573' }
 };
 const ROLE_LABEL = { admin: 'Admin', editor: 'Bearbeiten', commenter: 'Kommentieren', viewer: 'Lesen', none: 'Kein Zugriff' };
@@ -73,8 +72,17 @@ const SPACE_COLORS = [
   { color: '#BE185D', label: 'Beere' }, { color: '#B45309', label: 'Ocker' }, { color: '#1E5135', label: 'Grün' },
   { color: '#4D7C0F', label: 'Oliv' }, { color: '#5B6573', label: 'Grau' }
 ];
-// Gruppen im Wiki mit ihren Mitgliedern (seed.sql: Gruppe Entwicklung)
-const GROUPS = { grp: ['lukas', 'sophie', 'markus'] };
+// Gruppen im Wiki (Tabelle groups, für den ganzen Mandanten). Geschäftsleitung, Entwicklung und Vertrieb wie in
+// seed.sql; „qs-team“ (Confluence-Import) und „Alpenwerk-IT“ (Login-Dienst, Ausblick) nur im Prototyp.
+// source wie groups.source: local und import pflegen Organisations-Admins, idp und scim nur ihre Quelle.
+const GROUPS = {
+  grp_gl: { name: 'Geschäftsleitung', source: 'local', color: '#B45309', members: ['peter'], by: 'peter', when: 'am 2. Oktober' },
+  grp: { name: 'Entwicklung', source: 'local', color: '#1E5135', members: ['lukas', 'sophie', 'markus'], by: 'peter', when: 'am 2. Oktober' },
+  grp_vert: { name: 'Vertrieb', source: 'local', color: '#BE185D', members: ['max'], by: 'peter', when: 'am 2. Oktober' },
+  grp_qs: { name: 'qs-team', source: 'import', externalId: 'qs-team', color: '#0E7490', members: ['sophie', 'max', 'elena'], by: 'peter', when: 'am 26. November' },
+  grp_it: { name: 'Alpenwerk-IT', source: 'idp', externalId: 'Alpenwerk-IT', color: '#5B6573', members: ['peter', 'markus'], when: 'beim letzten Login' }
+};
+const GROUP_SOURCE = { local: 'Im Wiki', import: 'Confluence-Import', idp: 'Login-Dienst', scim: 'SCIM' };
 const WS_ROLE = { owner: 'Owner', admin: 'Admin', member: 'Mitglied', guest: 'Gast' };
 const INVITE_STATUS = { open: 'offen', accepted: 'angenommen', revoked: 'zurückgenommen', expired: 'abgelaufen' };
 // Dialoge mit Ausblick (wie im Frontend: was dort entsteht)

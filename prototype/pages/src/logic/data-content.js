@@ -77,8 +77,8 @@ const SPACES = {
 // Grants auf Spaces („space:KEY“) und auf Seiten mit eigenen Rechten (Seiten-ID)
 const GRANTS = {
   'space:ENTW': [{ key: 'peter', role: 'admin' }, { key: 'grp', role: 'editor' }, { key: 'ws', role: 'viewer' }],
-  'space:VERT': [{ key: 'max', role: 'admin' }, { key: 'ws', role: 'commenter' }],
-  'space:PERS': [{ key: 'peter', role: 'admin' }],
+  'space:VERT': [{ key: 'grp_vert', role: 'admin' }, { key: 'ws', role: 'commenter' }],
+  'space:PERS': [{ key: 'peter', role: 'admin' }, { key: 'grp_gl', role: 'editor' }],
   'space:ALT': [{ key: 'peter', role: 'admin' }, { key: 'ws', role: 'viewer' }],
   personal: [{ key: 'peter', role: 'admin' }, { key: 'lukas', role: 'editor' }],
   urlaub: [{ key: 'peter', role: 'admin' }, { key: 'lukas', role: 'editor' }, { key: 'max', role: 'viewer' }]

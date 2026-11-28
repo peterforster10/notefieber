@@ -1,0 +1,35 @@
+/* Dialog „Gruppen“: Liste mit Suche und „Neue Gruppe“, dann eine Gruppe (Name, Mitglieder, Rechte, Löschen) */
+.nf-gm-toolbar{display:flex;align-items:center;gap:8px}
+.nf-gm-toolbar .nf-grant-search{flex:1}
+.nf-gm-toolbar .nf-btn{flex:none}
+.nf-gm-new{margin:12px 0 0;padding:12px;border:1px solid var(--nf-border);border-radius:8px;background:var(--nf-surface)}
+.nf-gm-new-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.nf-gm-new-row .nf-input{flex:1 1 200px;min-width:0;margin:0}
+.nf-gm-list{list-style:none;margin:12px 0 4px;padding:0;max-height:380px;overflow-y:auto;border:1px solid var(--nf-border);border-radius:8px}
+.nf-gm-list li+li{border-top:1px solid var(--nf-border)}
+.nf-gm-row{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:8px 12px;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.nf-gm-row:hover{background:var(--nf-subtle)}
+.nf-gm-row .nf-person-names>span:first-child{font-weight:500}
+.nf-gm-chevron{flex:none;color:var(--nf-muted)}
+/* Gruppen als abgerundetes Quadrat, Personen rund */
+.nf-gm-avatar{display:inline-grid;place-items:center;flex:none;width:32px;height:32px;border-radius:8px;color:#fff;font-size:11px;font-weight:600}
+.nf-gm-avatar-lg{width:40px;height:40px;font-size:13px}
+.nf-gm-source{display:inline-block;flex:none;padding:1px 8px;border-radius:999px;background:var(--nf-neutral-soft);color:var(--nf-muted);font-size:12px;font-weight:500;white-space:nowrap}
+.nf-gm-source[data-source='import']{background:var(--nf-accent-soft);color:var(--nf-accent)}
+.nf-gm-source[data-source='idp'],.nf-gm-source[data-source='scim']{background:var(--nf-done-bg);color:var(--nf-done-fg)}
+.nf-dialog-description .nf-gm-source{margin-right:4px}
+.nf-gm-head{min-width:0}
+.nf-gm-back{display:inline-flex;align-items:center;gap:4px;margin:-4px 0 8px -6px;padding:3px 6px;border:0;border-radius:6px;background:none;color:var(--nf-accent);font:inherit;font-size:13px;cursor:pointer}
+.nf-gm-back:hover{background:var(--nf-accent-soft)}
+.nf-gm-title-row{display:flex;align-items:flex-start;gap:12px}
+.nf-gm-add{margin:0 0 6px}
+.nf-gm-error{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}
+.nf-gm-error-link{padding:0;border:0;background:none;color:inherit;font:inherit;font-weight:600;text-decoration:underline;cursor:pointer}
+.nf-gm-uses{list-style:none;margin:0;padding:0}
+.nf-gm-use{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:6px 8px;border:0;border-radius:6px;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.nf-gm-use:hover{background:var(--nf-subtle)}
+@media (max-width:520px){
+  .nf-gm-row .nf-gm-source{display:none}
+  .nf-gm-toolbar{flex-wrap:wrap}
+  .nf-gm-toolbar .nf-grant-search{flex-basis:100%}
+}
