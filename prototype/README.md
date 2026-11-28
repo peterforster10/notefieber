@@ -86,7 +86,7 @@ verloren; dann zuerst in `src/` übertragen. Die Teildateien sind kein eigenstä
     Anmeldung; Rechte, Gruppen und Mitgliedschaften bleiben und gelten nach dem Reaktivieren
     wieder; das Konto beim Login-Dienst bleibt. Bliebe danach ein Space oder eine Seite mit eigenen
     Rechten ohne Admin, warnt die Rückfrage und nennt die Stelle („Trotzdem deaktivieren“; die
-    Datenbank lehnt das nicht ab, siehe „Rechte wiederherstellen“ in `TODO.md`). Danach in der
+    Datenbank lehnt das nicht ab, siehe „Rechte wiederherstellen“ unter „Ausblick“). Danach in der
     Zeile das Etikett „Deaktiviert“, wer wann, Rolle nur als Text, „Reaktivieren“. Zum Ausprobieren:
     Max (einziges Mitglied der Gruppe Vertrieb, Admin von VERT) bzw. Sophie (in „Datenmodell“
     erwähnt).
@@ -458,6 +458,31 @@ BlockNote; dieser Entwurf legt fest, wie dessen Menüs aussehen und sich verhalt
     Import, mit Gast) und „Alpenwerk-IT“ (Login-Dienst) nur im Prototyp. Abweichend von `seed.sql`
     ist im Prototyp die Gruppe Vertrieb statt Max Admin von VERT und die Geschäftsleitung
     Bearbeiter von PERS. Der Rechte-Dialog schlägt alle Gruppen vor.
+- **Rechte wiederherstellen** (M3, E09; seit 28. November 2026), im Zahnrad-Menü unter „Gruppen“, nur
+  für Organisations-Admins, mit der Zahl der Bereiche ohne Admin (orange). Für den Fall, den die
+  Datenbank nicht verhindert: Die Person mit Admin-Recht wird deaktiviert, oder der Login-Dienst
+  leert eine Admin-Gruppe (`app.has_admin` greift nur bei Änderungen im Wiki).
+  - **Finden:** Liste „Ohne Admin“, Spaces zuerst, dann Seiten mit eigenen Rechten, auch solche, die
+    man selbst nicht lesen darf: Titel und Ort (Space und Pfad), **nie der Inhalt**. Dazu der Grund
+    („Admin Anja Keller ist deaktiviert (am 14. November)“, „Admin-Gruppe „Vertrieb“ hat kein aktives
+    Mitglied im Workspace“) und wer noch Zugriff hat. Ohne Treffer „Alles in Ordnung“.
+  - **Eintragen:** „Neuer Admin“ aus den aktiven Mitgliedern ohne Gäste; vorgeschlagen ist, wer
+    schon bearbeitet, sonst du. Pflichtfeld „Grund (für das Audit-Log)“. Die Rückfrage sagt, ob du
+    danach den Inhalt siehst (nur wenn du dich selbst einträgst). Danach eine grüne Bestätigung, bei
+    dir selbst mit „Rechte öffnen“, damit du gleich eine zuständige Person einträgst.
+  - **Audit-Log:** Unten „Im Audit-Log“ alle Einträge dieser Art (wer, wen, wo, Grund), lesbar für
+    alle Organisations-Admins; die ganze Audit-Ansicht kommt mit E17. Die Rückfrage beim
+    Deaktivieren verweist auf diesen Dialog.
+  - **Im Produkt:** Eintragen über `app.set_grant` (Organisations-Admins dürfen das auf jedem Space
+    und jeder Seite, steht im Audit-Log). **Vorschlag:** Die Liste braucht eine eigene Funktion, z. B.
+    `app.sources_without_admin()` (`SECURITY DEFINER`, nur für Organisations-Admins, nur Struktur
+    wie `app.view_as`), und der Grund eine Spalte bzw. ein Feld im Audit-Eintrag; beides eine
+    Schemaänderung, zuerst Test und Migration, Peter liest den Diff. Offen: ob Organisations-Admins
+    den Titel einer Seite sehen dürfen, die sie nicht lesen können (hier ja, sonst ist sie nicht
+    zu finden).
+  - Testdaten nur im Prototyp: Anja Keller (deaktiviert am 14. November) war einzige Admin der Seite
+    „Konditionen Großkunden“ in Vertrieb, die Peter nicht lesen darf und die deshalb im Seitenbaum
+    fehlt. Wer zusätzlich Max deaktiviert, sieht auch den Space Vertrieb in der Liste.
 - **Confluence-Import** (M4; seit 26. November 2026 eine Ansicht im gemeinsamen Rahmen statt der
   eigenen Seite im Ordner `prototype/import/`, der entfernt ist): „Confluence-Import“ unten in
   der Seitenleiste, in der Suche oder direkt `Main.dc.html#import`; Brotkrume „<Space> /

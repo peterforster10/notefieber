@@ -1216,6 +1216,36 @@ span.nf-page-emoji{cursor:default}
 .nf-link-accent{color:var(--nf-accent)}
 .nf-link-attention:hover,.nf-link-accent:hover{text-decoration:underline}
 .nf-mention.nf-mention-inactive{background:var(--nf-neutral-soft);color:var(--nf-muted)}
+/* Dialog „Rechte wiederherstellen“ (M3, E09): Bereiche ohne wirksamen Admin, neuer Admin mit Grund, Audit-Log */
+.nf-rc-done{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 12px;padding:10px 12px;border-radius:8px;background:var(--nf-done-bg);color:var(--nf-done-fg);font-size:13px}
+.nf-rc-done span{flex:1 1 240px}
+.nf-rc-done .nf-btn{flex:none}
+.nf-rc-list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.nf-rc-item{padding:12px;border:1px solid var(--nf-border);border-left:3px solid var(--nf-attention);border-radius:8px;background:var(--nf-bg)}
+.nf-rc-head{display:flex;align-items:center;gap:10px}
+.nf-rc-head .nf-person-names{min-width:0;flex:1}
+.nf-rc-head .nf-person-names>span:first-child{font-weight:600}
+.nf-rc-kind{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:8px;background:var(--nf-attention-soft);color:var(--nf-attention)}
+.nf-rc-chip{flex:none;padding:1px 8px;border-radius:999px;background:var(--nf-attention-soft);color:var(--nf-attention);font-size:12px;font-weight:600;white-space:nowrap}
+.nf-rc-why{margin:8px 0 0;font-size:13px;line-height:1.5;color:var(--nf-muted)}
+.nf-rc-form{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 12px;margin-top:4px}
+.nf-rc-field{flex:0 1 240px;min-width:0}
+.nf-rc-field-grow{flex:1 1 260px}
+.nf-rc-field .nf-label{margin:8px 0 4px;font-size:13px}
+.nf-rc-form .nf-btn{flex:none}
+.nf-rc-form .nf-input[aria-invalid='true']{border-color:var(--nf-attention)}
+.nf-rc-log{list-style:none;margin:0;padding:0;border:1px solid var(--nf-border);border-radius:8px}
+.nf-rc-log li{display:flex;gap:12px;padding:8px 12px;font-size:13px;line-height:1.45}
+.nf-rc-log li+li{border-top:1px solid var(--nf-border)}
+.nf-rc-log-when{flex:none;width:110px;color:var(--nf-muted)}
+.nf-rc-log-text{min-width:0}
+.nf-rc-note{margin:8px 0 0;font-size:12px;color:var(--nf-muted)}
+@media (max-width:520px){
+  .nf-rc-head .nf-rc-chip{display:none}
+  .nf-rc-field,.nf-rc-field-grow{flex-basis:100%}
+  .nf-rc-log li{flex-direction:column;gap:2px}
+  .nf-rc-log-when{width:auto}
+}
 /* Formulare */
 .nf-label{display:block;margin:12px 0 6px;font-weight:500}
 .nf-input{height:38px;padding:0 10px;margin-right:8px;border:1px solid var(--nf-input-border);border-radius:8px;background:var(--nf-bg);font-size:14px}
@@ -1657,6 +1687,13 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
             <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openGroups}}">
               <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="5.5" cy="5.5" r="2"></circle><circle cx="10.5" cy="5.5" r="2"></circle><path d="M1.5 13c.4-2.2 2-3.5 4-3.5s3.6 1.3 4 3.5"></path><path d="M10 9.6c.2 0 .3-.1.5-.1 2 0 3.6 1.3 4 3.5"></path></svg>
               <span class="nf-menu-label">Gruppen</span><span class="nf-menu-shortcut nf-menu-meta">{{groupCount}}</span></button></li>
+            <!-- Nur für Organisations-Admins: Spaces und Seiten ohne wirksamen Admin (E09) -->
+            <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{openRecovery}}">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.75l5 2v4c0 3.1-2.1 5.4-5 6.5-2.9-1.1-5-3.4-5-6.5v-4z"></path><path d="M8 5.25v3.5M8 10.75h.01"></path></svg>
+              <span class="nf-menu-label">Rechte wiederherstellen</span>
+              <sc-if value="{{hasRecovery}}" hint-placeholder-val="{{ true }}"><span class="nf-count" aria-label="{{recoveryCountLabel}}">{{recoveryCount}}</span></sc-if>
+              <sc-if value="{{recoveryMeta}}" hint-placeholder-val="{{ false }}"><span class="nf-menu-shortcut nf-menu-meta">{{recoveryMeta}}</span></sc-if>
+            </button></li>
           </ul>
         </sc-if>
       </div>
@@ -3474,6 +3511,97 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
       </div>
     </div>
   </sc-if>
+  <!-- Rechte wiederherstellen (M3, E09, nur Organisations-Admins): Bereiche ohne wirksamen Admin, neuen Admin
+       mit Grund eintragen (app.set_grant), Einträge im Audit-Log -->
+  <sc-if value="{{rc.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <div class="nf-dialog nf-dialog-wide nf-rc" role="dialog" aria-modal="true" aria-labelledby="rc-title" aria-describedby="rc-intro">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="rc-title" class="nf-dialog-title">Rechte wiederherstellen</h2>
+            <p id="rc-intro" class="nf-dialog-description">{{rc.intro}}</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body">
+          <sc-if value="{{rc.hasDone}}" hint-placeholder-val="{{ false }}">
+            <div class="nf-rc-done" role="status">
+              <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>
+              <span>{{rc.doneText}}</span>
+              <sc-if value="{{rc.doneCanOpen}}" hint-placeholder-val="{{ false }}">
+                <button type="button" class="nf-btn" onClick="{{rc.openDone}}">Rechte öffnen</button>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <h3 class="nf-section-title" style="margin-top: 4px">Ohne Admin</h3>
+          <sc-if value="{{rc.noItems}}" hint-placeholder-val="{{ false }}">
+            <div class="nf-cm-empty">
+              <span class="nf-empty-icon"><svg class="nf-icon" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg></span>
+              <p class="nf-empty-title">Alles in Ordnung</p>
+              <p>Jeder Space und jede Seite mit eigenen Rechten hat einen Admin.</p>
+            </div>
+          </sc-if>
+          <sc-if value="{{rc.hasItems}}" hint-placeholder-val="{{ true }}">
+            <ul class="nf-rc-list" aria-label="Bereiche ohne Admin">
+              <sc-for list="{{rc.items}}" as="it" hint-placeholder-count="2">
+                <li class="nf-rc-item" aria-labelledby="{{it.id}}">
+                  <div class="nf-rc-head">
+                    <span class="nf-rc-kind" aria-hidden="true">
+                      <sc-if value="{{it.isSpace}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="11" height="11" rx="2"></rect><path d="M5.5 6h5M5.5 8.5h5M5.5 11h3"></path></svg></sc-if>
+                      <sc-if value="{{it.isPage}}" hint-placeholder-val="{{ true }}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></sc-if>
+                    </span>
+                    <span class="nf-person-names">
+                      <span id="{{it.id}}">{{it.label}}</span>
+                      <span>{{it.meta}}</span>
+                    </span>
+                    <span class="nf-rc-chip">Kein Admin</span>
+                  </div>
+                  <p class="nf-rc-why">{{it.reasons}} {{it.accessText}}</p>
+                  <form class="nf-rc-form" onSubmit="{{it.submit}}">
+                    <div class="nf-rc-field">
+                      <label class="nf-label" for="{{it.whoId}}">Neuer Admin</label>
+                      <select id="{{it.whoId}}" class="nf-input nf-input-wide" value="{{it.who}}" onChange="{{it.onWho}}">
+                        <sc-for list="{{it.people}}" as="pp" hint-placeholder-count="4">
+                          <option value="{{pp.key}}">{{pp.label}}</option>
+                        </sc-for>
+                      </select>
+                    </div>
+                    <div class="nf-rc-field nf-rc-field-grow">
+                      <label class="nf-label" for="{{it.reasonId}}">Grund (für das Audit-Log)</label>
+                      <input id="{{it.reasonId}}" class="nf-input nf-input-wide" maxlength="500" placeholder="z. B. Anja Keller hat das Unternehmen verlassen" value="{{it.reason}}" onChange="{{it.onReason}}" aria-invalid="{{it.invalid}}" aria-describedby="{{it.errId}}">
+                    </div>
+                    <button type="submit" class="nf-btn nf-btn-primary">Als Admin eintragen</button>
+                  </form>
+                  <sc-if value="{{it.hasError}}" hint-placeholder-val="{{ false }}">
+                    <p id="{{it.errId}}" class="nf-rights-warn" role="alert">{{it.error}}</p>
+                  </sc-if>
+                </li>
+              </sc-for>
+            </ul>
+          </sc-if>
+
+          <h3 class="nf-section-title">Im Audit-Log</h3>
+          <sc-if value="{{rc.hasLog}}" hint-placeholder-val="{{ true }}">
+            <ul class="nf-rc-log" aria-label="Wiederhergestellte Rechte im Audit-Log">
+              <sc-for list="{{rc.log}}" as="lg" hint-placeholder-count="2">
+                <li>
+                  <span class="nf-rc-log-when">{{lg.when}}</span>
+                  <span class="nf-rc-log-text">{{lg.text}} <span class="nf-muted">{{lg.reason}}</span></span>
+                </li>
+              </sc-for>
+            </ul>
+          </sc-if>
+          <p class="nf-rc-note">Lesbar für alle Organisations-Admins, nicht änderbar. Die ganze Audit-Ansicht kommt später (E17).</p>
+        </div>
+        <div class="nf-dialog-foot">
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Schließen</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
   <!-- Neuer Space (statt des Formulars auf der alten Startseite): Name, Schlüssel, Beschreibung, Rechte -->
   <sc-if value="{{newSpaceOpen}}" hint-placeholder-val="{{ false }}">
     <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
@@ -3978,7 +4106,9 @@ const PEOPLE = {
   lukas: { name: 'Lukas Gruber', color: '#7C3AED' },
   markus: { name: 'Markus Wagner', color: '#B45309' },
   max: { name: 'Max Mustermann', color: '#BE185D' },
-  elena: { name: 'Elena Novak', color: '#4D7C0F' }
+  elena: { name: 'Elena Novak', color: '#4D7C0F' },
+  // Nur im Prototyp: hat Alpenwerk verlassen und ist deaktiviert; war einzige Admin einer Seite in „Vertrieb“
+  anja: { name: 'Anja Keller', color: '#0F766E' }
 };
 const SUBJECTS = {
   ...Object.fromEntries(Object.entries(PEOPLE).map(([k, p]) => [k, { name: p.name, sub: k === 'peter' ? 'Du' : 'Person', bg: p.color }])),
@@ -4004,7 +4134,12 @@ const MEMBERS = [
   { key: 'sophie', email: 'sophie.bauer@alpenwerk.example', role: 'member' },
   { key: 'markus', email: 'markus.wagner@alpenwerk.example', role: 'member' },
   { key: 'max', email: 'max.mustermann@alpenwerk.example', role: 'member' },
-  { key: 'elena', email: 'elena.novak@agentur-nord.example', role: 'guest' }
+  { key: 'elena', email: 'elena.novak@agentur-nord.example', role: 'guest' },
+  { key: 'anja', email: 'anja.keller@alpenwerk.example', role: 'member' }
+];
+// Audit-Log (nur Einträge zum Wiederherstellen von Rechten; die ganze Ansicht kommt mit E17)
+const AUDIT = [
+  { id: 'a1', when: 'am 3. November', actor: 'peter', who: 'peter', label: 'Space „Altes Intranet“', reason: 'Bisheriger Admin hat das Unternehmen verlassen; Space wird archiviert.' }
 ];
 const INVITES = [
   { id: 'i1', email: 'nina.neu@alpenwerk.example', role: 'member', status: 'open', until: '2. Dez. 2026', by: 'Peter Forster' },
@@ -4324,10 +4459,13 @@ const PAGES = {
   skizzen: pg('ENTW', 'Architektur-Skizzen 2025', 'arch', ['skizze1', 'skizze2'], 'sophie', 'am 2. Oktober', ['Erste Überlegungen zum Aufbau.']),
   skizze1: pg('ENTW', 'Skizze Monolith', 'skizzen', [], 'sophie', 'am 2. Oktober', ['Ein Prozess für alles.']),
   skizze2: pg('ENTW', 'Skizze Microservices', 'skizzen', [], 'sophie', 'am 2. Oktober', ['Viele kleine Dienste.']),
-  vert_home: pg('VERT', 'Vertrieb', null, ['angebote', 'kampagne'], 'max', 'am 25. Oktober',
+  vert_home: pg('VERT', 'Vertrieb', null, ['angebote', 'kampagne', 'konditionen'], 'max', 'am 25. Oktober',
     ['Angebote, Kampagnen und Material für den Vertrieb.'], { author: 'max' }),
   angebote: pg('VERT', 'Angebote 2027', 'vert_home', [], 'max', 'am 30. Oktober', ['Vorlagen und Preise für Angebote im nächsten Jahr.'], { author: 'max' }),
   kampagne: pg('VERT', 'Kampagne Frühjahr', 'vert_home', [], 'max', 'am 3. November', ['Planung der Frühjahrskampagne: Messen, Mailings, Webinare.'], { author: 'max' }),
+  // Eigene Rechte, Peter hat keinen Zugriff; einzige Admin war Anja Keller (deaktiviert): fehlt im Baum,
+  // steht aber unter „Rechte wiederherstellen“ (nur Titel und Ort, kein Inhalt)
+  konditionen: pg('VERT', 'Konditionen Großkunden', 'vert_home', [], 'anja', 'am 6. November', ['Rabatte und Zahlungsziele der Großkunden.'], { author: 'anja' }),
   pers_home: pg('PERS', 'Personal', null, ['urlaubsregel', 'gehalt'], 'peter', 'am 20. Oktober', ['Nur für die Geschäftsleitung.']),
   urlaubsregel: pg('PERS', 'Urlaubsregelung', 'pers_home', [], 'peter', 'am 20. Oktober', ['Wie Urlaub beantragt und genehmigt wird.']),
   gehalt: pg('PERS', 'Gehaltsbänder 2027', 'pers_home', [], 'peter', 'am 22. Oktober', ['Gehaltsbänder nach Rolle und Erfahrung.']),
@@ -4347,7 +4485,8 @@ const GRANTS = {
   'space:PERS': [{ key: 'peter', role: 'admin' }, { key: 'grp_gl', role: 'editor' }],
   'space:ALT': [{ key: 'peter', role: 'admin' }, { key: 'ws', role: 'viewer' }],
   personal: [{ key: 'peter', role: 'admin' }, { key: 'lukas', role: 'editor' }],
-  urlaub: [{ key: 'peter', role: 'admin' }, { key: 'lukas', role: 'editor' }, { key: 'max', role: 'viewer' }]
+  urlaub: [{ key: 'peter', role: 'admin' }, { key: 'lukas', role: 'editor' }, { key: 'max', role: 'viewer' }],
+  konditionen: [{ key: 'anja', role: 'admin' }, { key: 'max', role: 'editor' }]
 };
 
 // ---------- Vorlagen (Ausblick) ----------
@@ -4425,7 +4564,11 @@ class Component extends DCLogic {
       grants: JSON.parse(JSON.stringify(GRANTS)),
       groups: JSON.parse(JSON.stringify(GROUPS)),
       // Deaktivierte Personen (users.deactivated_at, für den ganzen Mandanten): Schlüssel → { by, when }
-      deactivated: {},
+      deactivated: { anja: { by: 'peter', when: 'am 14. November' } },
+      // Rechte wiederherstellen (M3, E09; nur Organisations-Admins): gewählte Person und Grund pro Quelle,
+      // zuletzt erledigte Quelle (für den Hinweis im Dialog), Fehler, Audit-Log
+      rcWho: {}, rcReason: {}, rcError: null, rcDone: null,
+      audit: AUDIT.map((a) => ({ ...a })),
       // Dialog „Gruppen“: Liste oder eine Gruppe (gmSel), Entwurf für neue Gruppe und Namen, Hinzufügen, Fehler
       gmSel: null, gmQ: '', gmNew: null, gmName: null, gmAddQ: '', gmAddOpen: false, gmAddActive: 0, gmError: null,
       // Papierkorb: wer wann gelöscht hat und wie viele Tage bis zum endgültigen Löschen bleiben
@@ -7193,7 +7336,7 @@ class Component extends DCLogic {
     const name = PEOPLE[key].name;
     const lost = this.adminLoss(s.groups, s.grants, { ...s.deactivated, [key]: true });
     const warn = lost.length
-      ? 'Danach hat ' + lost.map((src) => this.sourceLabel(src)).join(', ') + ' keinen Admin mehr. Ein Organisations-Admin kann dort einen neuen setzen.'
+      ? 'Danach hat ' + lost.map((src) => this.sourceLabel(src)).join(', ') + ' keinen Admin mehr. Ein Organisations-Admin kann dort unter Einstellungen › Rechte wiederherstellen einen neuen eintragen.'
       : '';
     return {
       title: name + ' deaktivieren?',
@@ -7216,6 +7359,141 @@ class Component extends DCLogic {
       return { deactivated };
     });
     this.showToast(PEOPLE[key].name + ' wieder aktiv');
+  }
+  // ---------- Rechte wiederherstellen (M3: E09; nur Organisations-Admins) ----------
+  // Ein Space oder eine Seite mit eigenen Rechten kann ihren letzten wirksamen Admin verlieren, ohne dass
+  // die Datenbank es verhindert: beim Deaktivieren einer Person oder wenn der Login-Dienst (idp, scim) die
+  // letzte Person aus einer Admin-Gruppe nimmt (app.has_admin greift nur bei Grants und Mitgliedschaften
+  // im Wiki). Organisations-Admins sehen solche Bereiche hier mit Titel und Ort, ohne Inhalt, und tragen
+  // einen neuen Admin ein (app.set_grant, für Organisations-Admins auf jedem Space und jeder Seite erlaubt).
+  // Jeder Eintrag steht mit Grund im Audit-Log. Vorschlag: eine Funktion wie app.sources_without_admin()
+  // (SECURITY DEFINER, nur für Organisations-Admins, nur Struktur), eine Schemaänderung.
+  openRecovery() {
+    this.setState({ dialog: 'recovery', rcError: null, rcDone: null, userMenu: false, settingsMenu: false });
+  }
+  /** Quellen ohne wirksamen Admin: Spaces zuerst, dann Seiten */
+  orphans() {
+    const s = this.state;
+    return this.sourcesWithoutAdmin(s.groups, s.grants)
+      .filter((src) => src.startsWith('space:') ? !!s.spaces[src.slice(6)] : !!s.pages[src])
+      .sort((a, b) => (a.startsWith('space:') ? 0 : 1) - (b.startsWith('space:') ? 0 : 1));
+  }
+  /** Warum kein Admin wirkt, aus den Admin-Grants der Quelle */
+  orphanReasons(src) {
+    const s = this.state;
+    const admins = (s.grants[src] || []).filter((g) => g.role === 'admin');
+    if (!admins.length) return ['Kein Admin eingetragen.'];
+    const inWs = (k) => s.members.some((m) => m.key === k);
+    return admins.map((g) => {
+      const grp = s.groups[g.key];
+      if (grp) return 'Admin-Gruppe „' + grp.name + '“ hat kein aktives Mitglied im Workspace.';
+      const name = PEOPLE[g.key] ? PEOPLE[g.key].name : 'Eine gelöschte Person';
+      if (s.deactivated[g.key]) return 'Admin ' + name + ' ist deaktiviert (' + s.deactivated[g.key].when + ').';
+      if (!inWs(g.key)) return 'Admin ' + name + ' ist nicht mehr im Workspace.';
+      return 'Admin ' + name + ' hat keinen Zugriff mehr.';
+    });
+  }
+  /** Ort einer Quelle für Organisations-Admins: Titel und Pfad, kein Inhalt */
+  orphanPlace(src) {
+    const s = this.state;
+    if (src.startsWith('space:')) {
+      const sp = s.spaces[src.slice(6)];
+      return { kind: 'space', label: 'Space „' + sp.name + '“', meta: 'Space · ' + sp.key + (sp.archived ? ' · archiviert' : '') };
+    }
+    const p = s.pages[src];
+    const sp = s.spaces[p.space];
+    const path = this.chain(src).slice(0, -1).map((x) => (x === sp.home ? 'Startseite' : s.pages[x].title || 'Ohne Titel'));
+    return { kind: 'page', label: 'Seite „' + (p.title || 'Ohne Titel') + '“', meta: 'Eigene Rechte · ' + sp.name + ' · unter ' + path.join(' / ') };
+  }
+
+  recoveryVals() {
+    const s = this.state;
+    const list = this.orphans();
+    const base = { recoveryCount: list.length, hasRecovery: list.length > 0, recoveryMeta: list.length ? '' : 'keine', recoveryCountLabel: list.length + (list.length === 1 ? ' Bereich ohne Admin' : ' Bereiche ohne Admin') };
+    if (s.dialog !== 'recovery') return { ...base, rc: { open: false } };
+    const active = s.members.filter((m) => this.isActive(m.key) && m.role !== 'guest');
+    const items = list.map((src) => {
+      const place = this.orphanPlace(src);
+      const sp = src.startsWith('space:') ? s.spaces[src.slice(6)] : s.spaces[s.pages[src].space];
+      const grants = s.grants[src] || [];
+      // Wer noch Zugriff hat (wirksame Rolle wie app.page_rank), als Vorschlag für den neuen Admin
+      const access = active.map((m) => ({ key: m.key, role: this.effRole(grants, m.key, sp.archived) })).filter((x) => x.role);
+      const accessText = access.length
+        ? 'Zugriff haben noch: ' + access.map((x) => PEOPLE[x.key].name + ' (' + ROLE_LABEL[x.role] + ')').join(', ') + '.'
+        : 'Niemand im Workspace hat noch Zugriff.';
+      const suggested = (access.find((x) => x.role === 'editor') || access[0] || { key: 'peter' }).key;
+      const who = s.rcWho[src] || suggested;
+      const roleOf = (k) => (access.find((x) => x.key === k) || {}).role;
+      const people = [...active].sort((a, b) => (roleOf(b.key) ? RANK[roleOf(b.key)] : 0) - (roleOf(a.key) ? RANK[roleOf(a.key)] : 0))
+        .map((m) => ({ key: m.key, label: PEOPLE[m.key].name + (m.key === 'peter' ? ' (du)' : '') + (roleOf(m.key) ? ' · ' + ROLE_LABEL[roleOf(m.key)] : '') }));
+      const id = src.replace(/[^a-z0-9]/gi, '-');
+      const err = s.rcError && s.rcError.src === src ? s.rcError.text : '';
+      return {
+        src, id: 'rc-' + id, reasonId: 'rc-reason-' + id, whoId: 'rc-who-' + id, errId: 'rc-err-' + id,
+        isSpace: place.kind === 'space', isPage: place.kind === 'page',
+        label: place.label, meta: place.meta,
+        reasons: this.orphanReasons(src).join(' '),
+        accessText,
+        who, people,
+        onWho: (e) => this.setState((st) => ({ rcWho: { ...st.rcWho, [src]: e.target.value } })),
+        reason: s.rcReason[src] || '',
+        onReason: (e) => this.setState((st) => ({ rcReason: { ...st.rcReason, [src]: e.target.value }, rcError: null })),
+        hasError: !!err, error: err, invalid: err ? 'true' : 'false',
+        submit: (e) => {
+          this.prevent(e);
+          const reason = (s.rcReason[src] || '').trim();
+          if (reason.length < 5) { this.setState({ rcError: { src, text: 'Bitte kurz begründen, warum du hier einen Admin einträgst (steht im Audit-Log).' } }); this.focusLater('#rc-reason-' + id); return; }
+          this.setState({ dialog: 'confirm', confirm: { kind: 'recover', src, who, reason, back: 'recovery' } });
+          this.focusLater('#nf-confirm-cancel');
+        }
+      };
+    });
+    const done = s.rcDone && (s.rcDone.src.startsWith('space:') ? s.spaces[s.rcDone.src.slice(6)] : s.pages[s.rcDone.src]) ? s.rcDone : null;
+    const doneSelf = !!done && done.who === 'peter';
+    return {
+      ...base,
+      rc: {
+        open: true,
+        items, hasItems: items.length > 0, noItems: items.length === 0,
+        intro: 'Spaces und Seiten mit eigenen Rechten, für die kein Admin mehr wirkt, etwa weil die Person mit Admin-Recht deaktiviert ist oder der Login-Dienst eine Admin-Gruppe geleert hat. Du siehst Titel und Ort, nicht den Inhalt.',
+        hasDone: !!done,
+        doneText: done ? PEOPLE[done.who].name + (doneSelf ? ' (du) ist' : ' ist') + ' jetzt Admin von ' + done.label + '.' + (doneSelf ? ' Prüfe die Rechte und trage dort, wenn möglich, eine zuständige Person ein.' : ' Sie kann jetzt selbst weitere Admins setzen.') : '',
+        doneCanOpen: doneSelf,
+        openDone: () => { if (done) this.openRightsOf(done.src); },
+        log: s.audit.map((a) => ({
+          id: a.id, when: a.when,
+          text: PEOPLE[a.actor].name + ' hat ' + (a.who === a.actor ? 'sich selbst' : PEOPLE[a.who].name) + ' als Admin von ' + a.label + ' eingetragen.',
+          reason: 'Grund: ' + a.reason
+        })),
+        hasLog: s.audit.length > 0
+      }
+    };
+  }
+
+  recoverConfirm() {
+    const s = this.state;
+    const { src, who, reason } = s.confirm;
+    const place = this.orphanPlace(src);
+    const self = who === 'peter';
+    return {
+      title: (self ? 'Dich' : PEOPLE[who].name) + ' als Admin eintragen?',
+      text: (self ? 'Du wirst' : PEOPLE[who].name + ' wird') + ' Admin von ' + place.label + '. '
+        + (self ? 'Danach siehst du auch den Inhalt. ' : 'Du selbst bekommst dadurch keinen Zugriff. ')
+        + 'Der Eintrag steht mit deinem Namen und dem Grund im Audit-Log, lesbar für alle Organisations-Admins.',
+      label: 'Als Admin eintragen', cls: 'nf-btn-primary',
+      ok: () => {
+        this.setState((st) => {
+          const list = st.grants[src] || [];
+          const has = list.some((g) => g.key === who);
+          const grants = { ...st.grants, [src]: has ? list.map((g) => (g.key === who ? { ...g, role: 'admin' } : g)) : [...list, { key: who, role: 'admin' }] };
+          const entry = { id: 'a' + Date.now(), when: 'gerade eben', actor: 'peter', who, label: place.label, reason };
+          const rcReason = { ...st.rcReason };
+          delete rcReason[src];
+          return { grants, audit: [entry, ...st.audit], rcReason, rcDone: { src, who, label: place.label }, dialog: 'recovery', confirm: null };
+        });
+        this.showToast((self ? 'Du bist' : PEOPLE[who].name + ' ist') + ' jetzt Admin von ' + place.label);
+      }
+    };
   }
   // ---------- Werte für die Vorlage ----------
   renderVals() {
@@ -7245,6 +7523,8 @@ class Component extends DCLogic {
     const rows = [];
     const walk = (id, depth, siblings, index) => {
       const p = P[id];
+      // Seiten ohne Leserecht fehlen ganz (wie app.tree_level); im Prototyp nur Blätter wie „Konditionen Großkunden“
+      if (!this.role(id)) return;
       const open = !!s.expanded[id] && p.kids.length > 0;
       const editable = !sp.archived && this.canEdit(id);
       const prev = siblings[index - 1];
@@ -7643,6 +7923,8 @@ class Component extends DCLogic {
         };
       } else if (s.confirm.kind === 'deactivate') {
         confirm = this.deactivateConfirm();
+      } else if (s.confirm.kind === 'recover') {
+        confirm = this.recoverConfirm();
       } else if (s.confirm.kind === 'deleteGroup') {
         confirm = this.groupDeleteConfirm();
       } else if (s.confirm.kind === 'removeMember') {
@@ -7830,6 +8112,8 @@ class Component extends DCLogic {
       inSpace: !ovNav,
       ...this.overviewVals(),
       ...this.groupsVals(),
+      ...this.recoveryVals(),
+      openRecovery: () => this.openRecovery(),
       cmd: this.paletteVals(),
       ed: this.edVals(),
       openPalette: (e) => { this.stop(e); this.openPalette(); },

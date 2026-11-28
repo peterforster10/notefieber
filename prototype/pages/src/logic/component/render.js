@@ -26,6 +26,8 @@
     const rows = [];
     const walk = (id, depth, siblings, index) => {
       const p = P[id];
+      // Seiten ohne Leserecht fehlen ganz (wie app.tree_level); im Prototyp nur Blätter wie „Konditionen Großkunden“
+      if (!this.role(id)) return;
       const open = !!s.expanded[id] && p.kids.length > 0;
       const editable = !sp.archived && this.canEdit(id);
       const prev = siblings[index - 1];
@@ -424,6 +426,8 @@
         };
       } else if (s.confirm.kind === 'deactivate') {
         confirm = this.deactivateConfirm();
+      } else if (s.confirm.kind === 'recover') {
+        confirm = this.recoverConfirm();
       } else if (s.confirm.kind === 'deleteGroup') {
         confirm = this.groupDeleteConfirm();
       } else if (s.confirm.kind === 'removeMember') {
@@ -611,6 +615,8 @@
       inSpace: !ovNav,
       ...this.overviewVals(),
       ...this.groupsVals(),
+      ...this.recoveryVals(),
+      openRecovery: () => this.openRecovery(),
       cmd: this.paletteVals(),
       ed: this.edVals(),
       openPalette: (e) => { this.stop(e); this.openPalette(); },

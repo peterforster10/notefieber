@@ -58,10 +58,13 @@ const PAGES = {
   skizzen: pg('ENTW', 'Architektur-Skizzen 2025', 'arch', ['skizze1', 'skizze2'], 'sophie', 'am 2. Oktober', ['Erste Überlegungen zum Aufbau.']),
   skizze1: pg('ENTW', 'Skizze Monolith', 'skizzen', [], 'sophie', 'am 2. Oktober', ['Ein Prozess für alles.']),
   skizze2: pg('ENTW', 'Skizze Microservices', 'skizzen', [], 'sophie', 'am 2. Oktober', ['Viele kleine Dienste.']),
-  vert_home: pg('VERT', 'Vertrieb', null, ['angebote', 'kampagne'], 'max', 'am 25. Oktober',
+  vert_home: pg('VERT', 'Vertrieb', null, ['angebote', 'kampagne', 'konditionen'], 'max', 'am 25. Oktober',
     ['Angebote, Kampagnen und Material für den Vertrieb.'], { author: 'max' }),
   angebote: pg('VERT', 'Angebote 2027', 'vert_home', [], 'max', 'am 30. Oktober', ['Vorlagen und Preise für Angebote im nächsten Jahr.'], { author: 'max' }),
   kampagne: pg('VERT', 'Kampagne Frühjahr', 'vert_home', [], 'max', 'am 3. November', ['Planung der Frühjahrskampagne: Messen, Mailings, Webinare.'], { author: 'max' }),
+  // Eigene Rechte, Peter hat keinen Zugriff; einzige Admin war Anja Keller (deaktiviert): fehlt im Baum,
+  // steht aber unter „Rechte wiederherstellen“ (nur Titel und Ort, kein Inhalt)
+  konditionen: pg('VERT', 'Konditionen Großkunden', 'vert_home', [], 'anja', 'am 6. November', ['Rabatte und Zahlungsziele der Großkunden.'], { author: 'anja' }),
   pers_home: pg('PERS', 'Personal', null, ['urlaubsregel', 'gehalt'], 'peter', 'am 20. Oktober', ['Nur für die Geschäftsleitung.']),
   urlaubsregel: pg('PERS', 'Urlaubsregelung', 'pers_home', [], 'peter', 'am 20. Oktober', ['Wie Urlaub beantragt und genehmigt wird.']),
   gehalt: pg('PERS', 'Gehaltsbänder 2027', 'pers_home', [], 'peter', 'am 22. Oktober', ['Gehaltsbänder nach Rolle und Erfahrung.']),
@@ -81,6 +84,7 @@ const GRANTS = {
   'space:PERS': [{ key: 'peter', role: 'admin' }, { key: 'grp_gl', role: 'editor' }],
   'space:ALT': [{ key: 'peter', role: 'admin' }, { key: 'ws', role: 'viewer' }],
   personal: [{ key: 'peter', role: 'admin' }, { key: 'lukas', role: 'editor' }],
-  urlaub: [{ key: 'peter', role: 'admin' }, { key: 'lukas', role: 'editor' }, { key: 'max', role: 'viewer' }]
+  urlaub: [{ key: 'peter', role: 'admin' }, { key: 'lukas', role: 'editor' }, { key: 'max', role: 'viewer' }],
+  konditionen: [{ key: 'anja', role: 'admin' }, { key: 'max', role: 'editor' }]
 };
 

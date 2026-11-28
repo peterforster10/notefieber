@@ -11,7 +11,11 @@
       grants: JSON.parse(JSON.stringify(GRANTS)),
       groups: JSON.parse(JSON.stringify(GROUPS)),
       // Deaktivierte Personen (users.deactivated_at, für den ganzen Mandanten): Schlüssel → { by, when }
-      deactivated: {},
+      deactivated: { anja: { by: 'peter', when: 'am 14. November' } },
+      // Rechte wiederherstellen (M3, E09; nur Organisations-Admins): gewählte Person und Grund pro Quelle,
+      // zuletzt erledigte Quelle (für den Hinweis im Dialog), Fehler, Audit-Log
+      rcWho: {}, rcReason: {}, rcError: null, rcDone: null,
+      audit: AUDIT.map((a) => ({ ...a })),
       // Dialog „Gruppen“: Liste oder eine Gruppe (gmSel), Entwurf für neue Gruppe und Namen, Hinzufügen, Fehler
       gmSel: null, gmQ: '', gmNew: null, gmName: null, gmAddQ: '', gmAddOpen: false, gmAddActive: 0, gmError: null,
       // Papierkorb: wer wann gelöscht hat und wie viele Tage bis zum endgültigen Löschen bleiben

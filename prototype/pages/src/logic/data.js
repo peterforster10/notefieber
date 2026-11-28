@@ -5,7 +5,9 @@ const PEOPLE = {
   lukas: { name: 'Lukas Gruber', color: '#7C3AED' },
   markus: { name: 'Markus Wagner', color: '#B45309' },
   max: { name: 'Max Mustermann', color: '#BE185D' },
-  elena: { name: 'Elena Novak', color: '#4D7C0F' }
+  elena: { name: 'Elena Novak', color: '#4D7C0F' },
+  // Nur im Prototyp: hat Alpenwerk verlassen und ist deaktiviert; war einzige Admin einer Seite in „Vertrieb“
+  anja: { name: 'Anja Keller', color: '#0F766E' }
 };
 const SUBJECTS = {
   ...Object.fromEntries(Object.entries(PEOPLE).map(([k, p]) => [k, { name: p.name, sub: k === 'peter' ? 'Du' : 'Person', bg: p.color }])),
@@ -31,7 +33,12 @@ const MEMBERS = [
   { key: 'sophie', email: 'sophie.bauer@alpenwerk.example', role: 'member' },
   { key: 'markus', email: 'markus.wagner@alpenwerk.example', role: 'member' },
   { key: 'max', email: 'max.mustermann@alpenwerk.example', role: 'member' },
-  { key: 'elena', email: 'elena.novak@agentur-nord.example', role: 'guest' }
+  { key: 'elena', email: 'elena.novak@agentur-nord.example', role: 'guest' },
+  { key: 'anja', email: 'anja.keller@alpenwerk.example', role: 'member' }
+];
+// Audit-Log (nur Einträge zum Wiederherstellen von Rechten; die ganze Ansicht kommt mit E17)
+const AUDIT = [
+  { id: 'a1', when: 'am 3. November', actor: 'peter', who: 'peter', label: 'Space „Altes Intranet“', reason: 'Bisheriger Admin hat das Unternehmen verlassen; Space wird archiviert.' }
 ];
 const INVITES = [
   { id: 'i1', email: 'nina.neu@alpenwerk.example', role: 'member', status: 'open', until: '2. Dez. 2026', by: 'Peter Forster' },

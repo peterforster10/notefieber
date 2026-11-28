@@ -18,7 +18,7 @@
     const name = PEOPLE[key].name;
     const lost = this.adminLoss(s.groups, s.grants, { ...s.deactivated, [key]: true });
     const warn = lost.length
-      ? 'Danach hat ' + lost.map((src) => this.sourceLabel(src)).join(', ') + ' keinen Admin mehr. Ein Organisations-Admin kann dort einen neuen setzen.'
+      ? 'Danach hat ' + lost.map((src) => this.sourceLabel(src)).join(', ') + ' keinen Admin mehr. Ein Organisations-Admin kann dort unter Einstellungen › Rechte wiederherstellen einen neuen eintragen.'
       : '';
     return {
       title: name + ' deaktivieren?',
