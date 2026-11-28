@@ -1,0 +1,150 @@
+  <!-- Benutzerprofil (M2, E02): Profilbild, Name, E-Mail aus dem Login-Dienst, Sprache, Zeitzone -->
+  <sc-if value="{{prof.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <form class="nf-dialog" role="dialog" aria-modal="true" aria-labelledby="prof-title" onSubmit="{{prof.submit}}">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="prof-title" class="nf-dialog-title">Benutzerprofil</h2>
+            <p class="nf-dialog-description">So sehen dich andere in Alpenwerk: in der Byline, bei Kommentaren, Erwähnungen und Benachrichtigungen.</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body nf-prof">
+          <div class="nf-prof-photo">
+            <sc-if value="{{prof.hasAvatar}}" hint-placeholder-val="{{ false }}"><span class="nf-prof-avatar nf-avatar-img" style="background-image: {{prof.avatarBg}}" role="img" aria-label="Dein Profilbild"></span></sc-if>
+            <sc-if value="{{prof.noAvatar}}" hint-placeholder-val="{{ true }}"><span class="nf-prof-avatar" style="background: {{prof.color}}" aria-hidden="true">{{prof.initials}}</span></sc-if>
+            <div class="nf-prof-photo-main">
+              <div class="nf-prof-photo-actions">
+                <button type="button" class="nf-btn nf-btn-sm" onClick="{{prof.pickFile}}">Bild hochladen …</button>
+                <sc-if value="{{prof.hasAvatar}}" hint-placeholder-val="{{ false }}"><button type="button" class="nf-btn nf-btn-sm nf-btn-ghost" onClick="{{prof.removeAvatar}}">Entfernen</button></sc-if>
+              </div>
+              <input id="prof-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden onChange="{{prof.onFile}}">
+              <span class="nf-prof-help">PNG, JPEG, GIF oder WebP, höchstens 5 MB. Ohne Bild zeigen wir deine Initialen.</span>
+            </div>
+          </div>
+
+          <label class="nf-label" for="prof-name">Name</label>
+          <input id="prof-name" class="nf-input nf-input-wide" maxlength="100" required autocomplete="name" value="{{prof.name}}" onInput="{{prof.onName}}">
+          <sc-if value="{{prof.nameEmpty}}" hint-placeholder-val="{{ false }}"><p class="nf-field-error" role="alert">Der Name darf nicht leer sein.</p></sc-if>
+
+          <span class="nf-label">E-Mail-Adresse</span>
+          <div class="nf-prof-email">
+            <span>{{prof.email}}</span>
+            <button type="button" class="nf-link-btn" onClick="{{prof.emailToast}}">Im Login-Dienst ändern</button>
+          </div>
+          <p class="nf-prof-help">E-Mail-Adresse, Passwort und Zwei-Faktor gehören zum Login-Dienst; NoteFieber speichert kein Passwort.</p>
+
+          <div class="nf-prof-row">
+            <div>
+              <label class="nf-label" for="prof-locale">Sprache</label>
+              <select id="prof-locale" class="nf-input nf-input-wide" value="{{prof.locale}}" onChange="{{prof.onLocale}}">
+                <option value="de">Deutsch</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+            <div>
+              <label class="nf-label" for="prof-tz">Zeitzone</label>
+              <select id="prof-tz" class="nf-input nf-input-wide" value="{{prof.tz}}" onChange="{{prof.onTz}}">
+                <sc-for list="{{prof.tzOptions}}" as="o" hint-placeholder-count="4"><option value="{{o.key}}">{{o.label}}</option></sc-for>
+              </select>
+            </div>
+          </div>
+          <p class="nf-prof-help">{{prof.tzNow}} Die Sprache gilt für die Oberfläche und die Anmeldeseite, die Zeitzone für alle Zeitangaben (Byline, Versionen, Papierkorb, Benachrichtigungen und E-Mails).</p>
+        </div>
+        <div class="nf-dialog-foot">
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Abbrechen</button>
+          <button type="submit" class="nf-btn nf-btn-primary" disabled="{{prof.cantSave}}">Speichern</button>
+        </div>
+      </form>
+    </div>
+  </sc-if>
+
+  <!-- Persönliche Einstellungen (M2, E15): wirken sofort, ohne Speichern-Knopf -->
+  <sc-if value="{{uset.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <div class="nf-dialog nf-dialog-wide" role="dialog" aria-modal="true" aria-labelledby="uset-title">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="uset-title" class="nf-dialog-title">Persönliche Einstellungen</h2>
+            <p class="nf-dialog-description">Gelten nur für dich und werden sofort übernommen.</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body nf-uset">
+          <section aria-labelledby="us-look-h">
+            <h3 id="us-look-h" class="nf-uset-h">Darstellung</h3>
+            <div class="nf-uset-row">
+              <label for="us-theme"><strong>Farbschema</strong><span>Wie im Zahnrad-Menü; „System“ folgt dem Betriebssystem.</span></label>
+              <select id="us-theme" class="nf-input" value="{{uset.themeValue}}" onChange="{{uset.onTheme}}">
+                <option value="light">Hell</option><option value="dark">Dunkel</option><option value="system">System</option>
+              </select>
+            </div>
+            <div class="nf-uset-row">
+              <label for="us-sub"><strong>Unterseiten unter einer Seite</strong><span>Darstellung im Fuß jeder Seite.</span></label>
+              <select id="us-sub" class="nf-input" value="{{uset.subView.value}}" onChange="{{uset.subView.change}}">
+                <option value="cards">Karten</option><option value="list">Liste</option>
+              </select>
+            </div>
+            <div class="nf-uset-row">
+              <label for="us-fav"><strong>Favoriten</strong><span>Darstellung unter „Favoriten“.</span></label>
+              <select id="us-fav" class="nf-input" value="{{uset.favView.value}}" onChange="{{uset.favView.change}}">
+                <option value="cards">Karten</option><option value="list">Liste</option>
+              </select>
+            </div>
+            <div class="nf-uset-row">
+              <span id="us-cm-l"><strong>Kommentarspalte von selbst öffnen</strong><span>Wenn eine Seite offene Kommentare hat und der Bildschirm breit genug ist (ab 1280 px).</span></span>
+              <button type="button" class="nf-switch" aria-labelledby="us-cm-l" aria-pressed="{{uset.commentsAuto.pressed}}" onClick="{{uset.commentsAuto.toggle}}"><span></span></button>
+            </div>
+          </section>
+
+          <section aria-labelledby="us-ed-h">
+            <h3 id="us-ed-h" class="nf-uset-h">Editor</h3>
+            <div class="nf-uset-row">
+              <span id="us-md-l"><strong>Markdown-Kürzel</strong><span># für Überschriften, - für Listen, [] für Aufgaben, &gt; für Zitate am Anfang eines Absatzes.</span></span>
+              <button type="button" class="nf-switch" aria-labelledby="us-md-l" aria-pressed="{{uset.markdown.pressed}}" onClick="{{uset.markdown.toggle}}"><span></span></button>
+            </div>
+            <div class="nf-uset-row">
+              <span id="us-sp-l"><strong>Rechtschreibprüfung</strong><span>Die des Browsers; markiert Tippfehler beim Schreiben.</span></span>
+              <button type="button" class="nf-switch" aria-labelledby="us-sp-l" aria-pressed="{{uset.spellcheck.pressed}}" onClick="{{uset.spellcheck.toggle}}"><span></span></button>
+            </div>
+            <div class="nf-uset-row">
+              <span><strong>Tastenkürzel</strong><span>Übersicht aller Kürzel.</span></span>
+              <button type="button" class="nf-btn nf-btn-sm" aria-haspopup="dialog" onClick="{{uset.openShortcuts}}">Anzeigen</button>
+            </div>
+          </section>
+
+          <section id="us-notif" aria-labelledby="us-notif-h">
+            <h3 id="us-notif-h" class="nf-uset-h">Benachrichtigungen</h3>
+            <table class="nf-uset-notif">
+              <thead><tr><th scope="col"><span class="nf-visually-hidden">Art</span></th><th scope="col">Im Wiki</th><th scope="col">Per E-Mail</th></tr></thead>
+              <tbody>
+                <sc-for list="{{uset.notif}}" as="n" hint-placeholder-count="4">
+                  <tr>
+                    <th scope="row"><strong>{{n.label}}</strong><span>{{n.hint}}</span></th>
+                    <td><input type="checkbox" aria-label="{{n.appLabel}}" checked="{{n.app}}" onChange="{{n.toggleApp}}"></td>
+                    <td><input type="checkbox" aria-label="{{n.mailLabel}}" checked="{{n.mail}}" onChange="{{n.toggleMail}}"></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+            <div class="nf-uset-row">
+              <label for="us-digest"><strong>E-Mails</strong><span>Wie oft E-Mails zu den oben gewählten Arten kommen.</span></label>
+              <select id="us-digest" class="nf-input" value="{{uset.digest}}" onChange="{{uset.onDigest}}">
+                <option value="instant">Sofort</option><option value="daily">Einmal am Tag gesammelt</option><option value="never">Nie</option>
+              </select>
+            </div>
+            <p class="nf-prof-help">Benachrichtigungen gibt es nur zu Seiten, die du lesen darfst. Abgeschaltete Arten fehlen auch in der Glocke.</p>
+          </section>
+        </div>
+        <div class="nf-dialog-foot">
+          <sc-if value="{{uset.saved}}" hint-placeholder-val="{{ false }}"><span class="nf-uset-saved" role="status"><svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg>Gespeichert</span></sc-if>
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Fertig</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+

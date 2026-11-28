@@ -91,11 +91,13 @@ svg.nf-icon{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;
 .nf-sidebar-top{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding:2px 4px 2px 10px}
 .nf-brand{display:flex;align-items:center;gap:10px;min-width:0;color:var(--nf-sidebar-text);text-decoration:none}
 /* Logo: NF in Inter, transparent, dünner Rahmen und Schrift in der Farbe des Schriftzugs (prototype/brand/) */
-.nf-brand-mark{flex:none;display:grid;place-items:center;width:30px;height:30px;border:1px solid currentColor;border-radius:9px;background:transparent;color:inherit;font-size:12.5px;font-weight:400;letter-spacing:0;line-height:1}
+.nf-brand-mark{flex:none;display:grid;place-items:center;width:30px;height:30px;border:0;border-radius:9px;background:var(--nf-sidebar-muted);color:#fff;font-size:12.5px;font-weight:400;letter-spacing:0;line-height:1}
+/* Im dunklen Schema ist --nf-sidebar-muted hell (#9aa4b2, Weiß darauf nur 2,5:1); dort die dunklere Fläche wie im hellen Schema (5,9:1) */
+:root[data-theme='dark'] .nf-brand-mark{background:#5b6573}
 .nf-brand-text{display:flex;flex-direction:column;min-width:0}
 .nf-brand:hover{color:var(--nf-sidebar-text)}
 /* Schriftzug in Inter 400 (prototype/brand/Logo.html, Variante B) */
-.nf-logo{font-size:17px;font-weight:400;letter-spacing:-.01em;line-height:1.25}
+.nf-logo{font-size:16px;font-weight:400;letter-spacing:-.01em;line-height:1.25}
 .nf-tenant{font-size:12px;line-height:1.3;color:var(--nf-sidebar-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 button.nf-drawer-close,button.nf-drawer-open{display:none}
 .nf-backdrop{display:none}
@@ -272,6 +274,17 @@ button.nf-drawer-close,button.nf-drawer-open{display:none}
 .nf-invite-link-row{display:flex;align-items:center;gap:8px}
 .nf-invite-link-row code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:var(--nf-bg)!important;color:var(--nf-text)}
 .nf-dialog-foot-split{justify-content:space-between}
+/* Modus Bearbeiten / Lesen (Ausblick): Segment-Umschalter neben „Rechte“ */
+.nf-mode{display:inline-flex;align-items:center;height:38px;padding:3px;border:1px solid var(--nf-control-border);border-radius:8px;background:var(--nf-bg)}
+.nf-mode-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;width:32px;height:30px;padding:0;border:0;border-radius:6px;background:none;color:var(--nf-muted);font:inherit;font-size:13.5px;cursor:pointer}
+.nf-mode-btn:hover{color:var(--nf-text)}
+.nf-mode-btn[aria-pressed='true']{background:var(--nf-subtle);color:var(--nf-text);font-weight:500;box-shadow:inset 0 0 0 1px var(--nf-border)}
+/* Nur Icons; der Name steht im Tooltip und für Screenreader */
+.nf-mode-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+/* Lesemodus: keine Editor-Hilfen, kein Platzhalter */
+.nf-reading .nf-side-menu,.nf-reading .nf-drop-line{display:none}
+.nf-reading .nf-editable [data-ph]::before{content:none}
+.nf-reading .nf-editable{cursor:text}
 /* Übersicht (Startseite nach dem Login) */
 .nf-nav-current{background:var(--nf-sidebar-selected);color:var(--nf-sidebar-selected-text);font-weight:600}
 .nf-nav-current:hover{background:var(--nf-sidebar-selected);color:var(--nf-sidebar-selected-text)}
@@ -381,7 +394,7 @@ svg.nf-icon.nf-fav-section-star{color:var(--nf-fav)!important;fill:currentColor}
 /* Kein Favorit: grau (fällt sonst zu sehr auf); Favorit und Darüberfahren: ocker */
 .nf-btn.nf-btn-ghost.nf-page-star{color:var(--nf-muted)}
 .nf-btn.nf-btn-ghost.nf-page-star:hover,.nf-btn.nf-btn-ghost.nf-page-star[aria-pressed='true']{color:var(--nf-fav)}
-/* Immer mit Rahmen wie „Teilen“, beim Darüberfahren etwas dunkler */
+/* Immer mit Rahmen wie „Rechte“, beim Darüberfahren etwas dunkler */
 .nf-btn.nf-btn-ghost.nf-page-star,.nf-btn.nf-btn-ghost.nf-page-star[aria-pressed='true']{border-color:var(--nf-control-border)}
 .nf-btn.nf-btn-ghost.nf-page-star:hover{border-color:#b9c1cb}
 .nf-page-star[aria-pressed='true'] svg{fill:currentColor}
@@ -456,6 +469,20 @@ li.nf-grant-suggest-empty{color:var(--nf-muted);font-size:13px;cursor:default}
 .nf-field-hint{margin:4px 0 0;font-size:12px;color:var(--nf-muted)}
 .nf-field-error{margin:4px 0 0;font-size:12px;color:var(--nf-danger)}
 .nf-key-input{font-family:var(--nf-font-mono);text-transform:uppercase;max-width:200px}
+/* Rechte des Spaces (Startseite, Menü des Spaces): Band ohne Schalter, Liste der Seiten mit eigenen Rechten */
+.nf-rights-space-band{justify-content:flex-start;gap:12px}
+.nf-dialog-band.nf-rights-space-band .nf-rights-space-icon{display:inline-flex;align-items:center;justify-content:center;flex:none;width:32px;height:32px;border-radius:8px;background:var(--nf-accent-soft);color:var(--nf-accent)}
+.nf-rights-space-link{display:block;margin:4px 0 0 -6px;padding:2px 6px;border:0;border-radius:6px;background:none;color:var(--nf-accent);font:inherit;font-size:13px;cursor:pointer}
+.nf-rights-space-link:hover{background:var(--nf-accent-soft)}
+.nf-rights-own{margin:14px 0 8px;padding-top:12px;border-top:1px solid var(--nf-border)}
+.nf-rights-own-title{margin:0;font-size:13px;font-weight:600}
+.nf-rights-own-text{margin:2px 0 6px!important;font-size:13px;color:var(--nf-muted)}
+.nf-rights-own-list{margin:0;padding:0;list-style:none}
+.nf-rights-own-item{display:flex;align-items:center;gap:10px;width:100%;padding:6px 8px;border:0;border-radius:6px;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.nf-rights-own-item:hover{background:var(--nf-subtle)}
+.nf-rights-own-item .nf-icon{flex:none;color:var(--nf-restricted-fg)}
+.nf-rights-own-item .nf-grant-names{display:flex;flex-direction:column}
+.nf-rights-own-item .nf-grant-names span+span{font-size:12px;color:var(--nf-muted)}
 /* Editor (Prototyp): bearbeitbarer Bereich, Seitenmenü links am Block, „/“-Menü, Auswahl, Formatleiste */
 .nf-ed-wrap{position:relative}
 .nf-editable{outline:none;min-height:1.65em;padding-bottom:40px}
@@ -1115,6 +1142,36 @@ span.nf-page-emoji{cursor:default}
 .nf-imp-done-icon{display:grid;place-items:center;width:56px;height:56px;border-radius:50%;background:var(--nf-done-bg);color:var(--nf-done-fg)}
 .nf-imp-undo{margin-top:6px;color:var(--nf-attention);font-size:13px}
 @media (prefers-reduced-motion:reduce){.nf-imp-bar span{transition:none}}
+/* ---------- Benutzerprofil und persönliche Einstellungen (M2) ---------- */
+.nf-avatar-img{display:block;border-radius:50%;background-position:center;background-size:cover;background-repeat:no-repeat}
+.nf-avatar-btn .nf-avatar-img{width:100%;height:100%}
+.nf-avatar-btn{overflow:hidden}
+.nf-prof .nf-label:first-of-type{margin-top:18px}
+.nf-prof-photo{display:flex;align-items:center;gap:16px}
+.nf-prof-avatar{display:grid;place-items:center;flex:none;width:64px;height:64px;border-radius:50%;color:#fff;font-size:22px;font-weight:600;object-fit:cover}
+.nf-prof-photo-main{display:flex;flex-direction:column;gap:6px;min-width:0}
+.nf-prof-photo-actions{display:flex;flex-wrap:wrap;gap:6px}
+.nf-prof-help{margin:6px 0 0!important;font-size:12.5px;line-height:1.5;color:var(--nf-muted)}
+.nf-prof-email{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;min-height:38px;padding:0 12px;border:1px solid var(--nf-border);border-radius:8px;background:var(--nf-subtle);font-size:14px}
+.nf-prof-row{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.nf-field-error{margin:6px 0 0!important;font-size:12.5px;color:var(--nf-danger)}
+.nf-uset{display:flex;flex-direction:column;gap:22px;max-height:min(64vh,620px);overflow-y:auto}
+.nf-uset-h{margin:0 0 4px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--nf-muted)}
+.nf-uset-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--nf-border)}
+.nf-uset-row:last-child{border-bottom:0}
+.nf-uset-row>label,.nf-uset-row>span{display:flex;flex-direction:column;gap:2px;min-width:0;font-size:14px}
+.nf-uset-row>label>span,.nf-uset-row>span>span{font-size:12.5px;line-height:1.45;color:var(--nf-muted)}
+.nf-uset-row>select{flex:none;width:auto;min-width:170px;margin:0}
+.nf-uset-row>.nf-switch,.nf-uset-row>.nf-btn{flex:none}
+.nf-uset-notif{width:100%;border-collapse:collapse;font-size:14px}
+.nf-uset-notif thead th{padding:6px 8px;font-size:12px;font-weight:600;color:var(--nf-muted);text-align:center;white-space:nowrap}
+.nf-uset-notif tbody th{display:flex;flex-direction:column;gap:2px;padding:10px 8px 10px 0;font-weight:400;text-align:left}
+.nf-uset-notif tbody th span{font-size:12.5px;line-height:1.45;color:var(--nf-muted)}
+.nf-uset-notif td{width:96px;text-align:center;border-bottom:1px solid var(--nf-border)}
+.nf-uset-notif tbody th{border-bottom:1px solid var(--nf-border)}
+.nf-uset-notif input{width:17px;height:17px;accent-color:var(--nf-accent);cursor:pointer}
+.nf-uset-saved{display:inline-flex;align-items:center;gap:6px;margin-right:auto;font-size:13px;color:var(--nf-done-fg)}
+@media (max-width:599.98px){.nf-prof-row{grid-template-columns:1fr}.nf-uset-row{flex-wrap:wrap}.nf-uset-row>select{width:100%}}
 /* Formulare */
 .nf-label{display:block;margin:12px 0 6px;font-weight:500}
 .nf-input{height:38px;padding:0 10px;margin-right:8px;border:1px solid var(--nf-input-border);border-radius:8px;background:var(--nf-bg);font-size:14px}
@@ -1225,6 +1282,9 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
                   <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{sc.settings}}">
                     <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.69 3.28L6.89 1.7H9.11L9.31 3.28L10.41 3.74L11.67 2.76L13.24 4.33L12.26 5.59L12.72 6.69L14.3 6.89V9.11L12.72 9.31L12.26 10.41L13.24 11.67L11.67 13.24L10.41 12.26L9.31 12.72L9.11 14.3H6.89L6.69 12.72L5.59 12.26L4.33 13.24L2.76 11.67L3.74 10.41L3.28 9.31L1.7 9.11V6.89L3.28 6.69L3.74 5.59L2.76 4.33L4.33 2.76L5.59 3.74Z"></path><circle cx="8" cy="8" r="2.1"></circle></svg>
                     <span class="nf-menu-label">Einstellungen</span></button></li>
+                  <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{sc.rights}}">
+                    <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="5.5" r="2.5"></circle><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4"></path><path d="M10.5 3.2a2.5 2.5 0 010 4.6M12 9.8c1.3.6 2.2 1.9 2.5 3.7"></path></svg>
+                    <span class="nf-menu-label">Rechte</span></button></li>
                   <li role="none"><button type="button" role="menuitem" class="nf-menu-item" onClick="{{sc.copyLink}}">
                     <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.75 9.25a3 3 0 004.24 0l2-2a3 3 0 00-4.24-4.24l-.75.75"></path><path d="M9.25 6.75a3 3 0 00-4.24 0l-2 2a3 3 0 004.24 4.24l.75-.75"></path></svg>
                     <span class="nf-menu-label">Link kopieren</span></button></li>
@@ -1276,6 +1336,12 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
                     <a href="#" role="menuitem" class="nf-menu-item" onClick="{{si.settings}}">
                       <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.69 3.28L6.89 1.7H9.11L9.31 3.28L10.41 3.74L11.67 2.76L13.24 4.33L12.26 5.59L12.72 6.69L14.3 6.89V9.11L12.72 9.31L12.26 10.41L13.24 11.67L11.67 13.24L10.41 12.26L9.31 12.72L9.11 14.3H6.89L6.69 12.72L5.59 12.26L4.33 13.24L2.76 11.67L3.74 10.41L3.28 9.31L1.7 9.11V6.89L3.28 6.69L3.74 5.59L2.76 4.33L4.33 2.76L5.59 3.74Z"></path><circle cx="8" cy="8" r="2.1"></circle></svg>
                       <span class="nf-menu-label">Einstellungen</span>
+                    </a>
+                  </li>
+                  <li role="none">
+                    <a href="#" role="menuitem" class="nf-menu-item" onClick="{{si.rights}}">
+                      <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="5.5" r="2.5"></circle><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4"></path><path d="M10.5 3.2a2.5 2.5 0 010 4.6M12 9.8c1.3.6 2.2 1.9 2.5 3.7"></path></svg>
+                      <span class="nf-menu-label">Rechte</span>
                     </a>
                   </li>
                   <li role="separator" class="nf-menu-separator"></li>
@@ -1547,16 +1613,18 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
         </sc-if>
       </div>
       <div class="nf-user">
-        <button type="button" class="nf-avatar-btn" aria-label="Konto: Peter Forster" title="Peter Forster" aria-haspopup="menu" aria-expanded="{{userMenuExpanded}}" onClick="{{toggleUserMenu}}">
-          <span aria-hidden="true">PF</span>
+        <button type="button" class="nf-avatar-btn" aria-label="{{meLabel}}" title="{{meName}}" aria-haspopup="menu" aria-expanded="{{userMenuExpanded}}" onClick="{{toggleUserMenu}}">
+          <sc-if value="{{hasMeAvatar}}" hint-placeholder-val="{{ false }}"><span class="nf-avatar-img" style="background-image: {{meAvatarBg}}" aria-hidden="true"></span></sc-if>
+          <sc-if value="{{noMeAvatar}}" hint-placeholder-val="{{ true }}"><span aria-hidden="true">{{meInitials}}</span></sc-if>
         </button>
         <sc-if value="{{userMenuOpen}}" hint-placeholder-val="{{ false }}">
           <ul class="nf-menu nf-user-menu nf-account-menu" role="menu" aria-label="Konto">
             <li role="none" class="nf-menu-header">
-              <span class="nf-byline-avatar" style="background: #1F5FD6" aria-hidden="true">PF</span>
+              <sc-if value="{{hasMeAvatar}}" hint-placeholder-val="{{ false }}"><span class="nf-byline-avatar nf-avatar-img" style="background-image: {{meAvatarBg}}" aria-hidden="true"></span></sc-if>
+              <sc-if value="{{noMeAvatar}}" hint-placeholder-val="{{ true }}"><span class="nf-byline-avatar" style="background: #1F5FD6" aria-hidden="true">{{meInitials}}</span></sc-if>
               <span class="nf-menu-header-names">
-                <strong>Peter Forster</strong>
-                <span>peter.forster@alpenwerk.example</span>
+                <strong>{{meName}}</strong>
+                <span>{{meEmail}}</span>
                 <span>Alpenwerk · Organisations-Admin</span>
               </span>
             </li>
@@ -1633,7 +1701,14 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
             <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"></path></svg>
             <sc-if value="{{hasOpenComments}}" hint-placeholder-val="{{ true }}"><span class="nf-count" aria-hidden="true">{{openComments}}</span></sc-if>
           </button>
-          <!-- Teilen und Rechte: zeigt, ob die Seite eigene Rechte hat -->
+          <!-- Modus: Bearbeiten (Standard) oder Lesen; nur mit Bearbeitungsrecht -->
+          <sc-if value="{{mode.show}}" hint-placeholder-val="{{ true }}">
+            <div class="nf-mode" role="group" aria-label="Modus der Seite">
+              <button type="button" class="nf-mode-btn" aria-pressed="{{mode.editPressed}}" title="Bearbeiten" onClick="{{mode.toEdit}}"><svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.5 2.5l3 3L6 13H3v-3z"></path><path d="M9 4l3 3"></path></svg><span class="nf-mode-label">Bearbeiten</span></button>
+              <button type="button" class="nf-mode-btn" aria-pressed="{{mode.readPressed}}" title="Lesemodus: nichts versehentlich ändern" onClick="{{mode.toRead}}"><svg class="nf-icon" width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3.5c2-.8 4-.8 6 .5 2-1.3 4-1.3 6-.5v9c-2-.8-4-.8-6 .5-2-1.3-4-1.3-6-.5z"></path><path d="M8 4v9"></path></svg><span class="nf-mode-label">Lesen</span></button>
+            </div>
+          </sc-if>
+          <!-- Knopf „Rechte“: zeigt, ob die Seite eigene Rechte hat -->
           <button type="button" class="nf-btn nf-share {{share.cls}}" aria-haspopup="dialog" aria-label="{{share.aria}}" title="{{share.aria}}" onClick="{{openRights}}">
             <sc-if value="{{share.restricted}}" hint-placeholder-val="{{ false }}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg></sc-if>
             <sc-if value="{{share.open}}" hint-placeholder-val="{{ true }}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="5.5" r="2.5"></circle><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4"></path><path d="M10.5 3.2a2.5 2.5 0 010 4.6M12 9.8c1.3.6 2.2 1.9 2.5 3.7"></path></svg></sc-if>
@@ -1800,7 +1875,7 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
         </sc-if>
         <div class="nf-main-inner {{innerCls}}">
           <article>
-            <!-- „Eingeschränkt“ steht jetzt im Knopf „Teilen und Rechte“, nicht mehr über dem Titel -->
+            <!-- „Eingeschränkt“ steht jetzt im Knopf „Rechte“, nicht mehr über dem Titel -->
             <!-- Emoji und Titelbild (Ausblick): Knöpfe über dem Titel beim Darüberfahren, nur mit Bearbeitungsrecht -->
             <div class="nf-title-area">
               <sc-if value="{{look.canEdit}}" hint-placeholder-val="{{ true }}">
@@ -2019,8 +2094,8 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
               <!-- Editierbarer Bereich (Prototyp): leere Seiten ganz, andere ab dem Ende. Hier wirken
                    „/“-Menü, „[“, „@“, die Leiste beim Markieren, „+“ und Ziehpunkt links am Block.
                    Der Inhalt wird pro Seite gemerkt (nur in dieser Sitzung). -->
-              <sc-if value="{{page.editable}}" hint-placeholder-val="{{ true }}">
-                <div class="nf-ed-wrap" onMouseMove="{{ed.onMove}}" onMouseLeave="{{ed.onLeave}}">
+              <sc-if value="{{page.showEditArea}}" hint-placeholder-val="{{ true }}">
+                <div class="nf-ed-wrap {{page.readingCls}}" onMouseMove="{{ed.onMove}}" onMouseLeave="{{ed.onLeave}}">
                   <sc-if value="{{ed.side.show}}" hint-placeholder-val="{{ false }}">
                     <div class="nf-side-menu" style="top: {{ed.side.top}}px">
                       <button type="button" class="nf-side-btn" aria-label="Block darunter einfügen" title="Klicken: Block darunter einfügen" onMouseDown="{{ed.keepFocus}}" onClick="{{ed.side.plus}}">
@@ -2039,7 +2114,7 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
                       </sc-for>
                     </ul>
                   </sc-if>
-                  <div id="nf-editable" class="nf-editable" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Inhalt der Seite, bearbeitbar" spellcheck="true" onInput="{{ed.onInput}}" onKeyDown="{{ed.onKey}}" onClick="{{ed.onClick}}" onDragOver="{{ed.onDragOver}}" onDrop="{{ed.onDrop}}"></div>
+                  <div id="nf-editable" class="nf-editable" contenteditable="{{page.contentEditable}}" role="textbox" aria-multiline="true" aria-readonly="{{page.readonly}}" aria-label="{{page.editAreaLabel}}" spellcheck="{{edSpell}}" onInput="{{ed.onInput}}" onKeyDown="{{ed.onKey}}" onClick="{{ed.onClick}}" onDragOver="{{ed.onDragOver}}" onDrop="{{ed.onDrop}}"></div>
                   <sc-if value="{{ed.drop.show}}" hint-placeholder-val="{{ false }}">
                     <div class="nf-drop-line" style="top: {{ed.drop.top}}px"></div>
                   </sc-if>
@@ -2688,14 +2763,14 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
   </div>
 
   <!-- ============================== Dialoge ============================== -->
-  <!-- Teilen und Rechte (Ausblick M3; im Frontend vorerst ein Dialog mit Ausblick) -->
+  <!-- Rechte (Ausblick M3; im Frontend vorerst ein Dialog mit Ausblick) -->
   <sc-if value="{{rightsOpen}}" hint-placeholder-val="{{ false }}">
     <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
       <div class="nf-dialog" role="dialog" aria-modal="true" aria-labelledby="rights-title">
         <div class="nf-dialog-head">
           <div>
-            <h2 id="rights-title" class="nf-dialog-title">Rechte für „{{page.shownTitle}}“</h2>
-            <p class="nf-dialog-description">Wer diese Seite und ihre Unterseiten sehen und bearbeiten darf.</p>
+            <h2 id="rights-title" class="nf-dialog-title">{{rights.title}}</h2>
+            <p class="nf-dialog-description">{{rights.description}}</p>
           </div>
           <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
             <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
@@ -2712,13 +2787,28 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
             Ansehen als …
           </button>
         </div>
-        <div class="nf-dialog-band">
-          <div>
-            <strong>Eigene Rechte für diese Seite</strong>
-            <span>{{rights.inheritText}}</span>
+        <!-- Seite: Vererbung kappen. Space (Startseite, Menü des Spaces): kein Schalter, die Space-Rechte sind die Grundlage -->
+        <sc-if value="{{rights.isPage}}" hint-placeholder-val="{{ true }}">
+          <div class="nf-dialog-band">
+            <div>
+              <strong>Eigene Rechte für diese Seite</strong>
+              <span>{{rights.inheritText}}</span>
+              <sc-if value="{{rights.showSpaceLink}}" hint-placeholder-val="{{ true }}">
+                <button type="button" class="nf-rights-space-link" onClick="{{rights.openSpace}}">Rechte des Spaces öffnen</button>
+              </sc-if>
+            </div>
+            <button type="button" class="nf-switch" aria-pressed="{{rights.ownPressed}}" aria-label="Eigene Rechte für diese Seite" disabled="{{rights.locked}}" onClick="{{rights.toggleOwn}}"><span></span></button>
           </div>
-          <button type="button" class="nf-switch" aria-pressed="{{rights.ownPressed}}" aria-label="Eigene Rechte für diese Seite" disabled="{{rights.locked}}" onClick="{{rights.toggleOwn}}"><span></span></button>
-        </div>
+        </sc-if>
+        <sc-if value="{{rights.isSpace}}" hint-placeholder-val="{{ false }}">
+          <div class="nf-dialog-band nf-rights-space-band">
+            <span class="nf-rights-space-icon" aria-hidden="true"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="5.5" r="2.5"></circle><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4"></path><path d="M10.5 3.2a2.5 2.5 0 010 4.6M12 9.8c1.3.6 2.2 1.9 2.5 3.7"></path></svg></span>
+            <div>
+              <strong>Rechte des Spaces</strong>
+              <span>{{rights.spaceText}}</span>
+            </div>
+          </div>
+        </sc-if>
         <div class="nf-dialog-body" style="padding-top: 4px">
           <sc-for list="{{rights.grants}}" as="g" hint-placeholder-count="3">
             <div class="nf-grant">
@@ -2781,7 +2871,7 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
             </div>
           </sc-if>
           <sc-if value="{{rights.selfWarn}}" hint-placeholder-val="{{ false }}">
-            <p class="nf-rights-warn" role="status">Du nimmst dir selbst die Admin-Rechte. Danach kannst du die Rechte dieser Seite nicht mehr ändern; zurückgeben kann sie dir nur ein anderer Admin.</p>
+            <p class="nf-rights-warn" role="status">{{rights.selfWarnText}}</p>
           </sc-if>
           <sc-if value="{{rights.noAdmin}}" hint-placeholder-val="{{ false }}">
             <p class="nf-rights-error" role="alert">Mindestens eine Person oder Gruppe muss Admin bleiben, sonst lassen sich die Rechte nicht mehr ändern.</p>
@@ -2789,9 +2879,26 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
           <sc-if value="{{rights.hint}}" hint-placeholder-val="{{ true }}">
             <p class="nf-hint">{{rights.hintText}}</p>
           </sc-if>
+          <!-- Nur im Space: Seiten, die nicht erben (nur die, die du sehen kannst) -->
+          <sc-if value="{{rights.hasOwnPages}}" hint-placeholder-val="{{ false }}">
+            <section class="nf-rights-own" aria-labelledby="rights-own-title">
+              <h3 id="rights-own-title" class="nf-rights-own-title">{{rights.ownPagesTitle}}</h3>
+              <p class="nf-rights-own-text">Sie erben diese Rechte nicht; Änderungen hier gelten dort nicht.</p>
+              <ul class="nf-rights-own-list">
+                <sc-for list="{{rights.ownPages}}" as="op" hint-placeholder-count="2">
+                  <li>
+                    <button type="button" class="nf-rights-own-item" onClick="{{op.go}}">
+                      <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg>
+                      <span class="nf-grant-names"><span>{{op.title}}</span><span>{{op.sub}}</span></span>
+                    </button>
+                  </li>
+                </sc-for>
+              </ul>
+            </section>
+          </sc-if>
         </div>
         <div class="nf-dialog-foot">
-          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Abbrechen</button>
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">{{rights.cancelLabel}}</button>
           <sc-if value="{{rights.canSave}}" hint-placeholder-val="{{ true }}">
             <button type="button" class="nf-btn {{rights.saveCls}}" disabled="{{rights.saveDisabled}}" onClick="{{rights.save}}">{{rights.saveLabel}}</button>
           </sc-if>
@@ -3302,6 +3409,156 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
     </div>
   </sc-if>
 
+  <!-- Benutzerprofil (M2, E02): Profilbild, Name, E-Mail aus dem Login-Dienst, Sprache, Zeitzone -->
+  <sc-if value="{{prof.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <form class="nf-dialog" role="dialog" aria-modal="true" aria-labelledby="prof-title" onSubmit="{{prof.submit}}">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="prof-title" class="nf-dialog-title">Benutzerprofil</h2>
+            <p class="nf-dialog-description">So sehen dich andere in Alpenwerk: in der Byline, bei Kommentaren, Erwähnungen und Benachrichtigungen.</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body nf-prof">
+          <div class="nf-prof-photo">
+            <sc-if value="{{prof.hasAvatar}}" hint-placeholder-val="{{ false }}"><span class="nf-prof-avatar nf-avatar-img" style="background-image: {{prof.avatarBg}}" role="img" aria-label="Dein Profilbild"></span></sc-if>
+            <sc-if value="{{prof.noAvatar}}" hint-placeholder-val="{{ true }}"><span class="nf-prof-avatar" style="background: {{prof.color}}" aria-hidden="true">{{prof.initials}}</span></sc-if>
+            <div class="nf-prof-photo-main">
+              <div class="nf-prof-photo-actions">
+                <button type="button" class="nf-btn nf-btn-sm" onClick="{{prof.pickFile}}">Bild hochladen …</button>
+                <sc-if value="{{prof.hasAvatar}}" hint-placeholder-val="{{ false }}"><button type="button" class="nf-btn nf-btn-sm nf-btn-ghost" onClick="{{prof.removeAvatar}}">Entfernen</button></sc-if>
+              </div>
+              <input id="prof-file" type="file" accept="image/png,image/jpeg,image/gif,image/webp" hidden onChange="{{prof.onFile}}">
+              <span class="nf-prof-help">PNG, JPEG, GIF oder WebP, höchstens 5 MB. Ohne Bild zeigen wir deine Initialen.</span>
+            </div>
+          </div>
+
+          <label class="nf-label" for="prof-name">Name</label>
+          <input id="prof-name" class="nf-input nf-input-wide" maxlength="100" required autocomplete="name" value="{{prof.name}}" onInput="{{prof.onName}}">
+          <sc-if value="{{prof.nameEmpty}}" hint-placeholder-val="{{ false }}"><p class="nf-field-error" role="alert">Der Name darf nicht leer sein.</p></sc-if>
+
+          <span class="nf-label">E-Mail-Adresse</span>
+          <div class="nf-prof-email">
+            <span>{{prof.email}}</span>
+            <button type="button" class="nf-link-btn" onClick="{{prof.emailToast}}">Im Login-Dienst ändern</button>
+          </div>
+          <p class="nf-prof-help">E-Mail-Adresse, Passwort und Zwei-Faktor gehören zum Login-Dienst; NoteFieber speichert kein Passwort.</p>
+
+          <div class="nf-prof-row">
+            <div>
+              <label class="nf-label" for="prof-locale">Sprache</label>
+              <select id="prof-locale" class="nf-input nf-input-wide" value="{{prof.locale}}" onChange="{{prof.onLocale}}">
+                <option value="de">Deutsch</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+            <div>
+              <label class="nf-label" for="prof-tz">Zeitzone</label>
+              <select id="prof-tz" class="nf-input nf-input-wide" value="{{prof.tz}}" onChange="{{prof.onTz}}">
+                <sc-for list="{{prof.tzOptions}}" as="o" hint-placeholder-count="4"><option value="{{o.key}}">{{o.label}}</option></sc-for>
+              </select>
+            </div>
+          </div>
+          <p class="nf-prof-help">{{prof.tzNow}} Die Sprache gilt für die Oberfläche und die Anmeldeseite, die Zeitzone für alle Zeitangaben (Byline, Versionen, Papierkorb, Benachrichtigungen und E-Mails).</p>
+        </div>
+        <div class="nf-dialog-foot">
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Abbrechen</button>
+          <button type="submit" class="nf-btn nf-btn-primary" disabled="{{prof.cantSave}}">Speichern</button>
+        </div>
+      </form>
+    </div>
+  </sc-if>
+
+  <!-- Persönliche Einstellungen (M2, E15): wirken sofort, ohne Speichern-Knopf -->
+  <sc-if value="{{uset.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <div class="nf-dialog nf-dialog-wide" role="dialog" aria-modal="true" aria-labelledby="uset-title">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="uset-title" class="nf-dialog-title">Persönliche Einstellungen</h2>
+            <p class="nf-dialog-description">Gelten nur für dich und werden sofort übernommen.</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body nf-uset">
+          <section aria-labelledby="us-look-h">
+            <h3 id="us-look-h" class="nf-uset-h">Darstellung</h3>
+            <div class="nf-uset-row">
+              <label for="us-theme"><strong>Farbschema</strong><span>Wie im Zahnrad-Menü; „System“ folgt dem Betriebssystem.</span></label>
+              <select id="us-theme" class="nf-input" value="{{uset.themeValue}}" onChange="{{uset.onTheme}}">
+                <option value="light">Hell</option><option value="dark">Dunkel</option><option value="system">System</option>
+              </select>
+            </div>
+            <div class="nf-uset-row">
+              <label for="us-sub"><strong>Unterseiten unter einer Seite</strong><span>Darstellung im Fuß jeder Seite.</span></label>
+              <select id="us-sub" class="nf-input" value="{{uset.subView.value}}" onChange="{{uset.subView.change}}">
+                <option value="cards">Karten</option><option value="list">Liste</option>
+              </select>
+            </div>
+            <div class="nf-uset-row">
+              <label for="us-fav"><strong>Favoriten</strong><span>Darstellung unter „Favoriten“.</span></label>
+              <select id="us-fav" class="nf-input" value="{{uset.favView.value}}" onChange="{{uset.favView.change}}">
+                <option value="cards">Karten</option><option value="list">Liste</option>
+              </select>
+            </div>
+            <div class="nf-uset-row">
+              <span id="us-cm-l"><strong>Kommentarspalte von selbst öffnen</strong><span>Wenn eine Seite offene Kommentare hat und der Bildschirm breit genug ist (ab 1280 px).</span></span>
+              <button type="button" class="nf-switch" aria-labelledby="us-cm-l" aria-pressed="{{uset.commentsAuto.pressed}}" onClick="{{uset.commentsAuto.toggle}}"><span></span></button>
+            </div>
+          </section>
+
+          <section aria-labelledby="us-ed-h">
+            <h3 id="us-ed-h" class="nf-uset-h">Editor</h3>
+            <div class="nf-uset-row">
+              <span id="us-md-l"><strong>Markdown-Kürzel</strong><span># für Überschriften, - für Listen, [] für Aufgaben, &gt; für Zitate am Anfang eines Absatzes.</span></span>
+              <button type="button" class="nf-switch" aria-labelledby="us-md-l" aria-pressed="{{uset.markdown.pressed}}" onClick="{{uset.markdown.toggle}}"><span></span></button>
+            </div>
+            <div class="nf-uset-row">
+              <span id="us-sp-l"><strong>Rechtschreibprüfung</strong><span>Die des Browsers; markiert Tippfehler beim Schreiben.</span></span>
+              <button type="button" class="nf-switch" aria-labelledby="us-sp-l" aria-pressed="{{uset.spellcheck.pressed}}" onClick="{{uset.spellcheck.toggle}}"><span></span></button>
+            </div>
+            <div class="nf-uset-row">
+              <span><strong>Tastenkürzel</strong><span>Übersicht aller Kürzel.</span></span>
+              <button type="button" class="nf-btn nf-btn-sm" aria-haspopup="dialog" onClick="{{uset.openShortcuts}}">Anzeigen</button>
+            </div>
+          </section>
+
+          <section id="us-notif" aria-labelledby="us-notif-h">
+            <h3 id="us-notif-h" class="nf-uset-h">Benachrichtigungen</h3>
+            <table class="nf-uset-notif">
+              <thead><tr><th scope="col"><span class="nf-visually-hidden">Art</span></th><th scope="col">Im Wiki</th><th scope="col">Per E-Mail</th></tr></thead>
+              <tbody>
+                <sc-for list="{{uset.notif}}" as="n" hint-placeholder-count="4">
+                  <tr>
+                    <th scope="row"><strong>{{n.label}}</strong><span>{{n.hint}}</span></th>
+                    <td><input type="checkbox" aria-label="{{n.appLabel}}" checked="{{n.app}}" onChange="{{n.toggleApp}}"></td>
+                    <td><input type="checkbox" aria-label="{{n.mailLabel}}" checked="{{n.mail}}" onChange="{{n.toggleMail}}"></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+            <div class="nf-uset-row">
+              <label for="us-digest"><strong>E-Mails</strong><span>Wie oft E-Mails zu den oben gewählten Arten kommen.</span></label>
+              <select id="us-digest" class="nf-input" value="{{uset.digest}}" onChange="{{uset.onDigest}}">
+                <option value="instant">Sofort</option><option value="daily">Einmal am Tag gesammelt</option><option value="never">Nie</option>
+              </select>
+            </div>
+            <p class="nf-prof-help">Benachrichtigungen gibt es nur zu Seiten, die du lesen darfst. Abgeschaltete Arten fehlen auch in der Glocke.</p>
+          </section>
+        </div>
+        <div class="nf-dialog-foot">
+          <sc-if value="{{uset.saved}}" hint-placeholder-val="{{ false }}"><span class="nf-uset-saved" role="status"><svg class="nf-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"></path></svg>Gespeichert</span></sc-if>
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Fertig</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
   <!-- ============================== Editor: schwebende Elemente ============================== -->
   <!-- „/“-Menü: Blöcke nach Gruppen, filtert beim Weitertippen; ↑↓ Enter Esc -->
   <sc-if value="{{ed.slash.open}}" hint-placeholder-val="{{ false }}">
@@ -3561,8 +3818,6 @@ const INVITE_STATUS = { open: 'offen', accepted: 'angenommen', revoked: 'zurück
 // Dialoge mit Ausblick (wie im Frontend: was dort entsteht)
 const SOON = {
   export: (t) => ({ title: '„' + t + '“ exportieren', text: 'Bald lässt sich die Seite hier als Markdown, als BlockNote-JSON oder als ZIP mit allen Bildern herunterladen.' }),
-  profile: () => ({ title: 'Benutzerprofil', text: 'Bald lassen sich hier Name, Profilbild und Zeitzone ändern. E-Mail und Passwort verwaltet der Login-Dienst.' }),
-  userSettings: () => ({ title: 'Einstellungen', text: 'Bald stehen hier persönliche Einstellungen, z. B. Benachrichtigungen bei Erwähnungen und Kommentaren.' }),
   shortcuts: () => ({ title: 'Tastenkürzel', text: 'Strg K Suche · F2 Seite umbenennen · Entf Seite in den Papierkorb · / Befehle im Editor · [ Seitenlink · @ Person erwähnen' })
 };
 const CALLOUT = {
@@ -3958,6 +4213,17 @@ class Component extends DCLogic {
       tplTarget: null,
       tplUse: null,
       tplSaveDraft: null,
+      // Angemeldete Person (Profil) und persönliche Einstellungen
+      me: { name: 'Peter Forster', email: 'peter.forster@alpenwerk.example', avatar: null, tz: 'Europe/Vienna' },
+      profDraft: null,
+      prefs: (() => {
+        const def = { commentsAuto: false, markdown: true, spellcheck: true, digest: 'daily',
+          notif: { mention: { app: true, mail: true }, reply: { app: true, mail: false }, comment: { app: true, mail: false }, share: { app: true, mail: true } } };
+        try { const v = JSON.parse(localStorage.getItem('nf-proto-prefs')); return v && v.notif ? { ...def, ...v } : def; } catch (err) { return def; }
+      })(),
+      prefsSaved: null,
+      // Lesemodus (Standard: Bearbeiten); gilt für alle Seiten, bis man zurückschaltet
+      readMode: false,
       // Favoriten-Ansicht: Suche, nach Space gruppieren, Karten oder Liste (gemerkt im Browser)
       favQ: '',
       favGroup: false,
@@ -4126,7 +4392,11 @@ class Component extends DCLogic {
   prevent(e) { if (e && e.preventDefault) e.preventDefault(); }
   focusLater(sel) { setTimeout(() => { const el = document.querySelector(sel); if (el) el.focus(); }, 30); }
 
-  go(id) { this.setState((st) => ({ current: id, space: st.pages[id].space, view: 'page', menu: null, spaceMenu: false, drawer: false, versions: null, reactPicker: false, lookPop: null })); }
+  go(id) {
+    // Persönliche Einstellung: Kommentarspalte bei offenen Kommentaren von selbst öffnen (nur breite Fenster)
+    const auto = (st) => st.prefs.commentsAuto && typeof innerWidth !== 'undefined' && innerWidth >= 1280 && (st.threads[id] || []).some((t) => !t.resolved);
+    this.setState((st) => ({ current: id, space: st.pages[id].space, view: 'page', menu: null, spaceMenu: false, drawer: false, versions: null, reactPicker: false, lookPop: null, ...(auto(st) ? { commentsOpen: true } : {}) }));
+  }
 
   // ---------- Versionen (Prototyp) ----------
   versionList(pid) {
@@ -4350,7 +4620,9 @@ class Component extends DCLogic {
   // ---------- Benachrichtigungen (Ausblick, E16) ----------
   notifVals() {
     const s = this.state, P = s.pages;
-    const visible = s.notifs.filter((n) => P[n.page] && this.role(n.page) && !s.trash.some((t) => this.chain(n.page).includes(t.id)));
+    // Arten, die in den persönlichen Einstellungen für „Im Wiki“ abgeschaltet sind, fehlen
+    const allowed = (n) => !s.prefs.notif[n.kind] || s.prefs.notif[n.kind].app;
+    const visible = s.notifs.filter((n) => allowed(n) && P[n.page] && this.role(n.page) && !s.trash.some((t) => this.chain(n.page).includes(t.id)));
     const unread = visible.filter((n) => n.unread).length;
     const list = s.notifFilter === 'unread' ? visible.filter((n) => n.unread) : visible;
     const markRead = (ids) => this.setState((st) => ({ notifs: st.notifs.map((n) => (ids.includes(n.id) ? { ...n, unread: false } : n)) }));
@@ -4394,7 +4666,7 @@ class Component extends DCLogic {
           }
         };
       }),
-      settings: () => this.setState({ notifOpen: false, dialog: 'userSettings' })
+      settings: () => this.openUserSettings('us-notif')
     };
   }
   // ---------- Fuß der Seite (Prototyp) ----------
@@ -4619,14 +4891,29 @@ class Component extends DCLogic {
     this.setState((st) => ({ pages: { ...st.pages, [id]: { ...st.pages[id], title, editor: 'peter', when: 'gerade eben' } } }));
   }
 
-  openRights() {
-    const s = this.state; const cur = s.current;
+  /** Rechte-Dialog. Auf der Startseite (oder mit spaceKey aus dem Menü eines Spaces) zeigt er die
+      Rechte des Spaces: Die Startseite ist die Wurzel des Seitenbaums, eigene Rechte dort wären nur
+      eine zweite Fassung der Space-Rechte. Aus einem anderen Space oder der Übersicht geht es
+      vorher auf dessen Startseite, damit „Ansehen als …“ denselben Space zeigt. */
+  openRights(spaceKey) {
+    const s = this.state;
+    const base = { query: '', addRole: 'viewer', addOpen: false, addActive: 0 };
+    const key = spaceKey || s.space;
+    const sp = s.spaces[key];
+    if (spaceKey || s.current === sp.home) {
+      const list = s.grants['space:' + key] || [];
+      const nav = key !== s.space || s.view !== 'page' ? { space: key, current: sp.home, view: 'page', versions: null } : {};
+      this.setState({ ...nav, spaceMenu: false, spaceSub: null, sideMenu: null, drawer: false, dialog: 'rights', rightsDraft: { ...base, scope: 'space', own: true, grants: list.map((g) => ({ ...g })) } });
+      return;
+    }
+    const cur = s.current;
     const own = !!s.grants[cur];
     const list = s.grants[cur] || s.grants[this.source(cur, false)] || [];
-    this.setState({ dialog: 'rights', rightsDraft: { own, grants: list.map((g) => ({ ...g })), query: '', addRole: 'viewer', addOpen: false, addActive: 0 } });
+    this.setState({ dialog: 'rights', rightsDraft: { ...base, scope: 'page', own, grants: list.map((g) => ({ ...g })) } });
   }
+  /** fromRights: 'space' bzw. 'page', wenn „Zurück zu den Rechten“ dorthin führen soll */
   openViewAs(fromRights) {
-    this.setState((st) => ({ dialog: 'viewAs', viewAsBack: !!fromRights, viewAsWho: st.viewAsWho || 'max' }));
+    this.setState((st) => ({ dialog: 'viewAs', viewAsBack: fromRights || false, viewAsWho: st.viewAsWho || 'max' }));
   }
 
   openSpaceSettings(key) {
@@ -4995,6 +5282,7 @@ class Component extends DCLogic {
   }
   /** Markdown-Kürzel am Anfang eines Absatzes: #, ##, ###, -, 1., [], >, ```, --- und Leerzeichen */
   edMarkdown() {
+    if (!this.state.prefs.markdown) return false; // persönliche Einstellung „Markdown-Kürzel“
     const sel = getSelection();
     if (!sel.rangeCount || !sel.isCollapsed) return false;
     const blk = this.edBlockOf(sel.anchorNode);
@@ -5671,6 +5959,7 @@ class Component extends DCLogic {
         moreCls: s.sideMenu === x.key ? 'nf-open' : '',
         toggleMenu: (e) => { this.stop(e); this.setState((st) => ({ sideMenu: st.sideMenu === x.key ? null : x.key, userMenu: false, settingsMenu: false })); },
         settings: () => this.openSpaceSettings(x.key),
+        rights: () => this.openRights(x.key),
         copyLink: () => {
           try { navigator.clipboard.writeText(location.origin + '/s/' + x.key.toLowerCase()).catch(() => {}); } catch (err) { /* nur Rückmeldung */ }
           this.setState({ sideMenu: null });
@@ -6235,6 +6524,120 @@ class Component extends DCLogic {
       undo: () => this.undoImport()
     };
   }
+  // ---------- Benutzerprofil und persönliche Einstellungen (M2: Profil aus E02, Einstellungen aus E15) ----------
+  // Profil: users.display_name, avatar_file_id, locale, time_zone (eigene Zeile, wiki_app darf sie ändern).
+  // E-Mail und Anmeldung gehören dem Login-Dienst. Einstellungen: im Prototyp im Browser (nf-proto-prefs);
+  // im Produkt pro Person in der Datenbank (Vorschlag: users.settings als JSON, eigene Zeile).
+  openProfile() {
+    this.setState({ dialog: 'profile', profDraft: null, userMenu: false, settingsMenu: false });
+    this.focusLater('#prof-name');
+  }
+  openUserSettings(section) {
+    this.setState({ dialog: 'userSettings', userMenu: false, settingsMenu: false, notifOpen: false, prefsSaved: null });
+    if (section) setTimeout(() => { const el = document.getElementById(section); if (el) { el.scrollIntoView({ block: 'start' }); const f = el.querySelector('input, select, button'); if (f) f.focus(); } }, 60);
+  }
+  setPrefs(patch) {
+    this.setState((st) => {
+      const prefs = { ...st.prefs, ...patch };
+      try { localStorage.setItem('nf-proto-prefs', JSON.stringify(prefs)); } catch (err) { /* nur diese Sitzung */ }
+      return { prefs, prefsSaved: Date.now() };
+    });
+  }
+  profileVals() {
+    const s = this.state, me = s.me;
+    const d = s.profDraft || { name: me.name, avatar: me.avatar, tz: me.tz, locale: s.locale || 'de' };
+    const set = (patch) => this.setState((st) => ({ profDraft: { ...(st.profDraft || d), ...patch } }));
+    const name = d.name.trim();
+    const dirty = name !== me.name || d.avatar !== me.avatar || d.tz !== me.tz || d.locale !== (s.locale || 'de');
+    const TZ = [
+      ['Europe/Vienna', 'Wien'], ['Europe/Berlin', 'Berlin'], ['Europe/Zurich', 'Zürich'], ['Europe/Amsterdam', 'Amsterdam'],
+      ['Europe/Paris', 'Paris'], ['Europe/Warsaw', 'Warschau'], ['Europe/Helsinki', 'Helsinki'], ['Europe/Lisbon', 'Lissabon'],
+      ['Europe/London', 'London'], ['UTC', 'UTC'], ['America/New_York', 'New York']
+    ];
+    const fmt = (tz) => { try { return new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit', timeZone: tz }).format(new Date()); } catch (err) { return ''; } };
+    const off = (tz) => { try { const p = new Intl.DateTimeFormat('de-DE', { timeZone: tz, timeZoneName: 'shortOffset' }).formatToParts(new Date()).find((x) => x.type === 'timeZoneName'); return p ? p.value.replace('GMT', 'UTC') : ''; } catch (err) { return ''; } };
+    return {
+      open: s.dialog === 'profile',
+      name: d.name,
+      onName: (e) => set({ name: e.target.value }),
+      nameEmpty: !name,
+      initials: initials(name || me.name),
+      color: '#1F5FD6',
+      avatar: d.avatar || '',
+      avatarBg: d.avatar ? 'url("' + d.avatar + '")' : 'none',
+      hasAvatar: !!d.avatar, noAvatar: !d.avatar,
+      pickFile: () => { const f = document.getElementById('prof-file'); if (f) f.click(); },
+      onFile: (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        if (!/^image\/(png|jpeg|gif|webp)$/.test(file.type)) { this.showToast('Nur PNG, JPEG, GIF oder WebP'); return; }
+        if (file.size > 5 * 1024 * 1024) { this.showToast('Höchstens 5 MB'); return; }
+        // Im Prototyp nur im Browser (blob:); im Frontend über die Datei-API, eingetragen als avatar_file_id
+        set({ avatar: URL.createObjectURL(file) });
+      },
+      removeAvatar: () => set({ avatar: null }),
+      email: me.email,
+      locale: d.locale,
+      onLocale: (e) => set({ locale: e.target.value }),
+      tz: d.tz,
+      onTz: (e) => set({ tz: e.target.value }),
+      tzOptions: TZ.map(([key, label]) => ({ key, label: label + ' (' + off(key) + ')' })),
+      tzNow: 'Bei dir ist es jetzt ' + fmt(d.tz) + ' Uhr.',
+      emailToast: () => this.showToast('E-Mail und Passwort änderst du im Login-Dienst (Ausblick)'),
+      cantSave: !dirty || !name,
+      submit: (e) => {
+        this.prevent(e);
+        if (!name) return;
+        PEOPLE.peter.name = name;
+        this.setState({ me: { ...me, name, avatar: d.avatar, tz: d.tz }, locale: d.locale, profDraft: null, dialog: null });
+        this.showToast('Profil gespeichert');
+      }
+    };
+  }
+  settingsVals() {
+    const s = this.state, p = s.prefs;
+    const sw = (key) => ({ pressed: p[key] ? 'true' : 'false', toggle: () => this.setPrefs({ [key]: !p[key] }) });
+    const NOTIF = [
+      ['mention', 'Erwähnungen', 'Jemand erwähnt dich mit @ auf einer Seite oder in einem Kommentar.'],
+      ['reply', 'Antworten', 'In Threads, in denen du geschrieben hast oder denen du folgst.'],
+      ['comment', 'Kommentare an deinen Seiten', 'Neue Kommentare an Seiten, die du angelegt hast.'],
+      ['share', 'Geteilte Seiten', 'Jemand gibt dir Zugriff auf eine Seite oder einen Space.']
+    ];
+    const setNotif = (k, ch) => this.setPrefs({ notif: { ...p.notif, [k]: { ...p.notif[k], [ch]: !p.notif[k][ch] } } });
+    const views = (key, storeKey) => ({
+      value: s[key],
+      change: (e) => {
+        const v = e.target.value;
+        try { localStorage.setItem(storeKey, v); } catch (err) { /* nur diese Sitzung */ }
+        this.setState({ [key]: v, prefsSaved: Date.now() });
+      }
+    });
+    return {
+      open: s.dialog === 'userSettings',
+      saved: !!s.prefsSaved,
+      themeValue: s.theme,
+      onTheme: (e) => {
+        const v = e.target.value;
+        try { localStorage.setItem('nf-proto-theme', v); } catch (err) { /* nur diese Sitzung */ }
+        this.setState({ theme: v, prefsSaved: Date.now() });
+      },
+      subView: views('subView', 'nf-proto-subview'),
+      favView: views('favView', 'nf-proto-favview'),
+      commentsAuto: sw('commentsAuto'),
+      markdown: sw('markdown'),
+      spellcheck: sw('spellcheck'),
+      notif: NOTIF.map(([key, label, hint]) => ({
+        label, hint,
+        app: !!p.notif[key].app, mail: !!p.notif[key].mail,
+        appLabel: label + ': im Wiki', mailLabel: label + ': per E-Mail',
+        toggleApp: () => setNotif(key, 'app'),
+        toggleMail: () => setNotif(key, 'mail')
+      })),
+      digest: p.digest,
+      onDigest: (e) => this.setPrefs({ digest: e.target.value }),
+      openShortcuts: () => this.setState({ dialog: 'shortcuts' })
+    };
+  }
   // ---------- Werte für die Vorlage ----------
   renderVals() {
     const s = this.state;
@@ -6340,6 +6743,7 @@ class Component extends DCLogic {
         this.prevent(e);
         this.openSpaceSettings(x.key);
       },
+      rights: (e) => { this.prevent(e); this.openRights(x.key); },
       // Archivieren direkt im Menü (mit Rückfrage), archivierte Spaces direkt zurückholen
       archiveLabel: x.archived ? 'Zurückholen' : 'Archivieren',
       archivePopup: x.archived ? 'false' : 'dialog',
@@ -6365,7 +6769,10 @@ class Component extends DCLogic {
     const pageLoading = isPage && !vmode && !this._loaded.has(pid) && !String(pid).startsWith('neu');
     if (pageLoading) this.scheduleLoad('p:' + pid, this._loaded.size ? 380 : 650, () => this._loaded.add(pid));
     const myRole = this.role(pid);
-    const editable = !sp.archived && this.canEdit(pid);
+    // Lesemodus: wer bearbeiten darf, kann die Seite trotzdem nur lesen (nichts versehentlich ändern)
+    const canEditPage = !sp.archived && this.canEdit(pid);
+    const reading = isPage && canEditPage && !!s.readMode;
+    const editable = canEditPage && !reading;
     const restricted = this.chain(pid).some((x) => s.grants[x]);
     const author = PEOPLE[p.author];
     const editor = PEOPLE[p.editor];
@@ -6379,7 +6786,7 @@ class Component extends DCLogic {
       emptyReadonly: !editable && (restoredBody ? restoredBody.length === 0 : !p.body && p.text.length === 0)
     };
     // Bearbeitbaren Bereich mit dem Entwurf dieser Seite füllen (nach dem Rendern)
-    if (isPage && editable && !vmode && !pageLoading) this.edSync(pid);
+    if (isPage && canEditPage && !vmode && !pageLoading) this.edSync(pid);
     // Leerer Space: Startseite ohne Inhalt und ohne lesbare Unterseiten
     const welcomeShow = isPage && pid === homeId && body.empty && !P[homeId].kids.some((k) => this.role(k));
     const tplSave = this.tplSaveVals(pid, sp);
@@ -6420,10 +6827,31 @@ class Component extends DCLogic {
     let rights = {};
     if (s.dialog === 'rights' && s.rightsDraft) {
       const d = s.rightsDraft;
-      const locked = myRole !== 'admin';
+      // Space-Rechte (Startseite oder Menü des Spaces): ohne Schalter, gelten für alle Seiten ohne eigene Rechte
+      const isSpace = d.scope === 'space';
+      const spaceRole = this.effRole(s.grants['space:' + sp.key], 'peter', sp.archived);
+      const locked = (isSpace ? spaceRole : myRole) !== 'admin';
       const srcId = this.source(pid, false);
-      const from = srcId.startsWith('space:') ? 'vom Space „' + sp.name + '“' : 'von „' + shown(P[srcId].title) + '“';
-      const editableGrants = d.own && !locked;
+      const fromSpace = srcId.startsWith('space:');
+      const from = fromSpace ? 'vom Space „' + sp.name + '“' : 'von „' + shown(P[srcId].title) + '“';
+      const editableGrants = (isSpace || d.own) && !locked;
+      // Seiten mit eigenen Rechten im Space: erben die Space-Rechte nicht. Nur die, die du sehen
+      // kannst (wie app.view_as: fremde eingeschränkte Seiten fehlen ganz, auch nicht als Zahl)
+      const trashedIds = new Set(s.trash.map((t) => t.id));
+      const ownPages = [];
+      const walkOwn = (id) => {
+        if (trashedIds.has(id)) return;
+        if (id !== homeId && s.grants[id] && this.role(id)) {
+          const parent = P[id].parent;
+          ownPages.push({
+            title: shown(P[id].title),
+            sub: 'unter „' + (parent === homeId ? 'Startseite' : shown(P[parent].title)) + '“',
+            go: () => { this.setState({ dialog: null, rightsDraft: null }); this.go(id); }
+          });
+        }
+        P[id].kids.forEach(walkOwn);
+      };
+      if (isSpace) walkOwn(homeId);
       const setDraft = (patch) => this.setState((st) => ({ rightsDraft: { ...st.rightsDraft, ...patch } }));
       const initialsOf = (key) => (key === 'grp' ? 'GE' : key === 'ws' ? 'AW' : initials(SUBJECTS[key].name));
       const subOf = (key) => {
@@ -6462,11 +6890,24 @@ class Component extends DCLogic {
       const suggestOpen = !!d.addOpen && (words.length > 0 || candidates.length > 0);
 
       rights = {
+        isSpace,
+        isPage: !isSpace,
+        title: isSpace ? 'Rechte für den Space „' + sp.name + '“' : 'Rechte für „' + shown(P[pid].title) + '“',
+        description: isSpace
+          ? 'Gelten für die Startseite und alle Seiten darunter, außer für Seiten mit eigenen Rechten.'
+          : 'Wer diese Seite und ihre Unterseiten sehen und bearbeiten darf.',
+        spaceText: 'Alle Seiten erben sie. Admins des Spaces verwalten auch seine Einstellungen.',
+        ownPages,
+        hasOwnPages: ownPages.length > 0,
+        ownPagesTitle: ownPages.length === 1 ? '1 Seite mit eigenen Rechten' : ownPages.length + ' Seiten mit eigenen Rechten',
+        // Seite erbt vom Space: Sprung zu den Space-Rechten
+        showSpaceLink: !isSpace && !d.own && fromSpace,
+        openSpace: () => this.openRights(sp.key),
         locked,
         ownPressed: d.own ? 'true' : 'false',
         inheritText: d.own ? 'Gilt für diese Seite und ihre Unterseiten.' : 'Erbt die Rechte ' + from + '.',
         summary,
-        viewAs: () => this.openViewAs(true),
+        viewAs: () => this.openViewAs(isSpace ? 'space' : 'page'),
         grants: d.grants.map((g, i) => {
           const subj = SUBJECTS[g.key];
           return {
@@ -6518,12 +6959,18 @@ class Component extends DCLogic {
         noSuggest: suggestOpen && candidates.length === 0,
         noSuggestText: 'Niemand mit „' + d.query.trim() + '“ im Workspace, oder schon in der Liste',
         selfWarn: selfWarn && !noAdmin,
+        selfWarnText: isSpace
+          ? 'Du nimmst dir selbst die Admin-Rechte für diesen Space. Danach kannst du seine Rechte und Einstellungen nicht mehr ändern; zurückgeben kann sie dir nur ein anderer Admin des Spaces oder ein Organisations-Admin.'
+          : 'Du nimmst dir selbst die Admin-Rechte. Danach kannst du die Rechte dieser Seite nicht mehr ändern; zurückgeben kann sie dir nur ein anderer Admin.',
         noAdmin,
         hint: !editableGrants,
-        hintText: locked
+        hintText: locked && isSpace
+          ? 'Rechte des Spaces ändern nur seine Admins. Deine Rolle: ' + (spaceRole ? ROLE_LABEL[spaceRole] : '–') + '.'
+          : locked
           ? 'Rechte ändern nur Admins dieser Seite bzw. dieses Spaces. Deine Rolle: ' + (myRole ? ROLE_LABEL[myRole] : '–') + '.'
           : 'Um nur einzelnen Personen Zugriff zu geben, schalte „Eigene Rechte“ ein. Die bisherigen Rechte werden übernommen und lassen sich dann einschränken.',
         canSave: !locked,
+        cancelLabel: locked ? 'Schließen' : 'Abbrechen',
         saveDisabled: noAdmin,
         saveCls: selfWarn && !noAdmin ? 'nf-btn-attention' : 'nf-btn-primary',
         saveLabel: selfWarn && !noAdmin ? 'Trotzdem speichern' : 'Speichern',
@@ -6542,11 +6989,13 @@ class Component extends DCLogic {
           if (noAdmin) return;
           this.setState((st) => {
             const grants = { ...st.grants };
-            if (st.rightsDraft.own) grants[pid] = st.rightsDraft.grants.filter((g) => g.role !== 'none');
+            const list = st.rightsDraft.grants.filter((g) => g.role !== 'none');
+            if (isSpace) grants['space:' + sp.key] = list;
+            else if (st.rightsDraft.own) grants[pid] = list;
             else delete grants[pid];
             return { grants, dialog: null, rightsDraft: null };
           });
-          this.showToast('Rechte gespeichert');
+          this.showToast(isSpace ? 'Rechte des Spaces gespeichert' : 'Rechte gespeichert');
         }
       };
     }
@@ -6580,7 +7029,7 @@ class Component extends DCLogic {
         summary: PEOPLE[who].name + (m && m.role === 'guest' ? ' (Gast)' : '') + ' sieht ' + seen + ' von ' + rows.length + ' Seiten.',
         rows,
         back: !!s.viewAsBack,
-        goBack: () => this.openRights()
+        goBack: () => (s.viewAsBack === 'space' ? this.openRights(sp.key) : this.openRights())
       };
     }
 
@@ -6836,7 +7285,15 @@ class Component extends DCLogic {
         if (welcomeShow) { f.onlyCreate = false; f.show = !!(f.hasKids || f.hasLinks); }
         return f;
       })(),
-      vv: vmode ? this.versionVals(pid, editable, sp.archived) : {},
+      vv: vmode ? this.versionVals(pid, canEditPage, sp.archived) : {},
+      // Umschalter Bearbeiten / Lesen neben „Rechte“, nur mit Bearbeitungsrecht
+      mode: {
+        show: isPage && canEditPage && !vmode,
+        editPressed: reading ? 'false' : 'true',
+        readPressed: reading ? 'true' : 'false',
+        toEdit: () => { if (s.readMode) { this.setState({ readMode: false }); this.showToast('Bearbeiten'); } },
+        toRead: () => { if (!s.readMode) { this.edSave(); this.setState({ readMode: true, ed: { ...s.ed, slash: null, picker: null, bar: null, side: null, blockMenu: null } }); this.showToast('Lesemodus: Änderungen sind gesperrt'); } }
+      },
       restoredBlocks: restoredBody ? vPlain(restoredBody).map(vTpl) : [],
       vSave: {
         open: s.dialog === 'saveVersion',
@@ -6892,13 +7349,13 @@ class Component extends DCLogic {
       hasOpenComments: openN > 0,
       commentsCls: openN > 0 ? 'nf-has-count' : '',
       commentsLabel: 'Kommentare ' + (s.commentsOpen ? 'ausblenden' : 'anzeigen') + ' (' + (openN === 0 ? 'keine offenen' : openN + (openN === 1 ? ' offener' : ' offene')) + ')',
-      // Teilen und Rechte: zeigt eigene Rechte direkt im Knopf
+      // Knopf „Rechte“: zeigt eigene Rechte direkt im Knopf
       share: restricted
-        ? { cls: 'nf-share-restricted', restricted: true, open: false, label: 'Eingeschränkt', aria: 'Teilen und Rechte: eingeschränkt, eigene Rechte' }
-        : { cls: '', restricted: false, open: true, label: 'Teilen', aria: 'Teilen und Rechte' },
+        ? { cls: 'nf-share-restricted', restricted: true, open: false, label: 'Eingeschränkt', aria: 'Rechte: eingeschränkt, eigene Rechte' }
+        : { cls: '', restricted: false, open: true, label: 'Rechte', aria: isPage && pid === homeId ? 'Rechte des Spaces' : 'Rechte der Seite' },
       // Speicherstatus: Offline vor Nur lesen vor Speichert vor Gespeichert
       save: (() => {
-        const state = !s.online ? 'offline' : !editable ? 'readonly' : s.save;
+        const state = !s.online ? 'offline' : !canEditPage ? 'readonly' : s.save;
         const T = {
           offline: { text: 'Offline', hint: 'Offline. Änderungen werden übertragen, sobald die Verbindung zurück ist.' },
           readonly: { text: sp.archived ? 'Archiviert' : 'Nur lesen', hint: sp.archived ? 'Der Space ist archiviert und nur lesbar.' : 'Deine Rolle erlaubt keine Änderungen am Inhalt.' },
@@ -6915,11 +7372,11 @@ class Component extends DCLogic {
       },
       openInfo: () => this.setState({ dialog: 'info', pageMenu: false }),
       pageActions: {
-        moveDisabled: editable && pid !== homeId ? 'false' : 'true',
-        trashDisabled: editable && pid !== homeId ? 'false' : 'true',
-        move: () => { if (editable && pid !== homeId) this.setState({ dialog: 'move', pageMenu: false, moveTarget: P[pid].parent }); },
+        moveDisabled: canEditPage && pid !== homeId ? 'false' : 'true',
+        trashDisabled: canEditPage && pid !== homeId ? 'false' : 'true',
+        move: () => { if (canEditPage && pid !== homeId) this.setState({ dialog: 'move', pageMenu: false, moveTarget: P[pid].parent }); },
         trash: () => {
-          if (!editable || pid === homeId) return;
+          if (!canEditPage || pid === homeId) return;
           this.setState({ dialog: 'confirm', confirm: { kind: 'trash', id: pid }, pageMenu: false });
           this.focusLater('#nf-confirm-cancel');
         }
@@ -6954,7 +7411,7 @@ class Component extends DCLogic {
         const backlinks = Object.keys(LINKS).filter((src) => LINKS[src].includes(pid) && P[src].space === sp.key)
           .map((src) => ({ title: shown(P[src].title), go: (e) => { this.prevent(e); this.setState({ dialog: null }); this.go(src); } }));
         return {
-          rights: s.grants[pid] ? 'Eigene Rechte (Vererbung gekappt)' : restricted ? 'Erbt eigene Rechte einer übergeordneten Seite' : 'Erbt die Rechte vom Space',
+          rights: pid === homeId ? 'Rechte des Spaces (Startseite)' : s.grants[pid] ? 'Eigene Rechte (Vererbung gekappt)' : restricted ? 'Erbt eigene Rechte einer übergeordneten Seite' : 'Erbt die Rechte vom Space',
           versions: (() => { const l = this.versionList(pid); return l.length + ' Versionen, die letzte ' + vLong(l[l.length - 1].at).replace(/^Heute, /, 'heute um ').replace(/^Gestern, /, 'gestern um '); })(),
           backlinks,
           hasBacklinks: backlinks.length > 0,
@@ -6970,13 +7427,18 @@ class Component extends DCLogic {
         shownTitle: shown(p.title),
         editable,
         readonly: !editable,
+        // Bearbeitbarer Bereich bleibt im Lesemodus sichtbar (mit dem Geschriebenen), nur nicht bearbeitbar
+        showEditArea: canEditPage,
+        contentEditable: editable ? 'true' : 'false',
+        editAreaLabel: editable ? 'Inhalt der Seite, bearbeitbar' : 'Inhalt der Seite, Lesemodus',
+        readingCls: reading ? 'nf-reading' : '',
         restricted,
         authorName: author.name,
         authorInitials: initials(author.name),
         authorColor: author.color,
         editorName: editor.name,
         when: p.when,
-        editedAt: p.when === 'gerade eben' || p.when.startsWith('vor') ? '25. Nov. 2026, 15:40' : p.when.replace(/^am /, ''),
+        editedAt: (p.when === 'gerade eben' || p.when.startsWith('vor') ? '25. Nov. 2026, 15:40' : p.when.replace(/^am /, '')) + ' (Zeitzone ' + s.me.tz + ')',
         roleLabel: myRole ? ROLE_LABEL[myRole] : '–',
         paragraphs: p.text.map((text) => ({ text }))
       },
@@ -7019,8 +7481,16 @@ class Component extends DCLogic {
       settingsMenuExpanded: s.settingsMenu ? 'true' : 'false',
       toggleSettingsMenu: (e) => { this.stop(e); this.setState((st) => ({ settingsMenu: !st.settingsMenu, notifOpen: false, userMenu: false, menu: null, spaceMenu: false, spaceSub: null, pageMenu: false })); },
       closeUserMenu: () => this.setState({ userMenu: false, settingsMenu: false }),
-      openProfile: () => this.setState({ dialog: 'profile', userMenu: false, settingsMenu: false }),
-      openUserSettings: () => this.setState({ dialog: 'userSettings', userMenu: false, settingsMenu: false }),
+      openProfile: () => this.openProfile(),
+      prof: s.dialog === 'profile' ? this.profileVals() : { open: false },
+      uset: s.dialog === 'userSettings' ? this.settingsVals() : { open: false },
+      meName: s.me.name,
+      meEmail: s.me.email,
+      meInitials: initials(s.me.name),
+      meAvatarBg: s.me.avatar ? 'url("' + s.me.avatar + '")' : 'none', hasMeAvatar: !!s.me.avatar, noMeAvatar: !s.me.avatar,
+      meLabel: 'Konto: ' + s.me.name,
+      edSpell: s.prefs.spellcheck ? 'true' : 'false',
+      openUserSettings: () => this.openUserSettings(),
       openShortcuts: () => this.setState({ dialog: 'shortcuts', userMenu: false, settingsMenu: false }),
       // Workspace und Einladungen (nur Owner und Admins; Peter ist Owner)
       openWorkspace: () => this.setState({ dialog: 'workspace', userMenu: false, settingsMenu: false, wsDraft: null }),

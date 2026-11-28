@@ -103,6 +103,7 @@
         this.prevent(e);
         this.openSpaceSettings(x.key);
       },
+      rights: (e) => { this.prevent(e); this.openRights(x.key); },
       // Archivieren direkt im Menü (mit Rückfrage), archivierte Spaces direkt zurückholen
       archiveLabel: x.archived ? 'Zurückholen' : 'Archivieren',
       archivePopup: x.archived ? 'false' : 'dialog',
@@ -128,7 +129,10 @@
     const pageLoading = isPage && !vmode && !this._loaded.has(pid) && !String(pid).startsWith('neu');
     if (pageLoading) this.scheduleLoad('p:' + pid, this._loaded.size ? 380 : 650, () => this._loaded.add(pid));
     const myRole = this.role(pid);
-    const editable = !sp.archived && this.canEdit(pid);
+    // Lesemodus: wer bearbeiten darf, kann die Seite trotzdem nur lesen (nichts versehentlich ändern)
+    const canEditPage = !sp.archived && this.canEdit(pid);
+    const reading = isPage && canEditPage && !!s.readMode;
+    const editable = canEditPage && !reading;
     const restricted = this.chain(pid).some((x) => s.grants[x]);
     const author = PEOPLE[p.author];
     const editor = PEOPLE[p.editor];
@@ -142,7 +146,7 @@
       emptyReadonly: !editable && (restoredBody ? restoredBody.length === 0 : !p.body && p.text.length === 0)
     };
     // Bearbeitbaren Bereich mit dem Entwurf dieser Seite füllen (nach dem Rendern)
-    if (isPage && editable && !vmode && !pageLoading) this.edSync(pid);
+    if (isPage && canEditPage && !vmode && !pageLoading) this.edSync(pid);
     // Leerer Space: Startseite ohne Inhalt und ohne lesbare Unterseiten
     const welcomeShow = isPage && pid === homeId && body.empty && !P[homeId].kids.some((k) => this.role(k));
     const tplSave = this.tplSaveVals(pid, sp);
@@ -183,10 +187,31 @@
     let rights = {};
     if (s.dialog === 'rights' && s.rightsDraft) {
       const d = s.rightsDraft;
-      const locked = myRole !== 'admin';
+      // Space-Rechte (Startseite oder Menü des Spaces): ohne Schalter, gelten für alle Seiten ohne eigene Rechte
+      const isSpace = d.scope === 'space';
+      const spaceRole = this.effRole(s.grants['space:' + sp.key], 'peter', sp.archived);
+      const locked = (isSpace ? spaceRole : myRole) !== 'admin';
       const srcId = this.source(pid, false);
-      const from = srcId.startsWith('space:') ? 'vom Space „' + sp.name + '“' : 'von „' + shown(P[srcId].title) + '“';
-      const editableGrants = d.own && !locked;
+      const fromSpace = srcId.startsWith('space:');
+      const from = fromSpace ? 'vom Space „' + sp.name + '“' : 'von „' + shown(P[srcId].title) + '“';
+      const editableGrants = (isSpace || d.own) && !locked;
+      // Seiten mit eigenen Rechten im Space: erben die Space-Rechte nicht. Nur die, die du sehen
+      // kannst (wie app.view_as: fremde eingeschränkte Seiten fehlen ganz, auch nicht als Zahl)
+      const trashedIds = new Set(s.trash.map((t) => t.id));
+      const ownPages = [];
+      const walkOwn = (id) => {
+        if (trashedIds.has(id)) return;
+        if (id !== homeId && s.grants[id] && this.role(id)) {
+          const parent = P[id].parent;
+          ownPages.push({
+            title: shown(P[id].title),
+            sub: 'unter „' + (parent === homeId ? 'Startseite' : shown(P[parent].title)) + '“',
+            go: () => { this.setState({ dialog: null, rightsDraft: null }); this.go(id); }
+          });
+        }
+        P[id].kids.forEach(walkOwn);
+      };
+      if (isSpace) walkOwn(homeId);
       const setDraft = (patch) => this.setState((st) => ({ rightsDraft: { ...st.rightsDraft, ...patch } }));
       const initialsOf = (key) => (key === 'grp' ? 'GE' : key === 'ws' ? 'AW' : initials(SUBJECTS[key].name));
       const subOf = (key) => {
@@ -225,11 +250,24 @@
       const suggestOpen = !!d.addOpen && (words.length > 0 || candidates.length > 0);
 
       rights = {
+        isSpace,
+        isPage: !isSpace,
+        title: isSpace ? 'Rechte für den Space „' + sp.name + '“' : 'Rechte für „' + shown(P[pid].title) + '“',
+        description: isSpace
+          ? 'Gelten für die Startseite und alle Seiten darunter, außer für Seiten mit eigenen Rechten.'
+          : 'Wer diese Seite und ihre Unterseiten sehen und bearbeiten darf.',
+        spaceText: 'Alle Seiten erben sie. Admins des Spaces verwalten auch seine Einstellungen.',
+        ownPages,
+        hasOwnPages: ownPages.length > 0,
+        ownPagesTitle: ownPages.length === 1 ? '1 Seite mit eigenen Rechten' : ownPages.length + ' Seiten mit eigenen Rechten',
+        // Seite erbt vom Space: Sprung zu den Space-Rechten
+        showSpaceLink: !isSpace && !d.own && fromSpace,
+        openSpace: () => this.openRights(sp.key),
         locked,
         ownPressed: d.own ? 'true' : 'false',
         inheritText: d.own ? 'Gilt für diese Seite und ihre Unterseiten.' : 'Erbt die Rechte ' + from + '.',
         summary,
-        viewAs: () => this.openViewAs(true),
+        viewAs: () => this.openViewAs(isSpace ? 'space' : 'page'),
         grants: d.grants.map((g, i) => {
           const subj = SUBJECTS[g.key];
           return {
@@ -281,12 +319,18 @@
         noSuggest: suggestOpen && candidates.length === 0,
         noSuggestText: 'Niemand mit „' + d.query.trim() + '“ im Workspace, oder schon in der Liste',
         selfWarn: selfWarn && !noAdmin,
+        selfWarnText: isSpace
+          ? 'Du nimmst dir selbst die Admin-Rechte für diesen Space. Danach kannst du seine Rechte und Einstellungen nicht mehr ändern; zurückgeben kann sie dir nur ein anderer Admin des Spaces oder ein Organisations-Admin.'
+          : 'Du nimmst dir selbst die Admin-Rechte. Danach kannst du die Rechte dieser Seite nicht mehr ändern; zurückgeben kann sie dir nur ein anderer Admin.',
         noAdmin,
         hint: !editableGrants,
-        hintText: locked
+        hintText: locked && isSpace
+          ? 'Rechte des Spaces ändern nur seine Admins. Deine Rolle: ' + (spaceRole ? ROLE_LABEL[spaceRole] : '–') + '.'
+          : locked
           ? 'Rechte ändern nur Admins dieser Seite bzw. dieses Spaces. Deine Rolle: ' + (myRole ? ROLE_LABEL[myRole] : '–') + '.'
           : 'Um nur einzelnen Personen Zugriff zu geben, schalte „Eigene Rechte“ ein. Die bisherigen Rechte werden übernommen und lassen sich dann einschränken.',
         canSave: !locked,
+        cancelLabel: locked ? 'Schließen' : 'Abbrechen',
         saveDisabled: noAdmin,
         saveCls: selfWarn && !noAdmin ? 'nf-btn-attention' : 'nf-btn-primary',
         saveLabel: selfWarn && !noAdmin ? 'Trotzdem speichern' : 'Speichern',
@@ -305,11 +349,13 @@
           if (noAdmin) return;
           this.setState((st) => {
             const grants = { ...st.grants };
-            if (st.rightsDraft.own) grants[pid] = st.rightsDraft.grants.filter((g) => g.role !== 'none');
+            const list = st.rightsDraft.grants.filter((g) => g.role !== 'none');
+            if (isSpace) grants['space:' + sp.key] = list;
+            else if (st.rightsDraft.own) grants[pid] = list;
             else delete grants[pid];
             return { grants, dialog: null, rightsDraft: null };
           });
-          this.showToast('Rechte gespeichert');
+          this.showToast(isSpace ? 'Rechte des Spaces gespeichert' : 'Rechte gespeichert');
         }
       };
     }
@@ -343,7 +389,7 @@
         summary: PEOPLE[who].name + (m && m.role === 'guest' ? ' (Gast)' : '') + ' sieht ' + seen + ' von ' + rows.length + ' Seiten.',
         rows,
         back: !!s.viewAsBack,
-        goBack: () => this.openRights()
+        goBack: () => (s.viewAsBack === 'space' ? this.openRights(sp.key) : this.openRights())
       };
     }
 
@@ -599,7 +645,15 @@
         if (welcomeShow) { f.onlyCreate = false; f.show = !!(f.hasKids || f.hasLinks); }
         return f;
       })(),
-      vv: vmode ? this.versionVals(pid, editable, sp.archived) : {},
+      vv: vmode ? this.versionVals(pid, canEditPage, sp.archived) : {},
+      // Umschalter Bearbeiten / Lesen neben „Rechte“, nur mit Bearbeitungsrecht
+      mode: {
+        show: isPage && canEditPage && !vmode,
+        editPressed: reading ? 'false' : 'true',
+        readPressed: reading ? 'true' : 'false',
+        toEdit: () => { if (s.readMode) { this.setState({ readMode: false }); this.showToast('Bearbeiten'); } },
+        toRead: () => { if (!s.readMode) { this.edSave(); this.setState({ readMode: true, ed: { ...s.ed, slash: null, picker: null, bar: null, side: null, blockMenu: null } }); this.showToast('Lesemodus: Änderungen sind gesperrt'); } }
+      },
       restoredBlocks: restoredBody ? vPlain(restoredBody).map(vTpl) : [],
       vSave: {
         open: s.dialog === 'saveVersion',
@@ -655,13 +709,13 @@
       hasOpenComments: openN > 0,
       commentsCls: openN > 0 ? 'nf-has-count' : '',
       commentsLabel: 'Kommentare ' + (s.commentsOpen ? 'ausblenden' : 'anzeigen') + ' (' + (openN === 0 ? 'keine offenen' : openN + (openN === 1 ? ' offener' : ' offene')) + ')',
-      // Teilen und Rechte: zeigt eigene Rechte direkt im Knopf
+      // Knopf „Rechte“: zeigt eigene Rechte direkt im Knopf
       share: restricted
-        ? { cls: 'nf-share-restricted', restricted: true, open: false, label: 'Eingeschränkt', aria: 'Teilen und Rechte: eingeschränkt, eigene Rechte' }
-        : { cls: '', restricted: false, open: true, label: 'Teilen', aria: 'Teilen und Rechte' },
+        ? { cls: 'nf-share-restricted', restricted: true, open: false, label: 'Eingeschränkt', aria: 'Rechte: eingeschränkt, eigene Rechte' }
+        : { cls: '', restricted: false, open: true, label: 'Rechte', aria: isPage && pid === homeId ? 'Rechte des Spaces' : 'Rechte der Seite' },
       // Speicherstatus: Offline vor Nur lesen vor Speichert vor Gespeichert
       save: (() => {
-        const state = !s.online ? 'offline' : !editable ? 'readonly' : s.save;
+        const state = !s.online ? 'offline' : !canEditPage ? 'readonly' : s.save;
         const T = {
           offline: { text: 'Offline', hint: 'Offline. Änderungen werden übertragen, sobald die Verbindung zurück ist.' },
           readonly: { text: sp.archived ? 'Archiviert' : 'Nur lesen', hint: sp.archived ? 'Der Space ist archiviert und nur lesbar.' : 'Deine Rolle erlaubt keine Änderungen am Inhalt.' },
@@ -678,11 +732,11 @@
       },
       openInfo: () => this.setState({ dialog: 'info', pageMenu: false }),
       pageActions: {
-        moveDisabled: editable && pid !== homeId ? 'false' : 'true',
-        trashDisabled: editable && pid !== homeId ? 'false' : 'true',
-        move: () => { if (editable && pid !== homeId) this.setState({ dialog: 'move', pageMenu: false, moveTarget: P[pid].parent }); },
+        moveDisabled: canEditPage && pid !== homeId ? 'false' : 'true',
+        trashDisabled: canEditPage && pid !== homeId ? 'false' : 'true',
+        move: () => { if (canEditPage && pid !== homeId) this.setState({ dialog: 'move', pageMenu: false, moveTarget: P[pid].parent }); },
         trash: () => {
-          if (!editable || pid === homeId) return;
+          if (!canEditPage || pid === homeId) return;
           this.setState({ dialog: 'confirm', confirm: { kind: 'trash', id: pid }, pageMenu: false });
           this.focusLater('#nf-confirm-cancel');
         }
@@ -717,7 +771,7 @@
         const backlinks = Object.keys(LINKS).filter((src) => LINKS[src].includes(pid) && P[src].space === sp.key)
           .map((src) => ({ title: shown(P[src].title), go: (e) => { this.prevent(e); this.setState({ dialog: null }); this.go(src); } }));
         return {
-          rights: s.grants[pid] ? 'Eigene Rechte (Vererbung gekappt)' : restricted ? 'Erbt eigene Rechte einer übergeordneten Seite' : 'Erbt die Rechte vom Space',
+          rights: pid === homeId ? 'Rechte des Spaces (Startseite)' : s.grants[pid] ? 'Eigene Rechte (Vererbung gekappt)' : restricted ? 'Erbt eigene Rechte einer übergeordneten Seite' : 'Erbt die Rechte vom Space',
           versions: (() => { const l = this.versionList(pid); return l.length + ' Versionen, die letzte ' + vLong(l[l.length - 1].at).replace(/^Heute, /, 'heute um ').replace(/^Gestern, /, 'gestern um '); })(),
           backlinks,
           hasBacklinks: backlinks.length > 0,
@@ -733,13 +787,18 @@
         shownTitle: shown(p.title),
         editable,
         readonly: !editable,
+        // Bearbeitbarer Bereich bleibt im Lesemodus sichtbar (mit dem Geschriebenen), nur nicht bearbeitbar
+        showEditArea: canEditPage,
+        contentEditable: editable ? 'true' : 'false',
+        editAreaLabel: editable ? 'Inhalt der Seite, bearbeitbar' : 'Inhalt der Seite, Lesemodus',
+        readingCls: reading ? 'nf-reading' : '',
         restricted,
         authorName: author.name,
         authorInitials: initials(author.name),
         authorColor: author.color,
         editorName: editor.name,
         when: p.when,
-        editedAt: p.when === 'gerade eben' || p.when.startsWith('vor') ? '25. Nov. 2026, 15:40' : p.when.replace(/^am /, ''),
+        editedAt: (p.when === 'gerade eben' || p.when.startsWith('vor') ? '25. Nov. 2026, 15:40' : p.when.replace(/^am /, '')) + ' (Zeitzone ' + s.me.tz + ')',
         roleLabel: myRole ? ROLE_LABEL[myRole] : '–',
         paragraphs: p.text.map((text) => ({ text }))
       },
@@ -782,8 +841,16 @@
       settingsMenuExpanded: s.settingsMenu ? 'true' : 'false',
       toggleSettingsMenu: (e) => { this.stop(e); this.setState((st) => ({ settingsMenu: !st.settingsMenu, notifOpen: false, userMenu: false, menu: null, spaceMenu: false, spaceSub: null, pageMenu: false })); },
       closeUserMenu: () => this.setState({ userMenu: false, settingsMenu: false }),
-      openProfile: () => this.setState({ dialog: 'profile', userMenu: false, settingsMenu: false }),
-      openUserSettings: () => this.setState({ dialog: 'userSettings', userMenu: false, settingsMenu: false }),
+      openProfile: () => this.openProfile(),
+      prof: s.dialog === 'profile' ? this.profileVals() : { open: false },
+      uset: s.dialog === 'userSettings' ? this.settingsVals() : { open: false },
+      meName: s.me.name,
+      meEmail: s.me.email,
+      meInitials: initials(s.me.name),
+      meAvatarBg: s.me.avatar ? 'url("' + s.me.avatar + '")' : 'none', hasMeAvatar: !!s.me.avatar, noMeAvatar: !s.me.avatar,
+      meLabel: 'Konto: ' + s.me.name,
+      edSpell: s.prefs.spellcheck ? 'true' : 'false',
+      openUserSettings: () => this.openUserSettings(),
       openShortcuts: () => this.setState({ dialog: 'shortcuts', userMenu: false, settingsMenu: false }),
       // Workspace und Einladungen (nur Owner und Admins; Peter ist Owner)
       openWorkspace: () => this.setState({ dialog: 'workspace', userMenu: false, settingsMenu: false, wsDraft: null }),

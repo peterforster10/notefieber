@@ -67,14 +67,29 @@
     this.setState((st) => ({ pages: { ...st.pages, [id]: { ...st.pages[id], title, editor: 'peter', when: 'gerade eben' } } }));
   }
 
-  openRights() {
-    const s = this.state; const cur = s.current;
+  /** Rechte-Dialog. Auf der Startseite (oder mit spaceKey aus dem Menü eines Spaces) zeigt er die
+      Rechte des Spaces: Die Startseite ist die Wurzel des Seitenbaums, eigene Rechte dort wären nur
+      eine zweite Fassung der Space-Rechte. Aus einem anderen Space oder der Übersicht geht es
+      vorher auf dessen Startseite, damit „Ansehen als …“ denselben Space zeigt. */
+  openRights(spaceKey) {
+    const s = this.state;
+    const base = { query: '', addRole: 'viewer', addOpen: false, addActive: 0 };
+    const key = spaceKey || s.space;
+    const sp = s.spaces[key];
+    if (spaceKey || s.current === sp.home) {
+      const list = s.grants['space:' + key] || [];
+      const nav = key !== s.space || s.view !== 'page' ? { space: key, current: sp.home, view: 'page', versions: null } : {};
+      this.setState({ ...nav, spaceMenu: false, spaceSub: null, sideMenu: null, drawer: false, dialog: 'rights', rightsDraft: { ...base, scope: 'space', own: true, grants: list.map((g) => ({ ...g })) } });
+      return;
+    }
+    const cur = s.current;
     const own = !!s.grants[cur];
     const list = s.grants[cur] || s.grants[this.source(cur, false)] || [];
-    this.setState({ dialog: 'rights', rightsDraft: { own, grants: list.map((g) => ({ ...g })), query: '', addRole: 'viewer', addOpen: false, addActive: 0 } });
+    this.setState({ dialog: 'rights', rightsDraft: { ...base, scope: 'page', own, grants: list.map((g) => ({ ...g })) } });
   }
+  /** fromRights: 'space' bzw. 'page', wenn „Zurück zu den Rechten“ dorthin führen soll */
   openViewAs(fromRights) {
-    this.setState((st) => ({ dialog: 'viewAs', viewAsBack: !!fromRights, viewAsWho: st.viewAsWho || 'max' }));
+    this.setState((st) => ({ dialog: 'viewAs', viewAsBack: fromRights || false, viewAsWho: st.viewAsWho || 'max' }));
   }
 
   openSpaceSettings(key) {

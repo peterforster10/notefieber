@@ -80,8 +80,6 @@ const INVITE_STATUS = { open: 'offen', accepted: 'angenommen', revoked: 'zurück
 // Dialoge mit Ausblick (wie im Frontend: was dort entsteht)
 const SOON = {
   export: (t) => ({ title: '„' + t + '“ exportieren', text: 'Bald lässt sich die Seite hier als Markdown, als BlockNote-JSON oder als ZIP mit allen Bildern herunterladen.' }),
-  profile: () => ({ title: 'Benutzerprofil', text: 'Bald lassen sich hier Name, Profilbild und Zeitzone ändern. E-Mail und Passwort verwaltet der Login-Dienst.' }),
-  userSettings: () => ({ title: 'Einstellungen', text: 'Bald stehen hier persönliche Einstellungen, z. B. Benachrichtigungen bei Erwähnungen und Kommentaren.' }),
   shortcuts: () => ({ title: 'Tastenkürzel', text: 'Strg K Suche · F2 Seite umbenennen · Entf Seite in den Papierkorb · / Befehle im Editor · [ Seitenlink · @ Person erwähnen' })
 };
 const CALLOUT = {

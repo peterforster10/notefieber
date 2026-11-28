@@ -1,7 +1,9 @@
   // ---------- Benachrichtigungen (Ausblick, E16) ----------
   notifVals() {
     const s = this.state, P = s.pages;
-    const visible = s.notifs.filter((n) => P[n.page] && this.role(n.page) && !s.trash.some((t) => this.chain(n.page).includes(t.id)));
+    // Arten, die in den persönlichen Einstellungen für „Im Wiki“ abgeschaltet sind, fehlen
+    const allowed = (n) => !s.prefs.notif[n.kind] || s.prefs.notif[n.kind].app;
+    const visible = s.notifs.filter((n) => allowed(n) && P[n.page] && this.role(n.page) && !s.trash.some((t) => this.chain(n.page).includes(t.id)));
     const unread = visible.filter((n) => n.unread).length;
     const list = s.notifFilter === 'unread' ? visible.filter((n) => n.unread) : visible;
     const markRead = (ids) => this.setState((st) => ({ notifs: st.notifs.map((n) => (ids.includes(n.id) ? { ...n, unread: false } : n)) }));
@@ -45,6 +47,6 @@
           }
         };
       }),
-      settings: () => this.setState({ notifOpen: false, dialog: 'userSettings' })
+      settings: () => this.openUserSettings('us-notif')
     };
   }

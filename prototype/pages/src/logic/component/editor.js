@@ -187,6 +187,7 @@
   }
   /** Markdown-Kürzel am Anfang eines Absatzes: #, ##, ###, -, 1., [], >, ```, --- und Leerzeichen */
   edMarkdown() {
+    if (!this.state.prefs.markdown) return false; // persönliche Einstellung „Markdown-Kürzel“
     const sel = getSelection();
     if (!sel.rangeCount || !sel.isCollapsed) return false;
     const blk = this.edBlockOf(sel.anchorNode);

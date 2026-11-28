@@ -1,8 +1,8 @@
 # Prototyp: noch nicht entworfen
 
-Stand: 26. November 2026. Was im Prototyp (`pages/Main.dc.html`, Quellen in `pages/src/`) noch fehlt,
+Stand: 27. November 2026. Was im Prototyp (`pages/Main.dc.html`, Quellen in `pages/src/`) noch fehlt,
 geordnet nach dem Meilenstein, in dem es gebraucht wird ([ROADMAP](../docs/ROADMAP.md)). Was schon
-entworfen ist, beschreibt [pages/README.md](README.md).
+entworfen ist, beschreibt [README.md](README.md).
 
 **Regel:** Lücken nicht auf Vorrat schließen, sondern kurz vor der Story, die sie braucht. Ist ein Punkt
 entworfen, kommt er in die README (Abschnitt „Ausblick“ bzw. „Was wie im Frontend ist“) und wird hier
@@ -10,12 +10,7 @@ gelöscht.
 
 ## Für M2
 
-- **Benutzerprofil** (E02, Story „Profil“): Name, Profilbild (hochladen, entfernen, Kürzel als
-  Rückfall), Sprache, Zeitzone. Heute nur ein Dialog mit Ausblick im Konto-Menü. Offen: eigene Seite
-  oder Dialog; wo die Zeitzone überall wirkt (Byline, Versionen, Papierkorb).
-- **Persönliche Einstellungen** (E15): was dort steht, wenn Sprache und Darstellung schon in den
-  Menüs sind (z. B. Standard-Ansicht Karten oder Liste, später Benachrichtigungen aus E16). Heute nur
-  ein Dialog mit Ausblick.
+Nichts offen; Benutzerprofil und persönliche Einstellungen sind entworfen (27. November 2026).
 
 ## Für M3
 
@@ -50,8 +45,6 @@ gelöscht.
 ## Später (nach dem Pilot bzw. Stufe 3)
 
 - **Vorlagen bearbeiten und löschen** (E25): die Galerie kann bisher nur anlegen und verwenden.
-- **Einstellungen für Benachrichtigungen** (E16): der Link unten im Fenster der Glocke führt noch
-  ins Leere.
 - **Personen-Profil ansehen:** Personen in der Befehlspalette öffnen noch nichts.
 
 ## Bekannte Abweichungen im Prototyp selbst

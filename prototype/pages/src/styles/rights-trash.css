@@ -61,3 +61,17 @@ li.nf-grant-suggest-empty{color:var(--nf-muted);font-size:13px;cursor:default}
 .nf-field-hint{margin:4px 0 0;font-size:12px;color:var(--nf-muted)}
 .nf-field-error{margin:4px 0 0;font-size:12px;color:var(--nf-danger)}
 .nf-key-input{font-family:var(--nf-font-mono);text-transform:uppercase;max-width:200px}
+/* Rechte des Spaces (Startseite, Menü des Spaces): Band ohne Schalter, Liste der Seiten mit eigenen Rechten */
+.nf-rights-space-band{justify-content:flex-start;gap:12px}
+.nf-dialog-band.nf-rights-space-band .nf-rights-space-icon{display:inline-flex;align-items:center;justify-content:center;flex:none;width:32px;height:32px;border-radius:8px;background:var(--nf-accent-soft);color:var(--nf-accent)}
+.nf-rights-space-link{display:block;margin:4px 0 0 -6px;padding:2px 6px;border:0;border-radius:6px;background:none;color:var(--nf-accent);font:inherit;font-size:13px;cursor:pointer}
+.nf-rights-space-link:hover{background:var(--nf-accent-soft)}
+.nf-rights-own{margin:14px 0 8px;padding-top:12px;border-top:1px solid var(--nf-border)}
+.nf-rights-own-title{margin:0;font-size:13px;font-weight:600}
+.nf-rights-own-text{margin:2px 0 6px!important;font-size:13px;color:var(--nf-muted)}
+.nf-rights-own-list{margin:0;padding:0;list-style:none}
+.nf-rights-own-item{display:flex;align-items:center;gap:10px;width:100%;padding:6px 8px;border:0;border-radius:6px;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.nf-rights-own-item:hover{background:var(--nf-subtle)}
+.nf-rights-own-item .nf-icon{flex:none;color:var(--nf-restricted-fg)}
+.nf-rights-own-item .nf-grant-names{display:flex;flex-direction:column}
+.nf-rights-own-item .nf-grant-names span+span{font-size:12px;color:var(--nf-muted)}

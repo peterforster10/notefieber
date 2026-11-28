@@ -42,6 +42,17 @@
       tplTarget: null,
       tplUse: null,
       tplSaveDraft: null,
+      // Angemeldete Person (Profil) und persönliche Einstellungen
+      me: { name: 'Peter Forster', email: 'peter.forster@alpenwerk.example', avatar: null, tz: 'Europe/Vienna' },
+      profDraft: null,
+      prefs: (() => {
+        const def = { commentsAuto: false, markdown: true, spellcheck: true, digest: 'daily',
+          notif: { mention: { app: true, mail: true }, reply: { app: true, mail: false }, comment: { app: true, mail: false }, share: { app: true, mail: true } } };
+        try { const v = JSON.parse(localStorage.getItem('nf-proto-prefs')); return v && v.notif ? { ...def, ...v } : def; } catch (err) { return def; }
+      })(),
+      prefsSaved: null,
+      // Lesemodus (Standard: Bearbeiten); gilt für alle Seiten, bis man zurückschaltet
+      readMode: false,
       // Favoriten-Ansicht: Suche, nach Space gruppieren, Karten oder Liste (gemerkt im Browser)
       favQ: '',
       favGroup: false,

@@ -41,5 +41,9 @@
   prevent(e) { if (e && e.preventDefault) e.preventDefault(); }
   focusLater(sel) { setTimeout(() => { const el = document.querySelector(sel); if (el) el.focus(); }, 30); }
 
-  go(id) { this.setState((st) => ({ current: id, space: st.pages[id].space, view: 'page', menu: null, spaceMenu: false, drawer: false, versions: null, reactPicker: false, lookPop: null })); }
+  go(id) {
+    // Persönliche Einstellung: Kommentarspalte bei offenen Kommentaren von selbst öffnen (nur breite Fenster)
+    const auto = (st) => st.prefs.commentsAuto && typeof innerWidth !== 'undefined' && innerWidth >= 1280 && (st.threads[id] || []).some((t) => !t.resolved);
+    this.setState((st) => ({ current: id, space: st.pages[id].space, view: 'page', menu: null, spaceMenu: false, drawer: false, versions: null, reactPicker: false, lookPop: null, ...(auto(st) ? { commentsOpen: true } : {}) }));
+  }
 

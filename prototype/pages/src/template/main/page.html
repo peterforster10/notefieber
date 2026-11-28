@@ -13,7 +13,7 @@
         </sc-if>
         <div class="nf-main-inner {{innerCls}}">
           <article>
-            <!-- „Eingeschränkt“ steht jetzt im Knopf „Teilen und Rechte“, nicht mehr über dem Titel -->
+            <!-- „Eingeschränkt“ steht jetzt im Knopf „Rechte“, nicht mehr über dem Titel -->
             <!-- Emoji und Titelbild (Ausblick): Knöpfe über dem Titel beim Darüberfahren, nur mit Bearbeitungsrecht -->
             <div class="nf-title-area">
               <sc-if value="{{look.canEdit}}" hint-placeholder-val="{{ true }}">
@@ -232,8 +232,8 @@
               <!-- Editierbarer Bereich (Prototyp): leere Seiten ganz, andere ab dem Ende. Hier wirken
                    „/“-Menü, „[“, „@“, die Leiste beim Markieren, „+“ und Ziehpunkt links am Block.
                    Der Inhalt wird pro Seite gemerkt (nur in dieser Sitzung). -->
-              <sc-if value="{{page.editable}}" hint-placeholder-val="{{ true }}">
-                <div class="nf-ed-wrap" onMouseMove="{{ed.onMove}}" onMouseLeave="{{ed.onLeave}}">
+              <sc-if value="{{page.showEditArea}}" hint-placeholder-val="{{ true }}">
+                <div class="nf-ed-wrap {{page.readingCls}}" onMouseMove="{{ed.onMove}}" onMouseLeave="{{ed.onLeave}}">
                   <sc-if value="{{ed.side.show}}" hint-placeholder-val="{{ false }}">
                     <div class="nf-side-menu" style="top: {{ed.side.top}}px">
                       <button type="button" class="nf-side-btn" aria-label="Block darunter einfügen" title="Klicken: Block darunter einfügen" onMouseDown="{{ed.keepFocus}}" onClick="{{ed.side.plus}}">
@@ -252,7 +252,7 @@
                       </sc-for>
                     </ul>
                   </sc-if>
-                  <div id="nf-editable" class="nf-editable" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Inhalt der Seite, bearbeitbar" spellcheck="true" onInput="{{ed.onInput}}" onKeyDown="{{ed.onKey}}" onClick="{{ed.onClick}}" onDragOver="{{ed.onDragOver}}" onDrop="{{ed.onDrop}}"></div>
+                  <div id="nf-editable" class="nf-editable" contenteditable="{{page.contentEditable}}" role="textbox" aria-multiline="true" aria-readonly="{{page.readonly}}" aria-label="{{page.editAreaLabel}}" spellcheck="{{edSpell}}" onInput="{{ed.onInput}}" onKeyDown="{{ed.onKey}}" onClick="{{ed.onClick}}" onDragOver="{{ed.onDragOver}}" onDrop="{{ed.onDrop}}"></div>
                   <sc-if value="{{ed.drop.show}}" hint-placeholder-val="{{ false }}">
                     <div class="nf-drop-line" style="top: {{ed.drop.top}}px"></div>
                   </sc-if>

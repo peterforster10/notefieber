@@ -1,11 +1,11 @@
-  <!-- Teilen und Rechte (Ausblick M3; im Frontend vorerst ein Dialog mit Ausblick) -->
+  <!-- Rechte (Ausblick M3; im Frontend vorerst ein Dialog mit Ausblick) -->
   <sc-if value="{{rightsOpen}}" hint-placeholder-val="{{ false }}">
     <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
       <div class="nf-dialog" role="dialog" aria-modal="true" aria-labelledby="rights-title">
         <div class="nf-dialog-head">
           <div>
-            <h2 id="rights-title" class="nf-dialog-title">Rechte für „{{page.shownTitle}}“</h2>
-            <p class="nf-dialog-description">Wer diese Seite und ihre Unterseiten sehen und bearbeiten darf.</p>
+            <h2 id="rights-title" class="nf-dialog-title">{{rights.title}}</h2>
+            <p class="nf-dialog-description">{{rights.description}}</p>
           </div>
           <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
             <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
@@ -22,13 +22,28 @@
             Ansehen als …
           </button>
         </div>
-        <div class="nf-dialog-band">
-          <div>
-            <strong>Eigene Rechte für diese Seite</strong>
-            <span>{{rights.inheritText}}</span>
+        <!-- Seite: Vererbung kappen. Space (Startseite, Menü des Spaces): kein Schalter, die Space-Rechte sind die Grundlage -->
+        <sc-if value="{{rights.isPage}}" hint-placeholder-val="{{ true }}">
+          <div class="nf-dialog-band">
+            <div>
+              <strong>Eigene Rechte für diese Seite</strong>
+              <span>{{rights.inheritText}}</span>
+              <sc-if value="{{rights.showSpaceLink}}" hint-placeholder-val="{{ true }}">
+                <button type="button" class="nf-rights-space-link" onClick="{{rights.openSpace}}">Rechte des Spaces öffnen</button>
+              </sc-if>
+            </div>
+            <button type="button" class="nf-switch" aria-pressed="{{rights.ownPressed}}" aria-label="Eigene Rechte für diese Seite" disabled="{{rights.locked}}" onClick="{{rights.toggleOwn}}"><span></span></button>
           </div>
-          <button type="button" class="nf-switch" aria-pressed="{{rights.ownPressed}}" aria-label="Eigene Rechte für diese Seite" disabled="{{rights.locked}}" onClick="{{rights.toggleOwn}}"><span></span></button>
-        </div>
+        </sc-if>
+        <sc-if value="{{rights.isSpace}}" hint-placeholder-val="{{ false }}">
+          <div class="nf-dialog-band nf-rights-space-band">
+            <span class="nf-rights-space-icon" aria-hidden="true"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="5.5" r="2.5"></circle><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4"></path><path d="M10.5 3.2a2.5 2.5 0 010 4.6M12 9.8c1.3.6 2.2 1.9 2.5 3.7"></path></svg></span>
+            <div>
+              <strong>Rechte des Spaces</strong>
+              <span>{{rights.spaceText}}</span>
+            </div>
+          </div>
+        </sc-if>
         <div class="nf-dialog-body" style="padding-top: 4px">
           <sc-for list="{{rights.grants}}" as="g" hint-placeholder-count="3">
             <div class="nf-grant">
@@ -91,7 +106,7 @@
             </div>
           </sc-if>
           <sc-if value="{{rights.selfWarn}}" hint-placeholder-val="{{ false }}">
-            <p class="nf-rights-warn" role="status">Du nimmst dir selbst die Admin-Rechte. Danach kannst du die Rechte dieser Seite nicht mehr ändern; zurückgeben kann sie dir nur ein anderer Admin.</p>
+            <p class="nf-rights-warn" role="status">{{rights.selfWarnText}}</p>
           </sc-if>
           <sc-if value="{{rights.noAdmin}}" hint-placeholder-val="{{ false }}">
             <p class="nf-rights-error" role="alert">Mindestens eine Person oder Gruppe muss Admin bleiben, sonst lassen sich die Rechte nicht mehr ändern.</p>
@@ -99,9 +114,26 @@
           <sc-if value="{{rights.hint}}" hint-placeholder-val="{{ true }}">
             <p class="nf-hint">{{rights.hintText}}</p>
           </sc-if>
+          <!-- Nur im Space: Seiten, die nicht erben (nur die, die du sehen kannst) -->
+          <sc-if value="{{rights.hasOwnPages}}" hint-placeholder-val="{{ false }}">
+            <section class="nf-rights-own" aria-labelledby="rights-own-title">
+              <h3 id="rights-own-title" class="nf-rights-own-title">{{rights.ownPagesTitle}}</h3>
+              <p class="nf-rights-own-text">Sie erben diese Rechte nicht; Änderungen hier gelten dort nicht.</p>
+              <ul class="nf-rights-own-list">
+                <sc-for list="{{rights.ownPages}}" as="op" hint-placeholder-count="2">
+                  <li>
+                    <button type="button" class="nf-rights-own-item" onClick="{{op.go}}">
+                      <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="7" rx="1.5"></rect><path d="M5.5 7V5a2.5 2.5 0 015 0v2"></path></svg>
+                      <span class="nf-grant-names"><span>{{op.title}}</span><span>{{op.sub}}</span></span>
+                    </button>
+                  </li>
+                </sc-for>
+              </ul>
+            </section>
+          </sc-if>
         </div>
         <div class="nf-dialog-foot">
-          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Abbrechen</button>
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">{{rights.cancelLabel}}</button>
           <sc-if value="{{rights.canSave}}" hint-placeholder-val="{{ true }}">
             <button type="button" class="nf-btn {{rights.saveCls}}" disabled="{{rights.saveDisabled}}" onClick="{{rights.save}}">{{rights.saveLabel}}</button>
           </sc-if>

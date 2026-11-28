@@ -34,6 +34,7 @@
         moreCls: s.sideMenu === x.key ? 'nf-open' : '',
         toggleMenu: (e) => { this.stop(e); this.setState((st) => ({ sideMenu: st.sideMenu === x.key ? null : x.key, userMenu: false, settingsMenu: false })); },
         settings: () => this.openSpaceSettings(x.key),
+        rights: () => this.openRights(x.key),
         copyLink: () => {
           try { navigator.clipboard.writeText(location.origin + '/s/' + x.key.toLowerCase()).catch(() => {}); } catch (err) { /* nur Rückmeldung */ }
           this.setState({ sideMenu: null });

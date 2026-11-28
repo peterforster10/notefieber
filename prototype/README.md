@@ -65,16 +65,17 @@ verloren; dann zuerst in `src/` übertragen. Die Teildateien sind kein eigenstä
   Seitenleiste der Übersicht; aus dem Space erreicht man sie über das Logo bzw. die Suche. Eine
   kompakte einzeilige Fassung des Umschalters und beide Einträge in der Seitenansicht waren
   ausprobiert und sind verworfen.
-- Brotkrume, Anwesenheit, „Versionen“, „Exportieren“, „Teilen und Rechte“. Export öffnet wie im
+- Brotkrume, Anwesenheit, „Versionen“, „Exportieren“, „Rechte“ (bis 28. November 2026 „Teilen“). Export öffnet wie im
   Frontend einen Dialog mit Ausblick, Versionen eine eigene Ansicht (siehe „Ausblick“). **Abweichend vom Frontend (25. November 2026):**
   - Sie stehen in einer eigenen Zeile unter der Leiste oben (`.nf-pagebar`, scrollt mit dem Inhalt);
     die Leiste oben (`.nf-topbar`, bleibt stehen) enthält links die Suche (unter 1024 px mit dem
     Menü-Knopf davor) und rechts zwei Knöpfe mit eigenem Menü:
     - **Zahnrad „Einstellungen“:** Darstellung (Hell, Dunkel, System),
-      „Persönliche Einstellungen“ und „Tastenkürzel“ (vorerst Dialoge mit Ausblick), für Owner und
+      „Persönliche Einstellungen“ (Dialog, siehe „Ausblick“) und „Tastenkürzel“ (Dialog mit Ausblick), für Owner und
       Admins des Workspaces „Workspace“ und „Einladungen“.
-    - **Avatar „Konto“:** Name, E-Mail und Rolle, „Benutzerprofil“, Sprache (Deutsch/English, die
-      Sprache gehört zur Person, `users.locale`) und „Abmelden“.
+    - **Avatar „Konto“:** Profilbild bzw. Initialen, Name, E-Mail und Rolle, „Benutzerprofil“ (Dialog,
+      siehe „Ausblick“), Sprache (Deutsch/English, die Sprache gehört zur Person, `users.locale`) und
+      „Abmelden“.
   - **Workspace** (Dialog): Name ändern, Mitglieder mit Rolle (Admin, Mitglied, Gast; Owner fest),
     Entfernen mit Rückfrage, Knopf „Personen einladen“. Im Frontend gibt es dafür noch keine
     Oberfläche; die Datenbank kann es schon (`app.set_workspace_member_role`,
@@ -93,7 +94,7 @@ verloren; dann zuerst in `src/` übertragen. Die Teildateien sind kein eigenstä
     - **Anwesenheit nur der anderen** (man selbst steht oben rechts); bis drei Avatare, ab vier zwei
       plus „+N“. Allein auf der Seite: keine Avatare.
     - **Kommentar-Knopf** ohne Rahmen, mit der Zahl offener Threads (siehe Kommentare unter „Ausblick“).
-    - **„Teilen“** als normaler Knopf; mit eigenen Rechten orange mit Schloss und „Eingeschränkt“.
+    - **„Rechte“** (vorher „Teilen“) als normaler Knopf; mit eigenen Rechten orange mit Schloss und „Eingeschränkt“.
       Der Hinweis „Eingeschränkt“ über dem Titel entfällt dafür.
     - **„⋯“** ohne Rahmen, mit Link kopieren, Seiteninfo (Angaben, Rechte, Rückverweise), Versionen,
       Exportieren, Verschieben … (Dialog mit Zielseite) und In den Papierkorb. Auf der Startseite und
@@ -193,6 +194,41 @@ BlockNote; dieser Entwurf legt fest, wie dessen Menüs aussehen und sich verhalt
 
 ## Ausblick (noch nicht im Frontend)
 
+- **Bearbeiten und Lesen** (Umschalter in der Leiste über der Seite, links von „Rechte“; nur mit
+  Bearbeitungsrecht): „Bearbeiten“ ist Standard. „Lesen“ sperrt die Seite für einen selbst, damit
+  man beim Lesen nichts versehentlich ändert: Titel als Überschrift statt Eingabefeld, Inhalt nicht
+  bearbeitbar (das schon Geschriebene bleibt sichtbar), Aufgaben nicht abhakbar, keine Knöpfe für
+  Emoji und Titelbild, keine Hilfen links am Block, kein Platzhalter, keine Vorlagen-Vorschläge und
+  kein „Unterseite anlegen“. Kommentieren, Reaktionen, Favorit, Rechte und das „⋯“-Menü bleiben.
+  Der Modus gilt für alle Seiten, bis man zurückschaltet (im Prototyp bis zum Neuladen). Nur Icons
+  (Stift und Buch), der Name steht im Tooltip und für Screenreader. Rechte ändert er nicht: Wer nur lesen darf, sieht den Umschalter nicht.
+- **Benutzerprofil** (M2, E02; Dialog über „Benutzerprofil“ im Konto-Menü):
+  - **Profilbild:** hochladen (PNG, JPEG, GIF, WebP, höchstens 5 MB), Vorschau rund, „Entfernen“;
+    ohne Bild die Initialen auf Blau. Im Prototyp nur im Browser, im Frontend über die Datei-API als
+    eigene Datei ohne Seite (`users.avatar_file_id`, `app.is_own_avatar`). Das Bild erscheint oben
+    rechts im Avatar-Knopf und im Kopf des Konto-Menüs; Bylines, Kommentare und Avatare der
+    Anwesenheit zeigen im Prototyp weiter Initialen.
+  - **Name** (`display_name`, Pflicht, mit Fehlermeldung bei leerem Feld), wirkt sofort in Byline,
+    Konto-Menü und überall, wo die Person genannt wird.
+  - **E-Mail-Adresse** nur lesbar mit „Im Login-Dienst ändern“: E-Mail, Passwort und Zwei-Faktor
+    gehören zu Zitadel, NoteFieber speichert kein Passwort.
+  - **Sprache** (wie im Konto-Menü) und **Zeitzone** (europäische Zeitzonen, UTC und New York mit
+    Abstand zu UTC, darunter „Bei dir ist es jetzt …“). Die Zeitzone gilt für alle Zeitangaben
+    (Byline, Versionen, Papierkorb, Benachrichtigungen, E-Mails); im Prototyp zeigt sie der Tooltip
+    an „Zuletzt bearbeitet …“.
+  - „Speichern“ erst, wenn sich etwas geändert hat; Esc oder „Abbrechen“ verwirft.
+- **Persönliche Einstellungen** (M2, E15; Dialog über das Zahnrad, wirkt sofort, „Gespeichert“
+  unten links; im Prototyp im Browser unter `nf-proto-prefs`, im Produkt pro Person in der
+  Datenbank, **Vorschlag:** `users.settings` als JSON, also eine Schemaänderung):
+  - **Darstellung:** Farbschema (wie im Zahnrad-Menü), Unterseiten im Fuß und Favoriten jeweils als
+    Karten oder Liste, „Kommentarspalte von selbst öffnen“ (Standard aus; an öffnet die Spalte beim
+    Wechsel auf eine Seite mit offenen Kommentaren, ab 1280 px).
+  - **Editor:** Markdown-Kürzel an/aus, Rechtschreibprüfung des Browsers an/aus, Link zu den
+    Tastenkürzeln.
+  - **Benachrichtigungen** (E16): je Art (Erwähnungen, Antworten, Kommentare an eigenen Seiten,
+    geteilte Seiten) „Im Wiki“ und „Per E-Mail“, dazu wie oft E-Mails kommen (sofort, einmal am
+    Tag gesammelt, nie). Abgeschaltete Arten fehlen auch in der Glocke; der Link unten im Fenster
+    der Glocke springt direkt zu diesem Abschnitt.
 - **Versionen** (E08, M3), statt des Dialogs mit Ausblick: geöffnet über „Versionen“ im „⋯“-Menü,
   über „Zuletzt bearbeitet von …“ in der Byline oder „Versionen anzeigen“ in der Suche. Die Ansicht
   ersetzt die Seite; die Brotkrume endet mit „Versionen“, rechts oben „Zurück zur Seite“ (ebenso Esc).
@@ -355,7 +391,7 @@ BlockNote; dieser Entwurf legt fest, wie dessen Menüs aussehen und sich verhalt
   - Ab 1280 px steht die Spalte rechts neben dem Text und läuft beim Scrollen mit, darunter ist sie
     eine Schublade von rechts (Esc oder Klick daneben schließt). Auf dem Handy keine Sprechblasen am
     Rand; die Stelle selbst ist antippbar.
-- **Rechte-Dialog** (M3), über „Teilen“ bzw. „Eingeschränkt“ in der Leiste über der Seite:
+- **Rechte-Dialog** (M3), über „Rechte“ bzw. „Eingeschränkt“ in der Leiste über der Seite:
   - Oben die **Zusammenfassung** „Zugriff“: wie viele Personen im Workspace welche wirksame Rolle
     haben (Admin, Bearbeiten, Kommentieren, Lesen, ohne Zugriff; Namen beim Darüberfahren),
     berechnet wie `app.page_rank` aus Personen, Gruppen und „Alle im Workspace“ (ohne Gäste), mit
@@ -369,6 +405,15 @@ BlockNote; dieser Entwurf legt fest, wie dessen Menüs aussehen und sich verhalt
     „Trotzdem speichern“ (orange). Bliebe gar kein wirksamer Admin, sperrt der Dialog das Speichern
     (die Datenbank prüft dasselbe mit `app.has_admin`).
   - Ohne Admin-Recht nur lesbar mit Hinweis auf die eigene Rolle.
+  - **Rechte des Spaces** (seit 28. November 2026): auf der Startseite öffnet „Rechte“ die Rechte
+    des Spaces, ebenso „Rechte“ im Menü „⋯“ eines Spaces (Space-Umschalter, Übersicht; aus einem
+    anderen Space geht es vorher auf dessen Startseite). Kein Schalter „Eigene Rechte“: Die
+    Startseite ist die Wurzel des Seitenbaums, eigene Rechte dort wären nur eine zweite Fassung der
+    Space-Rechte. Stattdessen ein Hinweis, dass alle Seiten sie erben und Admins des Spaces auch
+    seine Einstellungen verwalten, darunter die **Seiten mit eigenen Rechten**, die nicht erben
+    (nur die, die du sehen kannst, wie bei `app.view_as`; Klick öffnet die Seite). Gespeichert
+    über `app.set_grant` auf den Space. Erbt eine Seite vom Space, führt „Rechte des Spaces öffnen“
+    im Seitendialog dorthin; „Ansehen als …“ kommt mit „Zurück“ in dieselbe Variante zurück.
 - **„Ansehen als …“** (`app.view_as`, E09): Person wählen, darunter der ganze Seitenbaum des Spaces
   mit ihrer Rolle pro Seite (ohne Zugriff gedämpft, eigene Rechte mit Schloss) und „sieht 8 von 9
   Seiten“. Nur Struktur, keine Inhalte, Hinweis aufs Audit-Log; zeigt den gespeicherten Stand.

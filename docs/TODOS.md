@@ -40,6 +40,17 @@ Bestehenden.
   kommt nach dem Wiederherstellen und dem Ableiten zurück), Migration und Nachtrag in
   `SCHEMA.md`; danach die Kennzeichnung „noch nicht gebaut“ an den drei Stellen entfernen
 
+## Mit M3 (Rechte-Dialog)
+
+- [ ] **Keine eigenen Rechte auf der Startseite (Niedrig, gefunden 28. November 2026):**
+  `app.set_page_inheritance` lässt das Kappen der Vererbung auch auf der Startseite eines Spaces
+  zu (`spaces.home_page_id`). Die Startseite ist die Wurzel des Seitenbaums, eigene Rechte dort
+  wären eine zweite Fassung der Space-Rechte, und die Grants des Spaces gälten für keine Seite
+  mehr. Der Prototyp bietet das nicht mehr an: Auf der Startseite zeigt der Rechte-Dialog die
+  Rechte des Spaces (`prototype/README.md`, „Rechte-Dialog“). Vorschlag: `set_page_inheritance`
+  lehnt `p_inherit = false` für die Startseite ab (eigener Code in `DB_RULES`, wie
+  `home_page_not_deletable`), mit Test in `schema_test/`, Migration und Nachtrag in `SCHEMA.md`
+
 ## Mit M5 (Pilot im Cluster)
 
 - [ ] **R-08 (Rest):** In der Datenbank `wiki` hat `PUBLIC` kein `CONNECT` mehr. Im Cluster

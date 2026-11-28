@@ -107,7 +107,7 @@ svg.nf-icon.nf-fav-section-star{color:var(--nf-fav)!important;fill:currentColor}
 /* Kein Favorit: grau (fällt sonst zu sehr auf); Favorit und Darüberfahren: ocker */
 .nf-btn.nf-btn-ghost.nf-page-star{color:var(--nf-muted)}
 .nf-btn.nf-btn-ghost.nf-page-star:hover,.nf-btn.nf-btn-ghost.nf-page-star[aria-pressed='true']{color:var(--nf-fav)}
-/* Immer mit Rahmen wie „Teilen“, beim Darüberfahren etwas dunkler */
+/* Immer mit Rahmen wie „Rechte“, beim Darüberfahren etwas dunkler */
 .nf-btn.nf-btn-ghost.nf-page-star,.nf-btn.nf-btn-ghost.nf-page-star[aria-pressed='true']{border-color:var(--nf-control-border)}
 .nf-btn.nf-btn-ghost.nf-page-star:hover{border-color:#b9c1cb}
 .nf-page-star[aria-pressed='true'] svg{fill:currentColor}

@@ -101,16 +101,18 @@
         </sc-if>
       </div>
       <div class="nf-user">
-        <button type="button" class="nf-avatar-btn" aria-label="Konto: Peter Forster" title="Peter Forster" aria-haspopup="menu" aria-expanded="{{userMenuExpanded}}" onClick="{{toggleUserMenu}}">
-          <span aria-hidden="true">PF</span>
+        <button type="button" class="nf-avatar-btn" aria-label="{{meLabel}}" title="{{meName}}" aria-haspopup="menu" aria-expanded="{{userMenuExpanded}}" onClick="{{toggleUserMenu}}">
+          <sc-if value="{{hasMeAvatar}}" hint-placeholder-val="{{ false }}"><span class="nf-avatar-img" style="background-image: {{meAvatarBg}}" aria-hidden="true"></span></sc-if>
+          <sc-if value="{{noMeAvatar}}" hint-placeholder-val="{{ true }}"><span aria-hidden="true">{{meInitials}}</span></sc-if>
         </button>
         <sc-if value="{{userMenuOpen}}" hint-placeholder-val="{{ false }}">
           <ul class="nf-menu nf-user-menu nf-account-menu" role="menu" aria-label="Konto">
             <li role="none" class="nf-menu-header">
-              <span class="nf-byline-avatar" style="background: #1F5FD6" aria-hidden="true">PF</span>
+              <sc-if value="{{hasMeAvatar}}" hint-placeholder-val="{{ false }}"><span class="nf-byline-avatar nf-avatar-img" style="background-image: {{meAvatarBg}}" aria-hidden="true"></span></sc-if>
+              <sc-if value="{{noMeAvatar}}" hint-placeholder-val="{{ true }}"><span class="nf-byline-avatar" style="background: #1F5FD6" aria-hidden="true">{{meInitials}}</span></sc-if>
               <span class="nf-menu-header-names">
-                <strong>Peter Forster</strong>
-                <span>peter.forster@alpenwerk.example</span>
+                <strong>{{meName}}</strong>
+                <span>{{meEmail}}</span>
                 <span>Alpenwerk · Organisations-Admin</span>
               </span>
             </li>
