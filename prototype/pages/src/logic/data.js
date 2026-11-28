@@ -36,6 +36,11 @@ const MEMBERS = [
   { key: 'elena', email: 'elena.novak@agentur-nord.example', role: 'guest' },
   { key: 'anja', email: 'anja.keller@alpenwerk.example', role: 'member' }
 ];
+// Export im Worker (E14): Phasen eines Auftrags und ein früherer Export der angemeldeten Person
+const EXPORT_PHASES = ['Neuesten Stand ableiten', 'Markdown und BlockNote-JSON schreiben', 'Bilder und Anhänge einpacken', 'ZIP fertigstellen'];
+const EXPORTS = [
+  { id: 'x0', label: 'Space „Vertrieb“', zip: 'vert-2026-11-26.zip', pages: 3, size: '1,1 MB', status: 'ready', progress: 100, phase: 3, when: 'am 26. November', expires: '3. Dezember' }
+];
 // Audit-Log (nur Einträge zum Wiederherstellen von Rechten; die ganze Ansicht kommt mit E17)
 const AUDIT = [
   { id: 'a1', when: 'am 3. November', actor: 'peter', who: 'peter', label: 'Space „Altes Intranet“', reason: 'Bisheriger Admin hat das Unternehmen verlassen; Space wird archiviert.' }
@@ -65,6 +70,7 @@ const SLASH = [
   { group: 'Grundblöcke', key: 'table', title: 'Tabelle', hint: 'Tabelle mit Kopfzeile', glyph: '▦', md: '', alias: 'table' },
   { group: 'Grundblöcke', key: 'hr', title: 'Trennlinie', hint: 'Horizontale Linie', glyph: '—', md: '---', alias: 'divider linie' },
   { group: 'Medien', key: 'img', title: 'Bild', hint: 'PNG, JPEG, GIF oder WebP hochladen', glyph: '▣', md: '', alias: 'image foto upload' },
+  { group: 'Medien', key: 'file', title: 'Datei', hint: 'Anhang hochladen, wird auf Viren geprüft', glyph: '⎘', md: '', alias: 'anhang attachment upload pdf' },
   { group: 'Verknüpfen', key: 'pagelink', title: 'Link auf Seite', hint: 'Eine andere Seite verlinken (auch mit „[“)', glyph: '↗', md: '[', alias: 'seitenlink verlinken page' },
   { group: 'Verknüpfen', key: 'mention', title: 'Person erwähnen', hint: 'Eine Person aus dem Workspace nennen (auch mit „@“)', glyph: '@', md: '@', alias: 'erwähnung mention person' },
   { group: 'Verknüpfen', key: 'toc', title: 'Inhaltsverzeichnis', hint: 'Liste der Überschriften dieser Seite', glyph: '≡', md: '', alias: 'toc inhalt verzeichnis' }
@@ -94,7 +100,6 @@ const WS_ROLE = { owner: 'Owner', admin: 'Admin', member: 'Mitglied', guest: 'Ga
 const INVITE_STATUS = { open: 'offen', accepted: 'angenommen', revoked: 'zurückgenommen', expired: 'abgelaufen' };
 // Dialoge mit Ausblick (wie im Frontend: was dort entsteht)
 const SOON = {
-  export: (t) => ({ title: '„' + t + '“ exportieren', text: 'Bald lässt sich die Seite hier als Markdown, als BlockNote-JSON oder als ZIP mit allen Bildern herunterladen.' }),
   shortcuts: () => ({ title: 'Tastenkürzel', text: 'Strg K Suche · F2 Seite umbenennen · Entf Seite in den Papierkorb · / Befehle im Editor · [ Seitenlink · @ Person erwähnen' })
 };
 const CALLOUT = {

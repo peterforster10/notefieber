@@ -250,7 +250,6 @@ button.nf-drawer-close,button.nf-drawer-open{display:none}
 .nf-info-links{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
 /* Workspace und Einladungen */
 .nf-menu-meta{font-family:var(--nf-font-sans);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.nf-dialog-wide{width:min(680px,100%)}
 .nf-inline-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .nf-inline-row .nf-input{flex:1 1 220px;min-width:0;margin:0}
 .nf-inline-row .nf-input-narrow{flex:0 0 auto}
@@ -710,6 +709,10 @@ li.nf-grant-suggest-empty{color:var(--nf-muted);font-size:13px;cursor:default}
 /* Dialog (im Frontend natives <dialog>, hier als Overlay) */
 .nf-overlay{position:fixed;inset:0;z-index:70;display:flex;align-items:flex-start;justify-content:center;padding:96px 16px 16px;background:var(--nf-backdrop);overflow:auto}
 .nf-dialog{width:min(560px,100%);border-radius:12px;background:var(--nf-bg);color:var(--nf-text);box-shadow:var(--nf-shadow-dialog)}
+/* Zwei Breiten: 560 px für Rückfragen und kurze Formulare, 680 px für Listen und Verwaltung (Workspace,
+   Einladungen, Gruppen, Papierkorb, Rechte wiederherstellen, persönliche Einstellungen). Ausnahme: Export
+   mit zwei Spalten (760 px, export.css). Bis 28. November 2026 stand diese Regel vor .nf-dialog und wirkte nicht. */
+.nf-dialog.nf-dialog-wide{width:min(680px,100%)}
 .nf-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px 24px 16px}
 .nf-dialog-title{margin:0;font-size:18px;font-weight:600}
 .nf-dialog-description{margin:4px 0 0;font-size:13px;color:var(--nf-muted)}
@@ -1216,6 +1219,39 @@ span.nf-page-emoji{cursor:default}
 .nf-link-accent{color:var(--nf-accent)}
 .nf-link-attention:hover,.nf-link-accent:hover{text-decoration:underline}
 .nf-mention.nf-mention-inactive{background:var(--nf-neutral-soft);color:var(--nf-muted)}
+/* Anhänge (M3, E11): Bild- und Datei-Block mit Zustand des Virenscans, Liste in der Seiteninfo */
+.nf-img-block{margin:6px 0 16px}
+.nf-img-block img{display:block;max-width:100%;height:auto;border:1px solid var(--nf-border);border-radius:8px}
+.nf-file{display:flex;align-items:center;gap:12px;max-width:560px;margin:6px 0 10px;padding:10px 12px;border:1px solid var(--nf-border);border-radius:10px;background:var(--nf-bg);user-select:none}
+.nf-file+.nf-file{margin-top:0}
+.nf-file-icon{display:inline-grid;place-items:center;flex:none;width:36px;height:40px;border-radius:6px;background:var(--nf-accent-soft);color:var(--nf-accent);font-size:10px;font-weight:700;letter-spacing:.03em}
+.nf-file-icon[data-state='scanning']{background:var(--nf-neutral-soft);color:var(--nf-muted)}
+.nf-file-icon[data-state='blocked']{background:var(--nf-danger-soft);color:var(--nf-danger)}
+.nf-file-names{flex:1;min-width:0;display:flex;flex-direction:column;font-size:14px}
+.nf-file-names>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-file-name{font-weight:500}
+.nf-file-names>span+span{font-size:12px;color:var(--nf-muted);white-space:normal}
+.nf-file[data-state='scanning'] .nf-file-name{color:var(--nf-muted)}
+.nf-file[data-state='blocked']{border-color:var(--nf-danger);background:var(--nf-danger-soft)}
+.nf-file[data-state='blocked'] .nf-file-names>span+span{color:var(--nf-danger)}
+.nf-file .nf-btn{flex:none}
+/* Bild, solange es geprüft wird bzw. blockiert ist: Platzhalter statt Bild */
+.nf-img-state{display:flex;flex-direction:column;align-items:center;gap:6px;margin:6px 0 16px;padding:28px 16px;border:1px solid var(--nf-border);border-radius:10px;background:var(--nf-surface);color:var(--nf-muted);font-size:13px;text-align:center;user-select:none}
+.nf-img-state strong{color:var(--nf-text);font-size:14px}
+.nf-img-state[data-state='blocked']{border-color:var(--nf-danger);background:var(--nf-danger-soft);color:var(--nf-danger)}
+.nf-img-state[data-state='blocked'] strong{color:var(--nf-danger)}
+.nf-img-state .nf-btn{margin-top:4px}
+.nf-upload-error{margin-top:4px;color:var(--nf-danger);font-size:13px}
+/* Seiteninfo */
+.nf-att-list{list-style:none;margin:0;padding:0}
+.nf-att-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--nf-border)}
+.nf-att-row:last-child{border-bottom:0}
+.nf-att-row .nf-file-icon{width:28px;height:32px;font-size:9px}
+.nf-att-row[data-state='blocked'] .nf-file-icon{background:var(--nf-danger-soft);color:var(--nf-danger)}
+.nf-att-row[data-state='scanning'] .nf-file-icon{background:var(--nf-neutral-soft);color:var(--nf-muted)}
+.nf-att-chip{flex:none;padding:1px 8px;border-radius:999px;background:var(--nf-neutral-soft);color:var(--nf-muted);font-size:12px;font-weight:500;white-space:nowrap}
+.nf-att-chip[data-state='blocked']{background:var(--nf-danger-soft);color:var(--nf-danger)}
+.nf-img-static{display:block;width:100%;max-width:640px;aspect-ratio:640/220;border:1px solid var(--nf-border);border-radius:8px;background:center/contain no-repeat}
 /* Dialog „Rechte wiederherstellen“ (M3, E09): Bereiche ohne wirksamen Admin, neuer Admin mit Grund, Audit-Log */
 .nf-rc-done{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 12px;padding:10px 12px;border-radius:8px;background:var(--nf-done-bg);color:var(--nf-done-fg);font-size:13px}
 .nf-rc-done span{flex:1 1 240px}
@@ -1245,6 +1281,41 @@ span.nf-page-emoji{cursor:default}
   .nf-rc-field,.nf-rc-field-grow{flex-basis:100%}
   .nf-rc-log li{flex-direction:column;gap:2px}
   .nf-rc-log-when{width:auto}
+}
+/* Dialog „Exportieren“ (M3, E14): Umfang und Inhalt links, Vorschau des ZIP rechts, eigene Exporte darunter */
+.nf-dialog.nf-exp{width:min(760px,100%)}
+.nf-exp-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px 24px}
+.nf-exp-set{margin:0 0 8px;padding:0;border:0}
+.nf-exp-set legend{padding:0;margin:0 0 6px}
+.nf-exp-set+.nf-exp-set legend{margin-top:10px}
+.nf-exp-option{display:flex;align-items:flex-start;gap:10px;padding:7px 8px;border-radius:8px;cursor:pointer}
+.nf-exp-option:hover{background:var(--nf-subtle)}
+.nf-exp-option input{flex:none;width:16px;height:16px;margin:2px 0 0;accent-color:var(--nf-accent)}
+.nf-exp-option>span{display:flex;flex-direction:column;gap:1px;min-width:0;font-size:13px;line-height:1.4}
+.nf-exp-option strong{font-size:14px;font-weight:500}
+.nf-exp-option>span>span{color:var(--nf-muted)}
+.nf-exp-later{cursor:default}
+.nf-exp-later:hover{background:none}
+.nf-exp-later strong{color:var(--nf-muted)}
+.nf-exp-zip{border:1px solid var(--nf-border);border-radius:8px;background:var(--nf-surface);overflow:hidden}
+.nf-exp-zip-name{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--nf-border);font-weight:500;font-size:13px}
+.nf-exp-files{list-style:none;margin:0;padding:8px 12px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;line-height:1.5}
+.nf-exp-files li{padding:2px 0;overflow-wrap:anywhere}
+.nf-exp-files li[data-kind='more']{font-family:inherit;color:var(--nf-muted)}
+.nf-exp-files li[data-kind='dir']{color:var(--nf-accent)}
+.nf-exp-summary{margin:8px 0 0;font-size:13px;font-weight:500}
+.nf-exp-hint{margin:6px 0 0;font-size:13px;line-height:1.5;color:var(--nf-muted)}
+.nf-exp-jobs{list-style:none;margin:0;padding:0;border:1px solid var(--nf-border);border-radius:8px}
+.nf-exp-jobs li+li{border-top:1px solid var(--nf-border)}
+.nf-exp-job{display:flex;align-items:center;gap:12px;padding:8px 12px}
+.nf-exp-job .nf-person-names{flex:1;min-width:0}
+.nf-exp-job .nf-person-names>span:first-child{font-weight:500}
+.nf-exp-job .nf-imp-bar{display:block;margin-top:6px;max-width:320px}
+.nf-exp-job .nf-btn{flex:none}
+.nf-exp-job-icon{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:8px;background:var(--nf-accent-soft);color:var(--nf-accent)}
+#exp-jobs:focus{outline:none}
+@media (max-width:720px){
+  .nf-exp-cols{grid-template-columns:1fr}
 }
 /* Formulare */
 .nf-label{display:block;margin:12px 0 6px;font-weight:500}
@@ -1359,6 +1430,9 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
                   <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{sc.rights}}">
                     <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="6" cy="5.5" r="2.5"></circle><path d="M1.5 13.5c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4"></path><path d="M10.5 3.2a2.5 2.5 0 010 4.6M12 9.8c1.3.6 2.2 1.9 2.5 3.7"></path></svg>
                     <span class="nf-menu-label">Rechte</span></button></li>
+                  <li role="none"><button type="button" role="menuitem" class="nf-menu-item" aria-haspopup="dialog" onClick="{{sc.exportSpace}}">
+                    <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v7.5M5 7l3 3 3-3"></path><path d="M3 11.5v2h10v-2"></path></svg>
+                    <span class="nf-menu-label">Exportieren</span></button></li>
                   <li role="none"><button type="button" role="menuitem" class="nf-menu-item" onClick="{{sc.copyLink}}">
                     <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6.75 9.25a3 3 0 004.24 0l2-2a3 3 0 00-4.24-4.24l-.75.75"></path><path d="M9.25 6.75a3 3 0 00-4.24 0l-2 2a3 3 0 004.24 4.24l.75-.75"></path></svg>
                     <span class="nf-menu-label">Link kopieren</span></button></li>
@@ -2146,6 +2220,23 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
                   <pre><code><span class="k">SELECT</span> <span class="f">set_config</span>(<span class="s">'app.tenant_id'</span>, $1, <span class="c">true</span>);
 <span class="k">SELECT</span> <span class="f">set_config</span>(<span class="s">'app.user_id'</span>,   $2, <span class="c">true</span>);</code></pre>
                 </div>
+
+                <!-- Anhänge (M3, E11): Bild- und Datei-Blöcke mit Zustand des Virenscans -->
+                <h2>Unterlagen</h2>
+                <sc-if value="{{att.hasImage}}" hint-placeholder-val="{{ true }}">
+                  <sc-if value="{{att.image.isClean}}" hint-placeholder-val="{{ true }}">
+                    <figure class="nf-img-block"><span class="nf-img-static" role="img" aria-label="ER-Diagramm: spaces, pages und grants" style="background-image: {{att.image.bg}}"></span></figure>
+                  </sc-if>
+                </sc-if>
+                <sc-for list="{{att.files}}" as="af" hint-placeholder-count="3">
+                    <div class="nf-file" data-state="{{af.state}}" aria-busy="{{af.busy}}">
+                      <sc-if value="{{af.isClean}}" hint-placeholder-val="{{ true }}"><span class="nf-file-icon" aria-hidden="true">{{af.ext}}</span></sc-if>
+                      <sc-if value="{{af.isScanning}}" hint-placeholder-val="{{ false }}"><span class="nf-file-icon" data-state="scanning" aria-hidden="true"><svg class="nf-icon nf-spin" width="18" height="18" viewBox="0 0 16 16"><path d="M8 2a6 6 0 105.2 3"></path></svg></span></sc-if>
+                      <sc-if value="{{af.isBlocked}}" hint-placeholder-val="{{ false }}"><span class="nf-file-icon" data-state="blocked" aria-hidden="true"><svg class="nf-icon" width="18" height="18" viewBox="0 0 16 16"><path d="M8 1.8l5 2v4c0 3.2-2.2 5.4-5 6.4-2.8-1-5-3.2-5-6.4v-4z"></path><path d="M6 6l4 4M10 6l-4 4"></path></svg></span></sc-if>
+                      <span class="nf-file-names"><span class="nf-file-name">{{af.name}}</span><span>{{af.meta}}</span></span>
+                      <sc-if value="{{af.canRemove}}" hint-placeholder-val="{{ false }}"><button type="button" class="nf-btn" onClick="{{af.remove}}">Entfernen</button></sc-if>                      <sc-if value="{{af.dlShown}}" hint-placeholder-val="{{ true }}"><button type="button" class="nf-btn nf-btn-icon" aria-label="{{af.dlLabel}}" title="Herunterladen" disabled="{{af.dlDisabled}}" onClick="{{af.download}}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8M4.5 7L8 10.5 11.5 7M3 13.5h10"></path></svg></button></sc-if>
+                    </div>
+                </sc-for>
 
                 <h2>Offene Punkte</h2>
                 <div class="nf-checklist">
@@ -3111,7 +3202,7 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
     </div>
   </sc-if>
 
-  <!-- Export: im Frontend vorerst ein Dialog mit Ausblick (E14); Versionen haben eine eigene Ansicht -->
+  <!-- Dialoge mit Ausblick (Tastenkürzel): was im Frontend später entsteht -->
   <sc-if value="{{soonOpen}}" hint-placeholder-val="{{ false }}">
     <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
       <div class="nf-dialog" role="dialog" aria-modal="true" aria-labelledby="soon-title">
@@ -3131,6 +3222,102 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
     </div>
   </sc-if>
 
+  <!-- Exportieren (M3, E14): Umfang, Inhalt des ZIP, direkt herunterladen oder als Auftrag im Worker -->
+  <sc-if value="{{exp.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <div class="nf-dialog nf-dialog-wide nf-exp" role="dialog" aria-modal="true" aria-labelledby="exp-title" aria-describedby="exp-intro">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="exp-title" class="nf-dialog-title">{{exp.title}}</h2>
+            <p id="exp-intro" class="nf-dialog-description">Als ZIP zum Archivieren, Weitergeben oder für den Umzug in ein anderes System. Enthalten ist nur, was du lesen darfst; Seiten ohne Leserecht und der Papierkorb fehlen.</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body">
+          <div class="nf-exp-cols">
+            <div>
+              <fieldset class="nf-exp-set">
+                <legend class="nf-section-title">Umfang</legend>
+                <sc-for list="{{exp.options}}" as="o" hint-placeholder-count="3">
+                  <label class="nf-exp-option" for="{{o.id}}">
+                    <input type="radio" id="{{o.id}}" name="exp-scope" checked="{{o.checked}}" onChange="{{o.choose}}">
+                    <span><strong>{{o.label}}</strong><span>{{o.hint}}</span></span>
+                  </label>
+                </sc-for>
+              </fieldset>
+              <fieldset class="nf-exp-set">
+                <legend class="nf-section-title">Inhalt</legend>
+                <label class="nf-exp-option">
+                  <input type="checkbox" checked="{{exp.md}}" disabled="{{exp.md}}">
+                  <span><strong>Markdown</strong><span>Zum Lesen und Weiterverwenden, eine Datei pro Seite. Immer dabei.</span></span>
+                </label>
+                <label class="nf-exp-option">
+                  <input type="checkbox" checked="{{exp.json}}" onChange="{{exp.toggleJson}}">
+                  <span><strong>BlockNote-JSON</strong><span>Verlustfrei, für den erneuten Import und einen späteren Wechsel des Editors.</span></span>
+                </label>
+                <label class="nf-exp-option">
+                  <input type="checkbox" checked="{{exp.withFiles}}" onChange="{{exp.toggleFiles}}">
+                  <span><strong>Bilder und Anhänge</strong><span>Im Ordner „files“, die Seiten verweisen darauf.</span></span>
+                </label>
+                <label class="nf-exp-option nf-exp-later">
+                  <input type="checkbox" disabled="true">
+                  <span><strong>PDF, Word, ODT</strong><span>Kommt später.</span></span>
+                </label>
+              </fieldset>
+            </div>
+            <div class="nf-exp-preview">
+              <h3 class="nf-section-title" style="margin-top: 0">Im ZIP</h3>
+              <div class="nf-exp-zip">
+                <div class="nf-exp-zip-name">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2.5h7l3 3v8H3z"></path><path d="M7 2.5v2M7 6v2M7 9.5v2"></path></svg>
+                  <span>{{exp.zip}}</span>
+                </div>
+                <ul class="nf-exp-files" aria-label="Dateien im ZIP">
+                  <sc-for list="{{exp.files}}" as="f" hint-placeholder-count="5">
+                    <li data-kind="{{f.kind}}">{{f.name}}</li>
+                  </sc-for>
+                </ul>
+              </div>
+              <p class="nf-exp-summary">{{exp.summary}}</p>
+              <sc-if value="{{exp.big}}" hint-placeholder-val="{{ false }}">
+                <p class="nf-exp-hint">{{exp.bigHint}}</p>
+              </sc-if>
+            </div>
+          </div>
+
+          <sc-if value="{{exp.hasJobs}}" hint-placeholder-val="{{ true }}">
+            <h3 id="exp-jobs" class="nf-section-title" tabindex="-1">Deine Exporte</h3>
+            <ul class="nf-exp-jobs" aria-label="Deine Exporte" aria-live="polite">
+              <sc-for list="{{exp.jobs}}" as="j" hint-placeholder-count="2">
+                <li class="nf-exp-job">
+                  <span class="nf-exp-job-icon" aria-hidden="true">
+                    <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16"><path d="M3 2.5h7l3 3v8H3z"></path><path d="M7 2.5v2M7 6v2M7 9.5v2"></path></svg>
+                  </span>
+                  <span class="nf-person-names">
+                    <span>{{j.label}}</span>
+                    <span>{{j.meta}}</span>
+                    <sc-if value="{{j.running}}" hint-placeholder-val="{{ false }}">
+                      <span class="nf-imp-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{j.progress}}" aria-label="{{j.progressLabel}}"><span style="width: {{j.progress}}%"></span></span>
+                    </sc-if>
+                  </span>
+                  <sc-if value="{{j.ready}}" hint-placeholder-val="{{ true }}">
+                    <button type="button" class="nf-btn" onClick="{{j.download}}">Herunterladen</button>
+                  </sc-if>
+                </li>
+              </sc-for>
+            </ul>
+          </sc-if>
+          <p class="nf-rc-note">Jeder Export steht mit Umfang im Audit-Log. Seiten, die gerade jemand bearbeitet, kommen mit dem Stand von vor höchstens einer halben Minute.</p>
+        </div>
+        <div class="nf-dialog-foot">
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Schließen</button>
+          <button type="button" class="nf-btn nf-btn-primary" onClick="{{exp.start}}">{{exp.startLabel}}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
   <!-- Version sichern (app.save_version, editor): optionaler Name (Vorschlag, braucht eine Spalte im Schema) -->
   <sc-if value="{{vSave.open}}" hint-placeholder-val="{{ false }}">
     <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
@@ -3205,6 +3392,24 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
             <dt>Rechte</dt><dd>{{info.rights}}</dd>
             <dt>Deine Rolle</dt><dd>{{page.roleLabel}}</dd>
             <dt>Versionen</dt><dd>{{info.versions}}</dd>
+            <dt>Anhänge</dt>
+            <dd>
+              <sc-if value="{{att.hasInfo}}" hint-placeholder-val="{{ true }}">
+                <ul class="nf-att-list">
+                  <sc-for list="{{att.info}}" as="ai" hint-placeholder-count="2">
+                    <li class="nf-att-row" data-state="{{ai.state}}">
+                      <span class="nf-file-icon" aria-hidden="true">{{ai.ext}}</span>
+                      <span class="nf-file-names"><span class="nf-file-name">{{ai.name}}</span><span>{{ai.infoMeta}}</span></span>
+                      <sc-if value="{{ai.hasChip}}" hint-placeholder-val="{{ false }}"><span class="nf-att-chip" data-state="{{ai.state}}">{{ai.chip}}</span></sc-if>
+                      <sc-if value="{{ai.isClean}}" hint-placeholder-val="{{ true }}">
+                        <button type="button" class="nf-btn nf-btn-icon" aria-label="{{ai.dlLabel}}" title="Herunterladen" onClick="{{ai.download}}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8M4.5 7L8 10.5 11.5 7M3 13.5h10"></path></svg></button>
+                      </sc-if>
+                    </li>
+                  </sc-for>
+                </ul>
+              </sc-if>
+              <sc-if value="{{att.noInfo}}" hint-placeholder-val="{{ false }}"><span class="nf-muted">Keine Bilder oder Dateien auf dieser Seite.</span></sc-if>
+            </dd>
             <dt>Verlinkt von</dt>
             <dd>
               <sc-if value="{{info.hasBacklinks}}" hint-placeholder-val="{{ true }}">
@@ -4137,6 +4342,11 @@ const MEMBERS = [
   { key: 'elena', email: 'elena.novak@agentur-nord.example', role: 'guest' },
   { key: 'anja', email: 'anja.keller@alpenwerk.example', role: 'member' }
 ];
+// Export im Worker (E14): Phasen eines Auftrags und ein früherer Export der angemeldeten Person
+const EXPORT_PHASES = ['Neuesten Stand ableiten', 'Markdown und BlockNote-JSON schreiben', 'Bilder und Anhänge einpacken', 'ZIP fertigstellen'];
+const EXPORTS = [
+  { id: 'x0', label: 'Space „Vertrieb“', zip: 'vert-2026-11-26.zip', pages: 3, size: '1,1 MB', status: 'ready', progress: 100, phase: 3, when: 'am 26. November', expires: '3. Dezember' }
+];
 // Audit-Log (nur Einträge zum Wiederherstellen von Rechten; die ganze Ansicht kommt mit E17)
 const AUDIT = [
   { id: 'a1', when: 'am 3. November', actor: 'peter', who: 'peter', label: 'Space „Altes Intranet“', reason: 'Bisheriger Admin hat das Unternehmen verlassen; Space wird archiviert.' }
@@ -4166,6 +4376,7 @@ const SLASH = [
   { group: 'Grundblöcke', key: 'table', title: 'Tabelle', hint: 'Tabelle mit Kopfzeile', glyph: '▦', md: '', alias: 'table' },
   { group: 'Grundblöcke', key: 'hr', title: 'Trennlinie', hint: 'Horizontale Linie', glyph: '—', md: '---', alias: 'divider linie' },
   { group: 'Medien', key: 'img', title: 'Bild', hint: 'PNG, JPEG, GIF oder WebP hochladen', glyph: '▣', md: '', alias: 'image foto upload' },
+  { group: 'Medien', key: 'file', title: 'Datei', hint: 'Anhang hochladen, wird auf Viren geprüft', glyph: '⎘', md: '', alias: 'anhang attachment upload pdf' },
   { group: 'Verknüpfen', key: 'pagelink', title: 'Link auf Seite', hint: 'Eine andere Seite verlinken (auch mit „[“)', glyph: '↗', md: '[', alias: 'seitenlink verlinken page' },
   { group: 'Verknüpfen', key: 'mention', title: 'Person erwähnen', hint: 'Eine Person aus dem Workspace nennen (auch mit „@“)', glyph: '@', md: '@', alias: 'erwähnung mention person' },
   { group: 'Verknüpfen', key: 'toc', title: 'Inhaltsverzeichnis', hint: 'Liste der Überschriften dieser Seite', glyph: '≡', md: '', alias: 'toc inhalt verzeichnis' }
@@ -4195,7 +4406,6 @@ const WS_ROLE = { owner: 'Owner', admin: 'Admin', member: 'Mitglied', guest: 'Ga
 const INVITE_STATUS = { open: 'offen', accepted: 'angenommen', revoked: 'zurückgenommen', expired: 'abgelaufen' };
 // Dialoge mit Ausblick (wie im Frontend: was dort entsteht)
 const SOON = {
-  export: (t) => ({ title: '„' + t + '“ exportieren', text: 'Bald lässt sich die Seite hier als Markdown, als BlockNote-JSON oder als ZIP mit allen Bildern herunterladen.' }),
   shortcuts: () => ({ title: 'Tastenkürzel', text: 'Strg K Suche · F2 Seite umbenennen · Entf Seite in den Papierkorb · / Befehle im Editor · [ Seitenlink · @ Person erwähnen' })
 };
 const CALLOUT = {
@@ -4489,6 +4699,23 @@ const GRANTS = {
   konditionen: [{ key: 'anja', role: 'admin' }, { key: 'max', role: 'editor' }]
 };
 
+
+// Anhänge der Seite Datenmodell (Tabelle files, Inhalt in Garage). state wie der Virenscan (M3, E11):
+// clean = geprüft, scanning = wird geprüft, blocked = Schadsoftware gefunden
+const ATTACHMENTS = {
+  dm: [
+    { id: 'f-er', kind: 'image', name: 'er-diagramm.png', size: 184320, state: 'clean', by: 'sophie', when: 'am 30. Oktober' },
+    { id: 'f-pdf', kind: 'file', name: 'datenmodell-v3.pdf', size: 1468006, state: 'clean', by: 'sophie', when: 'am 30. Oktober' },
+    { id: 'f-zip', kind: 'file', name: 'schema-dump-2026-11.zip', size: 19084288, state: 'scanning', by: 'lukas', when: 'vor 1 Minute' },
+    { id: 'f-docm', kind: 'file', name: 'migrationsplan.docm', size: 98304, state: 'blocked', finding: 'W97M.Downloader', by: 'markus', when: 'gestern' }
+  ]
+};
+// ER-Diagramm als Bild (im Produkt ein hochgeladenes PNG unter /api/v1/files/<id>)
+const ER_DIAGRAM_SVG = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220" font-family="Inter,sans-serif" font-size="13"><rect width="640" height="220" fill="#f8f9fb"/>'
+  + [['spaces', 30, ['id', 'tenant_id', 'key', 'home_page_id']], ['pages', 240, ['id', 'space_id', 'parent_id', 'path']], ['grants', 450, ['space_id | page_id', 'subject', 'role']]]
+    .map(([t, x, cols]) => '<g transform="translate(' + x + ',30)"><rect width="160" height="' + (36 + cols.length * 22) + '" rx="8" fill="#fff" stroke="#1F5FD6"/><rect width="160" height="30" rx="8" fill="#1F5FD6"/><text x="12" y="20" fill="#fff" font-weight="600">' + t + '</text>'
+      + cols.map((c, i) => '<text x="12" y="' + (52 + i * 22) + '" fill="#1a2230">' + c + '</text>').join('') + '</g>').join('')
+  + '<path d="M190 75H240M400 75H450" stroke="#5b6573" stroke-width="1.5" fill="none" marker-end="url(#a)"/><defs><marker id="a" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L8 4L0 8z" fill="#5b6573"/></marker></defs></svg>');
 // ---------- Vorlagen (Ausblick) ----------
 // Mitgelieferte und eigene Vorlagen. „scope“ leer = für alle Spaces (pflegen Organisations-Admins),
 // sonst nur für diesen Space (pflegen seine Admins). Im Produkt eine eigene Tabelle (Vorschlag):
@@ -4563,12 +4790,17 @@ class Component extends DCLogic {
       spaces: JSON.parse(JSON.stringify(SPACES)),
       grants: JSON.parse(JSON.stringify(GRANTS)),
       groups: JSON.parse(JSON.stringify(GROUPS)),
+      // Anhänge pro Seite (files) mit Zustand des Virenscans
+      attachments: JSON.parse(JSON.stringify(ATTACHMENTS)),
       // Deaktivierte Personen (users.deactivated_at, für den ganzen Mandanten): Schlüssel → { by, when }
       deactivated: { anja: { by: 'peter', when: 'am 14. November' } },
       // Rechte wiederherstellen (M3, E09; nur Organisations-Admins): gewählte Person und Grund pro Quelle,
       // zuletzt erledigte Quelle (für den Hinweis im Dialog), Fehler, Audit-Log
       rcWho: {}, rcReason: {}, rcError: null, rcDone: null,
       audit: AUDIT.map((a) => ({ ...a })),
+      // Export (E14): Auswahl im Dialog und eigene Exporte (laufend oder fertig, 7 Tage herunterladbar)
+      exp: null,
+      exports: EXPORTS.map((x) => ({ ...x })),
       // Dialog „Gruppen“: Liste oder eine Gruppe (gmSel), Entwurf für neue Gruppe und Namen, Hinzufügen, Fehler
       gmSel: null, gmQ: '', gmNew: null, gmName: null, gmAddQ: '', gmAddOpen: false, gmAddActive: 0, gmError: null,
       // Papierkorb: wer wann gelöscht hat und wie viele Tage bis zum endgültigen Löschen bleiben
@@ -5617,7 +5849,12 @@ class Component extends DCLogic {
       }
       case 'hr': { const e = mk('hr'); e.contentEditable = 'false'; return { el: e, after: true }; }
       case 'img': {
-        const e = mk('div', 'nf-img-upload', '<svg class="nf-icon" width="22" height="22" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.5"></rect><circle cx="6" cy="6.5" r="1.2"></circle><path d="M2.5 12l3.5-3.5 2.5 2.5 2-2 3 3"></path></svg><strong>Bild hierher ziehen</strong><span>PNG, JPEG, GIF oder WebP</span><button type="button" class="nf-btn">Datei auswählen</button>');
+        const e = mk('div', 'nf-img-upload', '<svg class="nf-icon" width="22" height="22" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.5"></rect><circle cx="6" cy="6.5" r="1.2"></circle><path d="M2.5 12l3.5-3.5 2.5 2.5 2-2 3 3"></path></svg><strong>Bild hierher ziehen</strong><span>PNG, JPEG, GIF oder WebP · wird vor dem Anzeigen auf Viren geprüft</span><button type="button" class="nf-btn nf-upload-pick">Datei auswählen</button>');
+        e.contentEditable = 'false';
+        return { el: e, after: true };
+      }
+      case 'file': {
+        const e = mk('div', 'nf-img-upload nf-file-upload', '<svg class="nf-icon" width="22" height="22" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg><strong>Datei hierher ziehen</strong><span>Jeder Typ · wird auf Viren geprüft, erst danach herunterladbar</span><button type="button" class="nf-btn nf-upload-pick">Datei auswählen</button>');
         e.contentEditable = 'false';
         return { el: e, after: true };
       }
@@ -5782,6 +6019,7 @@ class Component extends DCLogic {
   }
   edOnClick(e) {
     const t = e.target;
+    if (t.closest && this.attOnEditorClick(t)) { e.preventDefault(); return; }
     const link = t.closest && t.closest('.nf-page-link[data-page-id]');
     if (link) { e.preventDefault(); if (this.state.pages[link.dataset.pageId]) this.go(link.dataset.pageId); return; }
     if (t.matches && t.matches('.nf-check input[type=checkbox]')) {
@@ -6180,7 +6418,8 @@ class Component extends DCLogic {
       { label: 'Confluence-Import', kw: 'import importieren confluence umzug export hochladen', run: () => this.openImport() },
       isPage && { label: 'Link zur Seite kopieren', kw: 'link kopieren teilen url adresse', run: () => this.showToast('Link kopiert') },
       isPage && { label: 'Versionen anzeigen', kw: 'versionen verlauf historie wiederherstellen vergleichen änderungen', run: () => this.openVersions(this.state.current) },
-      isPage && { label: 'Seite exportieren', kw: 'export exportieren markdown download', run: () => this.setState({ dialog: 'export' }) },
+      isPage && { label: 'Seite exportieren', kw: 'export exportieren markdown download zip', run: () => this.openExport('page') },
+      { label: 'Space exportieren', kw: 'export exportieren space zip download sichern', run: () => this.openExport('space') },
       { label: dark ? 'Helle Darstellung' : 'Dunkle Darstellung', kw: 'darstellung theme dunkel hell modus farbe', run: () => {
         const next = dark ? 'light' : 'dark';
         try { localStorage.setItem('nf-proto-theme', next); } catch (err) { /* nur diese Sitzung */ }
@@ -6364,6 +6603,7 @@ class Component extends DCLogic {
         toggleMenu: (e) => { this.stop(e); this.setState((st) => ({ sideMenu: st.sideMenu === x.key ? null : x.key, userMenu: false, settingsMenu: false })); },
         settings: () => this.openSpaceSettings(x.key),
         rights: () => this.openRights(x.key),
+        exportSpace: () => this.openExport('space', x.key),
         copyLink: () => {
           try { navigator.clipboard.writeText(location.origin + '/s/' + x.key.toLowerCase()).catch(() => {}); } catch (err) { /* nur Rückmeldung */ }
           this.setState({ sideMenu: null });
@@ -7360,6 +7600,186 @@ class Component extends DCLogic {
     });
     this.showToast(PEOPLE[key].name + ' wieder aktiv');
   }
+  // ---------- Anhänge und Virenscan (M3: E11) ----------
+  // Datei-Block und Bild-Block zeigen den Zustand aus files: wird geprüft (Download gesperrt, die API
+  // liefert ungeprüfte Dateien nicht aus), geprüft, blockiert (Schadsoftware gefunden, nie
+  // auslieferbar). Im Prototyp lädt „Datei auswählen“ eine echte Datei aus dem Browser (bleibt lokal),
+  // der Scan dauert 3 s; ein Name mit „eicar“ wird blockiert.
+  attTypeOf(name, kind) {
+    const ext = (name.match(/\.([a-z0-9]{1,5})$/i) || [])[1] || '';
+    const T = { pdf: 'PDF', zip: 'ZIP-Archiv', docx: 'Word', docm: 'Word mit Makros', xlsx: 'Excel', xlsm: 'Excel mit Makros', pptx: 'PowerPoint', odt: 'ODT', csv: 'CSV', txt: 'Text', md: 'Markdown', json: 'JSON', png: 'PNG-Bild', jpg: 'JPEG-Bild', jpeg: 'JPEG-Bild', gif: 'GIF-Bild', webp: 'WebP-Bild' };
+    return { ext: (ext || (kind === 'image' ? 'img' : 'datei')).toUpperCase().slice(0, 4), label: T[ext.toLowerCase()] || (ext ? ext.toUpperCase() + '-Datei' : 'Datei') };
+  }
+  attSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' KB';
+    return (bytes / 1024 / 1024).toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' MB';
+  }
+  attMeta(a) {
+    const t = this.attTypeOf(a.name, a.kind);
+    return t.label + ' · ' + this.attSize(a.size) + ' · ' + PEOPLE[a.by].name + ' ' + a.when;
+  }
+  attStateText(a) {
+    if (a.state === 'scanning') return 'Wird auf Viren geprüft … Herunterladen geht danach.';
+    if (a.state === 'blocked') return 'Blockiert: Schadsoftware gefunden (' + a.finding + '). Herunterladen ist gesperrt.';
+    return '';
+  }
+  attFind(id) {
+    for (const [pid, list] of Object.entries(this.state.attachments)) {
+      const a = list.find((x) => x.id === id);
+      if (a) return { pid, a };
+    }
+    return null;
+  }
+  attDownload(id) {
+    const hit = this.attFind(id);
+    if (!hit || hit.a.state !== 'clean') return;
+    if (hit.a.url) {
+      const link = document.createElement('a');
+      link.href = hit.a.url;
+      link.download = hit.a.name;
+      link.click();
+    } else this.showToast('Herunterladen: ' + hit.a.name + ' (im Prototyp ohne Inhalt)');
+  }
+  attRemove(id) {
+    const hit = this.attFind(id);
+    if (!hit) return;
+    this.setState((st) => ({ attachments: { ...st.attachments, [hit.pid]: st.attachments[hit.pid].filter((x) => x.id !== id) } }));
+    document.querySelectorAll('.nf-editable [data-att-id="' + id + '"]').forEach((el) => el.remove());
+    this.edSave();
+    this.markSaving();
+    this.showToast('„' + hit.a.name + '“ entfernt');
+  }
+
+  /** Markup für Blöcke im bearbeitbaren Bereich (gleiche Klassen wie die Vorlage) */
+  attIcon(a) {
+    if (a.state === 'scanning') return '<span class="nf-file-icon" data-state="scanning" aria-hidden="true"><svg class="nf-icon nf-spin" width="18" height="18" viewBox="0 0 16 16"><path d="M8 2a6 6 0 105.2 3"></path></svg></span>';
+    if (a.state === 'blocked') return '<span class="nf-file-icon" data-state="blocked" aria-hidden="true"><svg class="nf-icon" width="18" height="18" viewBox="0 0 16 16"><path d="M8 1.8l5 2v4c0 3.2-2.2 5.4-5 6.4-2.8-1-5-3.2-5-6.4v-4z"></path><path d="M6 6l4 4M10 6l-4 4"></path></svg></span>';
+    return '<span class="nf-file-icon" aria-hidden="true">' + esc(this.attTypeOf(a.name, a.kind).ext) + '</span>';
+  }
+  attBlockHtml(a) {
+    if (a.kind === 'image') {
+      if (a.state === 'clean') return '<figure class="nf-img-block" contenteditable="false" data-att-id="' + a.id + '"><img src="' + a.url + '" alt="' + esc(a.name) + '"></figure>';
+      return '<div class="nf-img-state" contenteditable="false" data-att-id="' + a.id + '" data-state="' + a.state + '"' + (a.state === 'scanning' ? ' aria-busy="true"' : '') + '>'
+        + this.attIcon(a)
+        + '<strong>' + (a.state === 'scanning' ? 'Bild wird auf Viren geprüft …' : 'Bild blockiert') + '</strong>'
+        + '<span>' + esc(a.name) + (a.state === 'blocked' ? ' · Schadsoftware gefunden (' + esc(a.finding) + ')' : '') + '</span>'
+        + (a.state === 'blocked' ? '<button type="button" class="nf-btn nf-att-remove">Entfernen</button>' : '')
+        + '</div>';
+    }
+    const st = this.attStateText(a);
+    return '<div class="nf-file" contenteditable="false" data-att-id="' + a.id + '" data-state="' + a.state + '"' + (a.state === 'scanning' ? ' aria-busy="true"' : '') + '>'
+      + this.attIcon(a)
+      + '<span class="nf-file-names"><span class="nf-file-name">' + esc(a.name) + '</span><span>' + esc(st || this.attMeta(a)) + '</span></span>'
+      + (a.state === 'blocked'
+        ? '<button type="button" class="nf-btn nf-att-remove">Entfernen</button>'
+        : '<button type="button" class="nf-btn nf-btn-icon nf-att-dl" aria-label="' + esc(a.name) + ' herunterladen" title="Herunterladen"' + (a.state === 'clean' ? '' : ' disabled') + '><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8M4.5 7L8 10.5 11.5 7M3 13.5h10"></path></svg></button>')
+      + '</div>';
+  }
+  /** Klicks in Anhang-Blöcken des bearbeitbaren Bereichs; true, wenn behandelt */
+  attOnEditorClick(t) {
+    const pick = t.closest('.nf-upload-pick');
+    if (pick) { this.attPick(pick.closest('.nf-img-upload, .nf-file-upload')); return true; }
+    const block = t.closest('[data-att-id]');
+    if (!block) return false;
+    if (t.closest('.nf-att-dl')) { this.attDownload(block.dataset.attId); return true; }
+    if (t.closest('.nf-att-remove')) { this.attRemove(block.dataset.attId); return true; }
+    return false;
+  }
+  /** Datei wählen: echte Datei aus dem Browser, bleibt lokal (Object-URL) */
+  attPick(holder) {
+    if (!holder) return;
+    const isImage = holder.classList.contains('nf-img-upload');
+    const input = document.createElement('input');
+    input.type = 'file';
+    if (isImage) input.accept = 'image/png,image/jpeg,image/gif,image/webp';
+    input.onchange = () => {
+      const f = input.files && input.files[0];
+      if (!f) return;
+      // Bild-Block: nur PNG, JPEG, GIF und WebP (die API prüft die ersten Bytes, nicht die Endung)
+      if (isImage && !/^image\/(png|jpeg|gif|webp)$/.test(f.type)) {
+        const err = holder.querySelector('.nf-upload-error') || holder.appendChild(document.createElement('span'));
+        err.className = 'nf-upload-error';
+        err.setAttribute('role', 'alert');
+        err.textContent = '„' + f.name + '“ ist kein PNG, JPEG, GIF oder WebP. Andere Dateien über „/Datei“ anhängen.';
+        return;
+      }
+      const pid = this._edPid;
+      const a = { id: 'u' + Date.now(), kind: isImage ? 'image' : 'file', name: f.name, size: f.size, state: 'scanning', by: 'peter', when: 'gerade eben', url: URL.createObjectURL(f) };
+      this.setState((st) => ({ attachments: { ...st.attachments, [pid]: [...(st.attachments[pid] || []), a] } }));
+      const tmp = document.createElement('div');
+      tmp.innerHTML = this.attBlockHtml(a);
+      holder.replaceWith(tmp.firstChild);
+      this.edSave();
+      this.markSaving();
+      this.attScan(a.id, 3000);
+    };
+    input.click();
+  }
+  /** Virenscan (Worker, M3): nach der Prüfung geprüft oder blockiert; Blöcke im Editor ziehen nach */
+  attScan(id, ms) {
+    setTimeout(() => {
+      const hit = this.attFind(id);
+      if (!hit || hit.a.state !== 'scanning') return;
+      const blocked = /eicar/i.test(hit.a.name);
+      const next = { ...hit.a, state: blocked ? 'blocked' : 'clean', finding: blocked ? 'EICAR-Test-File' : undefined };
+      this.setState((st) => ({ attachments: { ...st.attachments, [hit.pid]: st.attachments[hit.pid].map((x) => (x.id === id ? next : x)) } }));
+      document.querySelectorAll('.nf-editable [data-att-id="' + id + '"]').forEach((el) => {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = this.attBlockHtml(next);
+        el.replaceWith(tmp.firstChild);
+      });
+      if (this._edPid) this.edSave();
+      this.showToast(blocked ? '„' + next.name + '“ blockiert: Schadsoftware gefunden' : '„' + next.name + '“ geprüft');
+    }, ms);
+  }
+
+  /** Werte für die Vorlage: Blöcke der Seite Datenmodell und die Liste in der Seiteninfo */
+  attachmentsVals(pid, canEdit) {
+    const s = this.state;
+    const list = s.attachments[pid] || [];
+    // Der Scan der Datei aus den Testdaten endet einmal, ein paar Sekunden nach dem ersten Anzeigen
+    if (!this._scanStarted && list.some((a) => a.state === 'scanning' && !a.url)) {
+      this._scanStarted = true;
+      list.filter((a) => a.state === 'scanning' && !a.url).forEach((a) => this.attScan(a.id, 12000));
+    }
+    const row = (a) => ({
+      id: a.id,
+      name: a.name,
+      ext: this.attTypeOf(a.name, a.kind).ext,
+      meta: this.attStateText(a) || this.attMeta(a),
+      infoMeta: this.attMeta(a),
+      state: a.state,
+      isClean: a.state === 'clean',
+      isScanning: a.state === 'scanning',
+      isBlocked: a.state === 'blocked',
+      busy: a.state === 'scanning' ? 'true' : 'false',
+      chip: a.state === 'scanning' ? 'Wird geprüft' : a.state === 'blocked' ? 'Blockiert' : '',
+      hasChip: a.state !== 'clean',
+      dlDisabled: a.state !== 'clean',
+      dlShown: a.state !== 'blocked',
+      dlLabel: a.name + ' herunterladen',
+      download: () => this.attDownload(a.id),
+      canRemove: canEdit && a.state === 'blocked',
+      remove: () => this.attRemove(a.id),
+      // Als Hintergrund statt <img src>, damit der Browser den Platzhalter der Vorlage nicht lädt
+      bg: a.kind === 'image' && a.state === 'clean' ? 'url("' + (a.url || ER_DIAGRAM_SVG) + '")' : 'none'
+    });
+    const blocks = (s.attachments.dm || []).filter((a) => !a.url);
+    const img = blocks.find((a) => a.kind === 'image');
+    return {
+      att: {
+        image: img ? row(img) : { isClean: false, isScanning: false, isBlocked: false },
+        hasImage: !!img,
+        files: blocks.filter((a) => a.kind === 'file').map(row),
+        hasFiles: blocks.some((a) => a.kind === 'file'),
+        info: list.map(row),
+        hasInfo: list.length > 0,
+        noInfo: list.length === 0,
+        infoCount: list.length
+      }
+    };
+  }
   // ---------- Rechte wiederherstellen (M3: E09; nur Organisations-Admins) ----------
   // Ein Space oder eine Seite mit eigenen Rechten kann ihren letzten wirksamen Admin verlieren, ohne dass
   // die Datenbank es verhindert: beim Deaktivieren einer Person oder wenn der Login-Dienst (idp, scim) die
@@ -7492,6 +7912,135 @@ class Component extends DCLogic {
           return { grants, audit: [entry, ...st.audit], rcReason, rcDone: { src, who, label: place.label }, dialog: 'recovery', confirm: null };
         });
         this.showToast((self ? 'Du bist' : PEOPLE[who].name + ' ist') + ' jetzt Admin von ' + place.label);
+      }
+    };
+  }
+  // ---------- Exportieren (M3: E14) ----------
+  // Eine Seite, eine Seite mit Unterseiten oder ein ganzer Space als ZIP: Markdown zum Lesen, BlockNote-JSON
+  // verlustfrei für Re-Import und Editorwechsel, Bilder und Anhänge, manifest.json mit IDs und Pfaden.
+  // Nur, was die Person lesen darf (app.page_rank, Papierkorb nie); was fehlt, fehlt ohne Hinweis.
+  // Kleine Exporte lädt die API direkt, größere baut der Worker als Auftrag (pg-boss) und legt das ZIP in
+  // Garage ab (über die API herunterladbar, 7 Tage). Jeder Export steht im Audit-Log (app.audit_event, export).
+  openExport(scope, space) {
+    const s = this.state;
+    const fromPage = scope !== 'space';
+    this.setState({
+      dialog: 'export', pageMenu: false, sideMenu: null, menu: null,
+      exp: { scope: scope || 'page', pid: fromPage ? s.current : null, space: space || s.space, json: true, files: true }
+    });
+  }
+  setExp(patch) { this.setState((st) => ({ exp: { ...st.exp, ...patch } })); }
+  /** Lesbare Seiten außerhalb des Papierkorbs, im Teilbaum von root (root eingeschlossen) */
+  exportPages(root) {
+    const s = this.state, P = s.pages;
+    const trashed = new Set(s.trash.map((t) => t.id));
+    const out = [];
+    const walk = (id, depth, path) => {
+      if (trashed.has(id) || !this.role(id)) return;   // ohne Leserecht samt Unterseiten (wie der Export im Worker)
+      out.push({ id, depth, path });
+      P[id].kids.forEach((k) => walk(k, depth + 1, path.concat(id)));
+    };
+    walk(root, 0, []);
+    return out;
+  }
+  /** Dateiname aus dem Titel: Umlaute ausgeschrieben (ü → ue), sonst nur a–z, 0–9 und Bindestrich */
+  slug(t) {
+    const de = (t || 'ohne-titel').toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
+    return fold(de).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'seite';
+  }
+  /** Ungefähre Größe: Text der Seiten, BlockNote-JSON etwa dreimal so groß, Bilder pauschal */
+  exportSize(list, json, files) {
+    const P = this.state.pages;
+    const text = list.reduce((n, x) => n + (SEARCH_TEXT[x.id] || P[x.id].text.join(' ')).length + 400, 0);
+    const bytes = text * (json ? 4 : 1) + (files ? list.length * 180000 : 0);
+    return bytes < 1e6 ? Math.max(1, Math.round(bytes / 1024)) + ' KB' : (bytes / 1e6).toFixed(1).replace('.', ',') + ' MB';
+  }
+  runExport(job) {
+    const phases = EXPORT_PHASES.length;
+    this.setState((st) => ({ exports: [job, ...st.exports] }));
+    const step = Math.max(2, Math.round(60 / job.pages));
+    const t = setInterval(() => {
+      const cur = this.state.exports.find((x) => x.id === job.id);
+      if (!cur) { clearInterval(t); return; }
+      const p = Math.min(100, cur.progress + step);
+      const done = p >= 100;
+      this.setState((st) => ({ exports: st.exports.map((x) => (x.id === job.id ? { ...x, progress: p, phase: Math.min(phases - 1, Math.floor(p / (100 / phases))), status: done ? 'ready' : 'running', when: done ? 'gerade eben' : x.when } : x)) }));
+      if (done) { clearInterval(t); this.showToast('Export fertig: ' + job.label); }
+    }, 160);
+  }
+
+  exportVals() {
+    const s = this.state, P = s.pages;
+    if (s.dialog !== 'export' || !s.exp) return { exp: { open: false } };
+    const e = s.exp;
+    const sp = s.spaces[e.space];
+    const page = e.pid ? P[e.pid] : null;
+    const isHome = !!page && e.pid === sp.home;
+    const title = (id) => (id === sp.home ? sp.name : P[id].title || 'Ohne Titel');
+    const lists = {
+      page: page ? this.exportPages(e.pid).slice(0, 1) : [],
+      tree: page ? this.exportPages(e.pid) : [],
+      space: this.exportPages(sp.home)
+    };
+    const n = (k) => lists[k].length;
+    const pagesText = (k) => n(k) + (n(k) === 1 ? ' Seite' : ' Seiten');
+    const options = [
+      page && { key: 'page', label: 'Nur diese Seite', hint: '„' + title(e.pid) + '“' },
+      page && !isHome && n('tree') > 1 && { key: 'tree', label: 'Seite mit Unterseiten', hint: '„' + title(e.pid) + '“ und darunter, ' + pagesText('tree') },
+      { key: 'space', label: 'Ganzer Space', hint: '„' + sp.name + '“, ' + pagesText('space') }
+    ].filter(Boolean).map((o) => ({
+      ...o, id: 'exp-scope-' + o.key, checked: e.scope === o.key,
+      choose: () => this.setExp({ scope: o.key })
+    }));
+    const scope = options.some((o) => o.key === e.scope) ? e.scope : options[0].key;
+    const list = lists[scope];
+    const root = scope === 'space' ? sp.home : e.pid;
+    const big = list.length > 5;
+    // Inhalt des ZIP: Ordner nach dem Seitenbaum, je Seite Markdown und (wenn gewählt) BlockNote-JSON
+    const base = (scope === 'space' ? sp.key.toLowerCase() : this.slug(title(root))) + '-2026-11-28';
+    const files = [];
+    list.slice(0, 5).forEach((x) => {
+      const rel = x.path.concat(x.id).map((id) => this.slug(title(id))).join('/');
+      files.push({ name: rel + '.md', kind: 'md' });
+      if (e.json) files.push({ name: rel + '.blocknote.json', kind: 'json' });
+    });
+    if (list.length > 5) files.push({ name: '… und ' + (list.length - 5) + ' weitere Seiten', kind: 'more' });
+    if (e.files) files.push({ name: 'files/ (Bilder und Anhänge der Seiten)', kind: 'dir' });
+    files.push({ name: 'manifest.json (Seiten-IDs, Titel, Pfade, Zeitpunkt)', kind: 'json' });
+    const label = scope === 'space' ? 'Space „' + sp.name + '“' : '„' + title(root) + '“' + (scope === 'tree' ? ' mit Unterseiten' : '');
+    const zip = base + '.zip';
+    const running = s.exports.filter((x) => x.status === 'running');
+    const start = () => {
+      if (!big) { this.showToast('Download von ' + zip + ' startet (im Prototyp ohne Datei)'); this.closeTopDialog(); return; }
+      this.runExport({ id: 'x' + Date.now(), label, zip, pages: list.length, size: this.exportSize(list, e.json, e.files), status: 'running', progress: 0, phase: 0, when: 'läuft', expires: '5. Dezember' });
+      this.focusLater('#exp-jobs');
+    };
+    return {
+      exp: {
+        open: true,
+        title: 'Exportieren',
+        options,
+        md: true,
+        json: !!e.json, toggleJson: () => this.setExp({ json: !e.json }),
+        withFiles: !!e.files, toggleFiles: () => this.setExp({ files: !e.files }),
+        files,
+        zip,
+        summary: pagesText(scope) + ' · ca. ' + this.exportSize(list, e.json, e.files),
+        big, small: !big,
+        startLabel: big ? 'Export starten' : 'Herunterladen',
+        start,
+        bigHint: 'Größere Exporte baut der Server im Hintergrund. Du kannst den Dialog schließen; wenn das ZIP fertig ist, erscheint es hier unter „Deine Exporte“ (7 Tage lang).',
+        jobs: s.exports.map((x) => ({
+          id: x.id, label: x.label, zip: x.zip,
+          running: x.status === 'running', ready: x.status === 'ready',
+          meta: x.status === 'running'
+            ? EXPORT_PHASES[x.phase] + ' … ' + x.progress + ' %'
+            : x.pages + (x.pages === 1 ? ' Seite' : ' Seiten') + ' · ' + x.size + ' · erstellt ' + x.when + ' · verfügbar bis ' + x.expires,
+          progress: x.progress, progressLabel: x.label + ': ' + x.progress + ' %',
+          download: () => this.showToast('Download von ' + x.zip + ' startet (im Prototyp ohne Datei)')
+        })),
+        hasJobs: s.exports.length > 0,
+        hasRunning: running.length > 0
       }
     };
   }
@@ -8113,6 +8662,7 @@ class Component extends DCLogic {
       ...this.overviewVals(),
       ...this.groupsVals(),
       ...this.recoveryVals(),
+      ...this.exportVals(),
       openRecovery: () => this.openRecovery(),
       cmd: this.paletteVals(),
       ed: this.edVals(),
@@ -8178,7 +8728,7 @@ class Component extends DCLogic {
         onName: (e) => this.setState({ vName: e.target.value }),
         submit: (e) => { this.prevent(e); this.saveVersion(pid, s.vName); }
       },
-      openExport: () => this.setState({ dialog: 'export', pageMenu: false }),
+      openExport: () => this.openExport('page'),
       pageMenuOpen: !!s.pageMenu,
       pageMenuExpanded: s.pageMenu ? 'true' : 'false',
       togglePageMenu: (e) => { this.stop(e); this.setState((st) => ({ pageMenu: !st.pageMenu, notifOpen: false, menu: null, spaceMenu: false, spaceSub: null, userMenu: false, settingsMenu: false })); },
@@ -8283,6 +8833,7 @@ class Component extends DCLogic {
           }
         };
       })(),
+      ...this.attachmentsVals(pid, editable),
       infoOpen: s.dialog === 'info',
       info: (() => {
         const backlinks = Object.keys(LINKS).filter((src) => LINKS[src].includes(pid) && P[src].space === sp.key)

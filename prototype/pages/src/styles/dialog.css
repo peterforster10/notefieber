@@ -1,6 +1,10 @@
 /* Dialog (im Frontend natives <dialog>, hier als Overlay) */
 .nf-overlay{position:fixed;inset:0;z-index:70;display:flex;align-items:flex-start;justify-content:center;padding:96px 16px 16px;background:var(--nf-backdrop);overflow:auto}
 .nf-dialog{width:min(560px,100%);border-radius:12px;background:var(--nf-bg);color:var(--nf-text);box-shadow:var(--nf-shadow-dialog)}
+/* Zwei Breiten: 560 px für Rückfragen und kurze Formulare, 680 px für Listen und Verwaltung (Workspace,
+   Einladungen, Gruppen, Papierkorb, Rechte wiederherstellen, persönliche Einstellungen). Ausnahme: Export
+   mit zwei Spalten (760 px, export.css). Bis 28. November 2026 stand diese Regel vor .nf-dialog und wirkte nicht. */
+.nf-dialog.nf-dialog-wide{width:min(680px,100%)}
 .nf-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px 24px 16px}
 .nf-dialog-title{margin:0;font-size:18px;font-weight:600}
 .nf-dialog-description{margin:4px 0 0;font-size:13px;color:var(--nf-muted)}

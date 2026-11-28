@@ -109,7 +109,8 @@
       { label: 'Confluence-Import', kw: 'import importieren confluence umzug export hochladen', run: () => this.openImport() },
       isPage && { label: 'Link zur Seite kopieren', kw: 'link kopieren teilen url adresse', run: () => this.showToast('Link kopiert') },
       isPage && { label: 'Versionen anzeigen', kw: 'versionen verlauf historie wiederherstellen vergleichen änderungen', run: () => this.openVersions(this.state.current) },
-      isPage && { label: 'Seite exportieren', kw: 'export exportieren markdown download', run: () => this.setState({ dialog: 'export' }) },
+      isPage && { label: 'Seite exportieren', kw: 'export exportieren markdown download zip', run: () => this.openExport('page') },
+      { label: 'Space exportieren', kw: 'export exportieren space zip download sichern', run: () => this.openExport('space') },
       { label: dark ? 'Helle Darstellung' : 'Dunkle Darstellung', kw: 'darstellung theme dunkel hell modus farbe', run: () => {
         const next = dark ? 'light' : 'dark';
         try { localStorage.setItem('nf-proto-theme', next); } catch (err) { /* nur diese Sitzung */ }

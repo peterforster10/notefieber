@@ -616,6 +616,7 @@
       ...this.overviewVals(),
       ...this.groupsVals(),
       ...this.recoveryVals(),
+      ...this.exportVals(),
       openRecovery: () => this.openRecovery(),
       cmd: this.paletteVals(),
       ed: this.edVals(),
@@ -681,7 +682,7 @@
         onName: (e) => this.setState({ vName: e.target.value }),
         submit: (e) => { this.prevent(e); this.saveVersion(pid, s.vName); }
       },
-      openExport: () => this.setState({ dialog: 'export', pageMenu: false }),
+      openExport: () => this.openExport('page'),
       pageMenuOpen: !!s.pageMenu,
       pageMenuExpanded: s.pageMenu ? 'true' : 'false',
       togglePageMenu: (e) => { this.stop(e); this.setState((st) => ({ pageMenu: !st.pageMenu, notifOpen: false, menu: null, spaceMenu: false, spaceSub: null, userMenu: false, settingsMenu: false })); },
@@ -786,6 +787,7 @@
           }
         };
       })(),
+      ...this.attachmentsVals(pid, editable),
       infoOpen: s.dialog === 'info',
       info: (() => {
         const backlinks = Object.keys(LINKS).filter((src) => LINKS[src].includes(pid) && P[src].space === sp.key)

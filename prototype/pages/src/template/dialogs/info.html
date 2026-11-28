@@ -17,6 +17,24 @@
             <dt>Rechte</dt><dd>{{info.rights}}</dd>
             <dt>Deine Rolle</dt><dd>{{page.roleLabel}}</dd>
             <dt>Versionen</dt><dd>{{info.versions}}</dd>
+            <dt>Anhänge</dt>
+            <dd>
+              <sc-if value="{{att.hasInfo}}" hint-placeholder-val="{{ true }}">
+                <ul class="nf-att-list">
+                  <sc-for list="{{att.info}}" as="ai" hint-placeholder-count="2">
+                    <li class="nf-att-row" data-state="{{ai.state}}">
+                      <span class="nf-file-icon" aria-hidden="true">{{ai.ext}}</span>
+                      <span class="nf-file-names"><span class="nf-file-name">{{ai.name}}</span><span>{{ai.infoMeta}}</span></span>
+                      <sc-if value="{{ai.hasChip}}" hint-placeholder-val="{{ false }}"><span class="nf-att-chip" data-state="{{ai.state}}">{{ai.chip}}</span></sc-if>
+                      <sc-if value="{{ai.isClean}}" hint-placeholder-val="{{ true }}">
+                        <button type="button" class="nf-btn nf-btn-icon" aria-label="{{ai.dlLabel}}" title="Herunterladen" onClick="{{ai.download}}"><svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8M4.5 7L8 10.5 11.5 7M3 13.5h10"></path></svg></button>
+                      </sc-if>
+                    </li>
+                  </sc-for>
+                </ul>
+              </sc-if>
+              <sc-if value="{{att.noInfo}}" hint-placeholder-val="{{ false }}"><span class="nf-muted">Keine Bilder oder Dateien auf dieser Seite.</span></sc-if>
+            </dd>
             <dt>Verlinkt von</dt>
             <dd>
               <sc-if value="{{info.hasBacklinks}}" hint-placeholder-val="{{ true }}">

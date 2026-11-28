@@ -14,12 +14,6 @@ Nichts offen; Benutzerprofil und persönliche Einstellungen sind entworfen (27. 
 
 ## Für M3
 
-- **Export** (E14): heute ein Dialog mit Ausblick. Auswahl Seite, Teilbaum oder ganzer Space,
-  Format (Markdown + BlockNote-JSON + Anhänge als ZIP), Hinweis, dass nur Lesbares exportiert wird,
-  Fortschritt und Download für große Spaces (läuft im Worker).
-- **Anhänge** (E11, mit dem Virenscan): Datei-Block im Editor (Name, Größe, Typ, Herunterladen),
-  Zustände „wird geprüft“ und „blockiert“ an Datei und Bild, Anhänge-Liste der Seite (etwa in der
-  Seiteninfo).
 - **Audit-Log** für Organisations-Admins: in M3 nur in der Datenbank, eine Ansicht kommt mit E17.
   Hier nur festhalten, falls der Rechte-Dialog oder „Ansehen als …“ darauf verlinken soll.
 

@@ -1,4 +1,4 @@
-  <!-- Export: im Frontend vorerst ein Dialog mit Ausblick (E14); Versionen haben eine eigene Ansicht -->
+  <!-- Dialoge mit Ausblick (Tastenkürzel): was im Frontend später entsteht -->
   <sc-if value="{{soonOpen}}" hint-placeholder-val="{{ false }}">
     <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
       <div class="nf-dialog" role="dialog" aria-modal="true" aria-labelledby="soon-title">
@@ -18,3 +18,99 @@
     </div>
   </sc-if>
 
+  <!-- Exportieren (M3, E14): Umfang, Inhalt des ZIP, direkt herunterladen oder als Auftrag im Worker -->
+  <sc-if value="{{exp.open}}" hint-placeholder-val="{{ false }}">
+    <div class="nf-overlay" onClick="{{closeDialogOnBackdrop}}">
+      <div class="nf-dialog nf-dialog-wide nf-exp" role="dialog" aria-modal="true" aria-labelledby="exp-title" aria-describedby="exp-intro">
+        <div class="nf-dialog-head">
+          <div>
+            <h2 id="exp-title" class="nf-dialog-title">{{exp.title}}</h2>
+            <p id="exp-intro" class="nf-dialog-description">Als ZIP zum Archivieren, Weitergeben oder für den Umzug in ein anderes System. Enthalten ist nur, was du lesen darfst; Seiten ohne Leserecht und der Papierkorb fehlen.</p>
+          </div>
+          <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
+            <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+          </button>
+        </div>
+        <div class="nf-dialog-body">
+          <div class="nf-exp-cols">
+            <div>
+              <fieldset class="nf-exp-set">
+                <legend class="nf-section-title">Umfang</legend>
+                <sc-for list="{{exp.options}}" as="o" hint-placeholder-count="3">
+                  <label class="nf-exp-option" for="{{o.id}}">
+                    <input type="radio" id="{{o.id}}" name="exp-scope" checked="{{o.checked}}" onChange="{{o.choose}}">
+                    <span><strong>{{o.label}}</strong><span>{{o.hint}}</span></span>
+                  </label>
+                </sc-for>
+              </fieldset>
+              <fieldset class="nf-exp-set">
+                <legend class="nf-section-title">Inhalt</legend>
+                <label class="nf-exp-option">
+                  <input type="checkbox" checked="{{exp.md}}" disabled="{{exp.md}}">
+                  <span><strong>Markdown</strong><span>Zum Lesen und Weiterverwenden, eine Datei pro Seite. Immer dabei.</span></span>
+                </label>
+                <label class="nf-exp-option">
+                  <input type="checkbox" checked="{{exp.json}}" onChange="{{exp.toggleJson}}">
+                  <span><strong>BlockNote-JSON</strong><span>Verlustfrei, für den erneuten Import und einen späteren Wechsel des Editors.</span></span>
+                </label>
+                <label class="nf-exp-option">
+                  <input type="checkbox" checked="{{exp.withFiles}}" onChange="{{exp.toggleFiles}}">
+                  <span><strong>Bilder und Anhänge</strong><span>Im Ordner „files“, die Seiten verweisen darauf.</span></span>
+                </label>
+                <label class="nf-exp-option nf-exp-later">
+                  <input type="checkbox" disabled="true">
+                  <span><strong>PDF, Word, ODT</strong><span>Kommt später.</span></span>
+                </label>
+              </fieldset>
+            </div>
+            <div class="nf-exp-preview">
+              <h3 class="nf-section-title" style="margin-top: 0">Im ZIP</h3>
+              <div class="nf-exp-zip">
+                <div class="nf-exp-zip-name">
+                  <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2.5h7l3 3v8H3z"></path><path d="M7 2.5v2M7 6v2M7 9.5v2"></path></svg>
+                  <span>{{exp.zip}}</span>
+                </div>
+                <ul class="nf-exp-files" aria-label="Dateien im ZIP">
+                  <sc-for list="{{exp.files}}" as="f" hint-placeholder-count="5">
+                    <li data-kind="{{f.kind}}">{{f.name}}</li>
+                  </sc-for>
+                </ul>
+              </div>
+              <p class="nf-exp-summary">{{exp.summary}}</p>
+              <sc-if value="{{exp.big}}" hint-placeholder-val="{{ false }}">
+                <p class="nf-exp-hint">{{exp.bigHint}}</p>
+              </sc-if>
+            </div>
+          </div>
+
+          <sc-if value="{{exp.hasJobs}}" hint-placeholder-val="{{ true }}">
+            <h3 id="exp-jobs" class="nf-section-title" tabindex="-1">Deine Exporte</h3>
+            <ul class="nf-exp-jobs" aria-label="Deine Exporte" aria-live="polite">
+              <sc-for list="{{exp.jobs}}" as="j" hint-placeholder-count="2">
+                <li class="nf-exp-job">
+                  <span class="nf-exp-job-icon" aria-hidden="true">
+                    <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16"><path d="M3 2.5h7l3 3v8H3z"></path><path d="M7 2.5v2M7 6v2M7 9.5v2"></path></svg>
+                  </span>
+                  <span class="nf-person-names">
+                    <span>{{j.label}}</span>
+                    <span>{{j.meta}}</span>
+                    <sc-if value="{{j.running}}" hint-placeholder-val="{{ false }}">
+                      <span class="nf-imp-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{j.progress}}" aria-label="{{j.progressLabel}}"><span style="width: {{j.progress}}%"></span></span>
+                    </sc-if>
+                  </span>
+                  <sc-if value="{{j.ready}}" hint-placeholder-val="{{ true }}">
+                    <button type="button" class="nf-btn" onClick="{{j.download}}">Herunterladen</button>
+                  </sc-if>
+                </li>
+              </sc-for>
+            </ul>
+          </sc-if>
+          <p class="nf-rc-note">Jeder Export steht mit Umfang im Audit-Log. Seiten, die gerade jemand bearbeitet, kommen mit dem Stand von vor höchstens einer halben Minute.</p>
+        </div>
+        <div class="nf-dialog-foot">
+          <button type="button" class="nf-btn" onClick="{{closeDialog}}">Schließen</button>
+          <button type="button" class="nf-btn nf-btn-primary" onClick="{{exp.start}}">{{exp.startLabel}}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>

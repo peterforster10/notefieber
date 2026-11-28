@@ -1,0 +1,35 @@
+/* Dialog „Exportieren“ (M3, E14): Umfang und Inhalt links, Vorschau des ZIP rechts, eigene Exporte darunter */
+.nf-dialog.nf-exp{width:min(760px,100%)}
+.nf-exp-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px 24px}
+.nf-exp-set{margin:0 0 8px;padding:0;border:0}
+.nf-exp-set legend{padding:0;margin:0 0 6px}
+.nf-exp-set+.nf-exp-set legend{margin-top:10px}
+.nf-exp-option{display:flex;align-items:flex-start;gap:10px;padding:7px 8px;border-radius:8px;cursor:pointer}
+.nf-exp-option:hover{background:var(--nf-subtle)}
+.nf-exp-option input{flex:none;width:16px;height:16px;margin:2px 0 0;accent-color:var(--nf-accent)}
+.nf-exp-option>span{display:flex;flex-direction:column;gap:1px;min-width:0;font-size:13px;line-height:1.4}
+.nf-exp-option strong{font-size:14px;font-weight:500}
+.nf-exp-option>span>span{color:var(--nf-muted)}
+.nf-exp-later{cursor:default}
+.nf-exp-later:hover{background:none}
+.nf-exp-later strong{color:var(--nf-muted)}
+.nf-exp-zip{border:1px solid var(--nf-border);border-radius:8px;background:var(--nf-surface);overflow:hidden}
+.nf-exp-zip-name{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--nf-border);font-weight:500;font-size:13px}
+.nf-exp-files{list-style:none;margin:0;padding:8px 12px;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;line-height:1.5}
+.nf-exp-files li{padding:2px 0;overflow-wrap:anywhere}
+.nf-exp-files li[data-kind='more']{font-family:inherit;color:var(--nf-muted)}
+.nf-exp-files li[data-kind='dir']{color:var(--nf-accent)}
+.nf-exp-summary{margin:8px 0 0;font-size:13px;font-weight:500}
+.nf-exp-hint{margin:6px 0 0;font-size:13px;line-height:1.5;color:var(--nf-muted)}
+.nf-exp-jobs{list-style:none;margin:0;padding:0;border:1px solid var(--nf-border);border-radius:8px}
+.nf-exp-jobs li+li{border-top:1px solid var(--nf-border)}
+.nf-exp-job{display:flex;align-items:center;gap:12px;padding:8px 12px}
+.nf-exp-job .nf-person-names{flex:1;min-width:0}
+.nf-exp-job .nf-person-names>span:first-child{font-weight:500}
+.nf-exp-job .nf-imp-bar{display:block;margin-top:6px;max-width:320px}
+.nf-exp-job .nf-btn{flex:none}
+.nf-exp-job-icon{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:8px;background:var(--nf-accent-soft);color:var(--nf-accent)}
+#exp-jobs:focus{outline:none}
+@media (max-width:720px){
+  .nf-exp-cols{grid-template-columns:1fr}
+}

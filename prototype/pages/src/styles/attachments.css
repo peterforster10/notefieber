@@ -1,0 +1,33 @@
+/* Anhänge (M3, E11): Bild- und Datei-Block mit Zustand des Virenscans, Liste in der Seiteninfo */
+.nf-img-block{margin:6px 0 16px}
+.nf-img-block img{display:block;max-width:100%;height:auto;border:1px solid var(--nf-border);border-radius:8px}
+.nf-file{display:flex;align-items:center;gap:12px;max-width:560px;margin:6px 0 10px;padding:10px 12px;border:1px solid var(--nf-border);border-radius:10px;background:var(--nf-bg);user-select:none}
+.nf-file+.nf-file{margin-top:0}
+.nf-file-icon{display:inline-grid;place-items:center;flex:none;width:36px;height:40px;border-radius:6px;background:var(--nf-accent-soft);color:var(--nf-accent);font-size:10px;font-weight:700;letter-spacing:.03em}
+.nf-file-icon[data-state='scanning']{background:var(--nf-neutral-soft);color:var(--nf-muted)}
+.nf-file-icon[data-state='blocked']{background:var(--nf-danger-soft);color:var(--nf-danger)}
+.nf-file-names{flex:1;min-width:0;display:flex;flex-direction:column;font-size:14px}
+.nf-file-names>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nf-file-name{font-weight:500}
+.nf-file-names>span+span{font-size:12px;color:var(--nf-muted);white-space:normal}
+.nf-file[data-state='scanning'] .nf-file-name{color:var(--nf-muted)}
+.nf-file[data-state='blocked']{border-color:var(--nf-danger);background:var(--nf-danger-soft)}
+.nf-file[data-state='blocked'] .nf-file-names>span+span{color:var(--nf-danger)}
+.nf-file .nf-btn{flex:none}
+/* Bild, solange es geprüft wird bzw. blockiert ist: Platzhalter statt Bild */
+.nf-img-state{display:flex;flex-direction:column;align-items:center;gap:6px;margin:6px 0 16px;padding:28px 16px;border:1px solid var(--nf-border);border-radius:10px;background:var(--nf-surface);color:var(--nf-muted);font-size:13px;text-align:center;user-select:none}
+.nf-img-state strong{color:var(--nf-text);font-size:14px}
+.nf-img-state[data-state='blocked']{border-color:var(--nf-danger);background:var(--nf-danger-soft);color:var(--nf-danger)}
+.nf-img-state[data-state='blocked'] strong{color:var(--nf-danger)}
+.nf-img-state .nf-btn{margin-top:4px}
+.nf-upload-error{margin-top:4px;color:var(--nf-danger);font-size:13px}
+/* Seiteninfo */
+.nf-att-list{list-style:none;margin:0;padding:0}
+.nf-att-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--nf-border)}
+.nf-att-row:last-child{border-bottom:0}
+.nf-att-row .nf-file-icon{width:28px;height:32px;font-size:9px}
+.nf-att-row[data-state='blocked'] .nf-file-icon{background:var(--nf-danger-soft);color:var(--nf-danger)}
+.nf-att-row[data-state='scanning'] .nf-file-icon{background:var(--nf-neutral-soft);color:var(--nf-muted)}
+.nf-att-chip{flex:none;padding:1px 8px;border-radius:999px;background:var(--nf-neutral-soft);color:var(--nf-muted);font-size:12px;font-weight:500;white-space:nowrap}
+.nf-att-chip[data-state='blocked']{background:var(--nf-danger-soft);color:var(--nf-danger)}
+.nf-img-static{display:block;width:100%;max-width:640px;aspect-ratio:640/220;border:1px solid var(--nf-border);border-radius:8px;background:center/contain no-repeat}

@@ -88,3 +88,20 @@ const GRANTS = {
   konditionen: [{ key: 'anja', role: 'admin' }, { key: 'max', role: 'editor' }]
 };
 
+
+// Anhänge der Seite Datenmodell (Tabelle files, Inhalt in Garage). state wie der Virenscan (M3, E11):
+// clean = geprüft, scanning = wird geprüft, blocked = Schadsoftware gefunden
+const ATTACHMENTS = {
+  dm: [
+    { id: 'f-er', kind: 'image', name: 'er-diagramm.png', size: 184320, state: 'clean', by: 'sophie', when: 'am 30. Oktober' },
+    { id: 'f-pdf', kind: 'file', name: 'datenmodell-v3.pdf', size: 1468006, state: 'clean', by: 'sophie', when: 'am 30. Oktober' },
+    { id: 'f-zip', kind: 'file', name: 'schema-dump-2026-11.zip', size: 19084288, state: 'scanning', by: 'lukas', when: 'vor 1 Minute' },
+    { id: 'f-docm', kind: 'file', name: 'migrationsplan.docm', size: 98304, state: 'blocked', finding: 'W97M.Downloader', by: 'markus', when: 'gestern' }
+  ]
+};
+// ER-Diagramm als Bild (im Produkt ein hochgeladenes PNG unter /api/v1/files/<id>)
+const ER_DIAGRAM_SVG = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220" font-family="Inter,sans-serif" font-size="13"><rect width="640" height="220" fill="#f8f9fb"/>'
+  + [['spaces', 30, ['id', 'tenant_id', 'key', 'home_page_id']], ['pages', 240, ['id', 'space_id', 'parent_id', 'path']], ['grants', 450, ['space_id | page_id', 'subject', 'role']]]
+    .map(([t, x, cols]) => '<g transform="translate(' + x + ',30)"><rect width="160" height="' + (36 + cols.length * 22) + '" rx="8" fill="#fff" stroke="#1F5FD6"/><rect width="160" height="30" rx="8" fill="#1F5FD6"/><text x="12" y="20" fill="#fff" font-weight="600">' + t + '</text>'
+      + cols.map((c, i) => '<text x="12" y="' + (52 + i * 22) + '" fill="#1a2230">' + c + '</text>').join('') + '</g>').join('')
+  + '<path d="M190 75H240M400 75H450" stroke="#5b6573" stroke-width="1.5" fill="none" marker-end="url(#a)"/><defs><marker id="a" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L8 4L0 8z" fill="#5b6573"/></marker></defs></svg>');

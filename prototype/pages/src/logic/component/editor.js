@@ -118,7 +118,12 @@
       }
       case 'hr': { const e = mk('hr'); e.contentEditable = 'false'; return { el: e, after: true }; }
       case 'img': {
-        const e = mk('div', 'nf-img-upload', '<svg class="nf-icon" width="22" height="22" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.5"></rect><circle cx="6" cy="6.5" r="1.2"></circle><path d="M2.5 12l3.5-3.5 2.5 2.5 2-2 3 3"></path></svg><strong>Bild hierher ziehen</strong><span>PNG, JPEG, GIF oder WebP</span><button type="button" class="nf-btn">Datei auswählen</button>');
+        const e = mk('div', 'nf-img-upload', '<svg class="nf-icon" width="22" height="22" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.5"></rect><circle cx="6" cy="6.5" r="1.2"></circle><path d="M2.5 12l3.5-3.5 2.5 2.5 2-2 3 3"></path></svg><strong>Bild hierher ziehen</strong><span>PNG, JPEG, GIF oder WebP · wird vor dem Anzeigen auf Viren geprüft</span><button type="button" class="nf-btn nf-upload-pick">Datei auswählen</button>');
+        e.contentEditable = 'false';
+        return { el: e, after: true };
+      }
+      case 'file': {
+        const e = mk('div', 'nf-img-upload nf-file-upload', '<svg class="nf-icon" width="22" height="22" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2h5l3 3v9H4z"></path><path d="M9 2v3h3"></path></svg><strong>Datei hierher ziehen</strong><span>Jeder Typ · wird auf Viren geprüft, erst danach herunterladbar</span><button type="button" class="nf-btn nf-upload-pick">Datei auswählen</button>');
         e.contentEditable = 'false';
         return { el: e, after: true };
       }
@@ -283,6 +288,7 @@
   }
   edOnClick(e) {
     const t = e.target;
+    if (t.closest && this.attOnEditorClick(t)) { e.preventDefault(); return; }
     const link = t.closest && t.closest('.nf-page-link[data-page-id]');
     if (link) { e.preventDefault(); if (this.state.pages[link.dataset.pageId]) this.go(link.dataset.pageId); return; }
     if (t.matches && t.matches('.nf-check input[type=checkbox]')) {

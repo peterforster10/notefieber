@@ -65,8 +65,8 @@ verloren; dann zuerst in `src/` übertragen. Die Teildateien sind kein eigenstä
   Seitenleiste der Übersicht; aus dem Space erreicht man sie über das Logo bzw. die Suche. Eine
   kompakte einzeilige Fassung des Umschalters und beide Einträge in der Seitenansicht waren
   ausprobiert und sind verworfen.
-- Brotkrume, Anwesenheit, „Versionen“, „Exportieren“, „Rechte“ (bis 28. November 2026 „Teilen“). Export öffnet wie im
-  Frontend einen Dialog mit Ausblick, Versionen eine eigene Ansicht (siehe „Ausblick“). **Abweichend vom Frontend (25. November 2026):**
+- Brotkrume, Anwesenheit, „Versionen“, „Exportieren“, „Rechte“ (bis 28. November 2026 „Teilen“). Export (im Frontend
+  noch ein Dialog mit Ausblick) und Versionen sind hier entworfen (siehe „Ausblick“). **Abweichend vom Frontend (25. November 2026):**
   - Sie stehen in einer eigenen Zeile unter der Leiste oben (`.nf-pagebar`, scrollt mit dem Inhalt);
     die Leiste oben (`.nf-topbar`, bleibt stehen) enthält links die Suche (unter 1024 px mit dem
     Menü-Knopf davor) und rechts zwei Knöpfe mit eigenem Menü:
@@ -435,6 +435,19 @@ BlockNote; dieser Entwurf legt fest, wie dessen Menüs aussehen und sich verhalt
 - **„Ansehen als …“** (`app.view_as`, E09): Person wählen, darunter der ganze Seitenbaum des Spaces
   mit ihrer Rolle pro Seite (ohne Zugriff gedämpft, eigene Rechte mit Schloss) und „sieht 8 von 9
   Seiten“. Nur Struktur, keine Inhalte, Hinweis aufs Audit-Log; zeigt den gespeicherten Stand.
+- **Anhänge und Virenscan** (M3, E11; seit 28. November 2026): „/Datei“ im „/“-Menü (Medien) legt
+  einen Datei-Block an, „/Bild“ wie bisher; „Datei auswählen“ lädt im Prototyp eine echte Datei aus
+  dem Browser (bleibt lokal), der Scan dauert 3 s, ein Name mit „eicar“ wird blockiert.
+  - **Datei-Block:** Kürzel des Typs, Name, „PDF · 1,4 MB · wer wann“, Herunterladen. **Wird
+    geprüft:** Kreisel, „Wird auf Viren geprüft …“, Herunterladen gesperrt. **Blockiert:** rot mit
+    Schild, „Schadsoftware gefunden (Befund)“, kein Herunterladen, für Bearbeitende „Entfernen“.
+  - **Bild:** solange es geprüft wird bzw. blockiert ist, ein Platzhalter statt des Bildes (die API
+    liefert ungeprüfte Dateien nicht aus); nur PNG, JPEG, GIF, WebP, sonst Hinweis auf „/Datei“.
+  - **Seiteninfo:** Zeile „Anhänge“ mit allen Bildern und Dateien der Seite, Zustand als Etikett,
+    Herunterladen nur für geprüfte.
+  - Testdaten auf „Datenmodell“, Abschnitt „Unterlagen“: ER-Diagramm (Bild), PDF (geprüft), ZIP
+    (wird geprüft, nach 12 s geprüft), `migrationsplan.docm` (blockiert). Ziehen und Ablegen von
+    Dateien ist nicht nachgebaut.
 - **Gruppen pflegen** (M3, E02 und E09; seit 28. November 2026), im Zahnrad-Menü unter „Gruppen“
   nach „Workspace“ und „Einladungen“, nur für Organisations-Admins (Gruppen gelten für den ganzen
   Mandanten). Ein Dialog in zwei Stufen:
@@ -483,6 +496,30 @@ BlockNote; dieser Entwurf legt fest, wie dessen Menüs aussehen und sich verhalt
   - Testdaten nur im Prototyp: Anja Keller (deaktiviert am 14. November) war einzige Admin der Seite
     „Konditionen Großkunden“ in Vertrieb, die Peter nicht lesen darf und die deshalb im Seitenbaum
     fehlt. Wer zusätzlich Max deaktiviert, sieht auch den Space Vertrieb in der Liste.
+- **Exportieren** (M3, E14; seit 28. November 2026), über „Exportieren“ im „⋯“-Menü der Seite, „⋯“ an
+  einem Space in der Übersicht und in der Suche („Seite exportieren“, „Space exportieren“):
+  - **Umfang:** „Nur diese Seite“, „Seite mit Unterseiten“ (nur wenn es lesbare Unterseiten gibt,
+    nicht auf der Startseite) oder „Ganzer Space“, je mit Zahl der Seiten. Gezählt und exportiert
+    wird nur, was du lesen darfst, ohne Papierkorb; was fehlt, fehlt ohne Hinweis (in Vertrieb fehlt
+    „Konditionen Großkunden“, auch in der Zahl).
+  - **Inhalt:** Markdown (immer), BlockNote-JSON (verlustfrei, für Re-Import und Editorwechsel),
+    Bilder und Anhänge (Ordner `files/`), dazu immer `manifest.json` mit Seiten-IDs, Titeln, Pfaden
+    und Zeitpunkt. PDF, Word, ODT als gesperrte Option „Kommt später“ (BlockNote-XL-Exporter).
+  - **Vorschau „Im ZIP“:** Dateiname (`entw-2026-11-28.zip`), Ordner nach dem Seitenbaum, Dateinamen aus
+    dem Titel (Umlaute ausgeschrieben), die ersten fünf Seiten und „… und n weitere“, dazu Zahl der
+    Seiten und ungefähre Größe.
+  - **Bis fünf Seiten** „Herunterladen“ direkt (im Prototyp ohne Datei). **Mehr Seiten** „Export
+    starten“: ein Auftrag im Worker mit Fortschritt in Phasen (neuesten Stand ableiten, Markdown und
+    BlockNote-JSON, Bilder und Anhänge, ZIP); der Dialog darf zu, eine Meldung sagt „Export fertig“.
+  - **Deine Exporte:** laufende mit Fortschrittsbalken, fertige mit Seiten, Größe, Datum, „verfügbar
+    bis“ (7 Tage) und „Herunterladen“. Hinweis, dass jeder Export im Audit-Log steht und Seiten in
+    Bearbeitung mit dem Stand von vor höchstens einer halben Minute kommen.
+  - **Im Produkt:** Der Worker liest mit den Rechten der Person (`app.page_rank`, mengenbasiert wie die
+    Suche), leitet veraltete Seiten vorher ab und legt das ZIP in Garage ab; herunterladen nur über die
+    API und nur die eigenen Exporte. **Vorschlag:** eine Tabelle für Exportaufträge (Person, Umfang,
+    Status, Datei, Ablauf) und ein Auftrag „Exporte nach 7 Tagen löschen“; eine Schemaänderung, zuerst
+    Test und Migration, Peter liest den Diff. Offen: Benachrichtigung „Export fertig“ auch in der Glocke
+    (E16) bzw. per E-Mail bei großen Spaces.
 - **Confluence-Import** (M4; seit 26. November 2026 eine Ansicht im gemeinsamen Rahmen statt der
   eigenen Seite im Ordner `prototype/import/`, der entfernt ist): „Confluence-Import“ unten in
   der Seitenleiste, in der Suche oder direkt `Main.dc.html#import`; Brotkrume „<Space> /
