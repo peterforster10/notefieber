@@ -121,7 +121,7 @@
             <sc-if value="{{gm.one.hasMembers}}" hint-placeholder-val="{{ true }}">
               <ul class="nf-people" aria-label="Mitglieder">
                 <sc-for list="{{gm.one.members}}" as="gp" hint-placeholder-count="3">
-                  <li class="nf-person">
+                  <li class="nf-person {{gp.inactive}}">
                     <span class="nf-byline-avatar" style="background: {{gp.color}}" aria-hidden="true">{{gp.initials}}</span>
                     <span class="nf-person-names"><span>{{gp.name}}</span><span>{{gp.email}}</span></span>
                     <sc-if value="{{gm.one.editable}}" hint-placeholder-val="{{ true }}">

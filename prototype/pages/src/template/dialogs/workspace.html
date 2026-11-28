@@ -20,15 +20,25 @@
           <h3 class="nf-section-title">Mitglieder ({{ws.memberCount}})</h3>
           <ul class="nf-people" aria-label="Mitglieder">
             <sc-for list="{{ws.members}}" as="m" hint-placeholder-count="4">
-              <li class="nf-person">
+              <li class="nf-person {{m.rowCls}}">
                 <span class="nf-byline-avatar" style="background: {{m.color}}" aria-hidden="true">{{m.initials}}</span>
-                <span class="nf-person-names"><span>{{m.name}}</span><span>{{m.email}}</span></span>
+                <span class="nf-person-names">
+                  <span>{{m.name}}<sc-if value="{{m.inactive}}" hint-placeholder-val="{{ false }}"> <span class="nf-inactive-chip">Deaktiviert</span></sc-if></span>
+                  <span>{{m.email}}</span>
+                  <sc-if value="{{m.inactive}}" hint-placeholder-val="{{ false }}"><span>{{m.inactiveText}}</span></sc-if>
+                </span>
                 <sc-if value="{{m.editable}}" hint-placeholder-val="{{ true }}">
                   <select class="nf-person-role" aria-label="{{m.roleLabel}}" value="{{m.role}}" onChange="{{m.change}}">
                     <option value="admin">Admin</option>
                     <option value="member">Mitglied</option>
                     <option value="guest">Gast</option>
                   </select>
+                  <button type="button" class="nf-link-attention" aria-label="{{m.deactivateLabel}}" title="Für die ganze Organisation: abmelden und sperren" onClick="{{m.deactivate}}">Deaktivieren</button>
+                  <button type="button" class="nf-link-danger" aria-label="{{m.removeLabel}}" onClick="{{m.remove}}">Entfernen</button>
+                </sc-if>
+                <sc-if value="{{m.inactive}}" hint-placeholder-val="{{ false }}">
+                  <span class="nf-person-role-text">{{m.roleText}}</span>
+                  <button type="button" class="nf-link-accent" aria-label="{{m.reactivateLabel}}" onClick="{{m.reactivate}}">Reaktivieren</button>
                   <button type="button" class="nf-link-danger" aria-label="{{m.removeLabel}}" onClick="{{m.remove}}">Entfernen</button>
                 </sc-if>
                 <sc-if value="{{m.fixed}}" hint-placeholder-val="{{ false }}">

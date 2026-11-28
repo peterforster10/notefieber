@@ -14,9 +14,6 @@ Nichts offen; Benutzerprofil und persönliche Einstellungen sind entworfen (27. 
 
 ## Für M3
 
-- **Person deaktivieren** (E02): im Dialog „Workspace“ gibt es bisher nur „Entfernen“. Deaktivieren
-  gilt für den ganzen Mandanten und beendet alle Sitzungen; nur für Organisations-Admins. Anzeige
-  deaktivierter Personen in Listen und Erwähnungen.
 - **Rechte wiederherstellen durch Organisations-Admins** (E09): ein Space oder eine Seite ohne
   erreichbaren Admin; wie man sie findet, sich selbst Rechte gibt und dass es im Audit-Log steht.
 - **Export** (E14): heute ein Dialog mit Ausblick. Auswahl Seite, Teilbaum oder ganzer Space,

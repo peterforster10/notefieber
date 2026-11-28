@@ -21,7 +21,7 @@
       „Alle im Workspace“ ohne Gäste; nur Mitglieder des Workspaces; archiviert höchstens Lesen) */
   effRole(list, who, archived) {
     const m = this.state.members.find((x) => x.key === who);
-    if (!m) return null;
+    if (!m || this.state.deactivated[who]) return null;   // nur aktive Mitglieder (app.page_rank)
     let best = null;
     for (const g of list || []) {
       if (g.role === 'none') continue;

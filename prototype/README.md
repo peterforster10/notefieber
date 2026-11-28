@@ -33,7 +33,7 @@ durch die Datei ersetzt; Pfade relativ zur einbindenden Datei.
   `sidebar.css`, `account-menus.css`, `pagebar.css`, `page.css`, `editor.css`, `comments.css`,
   `dialog.css`, `palette.css`, `overview.css`, `rights-trash.css`, je eine Datei für die neuen
   Bereiche (`versions.css`, `states.css`, `notifications.css`, `reactions.css`, `look.css`,
-  `overview-favorites.css`, `page-foot.css`), am Ende `forms.css` und `responsive.css`. Die
+  `overview-favorites.css`, `page-foot.css`, `groups.css` mit Gruppen und deaktivierten Personen), am Ende `forms.css` und `responsive.css`. Die
   Reihenfolge zählt (Kaskade).
 - `pages/src/template` — Vorlage: `sidebar.html`, `topbar.html` (Suche, Glocke, Menüs), `pagebar.html`,
   `main/` (`page.html` mit `comments.html`, `versions.html`, `loading.html`, `overview.html`,
@@ -46,7 +46,7 @@ durch die Datei ersetzt; Pfade relativ zur einbindenden Datei.
   `app.page_rank`), je Bereich eine Datei (`pages.js`, `comments.js`, `editor.js`, `palette.js`,
   `versions.js`, `versions-view.js`, `notifications.js`, `reactions.js`, `look.js`,
   `page-foot.js`, `dialogs.js`, `loading.js`, `favorites.js`, `overview.js`, `templates.js`,
-  `import.js`) und zuletzt
+  `import.js`, `account.js`, `groups.js` für Gruppen, `people.js` für Deaktivieren) und zuletzt
   `render.js` (`renderVals`, alle Werte für die Vorlage).
 
 Ändert jemand `pages/Main.dc.html` im Design-Werkzeug, gehen diese Änderungen beim nächsten Bauen
@@ -80,6 +80,24 @@ verloren; dann zuerst in `src/` übertragen. Die Teildateien sind kein eigenstä
     Entfernen mit Rückfrage, Knopf „Personen einladen“. Im Frontend gibt es dafür noch keine
     Oberfläche; die Datenbank kann es schon (`app.set_workspace_member_role`,
     `app.remove_workspace_member`).
+    **Deaktivieren** (M3, E02; seit 28. November 2026, nur Organisations-Admins, `app.set_user_active`):
+    je Zeile „Deaktivieren“ (orange) neben „Entfernen“, nicht für dich selbst und den Owner. Rückfrage:
+    gilt für die ganze Organisation, sofort abgemeldet, offene Editoren getrennt, keine neue
+    Anmeldung; Rechte, Gruppen und Mitgliedschaften bleiben und gelten nach dem Reaktivieren
+    wieder; das Konto beim Login-Dienst bleibt. Bliebe danach ein Space oder eine Seite mit eigenen
+    Rechten ohne Admin, warnt die Rückfrage und nennt die Stelle („Trotzdem deaktivieren“; die
+    Datenbank lehnt das nicht ab, siehe „Rechte wiederherstellen“ in `TODO.md`). Danach in der
+    Zeile das Etikett „Deaktiviert“, wer wann, Rolle nur als Text, „Reaktivieren“. Zum Ausprobieren:
+    Max (einziges Mitglied der Gruppe Vertrieb, Admin von VERT) bzw. Sophie (in „Datenmodell“
+    erwähnt).
+  - **Deaktivierte Personen in Listen:** grau mit Hinweis im Rechte-Dialog („kein Zugriff, bis die
+    Person reaktiviert ist“, zählt in „Zugriff“ als ohne Zugriff) und unter den Mitgliedern einer
+    Gruppe; „Ansehen als …“ mit „(deaktiviert)“. Nicht vorgeschlagen beim Hinzufügen (Rechte,
+    Gruppen) und im „@“-Menü; passt die Suche auf eine Deaktivierte, sagt die Liste „… ist
+    deaktiviert“. Erwähnungen im Inhalt bleiben stehen, grau mit Tooltip „… ist deaktiviert“.
+    Aus der Anwesenheit im Kopfbereich verschwinden sie. Byline, Kommentare und Versionen zeigen
+    weiter den Namen (Verlauf). Im Prototyp nur die beiden festen Erwähnungen; im Editor
+    eingefügte Erwähnungen färben sich nicht nach.
   - **Einladungen** (Dialog, wie `../apps/web/src/components/invites.tsx` auf der Startseite): E-Mail
     und Rolle, danach den Link anzeigen und kopieren; Liste mit Status (offen, angenommen,
     zurückgenommen, abgelaufen), offene zurücknehmen. Im Menü zeigt eine Zahl die offenen Einladungen.

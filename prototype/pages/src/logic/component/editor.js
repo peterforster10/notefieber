@@ -395,7 +395,7 @@
           });
       } else {
         list = s.members
-          .filter((m) => words.every((w) => fold(PEOPLE[m.key].name + ' ' + m.email).includes(w)))
+          .filter((m) => this.isActive(m.key) && words.every((w) => fold(PEOPLE[m.key].name + ' ' + m.email).includes(w)))
           .slice(0, 8)
           .map((m) => ({
             glyph: initials(PEOPLE[m.key].name), iconStyle: 'background:' + PEOPLE[m.key].color + ';color:#fff;border-radius:50%;font-size:11px',

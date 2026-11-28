@@ -46,7 +46,7 @@
         </sc-if>
         <div class="nf-dialog-body" style="padding-top: 4px">
           <sc-for list="{{rights.grants}}" as="g" hint-placeholder-count="3">
-            <div class="nf-grant">
+            <div class="nf-grant {{g.inactive}}">
               <span class="nf-byline-avatar" style="background: {{g.bg}}" aria-hidden="true">{{g.initials}}</span>
               <div class="nf-grant-names"><div>{{g.name}}</div><div>{{g.sub}}</div></div>
               <sc-if value="{{g.selectAdmin}}" hint-placeholder-val="{{ false }}">

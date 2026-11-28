@@ -1207,6 +1207,15 @@ span.nf-page-emoji{cursor:default}
   .nf-gm-toolbar{flex-wrap:wrap}
   .nf-gm-toolbar .nf-grant-search{flex-basis:100%}
 }
+/* Deaktivierte Personen (M3, E02): grau in Listen, Hinweis als Etikett, Erwähnungen gedämpft */
+.nf-inactive .nf-byline-avatar{filter:grayscale(1);opacity:.55}
+.nf-inactive .nf-person-names>span:first-child,.nf-inactive .nf-grant-names>div:first-child{color:var(--nf-muted)}
+.nf-inactive-chip{display:inline-block;margin-left:6px;padding:0 7px;border-radius:999px;background:var(--nf-neutral-soft);color:var(--nf-muted);font-size:11px;font-weight:600;vertical-align:1px}
+.nf-link-attention,.nf-link-accent{padding:4px 2px;border:0;background:none;font-size:13px;cursor:pointer}
+.nf-link-attention{color:var(--nf-attention)}
+.nf-link-accent{color:var(--nf-accent)}
+.nf-link-attention:hover,.nf-link-accent:hover{text-decoration:underline}
+.nf-mention.nf-mention-inactive{background:var(--nf-neutral-soft);color:var(--nf-muted)}
 /* Formulare */
 .nf-label{display:block;margin:12px 0 6px;font-weight:500}
 .nf-input{height:38px;padding:0 10px;margin-right:8px;border:1px solid var(--nf-input-border);border-radius:8px;background:var(--nf-bg);font-size:14px}
@@ -2056,7 +2065,7 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
                   </span>
                   <div class="nf-callout-content"><p>Neue Seiten bitte unter dem passenden Bereich anlegen. Seiten mit eigenen Rechten sind mit einem Schloss markiert.</p></div>
                 </div>
-                <p>Fragen zum Wiki an <span class="nf-mention">@Lukas Gruber</span>.</p>
+                <p>Fragen zum Wiki an <span class="nf-mention {{mention.lukas.cls}}" title="{{mention.lukas.title}}">@Lukas Gruber</span>.</p>
               </sc-if>
 
               <!-- Datenmodell: Kommentar an einer Textstelle, Callout, Tabelle, Code, Aufgaben -->
@@ -2110,7 +2119,7 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
                     </label>
                   </sc-for>
                 </div>
-                <p>Wie Rechte vererbt werden, steht unter <a href="#" class="{{rechteLink.cls}}" onClick="{{rechteLink.go}}">{{rechteLink.title}}</a>. Fragen an <span class="nf-mention">@Sophie Bauer</span>.</p>
+                <p>Wie Rechte vererbt werden, steht unter <a href="#" class="{{rechteLink.cls}}" onClick="{{rechteLink.go}}">{{rechteLink.title}}</a>. Fragen an <span class="nf-mention {{mention.sophie.cls}}" title="{{mention.sophie.title}}">@Sophie Bauer</span>.</p>
               </sc-if>
 
               <!-- Nach „Wiederherstellen“ (Prototyp): Inhalt der wiederhergestellten Version statt der festen Vorlage -->
@@ -2850,7 +2859,7 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
         </sc-if>
         <div class="nf-dialog-body" style="padding-top: 4px">
           <sc-for list="{{rights.grants}}" as="g" hint-placeholder-count="3">
-            <div class="nf-grant">
+            <div class="nf-grant {{g.inactive}}">
               <span class="nf-byline-avatar" style="background: {{g.bg}}" aria-hidden="true">{{g.initials}}</span>
               <div class="nf-grant-names"><div>{{g.name}}</div><div>{{g.sub}}</div></div>
               <sc-if value="{{g.selectAdmin}}" hint-placeholder-val="{{ false }}">
@@ -3198,15 +3207,25 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
           <h3 class="nf-section-title">Mitglieder ({{ws.memberCount}})</h3>
           <ul class="nf-people" aria-label="Mitglieder">
             <sc-for list="{{ws.members}}" as="m" hint-placeholder-count="4">
-              <li class="nf-person">
+              <li class="nf-person {{m.rowCls}}">
                 <span class="nf-byline-avatar" style="background: {{m.color}}" aria-hidden="true">{{m.initials}}</span>
-                <span class="nf-person-names"><span>{{m.name}}</span><span>{{m.email}}</span></span>
+                <span class="nf-person-names">
+                  <span>{{m.name}}<sc-if value="{{m.inactive}}" hint-placeholder-val="{{ false }}"> <span class="nf-inactive-chip">Deaktiviert</span></sc-if></span>
+                  <span>{{m.email}}</span>
+                  <sc-if value="{{m.inactive}}" hint-placeholder-val="{{ false }}"><span>{{m.inactiveText}}</span></sc-if>
+                </span>
                 <sc-if value="{{m.editable}}" hint-placeholder-val="{{ true }}">
                   <select class="nf-person-role" aria-label="{{m.roleLabel}}" value="{{m.role}}" onChange="{{m.change}}">
                     <option value="admin">Admin</option>
                     <option value="member">Mitglied</option>
                     <option value="guest">Gast</option>
                   </select>
+                  <button type="button" class="nf-link-attention" aria-label="{{m.deactivateLabel}}" title="Für die ganze Organisation: abmelden und sperren" onClick="{{m.deactivate}}">Deaktivieren</button>
+                  <button type="button" class="nf-link-danger" aria-label="{{m.removeLabel}}" onClick="{{m.remove}}">Entfernen</button>
+                </sc-if>
+                <sc-if value="{{m.inactive}}" hint-placeholder-val="{{ false }}">
+                  <span class="nf-person-role-text">{{m.roleText}}</span>
+                  <button type="button" class="nf-link-accent" aria-label="{{m.reactivateLabel}}" onClick="{{m.reactivate}}">Reaktivieren</button>
                   <button type="button" class="nf-link-danger" aria-label="{{m.removeLabel}}" onClick="{{m.remove}}">Entfernen</button>
                 </sc-if>
                 <sc-if value="{{m.fixed}}" hint-placeholder-val="{{ false }}">
@@ -3404,7 +3423,7 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
             <sc-if value="{{gm.one.hasMembers}}" hint-placeholder-val="{{ true }}">
               <ul class="nf-people" aria-label="Mitglieder">
                 <sc-for list="{{gm.one.members}}" as="gp" hint-placeholder-count="3">
-                  <li class="nf-person">
+                  <li class="nf-person {{gp.inactive}}">
                     <span class="nf-byline-avatar" style="background: {{gp.color}}" aria-hidden="true">{{gp.initials}}</span>
                     <span class="nf-person-names"><span>{{gp.name}}</span><span>{{gp.email}}</span></span>
                     <sc-if value="{{gm.one.editable}}" hint-placeholder-val="{{ true }}">
@@ -3932,6 +3951,9 @@ textarea.nf-input{height:auto;padding:8px 10px;resize:vertical}
           <div>
             <h2 id="confirm-title" class="nf-dialog-title">{{confirm.title}}</h2>
             <p id="confirm-text" class="nf-dialog-description">{{confirm.text}}</p>
+            <sc-if value="{{confirm.hasWarn}}" hint-placeholder-val="{{ false }}">
+              <p class="nf-rights-warn" role="status">{{confirm.warn}}</p>
+            </sc-if>
           </div>
           <button type="button" class="nf-btn nf-btn-icon nf-dialog-close" aria-label="Schließen" onClick="{{closeDialog}}">
             <svg class="nf-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
@@ -4402,6 +4424,8 @@ class Component extends DCLogic {
       spaces: JSON.parse(JSON.stringify(SPACES)),
       grants: JSON.parse(JSON.stringify(GRANTS)),
       groups: JSON.parse(JSON.stringify(GROUPS)),
+      // Deaktivierte Personen (users.deactivated_at, für den ganzen Mandanten): Schlüssel → { by, when }
+      deactivated: {},
       // Dialog „Gruppen“: Liste oder eine Gruppe (gmSel), Entwurf für neue Gruppe und Namen, Hinzufügen, Fehler
       gmSel: null, gmQ: '', gmNew: null, gmName: null, gmAddQ: '', gmAddOpen: false, gmAddActive: 0, gmError: null,
       // Papierkorb: wer wann gelöscht hat und wie viele Tage bis zum endgültigen Löschen bleiben
@@ -4596,7 +4620,7 @@ class Component extends DCLogic {
       „Alle im Workspace“ ohne Gäste; nur Mitglieder des Workspaces; archiviert höchstens Lesen) */
   effRole(list, who, archived) {
     const m = this.state.members.find((x) => x.key === who);
-    if (!m) return null;
+    if (!m || this.state.deactivated[who]) return null;   // nur aktive Mitglieder (app.page_rank)
     let best = null;
     for (const g of list || []) {
       if (g.role === 'none') continue;
@@ -5727,7 +5751,7 @@ class Component extends DCLogic {
           });
       } else {
         list = s.members
-          .filter((m) => words.every((w) => fold(PEOPLE[m.key].name + ' ' + m.email).includes(w)))
+          .filter((m) => this.isActive(m.key) && words.every((w) => fold(PEOPLE[m.key].name + ' ' + m.email).includes(w)))
           .slice(0, 8)
           .map((m) => ({
             glyph: initials(PEOPLE[m.key].name), iconStyle: 'background:' + PEOPLE[m.key].color + ';color:#fff;border-radius:50%;font-size:11px',
@@ -6887,15 +6911,15 @@ class Component extends DCLogic {
 
   /** Quellen (Space „space:KEY“ oder Seite mit eigenen Rechten) ohne wirksamen Admin: Grant für eine
       Person im Workspace oder eine Gruppe mit mindestens einem solchen Mitglied (wie app.has_admin) */
-  sourcesWithoutAdmin(groups, grants) {
-    const inWs = (k) => this.state.members.some((m) => m.key === k);
+  sourcesWithoutAdmin(groups, grants, deactivated = this.state.deactivated) {
+    const inWs = (k) => !deactivated[k] && this.state.members.some((m) => m.key === k);
     return Object.keys(grants).filter((src) => !(grants[src] || []).some((g) => g.role === 'admin'
       && (inWs(g.key) || (!!groups[g.key] && groups[g.key].members.some(inWs)))));
   }
   /** Quellen, die durch die Änderung ihren letzten Admin verlören (vorher hatten sie einen) */
-  adminLoss(groups, grants) {
+  adminLoss(groups, grants, deactivated = this.state.deactivated) {
     const before = new Set(this.sourcesWithoutAdmin(this.state.groups, this.state.grants));
-    return this.sourcesWithoutAdmin(groups, grants).filter((src) => !before.has(src));
+    return this.sourcesWithoutAdmin(groups, grants, deactivated).filter((src) => !before.has(src));
   }
   /** Wo eine Gruppe Rechte hat; Seiten nur mit Titel, wenn du sie sehen kannst */
   groupUses(key) {
@@ -7030,7 +7054,7 @@ class Component extends DCLogic {
       };
       const withMembers = (members) => ({ ...s.groups, [sel]: { ...g, members } });
       const candidates = s.members
-        .filter((m) => !g.members.includes(m.key))
+        .filter((m) => !g.members.includes(m.key) && this.isActive(m.key))
         .map((m) => ({ key: m.key, name: PEOPLE[m.key].name, sub: m.email + (m.role === 'guest' ? ' · Gast' : ''), bg: PEOPLE[m.key].color, hay: PEOPLE[m.key].name + ' ' + m.email }))
         .filter((c) => fold(s.gmAddQ.trim()).split(/\s+/).filter(Boolean).every((w) => fold(c.hay).includes(w)));
       const active = Math.min(s.gmAddActive || 0, Math.max(0, candidates.length - 1));
@@ -7076,7 +7100,8 @@ class Component extends DCLogic {
           const m = s.members.find((x) => x.key === k);
           return {
             name: PEOPLE[k].name + (k === 'peter' ? ' (du)' : ''),
-            email: m ? m.email + (m.role === 'guest' ? ' · Gast' : '') : 'nicht im Workspace',
+            email: !this.isActive(k) ? 'Deaktiviert · zählt nicht, bis die Person reaktiviert ist' : m ? m.email + (m.role === 'guest' ? ' · Gast' : '') : 'nicht im Workspace',
+            inactive: this.isActive(k) ? '' : 'nf-inactive',
             color: PEOPLE[k].color, initials: initials(PEOPLE[k].name),
             removeLabel: PEOPLE[k].name + ' aus „' + g.name + '“ entfernen',
             remove: () => {
@@ -7147,6 +7172,50 @@ class Component extends DCLogic {
         errorLink: () => { if (err && err.src) this.openRightsOf(err.src); }
       }
     };
+  }
+  // ---------- Personen deaktivieren (M3: E02; nur Organisations-Admins, app.set_user_active) ----------
+  // Gilt für den ganzen Mandanten (users.deactivated_at): Sitzungen gelöscht, offene Editoren getrennt
+  // (user.deactivated), kein Zugriff mehr (app.page_rank verlangt aktive Personen), zählt nicht als
+  // Admin (app.has_admin). Grants, Gruppen und Mitgliedschaften bleiben und gelten nach dem
+  // Reaktivieren wieder. Die Datenbank lehnt das Deaktivieren nicht ab, wenn danach irgendwo kein
+  // Admin mehr bleibt; der Dialog warnt vorher.
+  isActive(key) { return !this.state.deactivated[key]; }
+  /** Name mit Zusatz für Listen, in denen Deaktivierte stehen bleiben */
+  personLabel(key) { return PEOPLE[key].name + (this.isActive(key) ? '' : ' (deaktiviert)'); }
+
+  askDeactivate(key) {
+    this.setState({ dialog: 'confirm', confirm: { kind: 'deactivate', key, back: 'workspace' } });
+    this.focusLater('#nf-confirm-cancel');
+  }
+  deactivateConfirm() {
+    const s = this.state;
+    const key = s.confirm.key;
+    const name = PEOPLE[key].name;
+    const lost = this.adminLoss(s.groups, s.grants, { ...s.deactivated, [key]: true });
+    const warn = lost.length
+      ? 'Danach hat ' + lost.map((src) => this.sourceLabel(src)).join(', ') + ' keinen Admin mehr. Ein Organisations-Admin kann dort einen neuen setzen.'
+      : '';
+    return {
+      title: name + ' deaktivieren?',
+      text: 'Gilt für die ganze Organisation: ' + name + ' wird sofort abgemeldet, offene Editoren werden getrennt, und eine neue Anmeldung ist nicht mehr möglich. '
+        + 'Rechte, Gruppen und Mitgliedschaften bleiben gespeichert und gelten nach dem Reaktivieren wieder; Seiten und Kommentare bleiben. Das Konto beim Login-Dienst ändert sich nicht.',
+      warn,
+      hasWarn: !!warn,
+      label: warn ? 'Trotzdem deaktivieren' : 'Deaktivieren',
+      cls: 'nf-btn-attention',
+      ok: () => {
+        this.setState((st) => ({ deactivated: { ...st.deactivated, [key]: { by: 'peter', when: 'am 28. November' } }, dialog: 'workspace', confirm: null }));
+        this.showToast(name + ' deaktiviert');
+      }
+    };
+  }
+  reactivate(key) {
+    this.setState((st) => {
+      const deactivated = { ...st.deactivated };
+      delete deactivated[key];
+      return { deactivated };
+    });
+    this.showToast(PEOPLE[key].name + ' wieder aktiv');
   }
   // ---------- Werte für die Vorlage ----------
   renderVals() {
@@ -7307,7 +7376,7 @@ class Component extends DCLogic {
       go: (e) => { this.prevent(e); this.go(id); }
     });
     // Anwesenheit: nur die anderen; bis drei Avatare, ab vier „+N“
-    const others = (PRESENCE[pid] || []).filter((k) => k !== 'peter');
+    const others = (PRESENCE[pid] || []).filter((k) => k !== 'peter' && this.isActive(k));
     const shownOthers = others.length > 3 ? others.slice(0, 2) : others;
     const presence = shownOthers.map((k) => ({ name: PEOPLE[k].name, color: PEOPLE[k].color, initials: initials(PEOPLE[k].name) }));
     const callout = (key) => ({
@@ -7369,6 +7438,7 @@ class Component extends DCLogic {
         if (grp) return 'Gruppe · ' + grp.members.length + (grp.members.length === 1 ? ' Mitglied' : ' Mitglieder') + (grp.source === 'local' ? '' : ' · ' + GROUP_SOURCE[grp.source]);
         if (key === 'ws') return 'Alle Mitglieder von ' + s.wsName + ', ohne Gäste';
         const m = s.members.find((x) => x.key === key);
+        if (m && !this.isActive(key)) return 'Deaktiviert · kein Zugriff, bis die Person reaktiviert ist';
         return key === 'peter' ? 'Du' : m ? m.email + (m.role === 'guest' ? ' · Gast' : '') : 'Person';
       };
 
@@ -7388,7 +7458,7 @@ class Component extends DCLogic {
       const taken = new Set(d.grants.map((g) => g.key));
       const words = fold(d.query.trim()).split(/\s+/).filter(Boolean);
       const candidates = [
-        ...s.members.map((m) => ({ key: m.key, name: PEOPLE[m.key].name, sub: subOf(m.key), hay: PEOPLE[m.key].name + ' ' + m.email, bg: PEOPLE[m.key].color })),
+        ...s.members.filter((m) => this.isActive(m.key)).map((m) => ({ key: m.key, name: PEOPLE[m.key].name, sub: subOf(m.key), hay: PEOPLE[m.key].name + ' ' + m.email, bg: PEOPLE[m.key].color })),
         ...Object.entries(s.groups).map(([key, grp]) => ({ key, name: grp.name, sub: subOf(key), hay: grp.name + ' gruppe', bg: grp.color })),
         { key: 'ws', name: SUBJECTS.ws.name, sub: subOf('ws'), hay: SUBJECTS.ws.name + ' workspace alle', bg: SUBJECTS.ws.bg }
       ].filter((c) => !taken.has(c.key) && words.every((w) => fold(c.hay).includes(w))).slice(0, 8);
@@ -7422,6 +7492,7 @@ class Component extends DCLogic {
         grants: d.grants.map((g, i) => {
           const subj = this.subject(g.key);
           return {
+            inactive: PEOPLE[g.key] && !this.isActive(g.key) ? 'nf-inactive' : '',
             name: subj.name, sub: subOf(g.key), bg: subj.bg, initials: initialsOf(g.key),
             role: g.role, roleLabel: ROLE_LABEL[g.role],
             selectLabel: 'Rolle für ' + subj.name,
@@ -7468,7 +7539,13 @@ class Component extends DCLogic {
           add: () => addKey(c.key)
         })),
         noSuggest: suggestOpen && candidates.length === 0,
-        noSuggestText: 'Niemand mit „' + d.query.trim() + '“ im Workspace, oder schon in der Liste',
+        noSuggestText: (() => {
+          // Deaktivierte werden nicht vorgeschlagen; passt eine, sagt die Liste es
+          const off = s.members.filter((m) => !this.isActive(m.key) && words.length && words.every((w) => fold(PEOPLE[m.key].name + ' ' + m.email).includes(w)));
+          return off.length
+            ? off.map((m) => PEOPLE[m.key].name).join(', ') + (off.length === 1 ? ' ist' : ' sind') + ' deaktiviert'
+            : 'Niemand mit „' + d.query.trim() + '“ im Workspace, oder schon in der Liste';
+        })(),
         selfWarn: selfWarn && !noAdmin,
         selfWarnText: isSpace
           ? 'Du nimmst dir selbst die Admin-Rechte für diesen Space. Danach kannst du seine Rechte und Einstellungen nicht mehr ändern; zurückgeben kann sie dir nur ein anderer Admin des Spaces oder ein Organisations-Admin.'
@@ -7535,7 +7612,7 @@ class Component extends DCLogic {
         open: true,
         spaceName: sp.name,
         who,
-        people: s.members.filter((x) => x.key !== 'peter').map((x) => ({ key: x.key, label: PEOPLE[x.key].name + (x.role === 'guest' ? ' (Gast)' : '') })),
+        people: s.members.filter((x) => x.key !== 'peter').map((x) => ({ key: x.key, label: PEOPLE[x.key].name + (x.role === 'guest' ? ' (Gast)' : '') + (this.isActive(x.key) ? '' : ' (deaktiviert)') })),
         onWho: (e) => this.setState({ viewAsWho: e.target.value }),
         summary: PEOPLE[who].name + (m && m.role === 'guest' ? ' (Gast)' : '') + ' sieht ' + seen + ' von ' + rows.length + ' Seiten.',
         rows,
@@ -7564,6 +7641,8 @@ class Component extends DCLogic {
           label: 'Wiederherstellen', cls: 'nf-btn-primary',
           ok: () => this.restoreVersion(s.confirm.pid, s.confirm.n)
         };
+      } else if (s.confirm.kind === 'deactivate') {
+        confirm = this.deactivateConfirm();
       } else if (s.confirm.kind === 'deleteGroup') {
         confirm = this.groupDeleteConfirm();
       } else if (s.confirm.kind === 'removeMember') {
@@ -7971,6 +8050,10 @@ class Component extends DCLogic {
         link('betrieb', 'Cluster, Backups und Bereitschaft')
       ],
       rechteLink: link('rechte'),
+      // Erwähnungen im Inhalt: deaktivierte Personen grau mit Hinweis (Name bleibt, wie bei Seitenlinks über die ID)
+      mention: Object.fromEntries(['lukas', 'sophie'].map((k) => [k, this.isActive(k)
+        ? { cls: '', title: PEOPLE[k].name }
+        : { cls: 'nf-mention-inactive', title: PEOPLE[k].name + ' ist deaktiviert' }])),
       calloutHome: callout('home'),
       calloutDm: callout('dm'),
       // Die feste Markierung in der Vorlage (Thread t1): offen dezent, aktiv kräftiger, erledigt unsichtbar
@@ -8041,7 +8124,15 @@ class Component extends DCLogic {
               roleText: WS_ROLE[m.role],
               roleLabel: 'Rolle von ' + name,
               removeLabel: name + ' entfernen',
-              editable: !fixed,
+              // Deaktivieren gilt für den ganzen Mandanten (nur Organisations-Admins; Peter ist es)
+              inactive: !this.isActive(m.key),
+              rowCls: this.isActive(m.key) ? '' : 'nf-inactive',
+              inactiveText: this.isActive(m.key) ? '' : 'Deaktiviert ' + s.deactivated[m.key].when + ' von ' + PEOPLE[s.deactivated[m.key].by].name,
+              deactivateLabel: name + ' deaktivieren',
+              reactivateLabel: name + ' reaktivieren',
+              deactivate: () => this.askDeactivate(m.key),
+              reactivate: () => this.reactivate(m.key),
+              editable: !fixed && this.isActive(m.key),
               fixed,
               change: (e) => {
                 const v = e.target.value;

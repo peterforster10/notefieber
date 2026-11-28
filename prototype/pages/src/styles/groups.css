@@ -33,3 +33,12 @@
   .nf-gm-toolbar{flex-wrap:wrap}
   .nf-gm-toolbar .nf-grant-search{flex-basis:100%}
 }
+/* Deaktivierte Personen (M3, E02): grau in Listen, Hinweis als Etikett, Erwähnungen gedämpft */
+.nf-inactive .nf-byline-avatar{filter:grayscale(1);opacity:.55}
+.nf-inactive .nf-person-names>span:first-child,.nf-inactive .nf-grant-names>div:first-child{color:var(--nf-muted)}
+.nf-inactive-chip{display:inline-block;margin-left:6px;padding:0 7px;border-radius:999px;background:var(--nf-neutral-soft);color:var(--nf-muted);font-size:11px;font-weight:600;vertical-align:1px}
+.nf-link-attention,.nf-link-accent{padding:4px 2px;border:0;background:none;font-size:13px;cursor:pointer}
+.nf-link-attention{color:var(--nf-attention)}
+.nf-link-accent{color:var(--nf-accent)}
+.nf-link-attention:hover,.nf-link-accent:hover{text-decoration:underline}
+.nf-mention.nf-mention-inactive{background:var(--nf-neutral-soft);color:var(--nf-muted)}

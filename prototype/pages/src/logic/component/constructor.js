@@ -10,6 +10,8 @@
       spaces: JSON.parse(JSON.stringify(SPACES)),
       grants: JSON.parse(JSON.stringify(GRANTS)),
       groups: JSON.parse(JSON.stringify(GROUPS)),
+      // Deaktivierte Personen (users.deactivated_at, für den ganzen Mandanten): Schlüssel → { by, when }
+      deactivated: {},
       // Dialog „Gruppen“: Liste oder eine Gruppe (gmSel), Entwurf für neue Gruppe und Namen, Hinzufügen, Fehler
       gmSel: null, gmQ: '', gmNew: null, gmName: null, gmAddQ: '', gmAddOpen: false, gmAddActive: 0, gmError: null,
       // Papierkorb: wer wann gelöscht hat und wie viele Tage bis zum endgültigen Löschen bleiben

@@ -157,7 +157,7 @@
       go: (e) => { this.prevent(e); this.go(id); }
     });
     // Anwesenheit: nur die anderen; bis drei Avatare, ab vier „+N“
-    const others = (PRESENCE[pid] || []).filter((k) => k !== 'peter');
+    const others = (PRESENCE[pid] || []).filter((k) => k !== 'peter' && this.isActive(k));
     const shownOthers = others.length > 3 ? others.slice(0, 2) : others;
     const presence = shownOthers.map((k) => ({ name: PEOPLE[k].name, color: PEOPLE[k].color, initials: initials(PEOPLE[k].name) }));
     const callout = (key) => ({
@@ -219,6 +219,7 @@
         if (grp) return 'Gruppe · ' + grp.members.length + (grp.members.length === 1 ? ' Mitglied' : ' Mitglieder') + (grp.source === 'local' ? '' : ' · ' + GROUP_SOURCE[grp.source]);
         if (key === 'ws') return 'Alle Mitglieder von ' + s.wsName + ', ohne Gäste';
         const m = s.members.find((x) => x.key === key);
+        if (m && !this.isActive(key)) return 'Deaktiviert · kein Zugriff, bis die Person reaktiviert ist';
         return key === 'peter' ? 'Du' : m ? m.email + (m.role === 'guest' ? ' · Gast' : '') : 'Person';
       };
 
@@ -238,7 +239,7 @@
       const taken = new Set(d.grants.map((g) => g.key));
       const words = fold(d.query.trim()).split(/\s+/).filter(Boolean);
       const candidates = [
-        ...s.members.map((m) => ({ key: m.key, name: PEOPLE[m.key].name, sub: subOf(m.key), hay: PEOPLE[m.key].name + ' ' + m.email, bg: PEOPLE[m.key].color })),
+        ...s.members.filter((m) => this.isActive(m.key)).map((m) => ({ key: m.key, name: PEOPLE[m.key].name, sub: subOf(m.key), hay: PEOPLE[m.key].name + ' ' + m.email, bg: PEOPLE[m.key].color })),
         ...Object.entries(s.groups).map(([key, grp]) => ({ key, name: grp.name, sub: subOf(key), hay: grp.name + ' gruppe', bg: grp.color })),
         { key: 'ws', name: SUBJECTS.ws.name, sub: subOf('ws'), hay: SUBJECTS.ws.name + ' workspace alle', bg: SUBJECTS.ws.bg }
       ].filter((c) => !taken.has(c.key) && words.every((w) => fold(c.hay).includes(w))).slice(0, 8);
@@ -272,6 +273,7 @@
         grants: d.grants.map((g, i) => {
           const subj = this.subject(g.key);
           return {
+            inactive: PEOPLE[g.key] && !this.isActive(g.key) ? 'nf-inactive' : '',
             name: subj.name, sub: subOf(g.key), bg: subj.bg, initials: initialsOf(g.key),
             role: g.role, roleLabel: ROLE_LABEL[g.role],
             selectLabel: 'Rolle für ' + subj.name,
@@ -318,7 +320,13 @@
           add: () => addKey(c.key)
         })),
         noSuggest: suggestOpen && candidates.length === 0,
-        noSuggestText: 'Niemand mit „' + d.query.trim() + '“ im Workspace, oder schon in der Liste',
+        noSuggestText: (() => {
+          // Deaktivierte werden nicht vorgeschlagen; passt eine, sagt die Liste es
+          const off = s.members.filter((m) => !this.isActive(m.key) && words.length && words.every((w) => fold(PEOPLE[m.key].name + ' ' + m.email).includes(w)));
+          return off.length
+            ? off.map((m) => PEOPLE[m.key].name).join(', ') + (off.length === 1 ? ' ist' : ' sind') + ' deaktiviert'
+            : 'Niemand mit „' + d.query.trim() + '“ im Workspace, oder schon in der Liste';
+        })(),
         selfWarn: selfWarn && !noAdmin,
         selfWarnText: isSpace
           ? 'Du nimmst dir selbst die Admin-Rechte für diesen Space. Danach kannst du seine Rechte und Einstellungen nicht mehr ändern; zurückgeben kann sie dir nur ein anderer Admin des Spaces oder ein Organisations-Admin.'
@@ -385,7 +393,7 @@
         open: true,
         spaceName: sp.name,
         who,
-        people: s.members.filter((x) => x.key !== 'peter').map((x) => ({ key: x.key, label: PEOPLE[x.key].name + (x.role === 'guest' ? ' (Gast)' : '') })),
+        people: s.members.filter((x) => x.key !== 'peter').map((x) => ({ key: x.key, label: PEOPLE[x.key].name + (x.role === 'guest' ? ' (Gast)' : '') + (this.isActive(x.key) ? '' : ' (deaktiviert)') })),
         onWho: (e) => this.setState({ viewAsWho: e.target.value }),
         summary: PEOPLE[who].name + (m && m.role === 'guest' ? ' (Gast)' : '') + ' sieht ' + seen + ' von ' + rows.length + ' Seiten.',
         rows,
@@ -414,6 +422,8 @@
           label: 'Wiederherstellen', cls: 'nf-btn-primary',
           ok: () => this.restoreVersion(s.confirm.pid, s.confirm.n)
         };
+      } else if (s.confirm.kind === 'deactivate') {
+        confirm = this.deactivateConfirm();
       } else if (s.confirm.kind === 'deleteGroup') {
         confirm = this.groupDeleteConfirm();
       } else if (s.confirm.kind === 'removeMember') {
@@ -821,6 +831,10 @@
         link('betrieb', 'Cluster, Backups und Bereitschaft')
       ],
       rechteLink: link('rechte'),
+      // Erwähnungen im Inhalt: deaktivierte Personen grau mit Hinweis (Name bleibt, wie bei Seitenlinks über die ID)
+      mention: Object.fromEntries(['lukas', 'sophie'].map((k) => [k, this.isActive(k)
+        ? { cls: '', title: PEOPLE[k].name }
+        : { cls: 'nf-mention-inactive', title: PEOPLE[k].name + ' ist deaktiviert' }])),
       calloutHome: callout('home'),
       calloutDm: callout('dm'),
       // Die feste Markierung in der Vorlage (Thread t1): offen dezent, aktiv kräftiger, erledigt unsichtbar
@@ -891,7 +905,15 @@
               roleText: WS_ROLE[m.role],
               roleLabel: 'Rolle von ' + name,
               removeLabel: name + ' entfernen',
-              editable: !fixed,
+              // Deaktivieren gilt für den ganzen Mandanten (nur Organisations-Admins; Peter ist es)
+              inactive: !this.isActive(m.key),
+              rowCls: this.isActive(m.key) ? '' : 'nf-inactive',
+              inactiveText: this.isActive(m.key) ? '' : 'Deaktiviert ' + s.deactivated[m.key].when + ' von ' + PEOPLE[s.deactivated[m.key].by].name,
+              deactivateLabel: name + ' deaktivieren',
+              reactivateLabel: name + ' reaktivieren',
+              deactivate: () => this.askDeactivate(m.key),
+              reactivate: () => this.reactivate(m.key),
+              editable: !fixed && this.isActive(m.key),
               fixed,
               change: (e) => {
                 const v = e.target.value;

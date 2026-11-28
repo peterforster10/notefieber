@@ -10,15 +10,15 @@
 
   /** Quellen (Space „space:KEY“ oder Seite mit eigenen Rechten) ohne wirksamen Admin: Grant für eine
       Person im Workspace oder eine Gruppe mit mindestens einem solchen Mitglied (wie app.has_admin) */
-  sourcesWithoutAdmin(groups, grants) {
-    const inWs = (k) => this.state.members.some((m) => m.key === k);
+  sourcesWithoutAdmin(groups, grants, deactivated = this.state.deactivated) {
+    const inWs = (k) => !deactivated[k] && this.state.members.some((m) => m.key === k);
     return Object.keys(grants).filter((src) => !(grants[src] || []).some((g) => g.role === 'admin'
       && (inWs(g.key) || (!!groups[g.key] && groups[g.key].members.some(inWs)))));
   }
   /** Quellen, die durch die Änderung ihren letzten Admin verlören (vorher hatten sie einen) */
-  adminLoss(groups, grants) {
+  adminLoss(groups, grants, deactivated = this.state.deactivated) {
     const before = new Set(this.sourcesWithoutAdmin(this.state.groups, this.state.grants));
-    return this.sourcesWithoutAdmin(groups, grants).filter((src) => !before.has(src));
+    return this.sourcesWithoutAdmin(groups, grants, deactivated).filter((src) => !before.has(src));
   }
   /** Wo eine Gruppe Rechte hat; Seiten nur mit Titel, wenn du sie sehen kannst */
   groupUses(key) {
@@ -153,7 +153,7 @@
       };
       const withMembers = (members) => ({ ...s.groups, [sel]: { ...g, members } });
       const candidates = s.members
-        .filter((m) => !g.members.includes(m.key))
+        .filter((m) => !g.members.includes(m.key) && this.isActive(m.key))
         .map((m) => ({ key: m.key, name: PEOPLE[m.key].name, sub: m.email + (m.role === 'guest' ? ' · Gast' : ''), bg: PEOPLE[m.key].color, hay: PEOPLE[m.key].name + ' ' + m.email }))
         .filter((c) => fold(s.gmAddQ.trim()).split(/\s+/).filter(Boolean).every((w) => fold(c.hay).includes(w)));
       const active = Math.min(s.gmAddActive || 0, Math.max(0, candidates.length - 1));
@@ -199,7 +199,8 @@
           const m = s.members.find((x) => x.key === k);
           return {
             name: PEOPLE[k].name + (k === 'peter' ? ' (du)' : ''),
-            email: m ? m.email + (m.role === 'guest' ? ' · Gast' : '') : 'nicht im Workspace',
+            email: !this.isActive(k) ? 'Deaktiviert · zählt nicht, bis die Person reaktiviert ist' : m ? m.email + (m.role === 'guest' ? ' · Gast' : '') : 'nicht im Workspace',
+            inactive: this.isActive(k) ? '' : 'nf-inactive',
             color: PEOPLE[k].color, initials: initials(PEOPLE[k].name),
             removeLabel: PEOPLE[k].name + ' aus „' + g.name + '“ entfernen',
             remove: () => {

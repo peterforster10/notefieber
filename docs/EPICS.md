@@ -81,6 +81,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Mandant mit erstem Workspace und Organisations-Admin in einer Transaktion (`app.create_tenant`), optional mit der ID aus TalkFieber. Für den Pilot über ein Admin-Skript (M5), Selbstregistrierung erst in Stufe 3 mit E20
 - Einladung per Link, Rollen owner, admin, member, guest pro Workspace (fertig, M0)
 - Einladung per E-Mail: Die API schickt die Mail beim Anlegen selbst, weil das Token nur in diesem Moment im Klartext vorliegt (in der Datenbank nur sein Hash); schlägt der Versand fehl, bleibt der Link zum Weitergeben. Texte auf Deutsch und Englisch
+- **Registrieren nach Einladung** (M2, nach dem Mailversand): Wer eingeladen ist und noch kein Konto hat, legt es aus dem Einladungslink heraus bei Zitadel an (Selbstregistrierung in der Organisation des Mandanten, Login mit `prompt=create`) und wird beim ersten Login über die bestätigte E-Mail Mitglied. Das Konto entsteht bei Zitadel, nie in der App (`CLAUDE.md` §3). Gilt auch für externe Personen, die als Gast oder Mitglied eingeladen werden; Freigaben nach außen ohne Workspace-Mitgliedschaft bleiben E18
 - Profil mit Name, Bild, Sprache, Zeitzone (M2; die Sprache steuert die Oberfläche), erreichbar über „Benutzerprofil“ im Konto-Menü oben rechts (Prototyp)
 - Workspace verwalten als Dialoge im Zahnrad-Menü (Prototyp, M3): „Workspace“ mit Name und Mitgliedern (Rolle ändern, entfernen mit Rückfrage, Owner fest) und „Einladungen“ (anlegen, Link kopieren, Liste mit Status offen, angenommen, zurückgenommen, abgelaufen; offene zurücknehmen), nur für Owner und Admins
 - Gruppen im Wiki anlegen und pflegen, nur Organisations-Admins (`app.create_group`, `app.add_group_member` …). Datenbank fertig; API und Oberfläche kommen mit E09 in M3, zusammen mit dem Rechte-Dialog. Zitadel hat keine Gruppen; SCIM (E17) und ein Gruppen-Claim im Token (E03) kommen später als Quellen dazu
@@ -95,7 +96,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 
 **Abhängigkeiten:** E01, E03.
 
-**Story-Kandidaten:** Organisation registrieren · Team einladen · Gruppen anlegen und pflegen · Person deaktivieren · Person aus Workspace entfernen
+**Story-Kandidaten:** Organisation registrieren · Team einladen · Nach einer Einladung registrieren · Gruppen anlegen und pflegen · Person deaktivieren · Person aus Workspace entfernen
 
 ---
 
@@ -107,7 +108,7 @@ Jede Story verweist auf ihr Epic (z. B. `E09-03`) und gilt erst als fertig, wenn
 - Zitadel als Login-Dienst, gemeinsam mit TalkFieber (eine Organisation pro Mandant)
 - Die App spricht nur generisches OIDC; Zitadel-Claims (Mandant, Person) liest die API an einer Stelle mit einstellbaren Claim-Namen
 - Später: Gruppen aus einem Gruppen-Claim im Token übernehmen (Quelle `idp`, `app.sync_user_groups`), z. B. bei Entra ID. Die Funktion ist derzeit nur für `wiki_worker` ausführbar (REVIEW.md, R-02); dann entscheiden, wer sie mit dem geprüften Claim aufruft (Worker-Auftrag aus dem Login oder eine eigene Datenbankrolle nur für den Login)
-- E-Mail und Passwort, Magic Link, Passkeys, Zwei-Faktor (in Zitadel; Zwei-Faktor und Passkeys vor dem Pilot, M5)
+- E-Mail bzw. Benutzername und Passwort, Magic Link, Passkeys, Zwei-Faktor (in Zitadel; Zwei-Faktor und Passkeys vor dem Pilot, M5). Selbstregistrierung bei Zitadel nur als Weg aus einer Einladung (E02, M2); NoteFieber hat kein eigenes Passwort-Login und speichert keine Passwörter
 - Alle eigenen Sitzungen beenden (M5)
 - Anmeldung am Collab-Server über das Sitzungs-Cookie beim WebSocket-Handshake, ohne eigenes Token (siehe E04)
 - SSO über OIDC und SAML, insbesondere Entra ID (Stufe 1 und 2 als Pilotfunktion, Stufe 3 voll)
